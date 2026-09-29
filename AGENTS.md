@@ -43,7 +43,7 @@ Classify execution dependencies as either:
 - **autonomous / AFK-safe** — the agent can proceed from approved scope and repository evidence without further human intent;
 - **HITL required** — work must stop before crossing an unresolved human-decision boundary.
 
-If autonomous work can proceed safely while another dependency awaits human input, keep those dependencies explicit rather than treating the entire task as blocked.
+If autonomous work can proceed safely while another dependency awaits human input, keep those dependencies explicit rather than treating the entire task as blocked. AFK-safe autonomy never overrides readiness failures, conflicts, safety rules, verification failures, or another explicit blocker.
 
 If the requested change violates an ADR, architecture boundary, security rule, or acceptance criterion, surface the conflict instead of silently working around it.
 
