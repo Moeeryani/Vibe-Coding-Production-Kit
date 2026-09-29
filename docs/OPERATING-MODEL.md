@@ -16,7 +16,7 @@ Inspects repository evidence, separates discovered facts from proposals and huma
 Executes only approved, unblocked, implementation-ready scope. It adds/updates tests, uses deterministic feedback, runs configured verification, and does not broaden scope silently.
 
 ### Review agent / human reviewer
-Starts from requirements, accepted decisions, current Source of Truth, actual diff, tests, and verification evidence rather than trusting the implementation narrative. It classifies concrete defects/risks and separates required fixes from follow-up work.
+Starts from requirements, accepted decisions, current Source of Truth, actual diff, tests, and verification evidence rather than trusting the implementation narrative. It classifies concrete defects/risks, separates required fixes from follow-up work, and preserves material review findings/dispositions in durable task/completion evidence so later agents can audit the review without the old conversation.
 
 ### CI / executable validation channel
 Acts as the mechanical gate for reproducible checks when available. Executed evidence is more authoritative than an agent saying “looks good.” If CI infrastructure cannot run, an explicitly accepted equivalent validation channel must still execute the repository contract; unavailable CI is neither a pass nor a source failure.
@@ -188,6 +188,8 @@ Is this required to satisfy the current acceptance criteria safely?
 
 If yes, fix it now. If not, capture follow-up work explicitly rather than silently expanding scope.
 
+Material review findings, dispositions, resolutions, follow-up references, and residual risks belong in durable task/completion evidence. Reviewer chat is not sufficient engineering state for restartability.
+
 Tests and review do not eliminate manual/product QA where UI, human behavior, integration, or judgment still matters.
 
 QA findings re-enter the task graph:
@@ -243,6 +245,6 @@ The developer should not need to understand internal VCP metadata to use the wor
 6. Only unblocked, ready AFK work may run unattended.
 7. Keep context bounded and restartable.
 8. Executed evidence outranks agent confidence.
-9. Fresh review must challenge implementation assumptions.
+9. Fresh review must challenge implementation assumptions and preserve material findings durably.
 10. QA findings re-enter work tracking instead of silently expanding scope.
 11. Do not persist workflow concepts merely because they are useful prose; dogfood first, then add the minimum state enforcement actually requires.
