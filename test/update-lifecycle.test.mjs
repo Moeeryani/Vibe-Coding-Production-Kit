@@ -20,13 +20,40 @@ async function writeManifest(root, value) {
   await writeFile(path.join(root, '.vcp/manifest.json'), `${JSON.stringify(value, null, 2)}\n`);
 }
 
+test('fresh auto install records requested stack separately from resolved stack', async () => {
+  const root = await tempDir();
+  await writeFile(path.join(root, 'package.json'), `${JSON.stringify({ name: 'fixture' }, null, 2)}\n`, 'utf8');
+  await initProject({ targetDir: root, agent: 'generic', stack: 'auto', includeGitHub: false });
+
+  const installed = await manifest(root);
+  assert.equal(installed.install.stack, 'javascript');
+  assert.equal(installed.install.requestedStack, 'auto');
+});
+
 test('fresh v0.9 install is update-idempotent', async () => {
   const root = await tempDir();
   await initProject({ targetDir: root, agent: 'generic', stack: 'generic', includeGitHub: false });
+  assert.equal((await manifest(root)).install.requestedStack, 'generic');
   const plan = await planUpdate({ targetDir: root });
   assert.equal(plan.upToDate, true);
   assert.equal(plan.conflicts, 0);
   assert.equal(plan.changes, 0);
+});
+
+test('legacy generic install with unknown stack provenance stays generic', async () => {
+  const root = await tempDir();
+  await writeFile(path.join(root, 'package.json'), `${JSON.stringify({ name: 'legacy-js' }, null, 2)}\n`, 'utf8');
+  await initProject({ targetDir: root, agent: 'generic', stack: 'generic', includeGitHub: false });
+
+  const oldManifest = await manifest(root);
+  delete oldManifest.install.requestedStack;
+  oldManifest.installedVersion = '0.9.0';
+  for (const entry of Object.values(oldManifest.managedFiles)) entry.templateVersion = '0.9.0';
+  await writeManifest(root, oldManifest);
+
+  const plan = await planUpdate({ targetDir: root });
+  assert.equal(plan.stack, 'generic');
+  assert.equal(plan.migratedManifest.install.requestedStack, undefined);
 });
 
 test('local AGENTS edits are preserved on same-version planning', async () => {
