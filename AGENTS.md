@@ -28,6 +28,23 @@ Before implementation, provide a concise plan containing:
 - tests to add or update;
 - architecture conflicts, if any.
 
+Before asking the developer a question, classify the uncertainty:
+
+- **discoverable** — resolve it from repository evidence, existing contracts, tests, or documentation;
+- **proposal-safe** — choose the smallest reversible engineering default, state the assumption, and proceed when it does not change product intent or material risk;
+- **human decision required** — ask when the answer changes intended product behavior, security posture, compatibility policy, data ownership, rollout risk, or another decision that cannot be inferred safely.
+
+Group genuinely blocking human questions instead of interrupting for every minor uncertainty. Explain what decision is blocked and why repository evidence is insufficient.
+
+When a task spans multiple boundaries, plan the smallest coherent **vertical slices** that produce testable end-to-end behavior. Prefer slices that cross the necessary domain/data/API/UI boundaries for one capability over broad phases such as “build all data code, then all service code, then all UI.” Each slice should have explicit acceptance evidence and verification.
+
+Classify execution dependencies as either:
+
+- **autonomous / AFK-safe** — the agent can proceed from approved scope and repository evidence without further human intent;
+- **HITL required** — work must stop before crossing an unresolved human-decision boundary.
+
+If autonomous work can proceed safely while another dependency awaits human input, keep those dependencies explicit rather than treating the entire task as blocked.
+
 If the requested change violates an ADR, architecture boundary, security rule, or acceptance criterion, surface the conflict instead of silently working around it.
 
 ## 3. Scope discipline
@@ -38,6 +55,8 @@ If the requested change violates an ADR, architecture boundary, security rule, o
 - Do not add a dependency unless it is necessary and justified.
 - Prefer the smallest coherent diff that fully satisfies acceptance criteria.
 - If a safe implementation requires a broader change, explain why and isolate it when practical.
+- Fix review findings in the current task when they are required for acceptance criteria, correctness, security, compatibility, data integrity, or the agreed Definition of Done.
+- Record broader improvements, optional refactors, and newly discovered work as explicit follow-ups instead of silently expanding the current task.
 
 ## 4. Architecture
 
@@ -149,6 +168,15 @@ Review the final diff for:
 - stale docs;
 - accidental unrelated changes.
 
+After implementation self-review, obtain a **fresh review context or independent reviewer when practical**. The fresh reviewer should reconstruct intent from the task, Source of Truth, acceptance criteria, and diff rather than assuming the implementation author's summary is correct.
+
+Classify review findings before changing scope:
+
+- **must fix now** — required for acceptance criteria, correctness, security, compatibility, data integrity, or Definition of Done;
+- **follow-up candidate** — useful broader improvement, optional refactor, or newly discovered work that is not required for this bounded task.
+
+Do not turn every review suggestion into implicit scope expansion.
+
 ## 13. Definition of Done
 
 A task is not done until relevant items in `docs/delivery/DEFINITION-OF-DONE.md` are satisfied.
@@ -170,7 +198,8 @@ When reporting completion, include:
 2. why;
 3. tests/verification actually run;
 4. migrations or operational impact;
-5. remaining risks/known limitations.
+5. remaining risks/known limitations;
+6. follow-up work created or recommended.
 
 Never hide uncertainty. Never report inferred success as verified success.
 
@@ -192,13 +221,16 @@ The developer should make product and engineering decisions; the coding agent sh
 
 - Create or update one bounded VCP task instead of asking the developer to manually fill the task template.
 - Draft the outcome, acceptance criteria, scope, affected boundaries, invariants, security/privacy considerations, failure modes, observability, test plan, rollout/recovery, and an implementation plan from available evidence.
+- Classify open questions as discoverable, proposal-safe, or human-decision-required before interrupting the developer.
 - Run `vcp ready <task> --stage plan`; resolve what can be resolved from the repository and ask the developer only for remaining human-intent decisions.
 - Build the planning context with `vcp context <task> --mode plan` and produce a bounded plan before code changes.
+- Structure non-trivial plans as the smallest coherent vertical slices, each with acceptance evidence, tests, and explicit autonomous/HITL dependencies.
 - After plan approval, run `vcp ready <task> --stage implement` and do not implement while blocking findings remain.
 - Build implementation context with only the affected paths needed by the approved plan: use `--include` for files that already exist and `--planned` for approved greenfield paths that do not exist yet.
-- Implement only the approved scope.
+- Implement only the approved scope, proceeding autonomously through AFK-safe work and stopping before unresolved HITL boundaries.
 - Preview `vcp verify <task>` before execution, then run verification with explicit `--run` and retain evidence when useful.
-- Build review context and perform an independent review before claiming completion.
+- Build review context and perform an independent fresh review before claiming completion.
+- Fix must-fix review findings in scope; record non-blocking broader improvements as explicit follow-up work rather than silently extending the task.
 
 ### Human decision boundary
 
