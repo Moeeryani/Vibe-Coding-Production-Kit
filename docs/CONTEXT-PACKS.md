@@ -171,6 +171,8 @@ Independent Reviewer
 
 The review pack should reconstruct requirements and evidence independently instead of embedding unnecessary implementation narration.
 
+Material review findings, dispositions, resolutions, follow-up references, and residual risks should then be written back to durable Task Pack/completion evidence. The context pack is transport into review; reviewer chat is not durable engineering state.
+
 ## Write a reusable pack
 
 By default the pack is printed to stdout so it can be piped or passed into any coding tool. To save it:
