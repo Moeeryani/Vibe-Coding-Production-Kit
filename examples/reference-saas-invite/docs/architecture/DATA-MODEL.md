@@ -20,7 +20,8 @@
 - at most one active/pending invite for `(org_id, email_normalized)`;
 - accepted fields are null unless status is accepted;
 - tenant ID is never rewritten;
-- pending->accepted compare-and-set/locking occurs transactionally.
+- pending->accepted compare-and-set/locking occurs transactionally;
+- pending->revoked compare-and-set/locking occurs transactionally and is mutually exclusive with acceptance.
 
 ## Indexes
 

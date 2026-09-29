@@ -31,6 +31,7 @@ A real repository must make these operations atomic:
 
 - replace previous pending invite for `(orgId, normalizedEmail)` when issuing;
 - transition `pending -> accepted` exactly once;
+- transition `pending -> revoked` exactly once, mutually exclusive with acceptance under the same compare-and-set discipline (manual revoke, PRD FR-003);
 - create membership consistently with acceptance (transaction or durable workflow, depending on architecture).
 
 The in-memory repository demonstrates semantics but is not a concurrency substitute for a database constraint/transaction.

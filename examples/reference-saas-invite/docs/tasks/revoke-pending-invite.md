@@ -1,6 +1,6 @@
 # Task — Manually revoke a pending organization invitation
 
-Status: Ready for implementation
+Status: Implemented — fresh review complete, must-fix findings resolved
 Slug: `revoke-pending-invite`
 
 ## Outcome
@@ -52,14 +52,14 @@ Add an administrator-initiated revocation use case to the invitation application
 
 ## Acceptance criteria
 
-- [ ] AC-001 — An admin in the invitation's organization with `members.invite` transitions the pending invitation to `revoked`.
-- [ ] AC-002 — After revocation, acceptance with the original delivery token fails with the coarse invalid-invitation error (links to AC-102).
-- [ ] AC-003 — An actor without `members.invite` is rejected (T-002).
-- [ ] AC-004 — An actor from another organization cannot revoke the invitation, with no existence leak (T-001, T-008 pattern).
-- [ ] AC-005 — Non-pending invitations (`accepted`, `revoked`) cannot be revoked; `revoked` stays terminal; a second revoke does not succeed (AD-02, T-007).
-- [ ] AC-006 — Identification input is the invitation id per AD-06; organization is never taken from client input as authoritative (AD-04).
-- [ ] AC-007 — No raw token appears as an input to revocation, in persisted state, or in any new error text (ADR-001, T-010).
-- [ ] AC-008 — Tests added for every path above; `npm test` and `npm run check` pass.
+- [x] AC-001 — An admin in the invitation's organization with `members.invite` transitions the pending invitation to `revoked`.
+- [x] AC-002 — After revocation, acceptance with the original delivery token fails with the coarse invalid-invitation error (links to AC-102).
+- [x] AC-003 — An actor without `members.invite` is rejected (T-002).
+- [x] AC-004 — An actor from another organization cannot revoke the invitation, with no existence leak (T-001, T-008 pattern).
+- [x] AC-005 — Non-pending invitations (`accepted`, `revoked`) cannot be revoked; `revoked` stays terminal; a second revoke does not succeed (AD-02, T-007).
+- [x] AC-006 — Identification input is the invitation id per AD-06; organization is never taken from client input as authoritative (AD-04).
+- [x] AC-007 — No raw token appears as an input to revocation, in persisted state, or in any new error text (ADR-001, T-010).
+- [x] AC-008 — Tests added for every path above; `npm test` and `npm run check` pass.
 
 ## Scope
 
@@ -153,20 +153,24 @@ Do not claim a command passed unless it was actually executed.
 
 ## Independent review checklist
 
-- [ ] Acceptance criteria are satisfied.
-- [ ] No unrelated changes are included.
-- [ ] Architecture/module boundaries are respected.
-- [ ] Authorization and tenant/resource ownership are correct.
-- [ ] Validation/error handling covers negative paths.
-- [ ] Concurrency/idempotency/race risks were considered where relevant.
-- [ ] Tests prove behavior rather than implementation details.
-- [ ] Docs/contracts/ADRs were updated when required.
+- [x] Acceptance criteria are satisfied.
+- [x] No unrelated changes are included. (prompts/ copy is disclosed VCP tooling enablement, commit 380c9f2, not feature scope)
+- [x] Architecture/module boundaries are respected.
+- [x] Authorization and tenant/resource ownership are correct.
+- [x] Validation/error handling covers negative paths.
+- [x] Concurrency/idempotency/race risks were considered where relevant.
+- [x] Tests prove behavior rather than implementation details.
+- [x] Docs/contracts/ADRs were updated when required.
 
 ## Completion report
 
-At handoff:
+- **What changed and why:** `InvitationService.revoke({ actor, invitationId })` (AD-06) enforces `members.invite` + actor-org match (AD-01/AD-04) with coarse indistinguishable failures for unknown/cross-org/non-pending (AP-03, AC-201); repository gained `revokeIfPending` compare-and-set (AP-02); existing domain `revokeInvitation` reused (AP-01). Status-only revocation per AD-07 — no attribution columns. Docs: PRD FR-003 (AC-201..205 + decision note), USER-FLOWS Flow C, ARCHITECTURE/DATA-MODEL production CAS lines (fresh-review finding 2, folded in).
+- **Verification actually run:** `npm test` → 18/18 pass, exit 0 (run directly and via `vcp verify --run`; evidence `.vcp/evidence/revoke-pending-invite.json`); `npm run check` → exit 0 (run manually — no `CHECK_COMMAND` key exists in VCP's fixed key list); plan gate 13 pass/0 fail exit 0; implement gate 15 pass/0 fail exit 0; fresh independent reviewer re-ran both commands with the same results.
+- **Migration/operational impact:** none; additive in-memory behavior, no schema change (AD-07).
+- **Remaining risks/limitations:** in-memory CAS demonstrates but cannot prove production atomicity (documented in ARCHITECTURE.md); manual revocation attribution is production-audit-event-only (AD-07, PRD decision note); no HTTP surface or rate limiting (AD-05, pre-existing example gaps).
 
-- What changed and why:
-- Verification actually run:
-- Migration/operational impact:
-- Remaining risks/limitations:
+## Follow-ups recorded (not in this task)
+
+- FU-1: service-level interleaved accept-vs-revoke race test (fresh-review finding 3; repository-level CAS coverage exists).
+- FU-2: `vcp task`/verify cannot represent `npm run check` because VCP's command-key list has no `CHECK_COMMAND`; candidate kit improvement.
+- FU-3: the reference example lacked `prompts/`, so `vcp context` could not run against it; resolved by copying canonical prompts (commit 380c9f2) — decide whether examples should ship prompts or context needs a fallback.
