@@ -41,5 +41,7 @@ Finding class and current-task disposition are separate concepts. For example, a
 
 Use `must fix in this task` when the issue is required for acceptance criteria, correctness, security, compatibility, data integrity, or the agreed Definition of Done. Use `follow-up candidate` for broader improvements, optional refactors, or newly discovered work that is valuable but not required for this bounded task.
 
+Before declaring review complete, record material findings and their dispositions in durable repository/VCP task or completion evidence so a fresh continuation agent can reconstruct what was found, what was fixed, what became follow-up work, and what residual risks remain without needing the reviewer chat. Do not persist the entire review transcript; preserve the concise engineering evidence needed for auditability and restartability.
+
 Do not give style-only feedback unless it affects readability, maintainability, correctness, or agreed conventions. If you find no blocking issue, state what you verified, any NO ACTION concerns you checked, and residual risks rather than merely saying “LGTM”.
 ```
