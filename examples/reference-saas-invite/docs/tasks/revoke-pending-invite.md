@@ -154,7 +154,7 @@ Do not claim a command passed unless it was actually executed.
 ## Independent review checklist
 
 - [x] Acceptance criteria are satisfied.
-- [x] No unrelated changes are included. (prompts/ copy is disclosed VCP tooling enablement, commit 380c9f2, not feature scope)
+- [x] No unrelated changes are included. (prompts/ copy is disclosed VCP tooling enablement, commit 5b8d624 post-rebase, not feature scope)
 - [x] Architecture/module boundaries are respected.
 - [x] Authorization and tenant/resource ownership are correct.
 - [x] Validation/error handling covers negative paths.
@@ -171,6 +171,24 @@ Do not claim a command passed unless it was actually executed.
 
 ## Follow-ups recorded (not in this task)
 
-- FU-1: service-level interleaved accept-vs-revoke race test (fresh-review finding 3; repository-level CAS coverage exists).
-- FU-2: `vcp task`/verify cannot represent `npm run check` because VCP's command-key list has no `CHECK_COMMAND`; candidate kit improvement.
-- FU-3: the reference example lacked `prompts/`, so `vcp context` could not run against it; resolved by copying canonical prompts (commit 380c9f2) — decide whether examples should ship prompts or context needs a fallback.
+- FU-1: service-level interleaved accept-vs-revoke race test (fresh-review finding F-1; repository-level CAS coverage exists at test/invitation-service.test.mjs:165). Kit issue: #27.
+- FU-2: `vcp task`/verify cannot represent `npm run check` because VCP's command-key list has no `CHECK_COMMAND`; candidate kit improvement. Kit issue: #21.
+- FU-3: the reference example lacked `prompts/`, so `vcp context` could not run against it; resolved by copying canonical prompts (commit 5b8d624) — decide whether examples should ship prompts or context needs a fallback. Kit issue: #23.
+- FU-4: VCP's Source-of-truth parser treats every backtick code span as a file path; this task's Source-of-truth table exercises that (e.g. `` `docs/product/PRD.md` `` — a reference, not always a required path). Kit issue: #22.
+- FU-5: no defined project-root semantics for Task Pack Source-of-truth references; `.vcp/evidence/revoke-pending-invite.json` resolves `target`/`task` relative to the example dir, not the repo root. Kit issue: #24.
+- FU-6: canonical Task Pack convention is not yet unified across generator, docs, and this reference example's format. Kit issue: #25.
+- FU-7: this fresh-review closeout section is itself the durable, restartable review evidence the protocol requires; tracked as a kit concern so the mechanism is enforced, not ad hoc. Kit issue: #26.
+
+## Fresh review — closeout (durable)
+
+Independent reviewer, no prior chat; intent reconstructed from this Task Pack, Source of Truth, accepted decisions AD-01..AD-07, AC-001..AC-008, the diff `9e13104..HEAD`, tests, and evidence. Recorded per prompts/04-code-review.md durable-review requirement and OPERATING-MODEL.md §"Fresh review and QA" (restartability), kit issue #26.
+
+- Verification re-run at HEAD 8111635 (rebased onto protocol head 9e13104): `npm test` → 18 tests, 18 pass, 0 fail, exit 0; `npm run check` → exit 0, executed manually (no `CHECK_COMMAND` key → FU-2/#21). Numbers match the Completion report; the report is accurate.
+- F-1 — RISK (low). No service-level test proves mutual exclusion when accept and revoke interleave; only repository CAS (test:165) and the accepted/revoked non-revocable tests exist. In-memory CAS demonstrates but cannot prove production atomicity (documented ARCHITECTURE.md:37). Disposition: follow-up candidate → FU-1/#27. Residual risk: production concurrency unproven here.
+- F-2 — NO ACTION. Tenant isolation / existence leak: permission loss throws `AuthorizationError` before any lookup, and cross-org plus unknown id throw the identical `InvalidInviteError` (invitation-service.mjs:52-58; test:122). AC-004/AC-201 satisfied; no change.
+- F-3 — NO ACTION. Data integrity + backward compat: `revoke` spreads the stored entity so `orgId` is never rewritten (invariant 1), is additive-only, existing methods unchanged, and a revoked token still fails acceptance (test:105). No change.
+- F-4 — NO ACTION. ADR-001 / AC-007: revocation accepts only `invitationId`; no raw token enters inputs, persisted state, or error text. No change.
+- F-5 — DEFECT: none. Every AC-001..AC-008 has a passing, behavior-focused test; no correctness or contract violation found in the feature code.
+- F-6 — FOLLOW-UP. Durable/tooling gaps this dogfood exercised: code-span SoT parsing (#22), project-root semantics (#24), Task Pack convention unification (#25); captured as FU-4..FU-6. No example-code change required.
+
+Restartability: a zero-context continuation agent can reconstruct intent, approved decisions, what this review found, what was already fixed before this head (prior finding 2 — CAS lines folded into ARCHITECTURE/DATA-MODEL and the Completion report), what is deferred (FU-1..FU-7 with GitHub numbers #27/#21/#23/#22/#24/#25/#26), and residual risk (in-memory atomicity + status-only attribution AD-07). Only the reviewer chat itself is not reconstructable from repo state, which #26 explicitly treats as non-authoritative.
