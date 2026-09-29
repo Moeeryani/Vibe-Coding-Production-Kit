@@ -130,6 +130,8 @@ vcp context accept-invite \
 
 The agent implements only the approved task scope. It may proceed through **AFK-safe** work that follows from approved scope and repository evidence, but it should stop before crossing a dependency explicitly classified as **HITL required**. A blocked human decision should not unnecessarily stop unrelated autonomous slices that can still be completed safely.
 
+AFK-safe work never bypasses readiness failures, conflicts, safety rules, verification failures, or another explicit blocker.
+
 ## 8. Preview verification
 
 Before executing repository-controlled commands, the agent runs:
@@ -215,7 +217,7 @@ vcp ready <slug> --stage implement
       ↓
 vcp context <slug> --mode implement [--include <existing files>] [--planned <new files>]
       ↓
-Implement bounded slices; stop only at unresolved HITL boundaries
+Implement bounded slices; pause at unresolved HITL or any safety/verification blocker
       ↓
 vcp verify <slug>
       ↓
