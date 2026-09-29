@@ -30,9 +30,9 @@ Before implementation, provide a concise plan containing:
 
 Before asking the developer a question, classify the uncertainty:
 
-- **discoverable** — resolve it from repository evidence, existing contracts, tests, or documentation;
-- **proposal-safe** — choose the smallest reversible engineering default, state the assumption, and proceed when it does not change product intent or material risk;
-- **human decision required** — ask when the answer changes intended product behavior, security posture, compatibility policy, data ownership, rollout risk, or another decision that cannot be inferred safely.
+- **DISCOVERABLE** — resolve it from repository evidence, existing contracts, tests, or documentation;
+- **PROPOSABLE** — propose the smallest reversible engineering default, state it explicitly as a proposal/assumption, and proceed only when doing so does not cross a material human-decision boundary;
+- **HUMAN DECISION** — ask when the answer changes intended product behavior, security posture, compatibility policy, data ownership, rollout risk, architecture direction, destructive migration policy, risk acceptance, or another decision that cannot be inferred safely.
 
 Group genuinely blocking human questions instead of interrupting for every minor uncertainty. Explain what decision is blocked and why repository evidence is insufficient.
 
@@ -170,10 +170,18 @@ Review the final diff for:
 
 After implementation self-review, obtain a **fresh review context or independent reviewer when practical**. The fresh reviewer should reconstruct intent from the task, Source of Truth, acceptance criteria, and diff rather than assuming the implementation author's summary is correct.
 
-Classify review findings before changing scope:
+Classify each review finding by what it is:
+
+- `BLOCKER` — acceptance cannot safely proceed until resolved;
+- `DEFECT` — concrete incorrect behavior or contract violation;
+- `RISK` — credible residual hazard or uncertainty requiring explicit handling;
+- `FOLLOW-UP` — useful work outside the bounded acceptance need;
+- `NO ACTION` — reviewed concern does not require a change.
+
+Then assign current-task disposition separately:
 
 - **must fix now** — required for acceptance criteria, correctness, security, compatibility, data integrity, or Definition of Done;
-- **follow-up candidate** — useful broader improvement, optional refactor, or newly discovered work that is not required for this bounded task.
+- **follow-up candidate** — valuable broader work that is not required for this bounded task.
 
 Do not turn every review suggestion into implicit scope expansion.
 
@@ -221,7 +229,7 @@ The developer should make product and engineering decisions; the coding agent sh
 
 - Create or update one bounded VCP task instead of asking the developer to manually fill the task template.
 - Draft the outcome, acceptance criteria, scope, affected boundaries, invariants, security/privacy considerations, failure modes, observability, test plan, rollout/recovery, and an implementation plan from available evidence.
-- Classify open questions as discoverable, proposal-safe, or human-decision-required before interrupting the developer.
+- Classify open questions as **DISCOVERABLE**, **PROPOSABLE**, or **HUMAN DECISION** before interrupting the developer. A PROPOSABLE item may become `PROPOSED`; it does not become `APPROVED` merely because the agent suggested it.
 - Run `vcp ready <task> --stage plan`; resolve what can be resolved from the repository and ask the developer only for remaining human-intent decisions.
 - Build the planning context with `vcp context <task> --mode plan` and produce a bounded plan before code changes.
 - Structure non-trivial plans as the smallest coherent vertical slices, each with acceptance evidence, tests, and explicit autonomous/HITL dependencies.
@@ -234,6 +242,6 @@ The developer should make product and engineering decisions; the coding agent sh
 
 ### Human decision boundary
 
-Do not ask the developer to manually write information the agent can reliably discover or draft. Ask for human input when the answer changes intended product behavior, security posture, compatibility policy, data ownership, rollout risk, or another decision that cannot be inferred safely.
+Do not ask the developer to manually write information the agent can reliably discover or draft. Ask for human input when the answer changes intended product behavior, security posture, compatibility policy, data ownership, rollout risk, architecture direction, destructive migration policy, risk acceptance, or another decision that cannot be inferred safely.
 
 If repository evidence conflicts, surface the conflict and ask for a decision instead of silently choosing one.
