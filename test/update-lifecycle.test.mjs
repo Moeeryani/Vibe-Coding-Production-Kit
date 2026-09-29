@@ -77,6 +77,36 @@ test('proven automatic generic install re-profiles when deterministic evidence a
   assert.equal(after.upToDate, true);
 });
 
+test('automatic re-profiling does not overwrite a local verification-command decision', async () => {
+  const root = await tempDir();
+  await initProject({ targetDir: root, agent: 'generic', stack: 'auto', includeGitHub: false });
+  const agentsPath = path.join(root, 'AGENTS.md');
+  const originalAgents = await readFile(agentsPath, 'utf8');
+  assert.match(originalAgents, /UNIT_TEST_COMMAND=<define>/);
+  const customizedAgents = originalAgents.replace(
+    'UNIT_TEST_COMMAND=<define>',
+    'UNIT_TEST_COMMAND=node custom-tests.mjs'
+  );
+  await writeFile(agentsPath, customizedAgents, 'utf8');
+  await writeFile(path.join(root, 'package.json'), `${JSON.stringify({
+    name: 'conflicting-js',
+    scripts: { test: 'node --test' }
+  }, null, 2)}\n`, 'utf8');
+
+  const plan = await planUpdate({ targetDir: root });
+  const agentsAction = plan.actions.find((item) => item.path === 'AGENTS.md');
+  assert.equal(plan.stackProfileChange.to, 'javascript');
+  assert.equal(agentsAction.type, 'CONFLICT');
+  assert.equal(plan.conflicts > 0, true);
+
+  const applied = await applyUpdate({ targetDir: root });
+  assert.equal(applied.blocked, true);
+  assert.equal(applied.applied, false);
+  assert.equal((await manifest(root)).install.stack, 'generic');
+  assert.equal((await manifest(root)).install.requestedStack, 'auto');
+  assert.equal(await readFile(agentsPath, 'utf8'), customizedAgents);
+});
+
 test('explicit generic install stays generic when new stack evidence appears', async () => {
   const root = await tempDir();
   await initProject({ targetDir: root, agent: 'generic', stack: 'generic', includeGitHub: false });
