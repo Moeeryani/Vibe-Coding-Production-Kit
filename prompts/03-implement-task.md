@@ -14,14 +14,16 @@ Rules:
 - add migrations instead of manually mutating persistent schemas;
 - update relevant docs/contracts when behavior changes;
 - implement in the approved vertical-slice order when practical, keeping each slice reviewable and verifiable before broadening the change;
-- continue autonomously through discoverable and proposal-safe details, but stop before crossing a dependency explicitly classified as requiring human input (HITL).
+- continue autonomously through DISCOVERABLE implementation details and non-material PROPOSABLE defaults that remain within approved intent, but stop before crossing an unresolved HUMAN DECISION / HITL boundary.
 
-AFK-safe autonomy never overrides readiness failures, conflicts, safety rules, verification failures, or another explicit blocker.
+AFK-safe autonomy never overrides readiness failures, incomplete dependencies, conflicts, safety rules, unresolved human intent, verification failures, or another explicit blocker.
 
 If new uncertainty appears during implementation, classify it before asking:
-- discoverable: inspect the repository and resolve it;
-- proposal-safe: choose the smallest reversible approach, record the assumption, and continue;
-- human decision required: stop at that boundary, ask a focused question, and do not silently choose product/security/compatibility/risk intent.
+- DISCOVERABLE: inspect the repository and resolve it;
+- PROPOSABLE: state the smallest reversible approach explicitly as a proposal/assumption; do not treat a material proposal as APPROVED merely because you suggested it;
+- HUMAN DECISION: stop at that boundary, ask a focused question, and do not silently choose product/business/security/privacy/compatibility/data/architecture/migration/risk/rollout intent.
+
+If the HUMAN DECISION blocks only one branch of work, leave that branch blocked and continue only other independently eligible AFK work.
 
 After implementation:
 1. run all relevant configured verification commands;
