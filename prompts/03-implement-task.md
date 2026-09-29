@@ -16,6 +16,8 @@ Rules:
 - implement in the approved vertical-slice order when practical, keeping each slice reviewable and verifiable before broadening the change;
 - continue autonomously through discoverable and proposal-safe details, but stop before crossing a dependency explicitly classified as requiring human input (HITL).
 
+AFK-safe autonomy never overrides readiness failures, conflicts, safety rules, verification failures, or another explicit blocker.
+
 If new uncertainty appears during implementation, classify it before asking:
 - discoverable: inspect the repository and resolve it;
 - proposal-safe: choose the smallest reversible approach, record the assumption, and continue;
