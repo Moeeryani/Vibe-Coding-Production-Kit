@@ -72,9 +72,9 @@ Then it should draft the task contract: outcome, Source of Truth, acceptance cri
 
 Before interrupting you, the agent should classify each open question:
 
-- **discoverable** — answer it from repository evidence;
-- **proposal-safe** — choose a small reversible engineering default, record the assumption, and continue;
-- **human decision required** — ask when the answer changes product behavior, security posture, compatibility policy, data ownership, rollout risk, or another decision the repository cannot establish safely.
+- **DISCOVERABLE** — answer it from repository evidence;
+- **PROPOSABLE** — state a small reversible engineering default explicitly as a proposal/assumption; a material proposal does not become approved merely because the agent suggested it;
+- **HUMAN DECISION** — ask when the answer changes product behavior, security/privacy posture, compatibility policy, data ownership, architecture direction, destructive migration policy, risk acceptance, rollout, or another decision the repository cannot establish safely.
 
 The agent should group genuinely blocking human questions instead of asking one question at a time for minor uncertainties.
 
@@ -130,7 +130,7 @@ vcp context accept-invite \
 
 The agent implements only the approved task scope. It may proceed through **AFK-safe** work that follows from approved scope and repository evidence, but it should stop before crossing a dependency explicitly classified as **HITL required**. A blocked human decision should not unnecessarily stop unrelated autonomous slices that can still be completed safely.
 
-AFK-safe work never bypasses readiness failures, conflicts, safety rules, verification failures, or another explicit blocker.
+AFK-safe work never bypasses readiness failures, conflicts, safety rules, unresolved human intent, verification failures, or another explicit blocker.
 
 ## 8. Preview verification
 
@@ -165,12 +165,20 @@ vcp context accept-invite \
   --include test/invitations/service.test.ts
 ```
 
-Prefer a fresh agent/context for review rather than relying only on the agent that wrote the change. The reviewer should reconstruct intent from the task, Source of Truth, acceptance criteria, and diff instead of assuming the implementation summary is correct.
+Prefer a fresh agent/context for review rather than relying only on the agent that wrote the change. The reviewer should reconstruct intent from the task, Source of Truth, acceptance criteria, diff, tests, and verification evidence instead of assuming the implementation summary is correct.
 
-Review findings should be classified before scope changes:
+Classify each finding by type:
+
+- `BLOCKER`
+- `DEFECT`
+- `RISK`
+- `FOLLOW-UP`
+- `NO ACTION`
+
+Then decide current-task disposition separately:
 
 - **must fix now** — required for acceptance criteria, correctness, security, compatibility, data integrity, or Definition of Done;
-- **follow-up candidate** — useful broader improvement, optional refactor, or newly discovered work that is not required for this bounded task.
+- **follow-up candidate** — valuable broader work that is not required for this bounded task.
 
 Fix must-fix findings before completion. Record follow-up candidates explicitly rather than silently expanding the current task.
 
@@ -191,7 +199,7 @@ What the developer should experience:
 ```text
 State intent
    ↓
-Answer only unresolved human-decision questions
+Answer only unresolved HUMAN DECISION questions
    ↓
 Review the proposed vertical-slice plan
    ↓
@@ -205,7 +213,7 @@ Inspect repository / draft Source of Truth
       ↓
 vcp task <slug>
       ↓
-Classify open questions: discoverable / proposal-safe / human decision required
+Classify open questions: DISCOVERABLE / PROPOSABLE / HUMAN DECISION
       ↓
 vcp ready <slug> --stage plan
       ↓
@@ -225,7 +233,7 @@ vcp verify <slug> --run --output .vcp/evidence/<slug>.json
       ↓
 vcp context <slug> --mode review --include <changed files/tests>
       ↓
-Fresh review → must-fix findings / explicit follow-up candidates
+Fresh review → finding class + current-task disposition
       ↓
 vcp doctor .
       ↓
