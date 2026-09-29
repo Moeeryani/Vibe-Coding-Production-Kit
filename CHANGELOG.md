@@ -4,6 +4,12 @@ All notable changes to this project will be documented here.
 
 ## [Unreleased]
 
+### Added
+- Stack-selection provenance is now preserved in `.vcp/manifest.json` as `install.requestedStack`, distinguishing automatic selection from an explicit stack choice for future lifecycle decisions.
+
+### Changed
+- Legacy manifests without stack-selection provenance remain conservative: stored `generic` profiles are not silently re-detected.
+
 ## [0.9.2] - 2026-09-25
 
 ### Added
