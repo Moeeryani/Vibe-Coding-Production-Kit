@@ -183,6 +183,8 @@ Then assign current-task disposition separately:
 - **must fix now** — required for acceptance criteria, correctness, security, compatibility, data integrity, or Definition of Done;
 - **follow-up candidate** — valuable broader work that is not required for this bounded task.
 
+Record material review findings and their dispositions in durable repository/VCP task or completion evidence so a fresh continuation agent can reconstruct what was found, fixed, deferred, and left as residual risk without needing the reviewer conversation. Preserve concise engineering evidence, not the full review transcript.
+
 Do not turn every review suggestion into implicit scope expansion.
 
 ## 13. Definition of Done
