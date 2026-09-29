@@ -54,6 +54,28 @@
 - AC-104: A token can produce at most one successful acceptance.
 - AC-105: Organization is derived from the invitation record, never from client input during acceptance.
 
+## FR-003 — Manually revoke a pending invitation
+
+**Preconditions**
+- Actor is authenticated.
+- Actor belongs to the invitation's organization.
+- Actor has `members.invite`.
+
+**Main flow**
+1. Actor identifies the invitation by invitation id.
+2. Service loads the invitation; organization is derived from the stored record and matched against the actor.
+3. A `pending` invitation transitions to `revoked` exactly once; `accepted` and `revoked` are terminal.
+4. The revoked invitation's original token can no longer be accepted (see AC-102).
+
+**Acceptance criteria**
+- AC-201: Cross-organization and unknown ids fail with an indistinguishable coarse error; no existence leak.
+- AC-202: Missing invite permission is rejected.
+- AC-203: Non-pending invitations cannot be revoked; a second revoke does not succeed.
+- AC-204: After successful revocation, acceptance with the original token is rejected.
+- AC-205: Revocation accepts no organization id and no raw token as input.
+
+**Decision note (2026-09-30)**: revocation is status-only in this reference slice; persisted `revoked_by`/`revoked_at` attribution was explicitly rejected, deferring attribution to the production `invitation.revoked` audit event. This is a known limitation, not an oversight.
+
 ## Reliability and security
 
 - Acceptance must be idempotent/safe under retries; duplicate successful transitions are not allowed.

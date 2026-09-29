@@ -1,6 +1,6 @@
 # Task — Manually revoke a pending organization invitation
 
-Status: Draft
+Status: Ready for implementation
 Slug: `revoke-pending-invite`
 
 ## Outcome
@@ -41,10 +41,14 @@ Add an administrator-initiated revocation use case to the invitation application
 - AP-03: Non-owner/unknown invitation lookups fail with a single coarse error indistinguishable from "not found" to prevent cross-tenant enumeration; cross-org actor evidence never confirms existence of the target record (T-001/USER-FLOWS error-privacy rule).
 - AP-04: An expired-but-still-`pending` invitation is revocable (derived from DOMAIN.md: expiry is behavioral, status remains `pending`, so invariant 3 permits the transition).
 
-### Open HUMAN DECISIONS
+### Approved in session (HUMAN DECISIONS resolved by the decision owner, 2026-09-30)
 
-- HD-1 (blocks Slice 1): How does the admin identify the invitation to revoke — by invitation id, by organization + invitee email, or both? The PRD actor table permits the action but no FR, user flow, or contract names the input. The choice sets the public application-service contract and cannot be inferred safely.
-- HD-2 (blocks Slice 2 only): Does manual revocation persist attribution fields (`revokedByUserId`, `revokedAt`) on the invitation entity and DATA-MODEL, or stay status-only with attribution delegated to the production `invitation.revoked` audit event? DATA-MODEL.md currently has accepted-attribution columns but none for revocation; this is a data-model direction decision.
+- AD-06 (was HD-1): The admin identifies the invitation to revoke **by invitation id**. The service contract is `revoke({ actor, invitationId })`; the organization is derived from the stored invitation and matched against the actor; no email-based or dual identification entry point is added.
+- AD-07 (was HD-2): Revocation is **status-only**. No `revokedByUserId`/`revokedAt` columns are added to the entity or DATA-MODEL in this task. Attribution is delegated to the production `invitation.revoked` audit event and recorded as an explicit documented limitation (PRD FR-003 + this task's completion report). Do not reopen either decision without a new human decision.
+
+### Resolved proposals (accepted as engineering defaults unless later corrected)
+
+- AP-01, AP-02, AP-03, AP-04 stand as proposed and are implemented as labeled; they do not override AD-01 through AD-07.
 
 ## Acceptance criteria
 
@@ -53,7 +57,7 @@ Add an administrator-initiated revocation use case to the invitation application
 - [ ] AC-003 — An actor without `members.invite` is rejected (T-002).
 - [ ] AC-004 — An actor from another organization cannot revoke the invitation, with no existence leak (T-001, T-008 pattern).
 - [ ] AC-005 — Non-pending invitations (`accepted`, `revoked`) cannot be revoked; `revoked` stays terminal; a second revoke does not succeed (AD-02, T-007).
-- [ ] AC-006 — Identification input follows the approved HD-1 answer; organization is never taken from client input as authoritative (AD-04).
+- [ ] AC-006 — Identification input is the invitation id per AD-06; organization is never taken from client input as authoritative (AD-04).
 - [ ] AC-007 — No raw token appears as an input to revocation, in persisted state, or in any new error text (ADR-001, T-010).
 - [ ] AC-008 — Tests added for every path above; `npm test` and `npm run check` pass.
 
@@ -132,18 +136,18 @@ Reference example emits no events today. Production contract already names `invi
 
 Slices (dependencies explicit; execution mode per slice):
 
-1. Slice 1 — HITL-blocked decision HD-1, then AFK-safe: implement application-service `revoke` (authorization per AD-01/AD-04, coarse failures per AP-03, identification per approved HD-1), repository `revokeIfPending` CAS per AP-02, domain reuse per AP-01, full test matrix above. Acceptance evidence: new tests + existing suite green via `npm test`; syntax gate via `npm run check`.
-2. Slice 2 — blocked by HD-2; only executes if HD-2 approves persisted attribution: add `revokedByUserId`/`revokedAt` to entity factory/transition, DATA-MODEL columns, and attribution tests. If HD-2 chooses status-only, record "production audit attribution" as an explicit documented follow-up note in this task and change nothing.
-3. Both slices: update PRD with a manual-revoke FR and USER-FLOWS with the admin revoke flow once the contract is approved (AFK after HD-1; the SoT currently permits but does not describe this operation).
+1. Slice 1 — APPROVED (HD-1 resolved as AD-06), AFK-safe: implement application-service `revoke({ actor, invitationId })` (authorization per AD-01/AD-04, coarse failures per AP-03), repository `revokeIfPending` CAS per AP-02, domain reuse per AP-01, full test matrix above. Acceptance evidence: new tests + existing suite green via `npm test`; syntax gate via `npm run check`.
+2. Slice 2 — RESOLVED as no-code (HD-2 resolved as AD-07): status-only revocation; no entity/DATA-MODEL attribution columns. The attribution limitation is documented in PRD FR-003 and the completion report instead.
+3. Both slices — APPROVED: add PRD FR-003 (manual revoke) and USER-FLOWS Flow C (admin revokes pending invite) reflecting exactly the approved contract, including the status-only attribution limitation.
 
 ## Verification commands
 
 Run the relevant configured commands below before completion:
 
-- `npm test`
-- `npm run check`
+- `INSTALL_COMMAND`: `npm install`
+- `UNIT_TEST_COMMAND`: `npm test`
 
-(`vcp task` discovered only `INSTALL_COMMAND`/`UNIT_TEST_COMMAND` from `AGENTS.md`; `npm run check` is required by the example's Completion rules and Definition of Done and is added here explicitly.)
+Additionally required by this project's Definition of Done but not representable as a keyed VCP command (no `CHECK_COMMAND` key exists): `npm run check` — executed manually with recorded exit code.
 
 Do not claim a command passed unless it was actually executed.
 

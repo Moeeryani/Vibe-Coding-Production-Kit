@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { InvitationService, AuthorizationError, InvalidInviteError, hashInviteToken } from '../src/application/invitation-service.mjs';
 import { MemoryInvitationRepository } from '../src/infrastructure/memory-invitation-repository.mjs';
+import { revokeInvitation, InvitationError } from '../src/domain/invitation.mjs';
 
 function harness({ now = new Date('2026-09-22T12:00:00Z') } = {}) {
   const repository = new MemoryInvitationRepository();
@@ -18,6 +19,7 @@ function harness({ now = new Date('2026-09-22T12:00:00Z') } = {}) {
 }
 
 const adminA = { userId: 'admin-a', orgId: 'org-a', permissions: ['members.invite'] };
+const adminB = { userId: 'admin-b', orgId: 'org-b', permissions: ['members.invite'] };
 const memberA = { userId: 'member-a', orgId: 'org-a', permissions: [] };
 
 async function issued(h, overrides = {}) {
@@ -88,3 +90,86 @@ test('unknown token fails with coarse application error', async () => {
   const h = harness();
   await assert.rejects(h.service.accept({ token: 'unknown-token-that-is-long-enough-0000', authenticatedUser: { userId: 'user-1', verifiedEmail: 'person@example.com' } }), InvalidInviteError);
 });
+
+test('authorized admin revokes a pending invitation in their own org', async () => {
+  const h = harness();
+  const { invitation } = await issued(h);
+  const result = await h.service.revoke({ actor: adminA, invitationId: invitation.id });
+  assert.deepEqual(Object.keys(result).sort(), ['invitationId', 'status']);
+  assert.equal(result.status, 'revoked');
+  const stored = await h.repository.findById(invitation.id);
+  assert.equal(stored.status, 'revoked');
+  assert.equal(stored.orgId, 'org-a');
+});
+
+test('revoked invitation token can no longer be accepted', async () => {
+  const h = harness();
+  const { invitation, deliveryToken } = await issued(h);
+  await h.service.revoke({ actor: adminA, invitationId: invitation.id });
+  await assert.rejects(
+    h.service.accept({ token: deliveryToken, authenticatedUser: { userId: 'user-1', verifiedEmail: 'person@example.com' } }),
+    InvalidInviteError
+  );
+});
+
+test('actor without members.invite cannot revoke', async () => {
+  const h = harness();
+  const { invitation } = await issued(h);
+  await assert.rejects(h.service.revoke({ actor: memberA, invitationId: invitation.id }), AuthorizationError);
+  await assert.rejects(h.service.revoke({ actor: null, invitationId: invitation.id }), AuthorizationError);
+});
+
+test('cross-org admin and unknown id fail indistinguishably and leave the invitation pending', async () => {
+  const h = harness();
+  const { invitation } = await issued(h);
+  await assert.rejects(h.service.revoke({ actor: adminB, invitationId: invitation.id }), InvalidInviteError);
+  await assert.rejects(h.service.revoke({ actor: adminA, invitationId: 'invite-does-not-exist' }), InvalidInviteError);
+  await assert.rejects(h.service.revoke({ actor: adminA, invitationId: '' }), InvalidInviteError);
+  const stored = await h.repository.findById(invitation.id);
+  assert.equal(stored.status, 'pending');
+});
+
+test('accepted invitation cannot be revoked and stays accepted', async () => {
+  const h = harness();
+  const { invitation, deliveryToken } = await issued(h);
+  await h.service.accept({ token: deliveryToken, authenticatedUser: { userId: 'user-1', verifiedEmail: 'person@example.com' } });
+  await assert.rejects(h.service.revoke({ actor: adminA, invitationId: invitation.id }), InvalidInviteError);
+  const stored = await h.repository.findById(invitation.id);
+  assert.equal(stored.status, 'accepted');
+});
+
+test('revocation is not repeatable and revoked stays terminal', async () => {
+  const h = harness();
+  const { invitation } = await issued(h);
+  await h.service.revoke({ actor: adminA, invitationId: invitation.id });
+  await assert.rejects(h.service.revoke({ actor: adminA, invitationId: invitation.id }), InvalidInviteError);
+  const stored = await h.repository.findById(invitation.id);
+  assert.equal(stored.status, 'revoked');
+});
+
+test('expired-but-pending invitation can still be revoked', async () => {
+  const h = harness();
+  const { invitation } = await issued(h, { ttlMs: 60_000 });
+  h.setNow('2026-09-22T12:01:00Z');
+  const result = await h.service.revoke({ actor: adminA, invitationId: invitation.id });
+  assert.equal(result.status, 'revoked');
+});
+
+test('domain revocation only accepts pending invitations', () => {
+  const pending = { id: 'invite-1', orgId: 'org-a', status: 'pending' };
+  assert.equal(revokeInvitation(pending).status, 'revoked');
+  assert.throws(() => revokeInvitation({ ...pending, status: 'accepted' }), InvitationError);
+  assert.throws(() => revokeInvitation({ ...pending, status: 'revoked' }), InvitationError);
+});
+
+test('repository compare-and-set refuses to revoke non-pending or unknown records', async () => {
+  const repository = new MemoryInvitationRepository();
+  assert.equal(await repository.revokeIfPending({ id: 'missing', status: 'revoked' }), false);
+  const invitation = { id: 'invite-1', orgId: 'org-a', email: 'person@example.com', tokenHash: 'a'.repeat(64), issuedByUserId: 'admin-a', expiresAt: new Date('2026-09-24T12:00:00Z'), status: 'pending', acceptedByUserId: null, acceptedAt: null };
+  await repository.replacePending(invitation);
+  await repository.acceptIfPending({ ...invitation, status: 'accepted', acceptedByUserId: 'user-1', acceptedAt: new Date('2026-09-22T12:30:00Z') });
+  assert.equal(await repository.revokeIfPending({ ...invitation, status: 'revoked' }), false);
+  const stored = await repository.findById('invite-1');
+  assert.equal(stored.status, 'accepted');
+});
+
