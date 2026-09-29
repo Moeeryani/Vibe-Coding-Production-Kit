@@ -366,6 +366,10 @@ Define:
 
 The plugin model must not compromise the deterministic VCP core.
 
+### Planned but not reprioritized — Mobile stack profiles
+
+The existing public README roadmap also includes mobile stack profiles. Neither the consolidated handoff nor the Agent-First Workflow Evolution document reprioritized or removed that commitment, so it remains planned here without assigning it a new position relative to the stages above.
+
 ## Matt-derived workflow status
 
 The Matt-inspired workflow is **included**, but additive to—not a replacement for—the original VCP roadmap.
@@ -394,7 +398,8 @@ These remain active and must not be displaced by workflow work:
 - security profiles;
 - prompt evaluation;
 - architecture fitness functions;
-- community profiles/plugins.
+- community profiles/plugins;
+- mobile stack profiles remain a public-roadmap commitment whose priority still needs explicit reconsideration.
 
 The roadmap intentionally interleaves workflow improvements with the original product track rather than finishing one entire stream before touching the other.
 
@@ -452,6 +457,7 @@ External coding agents remain the orchestrators.
 
 ```text
 [x] single-project stack profiles
+[ ] mobile stack profiles
 [ ] monorepo topology
 [ ] deeper CI profiles
 ```
