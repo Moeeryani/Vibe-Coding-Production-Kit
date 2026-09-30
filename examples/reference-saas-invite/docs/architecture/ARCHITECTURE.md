@@ -21,8 +21,9 @@ Domain has no dependency on application or infrastructure. Application depends o
 ## Boundaries
 
 - Authentication resolves the current actor before calling the application layer.
-- Authorization to issue is enforced by the application service using actor organization + permission evidence.
+- Authorization to issue/revoke is enforced by the application service using actor organization + permission evidence.
 - Acceptance never accepts `orgId` from the caller; tenant comes from the invitation record.
+- Manual revocation accepts an invitation id, then derives organization context from the stored invitation rather than client input.
 - Token hashing occurs before persistence lookup/storage.
 
 ## Production persistence contract
@@ -31,6 +32,7 @@ A real repository must make these operations atomic:
 
 - replace previous pending invite for `(orgId, normalizedEmail)` when issuing;
 - transition `pending -> accepted` exactly once;
+- transition `pending -> revoked` exactly once, mutually exclusive with acceptance under the same compare-and-set discipline (manual revoke, PRD FR-003);
 - create membership consistently with acceptance (transaction or durable workflow, depending on architecture).
 
 The in-memory repository demonstrates semantics but is not a concurrency substitute for a database constraint/transaction.
