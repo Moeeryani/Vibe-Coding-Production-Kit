@@ -227,9 +227,9 @@ Do not implement this slice merely because the conceptual model exists. Require 
 
 ### Slice E — Source-of-Truth freshness
 
-**Status:** ⬜ Planned.
+**Status:** ✅ Done — PR #52 / Issue #51.
 
-Target authority states:
+Implemented repository-native authority states:
 
 ```text
 DRAFT
@@ -238,7 +238,9 @@ SUPERSEDED
 ARCHIVED
 ```
 
-Agents must distinguish current truth from history while preserving accepted negative decisions.
+Legacy unmarked documents remain current for backward compatibility. `ACCEPTED` governs current execution; `DRAFT` is plan-usable but cannot authorize implementation; `SUPERSEDED` and `ARCHIVED` remain inspectable history but cannot silently govern current work. Invalid explicit markers fail visibly, while deliberate `--include` can still carry historical material for inspection.
+
+Reference SaaS dogfood proves current accepted authority remains sufficient for implementation and preserves the rejected expired-invitation alternative as a durable negative decision while a separate historical proposal is marked `SUPERSEDED`.
 
 ---
 
@@ -248,13 +250,13 @@ Agents must distinguish current truth from history while preserving accepted neg
 
 Intent, clarification, shared design, decisions, vertical tasks, dependencies, AFK/HITL, eligibility, implementation, verification, review, QA, follow-up.
 
-**Next:** close #48 completion-finalization drift, then advance Source-of-Truth freshness; revisit graph validation only if later evidence justifies it.
+**Next:** build Git-aware bounded review; revisit graph validation only if later evidence justifies it.
 
 ### Track B — Knowledge and State
 
 Source-of-Truth freshness, decision lifecycle, negative decisions, task state, lifecycle state, migrations, ownership, rollback.
 
-**Next:** #48 completion-finalization hygiene, then Source-of-Truth freshness.
+**Next:** preserve freshness/negative-decision semantics through upcoming review and repository-scale work; add more persisted state only when concrete restartability evidence requires it.
 
 ### Track C — Engineering Assurance
 
@@ -272,7 +274,7 @@ CI evidence, monorepos, release automation, stack/mobile profiles, package/repo 
 
 Onboarding, simple workflow, agent interoperability, reference projects, docs consistency, community/plugin model.
 
-**Next:** cross-agent conformance and clearer durable task finalization.
+**Next:** cross-agent conformance and clearer current-vs-historical Source-of-Truth UX.
 
 ---
 
@@ -333,9 +335,9 @@ Exit criteria:
 
 ### Stage 4 — Source-of-Truth freshness
 
-**Status:** ⬜ Planned.
+**Status:** ✅ Done — PR #52 / Issue #51.
 
-Exit criteria:
+Exit criteria achieved:
 
 - current vs historical authority is explicit enough for deterministic agent use;
 - superseded material cannot silently drive work;
@@ -594,16 +596,14 @@ Add future `SYSTEM-CONTRACT.md` / `QUALITY-GATES.md` only if they reduce ambigui
 ## 15. Recommended Execution Order From Current Main
 
 1. Keep #15 open and preserve an executable exact-head local validation channel.
-2. Close #48 completion-finalization drift exposed by Slice C.
-3. Add Source-of-Truth freshness.
-4. Build Git-aware bounded review.
-5. Resolve monorepo/project-root + CI evidence semantics.
-6. Build concrete security profiles.
-7. Build prompt behavioral evaluation.
-8. Add architecture fitness functions.
-9. Automate release mechanics without automating approval.
-10. Extend mobile/plugins/ecosystem only after core contracts stabilize.
-11. Revisit graph validation/eligibility only if later dogfood demonstrates a concrete problem that required metadata would solve.
+2. Build Git-aware bounded review.
+3. Resolve monorepo/project-root + CI evidence semantics.
+4. Build concrete security profiles.
+5. Build prompt behavioral evaluation.
+6. Add architecture fitness functions.
+7. Automate release mechanics without automating approval.
+8. Extend mobile/plugins/ecosystem only after core contracts stabilize.
+9. Revisit graph validation/eligibility only if later dogfood demonstrates a concrete problem that required metadata would solve.
 
 ---
 
