@@ -44,6 +44,35 @@ Replacing an existing task requires explicit opt-in:
 vcp task accept-invite --force
 ```
 
+## Project-root ownership
+
+A Task Pack belongs to one **VCP project root**. For task workflow commands, the project root is:
+
+- the directory passed with `--dir`; or
+- the current working directory when `--dir` is omitted.
+
+That same root owns the whole task workflow:
+
+```text
+vcp task <slug> --dir <project>
+vcp ready <slug> --dir <project>
+vcp context <slug> --dir <project>
+vcp verify <slug> --dir <project>
+```
+
+Within that selected root:
+
+- task slugs resolve to `docs/tasks/<slug>.md`;
+- Source-of-Truth references are repository-relative to that root;
+- context `--include`, `--planned`, and `--output` paths are relative to that root;
+- verification evidence output is relative to that root;
+- verification commands execute with that root as their working directory;
+- human/JSON task paths are reported repository-relative with portable `/` separators.
+
+`--dir` selects which project owns the task. It does **not** rebase a Task Pack authored for another project. If a Task Pack is copied or moved to a different project root, its repository-local references and verification contract must already be valid in that new project or be deliberately updated there. VCP must not fall back to parent-repository files or infer an old root.
+
+This keeps nested repositories and monorepo subprojects deterministic without adding a persisted `projectRoot` field or migration to current Task Packs.
+
 ## What a Task Pack contains
 
 - one explicit outcome;
