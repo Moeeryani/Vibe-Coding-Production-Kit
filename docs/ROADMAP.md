@@ -357,7 +357,7 @@ Exit criteria achieved:
 
 ### Stage 5 — Monorepo + CI evidence
 
-**Status:** 🟡 In progress — verification provenance foundation merged in PR #58 / Issue #57; explicit root/package Source-of-Truth semantics merged in PR #61 / Issue #60.
+**Status:** 🟡 In progress — verification provenance foundation merged in PR #58 / Issue #57; explicit root/package Source-of-Truth semantics merged in PR #61 / Issue #60, with reserved project-local `workspace:` boundary enforcement corrected in PR #64.
 
 Completed foundation:
 
@@ -370,7 +370,7 @@ Completed foundation:
 - unqualified governing Source-of-Truth references remain selected-project-local;
 - `workspace:<path>` explicitly opts into a governing document from the enclosing Git worktree without parent-directory search, nearest-file fallback, sibling-package inheritance, or hidden root authority;
 - freshness/authority rules apply identically to project-local and workspace-qualified governing documents;
-- Context Packs stay bounded to explicitly declared governing references, and cross-root `--include`/planned/output authority remains disabled.
+- Context Packs stay bounded to explicitly declared governing references; the reserved `workspace:` qualifier is rejected by project-local include/planned/output paths after normalization (PR #64), so cross-root ad hoc path authority remains disabled.
 
 Remaining before Stage 5 is Done:
 
