@@ -37,7 +37,8 @@ Default mode exits non-zero only when a `FAIL` exists. `--strict` also exits non
 The doctor currently inspects:
 
 - target directory readability;
-- detected stack;
+- deterministic repository stack detection;
+- installed lifecycle stack profile and stack-selection provenance when a VCP manifest is available;
 - repository-wide `AGENTS.md`;
 - unresolved verification-command slots in `AGENTS.md`;
 - presence of core product, architecture, security, testing, and delivery documents;
@@ -47,6 +48,36 @@ The doctor currently inspects:
 - local validation script;
 - planning and independent-review prompts;
 - VCP lifecycle state, manifest/version alignment, baseline integrity, and interrupted update transactions.
+
+## Detected stack vs installed lifecycle profile
+
+Doctor reports two different stack facts when lifecycle state is available:
+
+- **Detected stack** — what the current repository evidence deterministically identifies now.
+- **Installed profile** — the stack profile recorded in `.vcp/manifest.json` and currently owned by the lifecycle system.
+
+These facts may legitimately differ.
+
+For example, a legacy project may have an installed `generic` profile while current repository evidence detects `javascript`. Doctor must not imply that the stored profile is wrong or automatically mutable. The lifecycle provenance policy remains authoritative:
+
+- `install.stack: generic` + `install.requestedStack: auto` + concrete current detection → re-profiling is eligible through the normal `vcp update` path;
+- explicit `install.requestedStack: generic` → the generic profile is preserved even when current detection is concrete;
+- missing `install.requestedStack` on a legacy generic install → historical intent is unknown, so re-profiling is intentionally withheld rather than inferred;
+- already-concrete installed profiles are not automatically re-profiled by this generic-to-concrete rule.
+
+Human-readable Doctor output therefore labels the detected stack, installed profile, requested selector, and re-profile state separately.
+
+JSON output preserves the historical top-level `stack` field as the **detected** stack and adds `lifecycleStack` when a readable lifecycle manifest exists. `lifecycleStack` includes:
+
+- `detectedStack`;
+- `installedStack`;
+- `requestedStack` (`null` when legacy provenance is unavailable);
+- `reprofileEligible`;
+- `reprofileTarget`;
+- `reprofileState`;
+- `reason`.
+
+This reporting is informational and does not weaken conservative lifecycle provenance rules. Explicit-generic and unknown-provenance preservation are not Doctor warnings by themselves, so `doctor --strict` does not become red merely because VCP is correctly preserving lifecycle intent.
 
 ## Strict-mode coverage boundary
 
