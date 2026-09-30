@@ -1,7 +1,7 @@
 # AGENTS.md — Reference SaaS Invitation Slice
 
 ## Source of truth
-Before code changes, read the requirement, domain model, architecture, ADR, threat model, test strategy, and current task under `docs/`.
+Before code changes, read the requirement, domain model, architecture, ADR, threat model, test strategy, and the current canonical Task Pack under `docs/tasks/`.
 
 ## Scope
 This is a reference vertical slice. Do not introduce an HTTP framework, database, authentication library, email provider, or other dependency unless the task explicitly expands the example.
