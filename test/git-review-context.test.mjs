@@ -121,6 +121,22 @@ test('invalid Git base fails visibly instead of producing an incomplete review s
   );
 });
 
+test('Git-aware review fails clearly outside a Git worktree', async () => {
+  const target = await mkdtemp(path.join(os.tmpdir(), 'vcp-non-git-review-'));
+  await initProject({ targetDir: target, agent: 'generic', stack: 'generic', includeGitHub: false });
+  await createTaskPack({ targetDir: target, slug: 'bounded-review', title: 'Bounded review' });
+
+  await assert.rejects(
+    createContextPack({
+      targetDir: target,
+      task: 'bounded-review',
+      mode: 'review',
+      gitBase: 'HEAD'
+    }),
+    /requires the project directory to be inside a Git worktree/
+  );
+});
+
 test('Git review evidence counts against the existing context byte budget', async () => {
   const { target, base } = await fixture();
   const plain = await createContextPack({ targetDir: target, task: 'bounded-review', mode: 'review' });
