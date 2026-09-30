@@ -263,16 +263,13 @@ The existing top-level `Status:` line is lightweight human/agent-maintained Task
 
 A Task Pack must not stay `In progress`, `Review`, or contain stale `pending` verification text after the task has actually crossed its accepted final gate. That mismatch weakens restartability even when the code itself is correct.
 
-For an implementation Task Pack, set `Status: Done` only when all of these are true:
+Use this sequence for implementation Task Packs:
 
-- acceptance criteria are satisfied;
-- every required verification command has actually passed on the **current final head**;
-- material independent-review findings are resolved or given an explicit follow-up disposition;
-- no `must fix in this task` finding remains unresolved;
-- no current-task blocker or unresolved HUMAN DECISION remains;
-- the completion report describes the final accepted gate rather than an older failed or pending state.
-
-The finalization edit should be part of the final task-changing commit before merge. After that edit, rerun the required exact-head gate. If code/docs move the head again, the prior exact-head evidence is no longer the merge gate; rerun it before merging. The Task Pack does not need another edit unless the reported outcome changes.
+1. Satisfy the acceptance criteria, clear current-task blockers/HUMAN DECISION dependencies, run the required implementation/review gate, and resolve or disposition material review findings.
+2. Make the **finalization edit**: set `Status: Done`, update the bounded completion report to the intended final accepted result, and mark retained earlier failures as superseded evidence.
+3. Because that edit moves the head, rerun the required exact-head gate on the finalization head.
+4. `Done` is accepted evidence only if that post-finalization exact-head rerun passes. If it fails, do not merge; return the task to an appropriate non-final state while fixing the failure, then finalize and rerun again.
+5. After a passing finalization gate, any later code/docs head movement requires another exact-head rerun before merge. The Task Pack needs another edit only if the reported outcome changes.
 
 Keep final evidence bounded. The completion report should summarize what actually passed—for example readiness result, named verification commands, full validation, and clean-tree result—without pasting full logs. If an earlier gate failed and the failure matters for auditability, retain a concise **superseded failed evidence** note. It must be obvious that the failure is historical and no longer the current task state.
 
@@ -396,9 +393,9 @@ Manual/product QA where judgment is required
         ↓
 Fix current-task defects or record follow-ups
         ↓
-Finalize Task Pack: final gate evidence + `Status: Done`
+Finalize Task Pack: bounded final evidence + `Status: Done`
         ↓
-Rerun exact-head verification after the finalization edit
+Rerun exact-head verification on the finalization head
         ↓
 vcp doctor .
         ↓
