@@ -1,6 +1,6 @@
 # Task — Add explicit workspace Source-of-Truth references
 
-Status: Review
+Status: Done
 Slug: `workspace-source-truth`
 
 ## Outcome
@@ -29,9 +29,9 @@ Preserve unqualified Task Pack Source-of-Truth references as project-local. Add 
 - [x] AC-005 — `DRAFT`, `ACCEPTED`, `SUPERSEDED`, and `ARCHIVED` freshness semantics apply identically to workspace-qualified governing references.
 - [x] AC-006 — Readiness diagnostics and Context Pack manifests preserve portable `workspace:<path>` identity rather than absolute checkout paths.
 - [x] AC-007 — Context remains bounded: unrelated root documents and sibling-package documents are not auto-included.
-- [ ] AC-008 — `workspace:` is rejected for `--include`; `--planned`, `--output`, verification output, verification cwd, task files, prompts, and AGENTS ownership remain project-local, including canonical-equivalent inputs with leading whitespace.
+- [x] AC-008 — `workspace:` is rejected for `--include`; `--planned`, `--output`, verification output, verification cwd, task files, prompts, and AGENTS ownership remain project-local, including canonical-equivalent inputs with leading whitespace.
 - [x] AC-009 — Documentation defines explicit project-local vs workspace-qualified authority and rejects hidden parent/sibling inheritance.
-- [ ] AC-010 — Corrective focused contract tests, strict readiness/context/verification dogfood, and full repository validation pass on the exact pre-final head after the PR #64 whitespace-normalization fix.
+- [x] AC-010 — Corrective focused contract tests, strict readiness/context/verification dogfood, and full repository validation passed on exact pre-final head `9883918781f7986d6cc1a29a1dc68fc79edf7018` after the PR #64 whitespace-normalization fix.
 
 ## Scope
 
@@ -168,8 +168,8 @@ Do not claim a command passed unless it was actually executed.
 - [x] Starter-template readiness diagnostics remain scope-independent.
 - [x] Context manifest identity is portable and bounded.
 - [x] Root and sibling files are not auto-included.
-- [ ] Verification cwd/output and context extra/planned/output paths remain project-local with the reserved qualifier rejected after normalization.
-- [ ] Executable exact-head pre-final validation confirms the whitespace-normalization correction.
+- [x] Verification cwd/output and context extra/planned/output paths remain project-local with the reserved qualifier rejected after normalization.
+- [x] Executable exact-head pre-final validation confirmed the whitespace-normalization correction on `9883918781f7986d6cc1a29a1dc68fc79edf7018`.
 
 ## Independent review evidence
 
@@ -180,26 +180,27 @@ Do not claim a command passed unless it was actually executed.
 | DEFECT | must fix in this task | While fixing workspace template lookup, the template-warning branch briefly dropped the stable `Source of truth` finding title. | Restored the existing finding shape and asserted the title in the workspace-template regression. | none known |
 | DEFECT | must fix in this task | Ambient `GIT_DIR`, `GIT_WORK_TREE`, or `GIT_COMMON_DIR` could redirect `git rev-parse --show-toplevel`, making process environment rather than the selected filesystem project determine cross-root read authority. | Workspace root discovery removes those overrides before invoking Git; regression proves unrelated ambient Git state cannot redirect the root. | Other standard Git discovery configuration still follows Git semantics; project containment and canonical candidate containment remain mandatory. |
 | DEFECT | must fix in this task | CodeRabbit's PR #61 review body identified that `safePath` did not reserve the `workspace:` qualifier for generic project-local paths. On POSIX, `--planned workspace:...` / `--output workspace:...` could be interpreted as literal paths inside the selected project, contradicting AC-008. Because the finding was outside the diff it produced no inline thread and was missed by the no-unresolved-thread merge check. | PR #64 reserved `workspace:` centrally in project-local context path validation and added focused planned/output regressions. PR #61's passing final gate remains superseded historical evidence. | Later PR #64 review found a normalization-order bypass, recorded below. |
-| DEFECT | must fix in this task | CodeRabbit's final PR #64 review found that leading whitespace (for example ` workspace:docs/new-file.md`) bypassed the raw reserved-prefix check and was then trimmed by path normalization, allowing planned/output values to be interpreted as project-local paths on POSIX. The same canonical-equivalent input could also bypass the dedicated include diagnostic. | The correction trims project-local context path candidates before URL/reserved-prefix checks, trims for the dedicated include qualifier check, and adds leading-whitespace regressions for planned, output, and include. | Must pass fresh exact-head pre-final validation and fresh reviews-plus-threads audit before finalization. |
+| DEFECT | must fix in this task | CodeRabbit's final PR #64 review found that leading whitespace (for example ` workspace:docs/new-file.md`) bypassed the raw reserved-prefix check and was then trimmed by path normalization, allowing planned/output values to be interpreted as project-local paths on POSIX. The same canonical-equivalent input could also bypass the dedicated include diagnostic. | The correction trims project-local context path candidates before URL/reserved-prefix checks, trims for the dedicated include qualifier check, adds leading-whitespace regressions for planned, output, and include, and passed the fresh exact-head pre-final gate on `9883918781f7986d6cc1a29a1dc68fc79edf7018`. | Final Task Pack-only head still requires the same exact-head rerun before merge. |
 | NO ACTION | n/a | A general workspace-qualified `--include` mechanism would make a narrow governing-authority feature into a broad cross-root path escape hatch. | Kept `--include` project-local and retained an explicit refusal for `workspace:` qualification. | Callers must declare shared governing authority in the Task Pack, by design. |
 | NO ACTION | n/a | Automatic parent/sibling Source-of-Truth lookup could reduce typing but would make authority depend on repository layout and hidden search order. | No implicit inheritance/search added; workspace authority is explicit per reference. | Richer monorepo conformance remains a later Stage 5 slice. |
 
 ## Finalization
 
-- [ ] Acceptance criteria satisfied on the newest corrective exact pre-final head.
-- [ ] New corrective pre-final implementation/review gate passed before finalization edit.
+- [x] Acceptance criteria satisfied on the newest corrective exact pre-final head.
+- [x] New corrective pre-final implementation/review gate passed before finalization edit.
 - [x] Independent review evidence is current.
-- [ ] Completion report reflects accepted newest corrective executable evidence.
-- [ ] Top-level `Status` changed to `Done`.
+- [x] Completion report reflects accepted newest corrective executable evidence.
+- [x] Top-level `Status` changed to `Done`.
 
-After the newest corrective finalization edit, rerun the same required exact-head gate. Do not edit this Task Pack solely to record that rerun; merge only if it passes.
+This Task Pack-only finalization edit moves the branch head. Rerun the same required exact-head gate on the new finalization head; do not edit this Task Pack solely to record that rerun, and merge only if it passes.
 
 ## Completion report
 
 - What changed and why: explicit shared-worktree governing Source-of-Truth qualification remains the intended feature; the corrective branch reserves `workspace:` across project-local context paths and now normalizes candidate input before enforcing that reservation so canonical-equivalent leading-whitespace forms cannot bypass it.
 - Superseded PR #61 completion evidence: the requested pre-final gate passed on `85d6bfa96aa3eead0068e066c0ffd733619592f8`; its final exact-head gate passed on `0eb9d587ee42b7db3cecc6799f660085abc3941a`; PR #61 then merged as `7f31c5e3ef32b89b5dd39f76343c86617bbc2b93`. A later audit confirmed the unaddressed AC-008 review-body defect, so those passes do not establish current task completion.
 - Superseded PR #64 corrective evidence: the corrective pre-final gate was reported passing on `68d0ca5ce01501aabc3cfca7cc8bdc0a879365c2`; after Task Pack-only finalization, the final exact-head gate was reported passing on `994495305cbcad5326368ed4c833d517f7101765`. Both reports are qualitative maintainer evidence only. CodeRabbit's later final review found the leading-whitespace normalization bypass, so neither head establishes current completion.
-- Current accepted verification: pending a fresh exact-head pre-final gate after the whitespace-normalization correction.
+- Current accepted verification: the fresh corrective pre-final exact-head gate was reported passing on `9883918781f7986d6cc1a29a1dc68fc79edf7018`. This is qualitative maintainer-reported evidence only; no command output, test counts, or runtime versions were supplied.
+- Finalization state: this Task Pack-only edit moves the branch head and requires the same final exact-head rerun before merge; that rerun is not yet claimed.
 - Independent review evidence updated: yes; both the PR #61 review-body defect and the later PR #64 leading-whitespace finding are durable above, and merge auditing requires both submitted reviews and inline threads.
 - Migration/operational impact: additive Task Pack syntax; no migration. Workspace-qualified references require an accessible local Git worktree, and the qualifier is reserved from ordinary project-local context paths after normalization.
 - Remaining risks/limitations: no automatic package discovery, sibling imports, workspace scheduler, root/package precedence engine, provider CI integration, or full realistic monorepo conformance yet.
