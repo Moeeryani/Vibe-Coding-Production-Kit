@@ -1,6 +1,6 @@
 # Task — Enforce Source-of-Truth freshness
 
-Status: Review
+Status: Done
 Slug: `source-truth-freshness`
 
 ## Outcome
@@ -27,7 +27,7 @@ Implement roadmap Slice E with optional explicit `Authority:` markers: `DRAFT`, 
 - [x] AC-005 — Unknown or multiple explicit authority markers fail visibly instead of falling back to legacy behavior.
 - [x] AC-006 — Explicit `--include` can deliberately carry historical material without treating it as governing Source of Truth.
 - [x] AC-007 — The reference SaaS marks its live PRD `ACCEPTED`, retains one `SUPERSEDED` policy artifact, and keeps the rejected listing alternative discoverable in the accepted PRD.
-- [ ] AC-008 — Focused conformance plus the full repository validation pass on the pre-final PR head before Task Pack finalization.
+- [x] AC-008 — Focused conformance plus the full repository validation passed on pre-final PR head `554ee56e37dc3e36e67ec4d684004fb673c46add` before Task Pack finalization.
 
 ## Scope
 
@@ -139,31 +139,31 @@ Do not claim a command passed unless it was actually executed.
 - [x] Superseded/archived material remains inspectable but not governing.
 - [x] Accepted negative decisions remain present in the current accepted reference PRD.
 - [x] No document database, revision graph, scheduler, schema migration, or embedded AI runtime was introduced.
-- [ ] Executable pre-final validation confirms the branch behavior.
+- [x] Executable pre-final validation confirms the branch behavior.
 
 ## Independent review evidence
 
 | Class | Disposition | Finding / evidence | Resolution / follow-up | Residual risk |
 |---|---|---|---|---|
-| NO ACTION | n/a | Static review confirms one shared authority helper owns parsing/policy, readiness consumes stage semantics, context consumes mode semantics, and `--include` is intentionally outside governing-reference enforcement. | No correction required before executable validation. | Exact behavior remains gated on pre-final executable validation under Issue #15. |
+| NO ACTION | n/a | Static review confirms one shared authority helper owns parsing/policy, readiness consumes stage semantics, context consumes mode semantics, and `--include` is intentionally outside governing-reference enforcement. The requested pre-final exact-head gate also passed on `554ee56e37dc3e36e67ec4d684004fb673c46add`. | No correction required before finalization. | Final merge remains gated on the post-finalization exact-head rerun under Issue #15. |
 
 ## Finalization
 
-Prepare the finalization edit only after the pre-final implementation/review gate passes.
+The pre-final implementation/review gate passed before this finalization edit.
 
-- [ ] Acceptance criteria satisfied.
-- [ ] Pre-final implementation/review gate passed before the finalization edit.
+- [x] Acceptance criteria satisfied.
+- [x] Pre-final implementation/review gate passed before the finalization edit.
 - [x] Independent review evidence is current and no `must fix in this task` finding remains unresolved.
-- [ ] Completion report reflects the intended final accepted gate; earlier failures are marked superseded if retained.
-- [ ] Top-level `Status` changed to `Done`.
+- [x] Completion report reflects the intended final accepted gate; earlier failures are marked superseded if retained.
+- [x] Top-level `Status` changed to `Done`.
 
-After the finalization edit, rerun the required exact-head gate. Do not edit this Task Pack solely to record that rerun; merge only if it passes.
+After this finalization edit, rerun the required exact-head gate. Do not edit this Task Pack solely to record that rerun; merge only if it passes.
 
 ## Completion report
 
 - What changed and why: added deterministic Source-of-Truth freshness states so current authority cannot be silently confused with drafts/history, while legacy projects remain compatible.
-- Final accepted verification: pending pre-final executable validation; replace during finalization, then prove it with the post-finalization exact-head rerun before merge.
+- Final accepted verification: the requested pre-final gate passed on exact head `554ee56e37dc3e36e67ec4d684004fb673c46add`, covering focused authority conformance, implementation readiness/context, both VCP verification commands, reference-fixture readiness/context including deliberate historical inspection, full repository validation, and clean/unchanged-head checks. This finalization edit moves the head, so the same exact-head gate must pass again before merge.
 - Superseded failed evidence (if material): n/a.
-- Independent review evidence updated: yes; static review found no blocking design issue before executable validation.
+- Independent review evidence updated: yes; no blocking finding remains before the post-finalization gate.
 - Migration/operational impact: none; optional Markdown marker, no schema/backfill.
 - Remaining risks/limitations: freshness is explicit per-document metadata; VCP does not infer supersession relationships or build a revision graph.
