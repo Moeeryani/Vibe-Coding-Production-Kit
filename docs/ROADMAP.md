@@ -175,32 +175,34 @@ It also produced real product follow-ups #21–#27.
 
 ### Slice C — Decide whether `mode` / `blockedBy` deserve persistence
 
-**Status:** 🧪 Dogfood required.
+**Status:** ✅ Done — Issue #44 dogfood found current Task Pack prose sufficient; required `mode` / `blockedBy` persistence is not justified yet.
 
-Do not add required schema yet.
+The multi-branch dogfood exercised:
 
-Next dogfood must contain multiple branches:
+- an independent executable AFK repository branch that completed while a product decision remained unresolved;
+- an AFK application branch that stayed blocked instead of manufacturing the missing human decision;
+- one genuine HUMAN DECISION about expired-pending invitation visibility;
+- explicit approval of Option A and durable rejection of Option B;
+- deterministic eligibility recomputation after approval;
+- downstream implementation with readiness, verification, fresh review, and exact-head local evidence;
+- zero-context reconstruction from current repository/VCP artifacts.
 
-- one executable AFK branch;
-- one blocked AFK branch;
-- one HUMAN DECISION;
-- downstream work blocked by that decision;
-- independent AFK work that can continue;
-- eligibility recomputation after the decision;
-- zero-context reconstruction of current eligibility.
-
-Only if this proves prose unreliable should VCP add the minimum state:
+The zero-context read recovered AFK/HITL classification, the blocking decision, dependency rationale, approved/rejected choices, and the eligibility transition without required graph metadata. Therefore:
 
 ```text
 mode: AFK | HITL
 blockedBy: [...]
 ```
 
+remain conceptual/derived state, not required Task Pack schema. Revisit persistence only if later dogfood demonstrates ambiguity or restartability failure that these fields would actually solve.
+
+The same reconstruction exposed a separate completion-evidence hygiene problem: merged Task Packs can retain stale `In progress` / `Review` and prior validation text. Track that independently in #48 rather than treating it as evidence for graph-state persistence.
+
 ### Slice D — Dependency Graph Engine
 
-**Status:** 🔵 Designed; depends on Slice C evidence.
+**Status:** 🔵 Designed; execution deferred — Slice C did not justify graph-state persistence or a scheduler/queue engine.
 
-Potential capabilities:
+Potential capabilities remain:
 
 - task identity/reference validation;
 - duplicate/missing dependency checks;
@@ -220,6 +222,8 @@ then execution mode
 ```
 
 Never “all AFK first, then all HITL.”
+
+Do not implement this slice merely because the conceptual model exists. Require new evidence that deterministic graph validation solves an observed problem current Task Pack prose cannot handle safely.
 
 ### Slice E — Source-of-Truth freshness
 
@@ -244,31 +248,31 @@ Agents must distinguish current truth from history while preserving accepted neg
 
 Intent, clarification, shared design, decisions, vertical tasks, dependencies, AFK/HITL, eligibility, implementation, verification, review, QA, follow-up.
 
-**Next:** multi-branch eligibility dogfood → persistence decision → graph validation only if justified.
+**Next:** close #48 completion-finalization drift, then advance Source-of-Truth freshness; revisit graph validation only if later evidence justifies it.
 
 ### Track B — Knowledge and State
 
 Source-of-Truth freshness, decision lifecycle, negative decisions, task state, lifecycle state, migrations, ownership, rollback.
 
-**Next:** #24 project-root semantics, #25 canonical Task Pack convention, #26 durable review evidence implementation where needed, then freshness.
+**Next:** #48 completion-finalization hygiene, then Source-of-Truth freshness.
 
 ### Track C — Engineering Assurance
 
 Verification, Git-aware review, security profiles, prompt evaluation, architecture fitness, conformance.
 
-**Next:** #21 verification command expressiveness, Git-aware review foundation, conformance fixtures.
+**Next:** Git-aware review foundation and conformance fixtures.
 
 ### Track D — Repository Scale and Delivery
 
 CI evidence, monorepos, release automation, stack/mobile profiles, package/repo scale.
 
-**Next:** #15, nested-project semantics, lifecycle UX/cleanup #28–#30, then monorepo/mobile work.
+**Next:** #15, then monorepo/mobile work after current nested-project/lifecycle contracts remain stable.
 
 ### Track E — Developer UX and Ecosystem
 
 Onboarding, simple workflow, agent interoperability, reference projects, docs consistency, community/plugin model.
 
-**Next:** #23 reference fixture self-containment, #25 task convention, cross-agent conformance.
+**Next:** cross-agent conformance and clearer durable task finalization.
 
 ---
 
@@ -303,6 +307,9 @@ Define whether empty `.vcp/stage/` is removed or intentionally retained after su
 
 ### #30 — Lifecycle exit-code semantics
 Document no-work / work-available / blocked / failure semantics for scripting and CI.
+
+### #48 — Task Pack completion finalization
+Keep final Task Pack status and bounded verification evidence synchronized after successful exact-head validation and merge so restartability does not depend on stale `pending` / prior-failure text.
 
 Prioritize by dependency and user impact, not issue number.
 
@@ -587,19 +594,16 @@ Add future `SYSTEM-CONTRACT.md` / `QUALITY-GATES.md` only if they reduce ambigui
 ## 15. Recommended Execution Order From Current Main
 
 1. Keep #15 open and preserve an executable exact-head local validation channel.
-2. Close only the dogfood follow-ups that block the next orchestration experiment, especially #21, #23–#26.
-3. Run the multi-branch AFK/HITL dogfood.
-4. Decide whether `mode` / `blockedBy` deserve persistence.
-5. If justified, add the smallest backward-compatible metadata + validation.
-6. If justified, add graph validation/eligibility/human frontier.
-7. Add Source-of-Truth freshness.
-8. Build Git-aware bounded review.
-9. Resolve monorepo/project-root + CI evidence semantics.
-10. Build concrete security profiles.
-11. Build prompt behavioral evaluation.
-12. Add architecture fitness functions.
-13. Automate release mechanics without automating approval.
-14. Extend mobile/plugins/ecosystem only after core contracts stabilize.
+2. Close #48 completion-finalization drift exposed by Slice C.
+3. Add Source-of-Truth freshness.
+4. Build Git-aware bounded review.
+5. Resolve monorepo/project-root + CI evidence semantics.
+6. Build concrete security profiles.
+7. Build prompt behavioral evaluation.
+8. Add architecture fitness functions.
+9. Automate release mechanics without automating approval.
+10. Extend mobile/plugins/ecosystem only after core contracts stabilize.
+11. Revisit graph validation/eligibility only if later dogfood demonstrates a concrete problem that required metadata would solve.
 
 ---
 
