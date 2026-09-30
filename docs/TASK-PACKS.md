@@ -90,6 +90,7 @@ This keeps nested repositories and monorepo subprojects deterministic without ad
 - a plan-before-code section;
 - independent review checklist;
 - durable independent-review evidence;
+- finalization checklist;
 - completion report.
 
 Source-of-Truth file references must be explicit. The canonical Task Pack table uses its `Reference` column for repository-local references; labeled bullets such as `Reference:`, `Source:`, or `File:` are also supported. Ordinary inline code in explanatory prose—permissions, states, commands, identifiers, API names, and similar terms—is not a file reference merely because it is wrapped in backticks. This keeps Task Packs readable without weakening path validation for references that are actually declared.
@@ -256,6 +257,26 @@ DONE
 
 These are not new required schema fields in this protocol slice. Before persistence, VCP must define legal transitions, readiness interaction, external issue-tracker interaction, failure/reopen behavior, and backward compatibility.
 
+The existing top-level `Status:` line is lightweight human/agent-maintained Task Pack evidence, not a workflow database or scheduler state machine. For implementation Task Packs, use `Done` as the durable final state under the finalization rules below. Decision-only Task Packs may use a decision-specific terminal state such as `Approved` when that more accurately describes the artifact.
+
+## Task finalization
+
+A Task Pack must not stay `In progress`, `Review`, or contain stale `pending` verification text after the task has actually crossed its accepted final gate. That mismatch weakens restartability even when the code itself is correct.
+
+Use this sequence for implementation Task Packs:
+
+1. Satisfy the acceptance criteria, clear current-task blockers/HUMAN DECISION dependencies, run the required implementation/review gate, and resolve or disposition material review findings.
+2. Make the **finalization edit**: set `Status: Done`, update the bounded completion report to the intended final accepted result, and mark retained earlier failures as superseded evidence.
+3. Because that edit moves the head, rerun the required exact-head gate on the unchanged finalization head.
+4. `Done` is accepted evidence only if that post-finalization exact-head rerun passes. If it fails, do not merge; return the task to an appropriate non-final state while fixing the failure, then finalize and rerun again.
+5. After a passing finalization gate, do not edit the Task Pack merely to mark the rerun as passed; the rerun validates the already-written finalization. Any later code/docs head movement requires another exact-head rerun before merge.
+
+Keep final evidence bounded. The completion report should summarize what the finalization claims actually passed—for example readiness result, named verification commands, full validation, and clean-tree result—without pasting full logs. The post-finalization exact-head rerun proves that summary before merge. If an earlier gate failed and the failure matters for auditability, retain a concise **superseded failed evidence** note. It must be obvious that the failure is historical and no longer the current task state.
+
+Do not create self-referential commit churn merely to embed the eventual merge commit SHA or a post-gate checkbox in the Task Pack. Git/PR history is authoritative for merge identity and exact-head merge evidence; the Task Pack owns engineering completion state and the bounded verification/review summary.
+
+Older explicit Task Packs remain compatible. They may be repaired in place when fresh reconstruction finds stale completion metadata; this does not require a schema migration or second workflow database.
+
 ## Context-aware verification
 
 If `AGENTS.md` contains concrete verification commands, the generator copies the applicable configured commands into the Task Pack.
@@ -371,6 +392,10 @@ Persist material review evidence in the Task Pack
 Manual/product QA where judgment is required
         ↓
 Fix current-task defects or record follow-ups
+        ↓
+Finalize Task Pack: bounded final evidence + `Status: Done`
+        ↓
+Rerun exact-head verification on the unchanged finalization head
         ↓
 vcp doctor .
         ↓

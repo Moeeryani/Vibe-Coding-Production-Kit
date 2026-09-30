@@ -1,6 +1,6 @@
 # Task — List active invitations for an organization admin
 
-Status: Review
+Status: Done
 Slug: `list-active-invitations`
 
 ## Outcome
@@ -165,10 +165,19 @@ Record concise material findings here after a fresh review. Do not copy the full
 |---|---|---|---|---|
 | NO ACTION | n/a | Fresh branch review confirmed tenant scope comes only from `actor.orgId`, terminal records are filtered, expiry is a read-time projection, and the service constructs an exact four-field response with no token/hash or persistence attribution. | No correction required before executable validation. | Production persistence/indexing and HTTP/UI delivery remain outside this reference slice. |
 
+## Finalization
+
+- [x] Acceptance criteria satisfied.
+- [x] Required verification passed on final PR #47 head `f2326bbb7013570e5857cc5ebdd0de3183768d7b`.
+- [x] Independent review evidence is current and no `must fix in this task` finding remains unresolved.
+- [x] Completion report reflects the final accepted gate; earlier readiness failures are marked superseded.
+- [x] Top-level `Status` is `Done`.
+
 ## Completion report
 
 - What changed and why: implemented the now-unblocked active-invitation application contract using the approved Option A policy from Issue #44.
-- Verification actually run: focused listing tests, reference tests/check, and full framework validation passed on prior heads, but readiness/verify remained blocked by Task Pack readiness-label drift; exact-head validation must be rerun after this final documentation correction.
+- Final accepted verification: on PR #47 head `f2326bbb7013570e5857cc5ebdd0de3183768d7b`, implementation readiness passed 15/15 with 0 warnings/failures; review context exited 0; `CHECK_COMMAND` and `UNIT_TEST_COMMAND` each passed through VCP verify; full framework validation passed 175/175; final tree was clean and HEAD unchanged.
+- Superseded failed evidence (if material): earlier PR #47 heads failed Task Pack readiness first on six canonical fields and then only on the missing `Tenant isolation` label. Those failures were corrected and are superseded by the final accepted gate above; they are not the current task state.
+- Independent review evidence updated: yes; no blocking finding remained at merge.
 - Migration/operational impact: none; additive read-only reference behavior only.
 - Remaining risks/limitations: delivery/API/UI representation and production persistence/indexing remain out of scope.
-- Independent review evidence updated: yes; no blocking finding in the bounded implementation review.
