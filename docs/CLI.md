@@ -162,6 +162,19 @@ The task generator writes `docs/tasks/<slug>.md`, refuses overwrite unless `--fo
 
 The coding agent should populate and maintain the task from repository evidence instead of asking the developer to fill every section manually. See [`TASK-PACKS.md`](TASK-PACKS.md).
 
+### Task workflow project root
+
+`task`, `ready`, `context`, and `verify` share one project-root contract. Pass `--dir <project>` to target a nested or different project; otherwise the current directory is the project root.
+
+```bash
+vcp task accept-invite --dir packages/app
+vcp ready accept-invite --dir packages/app --stage implement
+vcp context accept-invite --dir packages/app --mode implement
+vcp verify accept-invite --dir packages/app --run
+```
+
+Task slugs, Source-of-Truth references, context include/planned/output paths, verification evidence paths, and verification command working directories are all interpreted from that selected root. `--dir` does not rebase a Task Pack authored for another project, and VCP does not fall back to parent-repository files when a reference is missing in the selected root.
+
 ## Gate task readiness
 
 A task can be ready to plan before it is ready to implement. Check those stages separately:
@@ -181,7 +194,7 @@ The implementation gate additionally requires resolved architecture/data/integra
 npx vibe-coding-production context accept-invite --mode plan
 ```
 
-`context` combines the task, `AGENTS.md`, the phase-specific operating prompt, and existing files referenced in the task's Source of Truth. Add existing implementation files explicitly with repeatable `--include` flags. For greenfield files that do not exist yet, use repeatable `--planned` flags in `implement` mode so their approved paths appear in the pack without pretending contents exist. Print to stdout or use `--output` to save a pack inside the repository. See [`CONTEXT-PACKS.md`](CONTEXT-PACKS.md).
+`context` combines the task, `AGENTS.md`, the phase-specific operating prompt, and existing files referenced in the task's Source of Truth. Add existing implementation files explicitly with repeatable `--include` flags. For greenfield files that do not exist yet, use repeatable `--planned` flags in `implement` mode so their approved paths appear in the pack without pretending contents exist. Print to stdout or use `--output` to save a pack inside the selected project root. See [`CONTEXT-PACKS.md`](CONTEXT-PACKS.md).
 
 Example greenfield implement pack:
 
@@ -200,7 +213,13 @@ Preview configured verification commands without executing them:
 vcp verify accept-invite
 ```
 
-Execution requires explicit consent and implementation readiness:
+Target a nested/different project with the same task root used by `task`, `ready`, and `context`:
+
+```bash
+vcp verify accept-invite --dir packages/app
+```
+
+Execution requires explicit consent and implementation readiness. Commands execute with the selected project root as their working directory, and any evidence `--output` path is resolved inside that same root:
 
 ```bash
 vcp verify accept-invite --run --output .vcp/evidence/accept-invite.json
@@ -247,11 +266,11 @@ Before using bootstrap `--force`, inspect the reported conflicts. The CLI never 
 --timeout-ms <n>   verify: per-command timeout
 --title <text>     task title
 --stage <name>     readiness stage: plan | implement
---dir <path>       task/ready/context/manage target repository
+--dir <path>       task/ready/context/verify/manage project root
 --mode <name>      context mode: plan | implement | review | security | release
 --include <path>   add an existing explicit context file; repeatable
 --planned <path>   implement context: declare a future repository-local path; repeatable
---output <path>    write context/evidence inside the repository
+--output <path>    write context/evidence inside the selected project root
 --max-bytes <n>    maximum context pack bytes; 0 disables the limit
 --help, -h         show help
 --version, -v      show version
