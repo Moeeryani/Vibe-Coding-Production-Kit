@@ -1,6 +1,6 @@
 # Task — Add explicit workspace Source-of-Truth references
 
-Status: Review
+Status: Done
 Slug: `workspace-source-truth`
 
 ## Outcome
@@ -29,9 +29,9 @@ Preserve unqualified Task Pack Source-of-Truth references as project-local. Add 
 - [x] AC-005 — `DRAFT`, `ACCEPTED`, `SUPERSEDED`, and `ARCHIVED` freshness semantics apply identically to workspace-qualified governing references.
 - [x] AC-006 — Readiness diagnostics and Context Pack manifests preserve portable `workspace:<path>` identity rather than absolute checkout paths.
 - [x] AC-007 — Context remains bounded: unrelated root documents and sibling-package documents are not auto-included.
-- [ ] AC-008 — `workspace:` is rejected for `--include`; `--planned`, `--output`, verification output, verification cwd, task files, prompts, and AGENTS ownership remain project-local.
+- [x] AC-008 — `workspace:` is rejected for `--include`; `--planned`, `--output`, verification output, verification cwd, task files, prompts, and AGENTS ownership remain project-local.
 - [x] AC-009 — Documentation defines explicit project-local vs workspace-qualified authority and rejects hidden parent/sibling inheritance.
-- [ ] AC-010 — Corrective focused contract tests, strict readiness/context/verification dogfood, and full repository validation pass on the exact pre-final head after the post-merge AC-008 fix.
+- [x] AC-010 — Corrective focused contract tests, strict readiness/context/verification dogfood, and full repository validation passed on exact pre-final head `68d0ca5ce01501aabc3cfca7cc8bdc0a879365c2` after the post-merge AC-008 fix.
 
 ## Scope
 
@@ -166,8 +166,8 @@ Do not claim a command passed unless it was actually executed.
 - [x] Starter-template readiness diagnostics remain scope-independent.
 - [x] Context manifest identity is portable and bounded.
 - [x] Root and sibling files are not auto-included.
-- [ ] Verification cwd/output and context extra/planned/output paths remain project-local with the reserved qualifier rejected.
-- [ ] Executable exact-head pre-final validation confirms the corrective implementation.
+- [x] Verification cwd/output and context extra/planned/output paths remain project-local with the reserved qualifier rejected.
+- [x] Executable exact-head pre-final validation confirmed the corrective implementation on `68d0ca5ce01501aabc3cfca7cc8bdc0a879365c2`.
 
 ## Independent review evidence
 
@@ -183,19 +183,20 @@ Do not claim a command passed unless it was actually executed.
 
 ## Finalization
 
-- [ ] Acceptance criteria satisfied on the corrective exact pre-final head.
-- [ ] Corrective pre-final implementation/review gate passed before finalization edit.
+- [x] Acceptance criteria satisfied on the corrective exact pre-final head.
+- [x] Corrective pre-final implementation/review gate passed before finalization edit.
 - [x] Independent review evidence is current.
-- [ ] Completion report reflects accepted corrective executable evidence.
-- [ ] Top-level `Status` changed to `Done`.
+- [x] Completion report reflects accepted corrective executable evidence.
+- [x] Top-level `Status` changed to `Done`.
 
-After the corrective finalization edit, rerun the same required exact-head gate. Do not edit this Task Pack solely to record that rerun; merge only if it passes.
+This Task Pack-only finalization edit moves the branch head. Rerun the same required exact-head gate on the new finalization head; do not edit this Task Pack solely to record that rerun, and merge only if it passes.
 
 ## Completion report
 
 - What changed and why: explicit shared-worktree governing Source-of-Truth qualification remains the intended feature; the corrective branch additionally reserves `workspace:` across project-local context paths so the qualifier cannot be reinterpreted as a literal planned/output path.
 - Superseded completion evidence: PR #61's requested pre-final gate passed on `85d6bfa96aa3eead0068e066c0ffd733619592f8`; its final exact-head gate passed on `0eb9d587ee42b7db3cecc6799f660085abc3941a`; PR #61 then merged as `7f31c5e3ef32b89b5dd39f76343c86617bbc2b93`. A later audit confirmed the unaddressed AC-008 review-body defect, so those passes are historical evidence and do not establish current task completion.
-- Current accepted verification: pending corrective exact-head pre-final executable validation.
+- Current accepted verification: the corrective pre-final exact-head gate passed on `68d0ca5ce01501aabc3cfca7cc8bdc0a879365c2`. This is qualitative maintainer-reported gate evidence; no command output, test counts, or runtime versions were supplied.
+- Finalization state: this Task Pack-only edit moves the branch head and requires the same final exact-head rerun before merge; that rerun is not yet claimed.
 - Independent review evidence updated: yes; the post-merge review-body finding and why it escaped the thread-only check are durable above.
 - Migration/operational impact: additive Task Pack syntax; no migration. Workspace-qualified references require an accessible local Git worktree, and the qualifier is reserved from ordinary project-local context paths.
 - Remaining risks/limitations: no automatic package discovery, sibling imports, workspace scheduler, root/package precedence engine, provider CI integration, or full realistic monorepo conformance yet.
