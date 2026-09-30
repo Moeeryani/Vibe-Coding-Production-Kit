@@ -91,7 +91,7 @@ test('workspace freshness rules match project-local governing authority rules', 
   assert.equal(sourceFinding(implement).status, 'fail');
   await assert.rejects(
     createContextPack({ targetDir: project, task: 'workspace-freshness', mode: 'implement' }),
-    /workspace:docs\/platform\/POLICY\.md: Draft Source of Truth/
+    /workspace:docs\/platform\/POLICY\.md: Source-of-Truth authority is DRAFT/
   );
 
   await writeFile(policy, '# Shared platform policy\n\nAuthority: SUPERSEDED\n\nHistorical shared rule.\n', 'utf8');
@@ -99,7 +99,7 @@ test('workspace freshness rules match project-local governing authority rules', 
   assert.equal(sourceFinding(superseded).status, 'fail');
   await assert.rejects(
     createContextPack({ targetDir: project, task: 'workspace-freshness', mode: 'review' }),
-    /workspace:docs\/platform\/POLICY\.md: Historical Source of Truth/
+    /workspace:docs\/platform\/POLICY\.md: Source-of-Truth authority is SUPERSEDED; historical material cannot be included as governing Source of Truth/
   );
 });
 
