@@ -78,7 +78,7 @@ Preserve unqualified Task Pack Source-of-Truth references as project-local. Add 
 - Authentication impact: n/a — local repository tooling.
 - Authorization/resource ownership: explicit workspace governing reads are limited to the enclosing Git worktree and do not expand write/output/command authority.
 - Tenant isolation: n/a — workflow tooling only.
-- Input/trust boundaries: Task Pack references and local Git metadata are repository-controlled input; workspace paths undergo lexical and canonical containment checks.
+- Input/trust boundaries: Task Pack references and local Git metadata are repository-controlled input; workspace paths undergo lexical and canonical containment checks, and ambient `GIT_DIR` / `GIT_WORK_TREE` / `GIT_COMMON_DIR` overrides are removed before discovering the authority-bearing worktree root.
 - Secrets/PII/logging: Context Pack manifests expose only portable qualified paths and file contents already selected as governing context; no host absolute workspace path is emitted as source identity.
 - Abuse/rate/replay considerations: one local Git root lookup per workspace-qualified readiness/context resolution; no network or provider API.
 - Relevant threat IDs: n/a — local workflow boundary; traversal/symlink escape is covered as a deterministic negative path.
@@ -90,9 +90,11 @@ Preserve unqualified Task Pack Source-of-Truth references as project-local. Add 
 - workspace path is URL-like → fail visibly;
 - workspace path traverses above worktree → fail visibly;
 - existing symlink/junction resolves outside worktree → fail visibly;
+- ambient Git directory/worktree overrides point elsewhere → ignore them and derive scope from the selected filesystem project;
 - workspace governing file is missing → readiness reports missing qualified path; context preserves legacy missing-reference behavior while readiness remains the authority gate;
 - workspace governing file is `DRAFT` → plan may use it, implementation may not;
 - workspace governing file is `SUPERSEDED`/`ARCHIVED` → cannot govern current execution/context;
+- workspace-qualified canonical template path still contains starter signals → preserve the existing readiness warning;
 - unrelated root/sibling files exist → not included unless explicitly declared;
 - caller tries `--include workspace:...` → fail with a boundary-specific message.
 
@@ -111,7 +113,8 @@ Readiness identifies explicit workspace governing references with their portable
 - nested project readiness/context loads one project-local and one workspace governing document;
 - manifest keeps portable workspace identity;
 - unrelated root and sibling files stay absent;
-- freshness behavior matches existing project-local contract.
+- freshness behavior matches existing project-local contract;
+- workspace-qualified canonical template paths retain starter-template diagnostics.
 
 ### E2E / regression
 - full repository validation remains green;
@@ -119,6 +122,7 @@ Readiness identifies explicit workspace governing references with their portable
 
 ### Negative/security paths
 - symlink/junction escape outside worktree is rejected;
+- ambient Git root override environment cannot redirect workspace authority;
 - `--include workspace:` is rejected;
 - stale workspace authority cannot drive implementation/review context.
 
@@ -152,8 +156,10 @@ Do not claim a command passed unless it was actually executed.
 - [x] Existing project-local references remain backward compatible.
 - [x] Workspace qualification is limited to governing Task Pack Source-of-Truth references.
 - [x] Git worktree lookup occurs only when a workspace-qualified reference is present.
+- [x] Ambient Git root overrides cannot redirect the discovered authority root.
 - [x] Traversal and canonical symlink/junction escape are rejected.
 - [x] Freshness semantics are scope-independent.
+- [x] Starter-template readiness diagnostics remain scope-independent.
 - [x] Context manifest identity is portable and bounded.
 - [x] Root and sibling files are not auto-included.
 - [x] Verification cwd/output and context extra/planned/output paths remain project-local.
@@ -164,6 +170,9 @@ Do not claim a command passed unless it was actually executed.
 | Class | Disposition | Finding / evidence | Resolution / follow-up | Residual risk |
 |---|---|---|---|---|
 | DEFECT | must fix in this task | Initial focused test assertions guessed non-canonical freshness wording for workspace errors. | Assertions were aligned to the existing `Source-of-Truth authority is ...` contract instead of changing stable diagnostics. | none known |
+| DEFECT | must fix in this task | Initial readiness wiring looked up starter-template signals using the qualified `workspace:` display path, which bypassed the existing canonical-path template warning. | Template-signal lookup now strips only the `workspace:` scope qualifier while diagnostics keep the qualified identity; regression added. | none known |
+| DEFECT | must fix in this task | While fixing workspace template lookup, the template-warning branch briefly dropped the stable `Source of truth` finding title. | Restored the existing finding shape and asserted the title in the workspace-template regression. | none known |
+| DEFECT | must fix in this task | Ambient `GIT_DIR`, `GIT_WORK_TREE`, or `GIT_COMMON_DIR` could redirect `git rev-parse --show-toplevel`, making process environment rather than the selected filesystem project determine cross-root read authority. | Workspace root discovery removes those overrides before invoking Git; regression proves unrelated ambient Git state cannot redirect the root. | Other standard Git discovery configuration still follows Git semantics; project containment and canonical candidate containment remain mandatory. |
 | NO ACTION | n/a | A general workspace-qualified `--include` mechanism would make a narrow governing-authority feature into a broad cross-root path escape hatch. | Kept `--include` project-local and added an explicit refusal for `workspace:` qualification. | Callers must declare shared governing authority in the Task Pack, by design. |
 | NO ACTION | n/a | Automatic parent/sibling Source-of-Truth lookup could reduce typing but would make authority depend on repository layout and hidden search order. | No implicit inheritance/search added; workspace authority is explicit per reference. | Richer monorepo conformance remains a later Stage 5 slice. |
 
