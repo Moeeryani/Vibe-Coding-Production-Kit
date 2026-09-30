@@ -17,10 +17,13 @@ test('generated Task Packs define a bounded finalization contract', () => {
 
   assert.match(task, /## Finalization/);
   assert.match(task, /`Status: Done` is the durable final state/);
-  assert.match(task, /required verification command has actually passed on the current final head/);
+  assert.match(task, /Prepare the finalization edit only after acceptance criteria are satisfied/);
+  assert.match(task, /finalization edit itself moves the head/);
+  assert.match(task, /`Done` is not accepted evidence until the required exact-head gate is rerun/);
+  assert.match(task, /If that rerun fails, do not merge/);
   assert.match(task, /prior failed gate is materially useful, summarize it separately as superseded evidence/);
   assert.match(task, /Git\/PR history owns merge identity/);
-  assert.match(task, /Final accepted verification: pending — replace before setting `Status: Done`/);
+  assert.match(task, /Final accepted verification: pending — replace during finalization, then prove with the post-finalization exact-head rerun before merge/);
   assert.match(task, /Superseded failed evidence \(if material\): n\/a/);
 });
 
