@@ -27,6 +27,10 @@ async function init(root) {
   await run(['init', root, '--agent', 'generic', '--stack', 'generic', '--no-github', '--yes']);
 }
 
+async function initAuto(root) {
+  await run(['init', root, '--agent', 'generic', '--stack', 'auto', '--no-github', '--yes']);
+}
+
 test('CLI init creates versioned update state', async () => {
   const root = await tempDir();
   await init(root);
@@ -47,6 +51,27 @@ test('CLI update check works offline without registry access', async () => {
   assert.equal(report.latestVersion, null);
   assert.equal(report.recommendedVersion, '0.9.2');
   assert.equal(report.updateAvailable, false);
+});
+
+test('CLI update check reports eligible automatic stack profile changes', async () => {
+  const root = await tempDir();
+  await initAuto(root);
+  const before = JSON.parse(await readFile(path.join(root, '.vcp/manifest.json'), 'utf8'));
+  assert.equal(before.install.stack, 'generic');
+  assert.equal(before.install.requestedStack, 'auto');
+
+  await writeFile(path.join(root, 'package.json'), `${JSON.stringify({ name: 'cli-js' }, null, 2)}\n`, 'utf8');
+
+  const { stdout: human } = await run(['update', root, '--check', '--offline']);
+  assert.match(human, /Stack profile: generic -> javascript/);
+  assert.match(human, /Project update available/);
+
+  const { stdout: json } = await run(['update', root, '--check', '--offline', '--json']);
+  const report = JSON.parse(json);
+  assert.equal(report.versionUpdateAvailable, false);
+  assert.equal(report.updateAvailable, true);
+  assert.equal(report.stackProfileChange.from, 'generic');
+  assert.equal(report.stackProfileChange.to, 'javascript');
 });
 
 test('CLI update dry-run is machine-readable and write-free', async () => {

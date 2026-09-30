@@ -118,12 +118,19 @@ test('planner refuses implicit managed-file removal without migration metadata',
 test('public update JSON never exposes desired or file content', () => {
   const report = publicUpdateReport({
     fromVersion: '0.8.0', toVersion: '0.9.0', cliVersion: '0.9.0',
-    migrationIds: [], counts: { UPDATE: 1 }, changes: 1, conflicts: 0,
+    migrationIds: [],
+    stackProfileChange: {
+      from: 'generic',
+      to: 'javascript',
+      reason: 'Stored generic profile was auto-selected and repository evidence now identifies a supported stack.'
+    },
+    counts: { UPDATE: 1 }, changes: 1, conflicts: 0,
     versionChange: true, needsApply: true, upToDate: false,
     actions: [{ type: 'UPDATE', path: 'AGENTS.md', reason: 'changed', content: 'SECRET', desired: { content: 'SECRET' } }]
   });
   const encoded = JSON.stringify(report);
   assert.equal(encoded.includes('SECRET'), false);
+  assert.equal(report.stackProfileChange.to, 'javascript');
   assert.equal('content' in report.actions[0], false);
   assert.equal('desired' in report.actions[0], false);
 });

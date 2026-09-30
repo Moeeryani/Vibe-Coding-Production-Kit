@@ -4,7 +4,7 @@ VCP v0.9 introduces repository-native lifecycle state so a project can evolve wi
 
 ## The contract
 
-`vcp init` creates `.vcp/manifest.json` plus baseline snapshots for files VCP manages. The manifest records the installed VCP version, install profile, ownership policy, baseline hash, baseline path, file mode, and template version.
+`vcp init` creates `.vcp/manifest.json` plus baseline snapshots for files VCP manages. The manifest records the installed VCP version, install profile, ownership policy, baseline hash, baseline path, file mode, and template version. New installs also preserve the requested stack selector separately from the resolved stack profile so lifecycle code can distinguish automatic detection from an explicit human stack choice.
 
 Runtime-only update artifacts are ignored through `.vcp/.gitignore`:
 
@@ -30,13 +30,13 @@ Reattach a current VCP file with:
 vcp manage track AGENTS.md
 ```
 
-## Check for a new version
+## Check for lifecycle changes
 
 ```bash
 vcp update . --check
 ```
 
-The command compares the installed manifest version, the running CLI, and—unless `--offline` is used—the latest npm version.
+The command compares the installed manifest version, the running CLI, and—unless `--offline` is used—the latest npm version. It also reports an eligible stack-profile transition when VCP has enough provenance to make that decision safely.
 
 Machine-readable form:
 
@@ -47,6 +47,33 @@ vcp update . --check --json
 With `--offline`, VCP does not claim to know the npm registry's latest version. It compares the project only with the running CLI and reports `registryChecked: false` in JSON.
 
 A newer npm version is not applied by an older CLI. VCP prints a version-pinned `npx` command so the target templates and migration code come from the version being installed. If the running CLI is already newer than the registry version, VCP never recommends downgrading to the registry copy. The delegated command targets the project path that was actually checked rather than assuming the current directory.
+
+## Stack-selection provenance and safe re-profiling
+
+VCP stores two different stack facts for new installs:
+
+- `install.stack` — the resolved profile actually installed, such as `generic` or `javascript`;
+- `install.requestedStack` — the selector supplied at init, such as `auto` or an explicit `generic`.
+
+These values intentionally answer different questions. A resolved `generic` value alone does not prove whether a developer explicitly chose the generic profile or whether `auto` fell back because the repository did not yet contain deterministic stack evidence.
+
+Automatic re-profiling is therefore deliberately narrow. VCP considers a profile transition only when all of the following are true:
+
+1. the stored resolved profile is `generic`;
+2. `install.requestedStack` is exactly `auto`;
+3. the current repository now satisfies the same deterministic stack-detection rules used by fresh init;
+4. detection resolves to a concrete supported profile instead of `generic`.
+
+When those conditions hold, `vcp update --check`, `vcp update --dry-run`, and JSON reports expose a `stackProfileChange` such as `generic -> javascript`. Apply persists the concrete resolved profile while retaining `requestedStack: "auto"`, so the provenance is not lost after the transition.
+
+Two cases do **not** re-profile automatically:
+
+- an explicit `requestedStack: "generic"`, because that is a human choice;
+- a legacy manifest with no `requestedStack`, because historical `generic` provenance cannot be reconstructed safely.
+
+For provenance-unknown legacy installs, historical profile identity wins. VCP does not infer that `generic` meant automatic merely because newer repository evidence now detects JavaScript, TypeScript, Python, or Go. This is intentionally conservative and avoids rewriting an explicit decision that older manifests cannot distinguish from fallback behavior.
+
+A profile transition still uses the normal ownership and merge rules. Customized `preserve` documents are not rewritten merely because stack detection changed, and any conflicting managed/generated file blocks apply before project files are changed.
 
 ## Preview before writing
 

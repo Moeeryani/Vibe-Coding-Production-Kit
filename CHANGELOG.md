@@ -4,6 +4,14 @@ All notable changes to this project will be documented here.
 
 ## [Unreleased]
 
+### Added
+- Stack-selection provenance is now preserved in `.vcp/manifest.json` as `install.requestedStack`, distinguishing automatic selection from an explicit stack choice for future lifecycle decisions.
+- Update check, dry-run, apply, and JSON reporting now expose eligible `stackProfileChange` transitions for auto-selected `generic` installs when deterministic repository evidence resolves to a concrete supported stack.
+
+### Changed
+- Auto-selected `generic` installs with recorded provenance may safely adopt a newly detectable concrete stack through the normal transactional update path.
+- Explicit `generic` selections and legacy manifests without stack-selection provenance remain conservative: stored `generic` profiles are not silently re-detected.
+
 ## [0.9.2] - 2026-09-25
 
 ### Added

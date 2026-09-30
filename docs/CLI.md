@@ -30,6 +30,8 @@ vcp init . --agent all --stack auto --yes
 
 Once a project has `.vcp/manifest.json`, `init` refuses to replace that lifecycle state even with `--force`. Use `vcp update` instead.
 
+New installs preserve both the resolved stack profile and the original stack selector in lifecycle state. For example, `--stack auto` can resolve to `generic` today while retaining `requestedStack: "auto"`; an explicit `--stack generic` records `requestedStack: "generic"`. That provenance is what allows later lifecycle decisions to respect explicit human choices.
+
 Preview initialization before writing:
 
 ```bash
@@ -38,7 +40,7 @@ vcp init . --agent all --dry-run
 
 ## Safe lifecycle updates
 
-Check whether the project or running CLI is behind:
+Check whether the project, running CLI, or an eligible auto-selected stack profile has lifecycle work available:
 
 ```bash
 vcp update . --check
@@ -50,6 +52,10 @@ Use `--offline` to avoid registry access and compare only with the running CLI:
 ```bash
 vcp update . --check --offline
 ```
+
+If a stored profile is `generic` and lifecycle provenance records `requestedStack: "auto"`, VCP may re-run the same deterministic stack detection used by fresh init. When current repository evidence now resolves to a supported concrete stack, `--check`, `--dry-run`, and JSON output expose a `stackProfileChange` such as `generic -> javascript` before apply.
+
+Explicit `requestedStack: "generic"` selections are never silently re-profiled. Older manifests that predate stack-selection provenance also remain `generic` because VCP cannot safely reconstruct whether that historical value was automatic fallback or a human choice.
 
 Preview the exact migration plan without changing files:
 
@@ -64,7 +70,7 @@ Apply an update only after reviewing the plan:
 vcp update .
 ```
 
-The updater uses persistent baselines, ownership policies, explicit migrations, bounded three-way merge, conflict blocking, path/symlink validation, a lifecycle lock, transaction state, backups, post-apply verification, and automatic rollback after apply failures.
+The updater uses persistent baselines, ownership policies, explicit migrations, bounded three-way merge, conflict blocking, path/symlink validation, a lifecycle lock, transaction state, backups, post-apply verification, and automatic rollback after apply failures. An eligible stack profile transition goes through the same safeguards; it does not bypass project-owned `preserve` content.
 
 A newer npm version is never applied by an older CLI. `--check` returns a version-pinned `npx` command targeting the same project path so the migration code and templates come from the version being installed.
 
@@ -213,6 +219,7 @@ The CLI is intentionally conservative:
 - any update conflict blocks apply before project-file writes;
 - removals must be explicitly declared by migrations;
 - customized `preserve` documents are not overwritten;
+- explicit or provenance-unknown `generic` stack profiles are not silently re-profiled;
 - update/rollback/manage mutations share one lifecycle lock;
 - update reports omit project/template file contents from public JSON;
 - repository and `.vcp` paths reject traversal and symlink escapes;
@@ -229,7 +236,7 @@ Before using bootstrap `--force`, inspect the reported conflicts. The CLI never 
 --force            explicit overwrite where that command supports it
 --no-github        skip GitHub issue/PR/workflow files during init
 --dry-run          preview without writing; update computes the full plan
---check            update: check project/CLI/npm version state
+--check            update: check version/profile lifecycle state
 --offline          update --check/apply: do not query npm
 --to <version>     update: require the target bundled in the running CLI
 --backup <id>      rollback: name the newest/transaction recovery point
