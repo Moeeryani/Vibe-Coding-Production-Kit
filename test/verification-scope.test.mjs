@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -150,7 +150,7 @@ test('Git workspace root project is represented by portable dot project path', a
   assert.deepEqual(report.revision, { system: 'git', headSha: head, dirty: false });
 });
 
-test('nested project verification runs in selected project root and records workspace-relative path', async () => {
+test('nested project verification runs in selected project root and persists workspace-relative evidence', async () => {
   const root = await tempDir();
   const target = path.join(root, 'packages', 'api');
   const command = `node -e "process.exit(require('node:path').basename(process.cwd()) === 'api' ? 0 : 9)"`;
@@ -160,12 +160,22 @@ test('nested project verification runs in selected project root and records work
   await git(root, 'config', 'user.name', 'VCP Test');
   const head = await commitAll(root, 'nested baseline');
 
-  const report = await runVerification({ targetDir: target, task: 'nested-project', run: true, quiet: true });
+  const report = await runVerification({
+    targetDir: target,
+    task: 'nested-project',
+    run: true,
+    quiet: true,
+    output: '.vcp/evidence/nested-project.json'
+  });
+  const evidence = JSON.parse(await readFile(path.join(target, '.vcp', 'evidence', 'nested-project.json'), 'utf8'));
 
   assert.equal(report.success, true);
   assert.deepEqual(report.scope, { kind: 'git-worktree', projectPath: 'packages/api' });
   assert.equal(report.revision.headSha, head);
   assert.equal(report.revision.dirty, false);
+  assert.deepEqual(evidence.scope, report.scope);
+  assert.deepEqual(evidence.revision, report.revision);
+  await assert.rejects(readFile(path.join(root, '.vcp', 'evidence', 'nested-project.json'), 'utf8'), /ENOENT/);
 });
 
 test('Git-backed evidence records dirty state before verification without blocking execution', async () => {
