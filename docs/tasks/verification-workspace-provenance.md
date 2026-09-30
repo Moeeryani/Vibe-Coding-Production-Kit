@@ -1,6 +1,6 @@
 # Task — Bind verification evidence to workspace/project scope and Git revision
 
-Status: Review
+Status: Done
 Slug: `verification-workspace-provenance`
 
 ## Outcome
@@ -30,7 +30,7 @@ Keep `--dir` as the VCP project root, Task Pack/Source-of-Truth namespace, comma
 - [x] AC-007 — Workspace discovery does not widen Source-of-Truth or other project-local path authority.
 - [x] AC-008 — Persisted schema-v2 evidence preserves the new scope/revision metadata; historical schema-v1 evidence requires no migration or rewrite.
 - [x] AC-009 — Documentation defines project root vs workspace root and a provider-agnostic local/CI comparison contract.
-- [ ] AC-010 — Focused tests, strict readiness/context/verification, and full repository validation pass on the pre-final exact head before finalization.
+- [x] AC-010 — Focused tests, strict readiness/context/verification, evidence provenance checks, and full repository validation passed on the pre-final exact head before finalization.
 
 ## Scope
 
@@ -154,7 +154,7 @@ Do not claim a command passed unless it was actually executed.
 - [x] Implementation-unready `--run` refuses before provenance processes.
 - [x] Provider-specific CI metadata is not required for the core evidence contract.
 - [x] Historical v1 evidence is not rewritten.
-- [ ] Executable pre-final validation confirms behavior on the exact branch head.
+- [x] Executable pre-final validation confirmed behavior on exact head `54dd88e26822e9e5a54669423069ad493d9079b1`.
 
 ## Independent review evidence
 
@@ -167,20 +167,21 @@ Do not claim a command passed unless it was actually executed.
 
 ## Finalization
 
-Prepare the finalization edit only after the pre-final implementation/review gate passes.
+Prepared only after the pre-final implementation/review gate passed.
 
-- [ ] Acceptance criteria satisfied.
-- [ ] Pre-final implementation/review gate passed before the finalization edit.
+- [x] Acceptance criteria satisfied.
+- [x] Pre-final implementation/review gate passed before the finalization edit.
 - [x] Independent review evidence is current and no known `must fix in this task` finding remains unresolved in source.
-- [ ] Completion report reflects the intended final accepted gate; earlier failures are marked superseded if retained.
-- [ ] Top-level `Status` changed to `Done`.
+- [x] Completion report reflects the bounded accepted pre-final gate; no failed pre-final evidence is being promoted as current truth.
+- [x] Top-level `Status` changed to `Done`.
 
-After the finalization edit, rerun the required exact-head gate. Do not edit this Task Pack solely to record that rerun; merge only if it passes.
+After this finalization edit, rerun the required exact-head gate. Do not edit this Task Pack solely to record that rerun; merge only if it passes.
 
 ## Completion report
 
 - What changed and why: added portable workspace/project and Git revision provenance to mechanical verification evidence so nested-package local/CI results can be compared without treating host-specific checkout paths as identity.
-- Final accepted verification: pending pre-final executable validation; replace during finalization, then prove the unchanged finalization head with a second exact-head gate.
+- Accepted pre-final verification: the maintainer reported the complete requested pre-final gate passed on exact head `54dd88e26822e9e5a54669423069ad493d9079b1`, including focused verification-scope/verify tests, repository check script, strict implementation readiness, Git-aware review context and changed-file visibility, schema-v2 scope/SHA evidence checks, both VCP verification commands, full repository validation, unchanged exact head, and a clean working tree. No test counts are inferred from that report.
+- Finalization-head requirement: rerun the same required gate on this Task Pack-only finalization head before merge; do not edit the Task Pack solely to record that rerun.
 - Superseded failed evidence (if material): n/a.
 - Independent review evidence updated: yes; three must-fix defects were found and corrected before executable validation.
 - Migration/operational impact: new evidence emits schema v2; no historical evidence migration and no CLI flag change.
