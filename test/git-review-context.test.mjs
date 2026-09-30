@@ -148,3 +148,27 @@ test('binary changes are identified by Git rather than represented as complete t
   assert.match(result.content, /binary\.bin/);
   assert.match(result.content, /Binary files .* differ/);
 });
+
+test('context CLI forwards explicit Git base/head into review mode', async () => {
+  const { target, base, head } = await fixture();
+  const bin = path.resolve('bin/vibe-coding-production.mjs');
+  const { stdout } = await execFileAsync(process.execPath, [
+    bin,
+    'context',
+    'bounded-review',
+    '--dir',
+    target,
+    '--mode',
+    'review',
+    '--base',
+    base,
+    '--head',
+    head
+  ], { encoding: 'utf8' });
+
+  assert.match(stdout, /# VCP Context Pack — review/);
+  assert.match(stdout, /## Git review surface/);
+  assert.match(stdout, new RegExp(base));
+  assert.match(stdout, new RegExp(head));
+  assert.match(stdout, /outside\.txt/);
+});
