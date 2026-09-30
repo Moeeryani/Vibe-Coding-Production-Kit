@@ -3,9 +3,12 @@ import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 import { createContextPack } from '../lib/context.mjs';
 import { runTaskReadiness } from '../lib/readiness.mjs';
 import { parseSourceTruthAuthority } from '../lib/source-truth-authority.mjs';
+
+const referenceRoot = fileURLToPath(new URL('../examples/reference-saas-invite/', import.meta.url));
 
 async function tempProject() {
   const root = await mkdtemp(path.join(os.tmpdir(), 'vcp-sot-'));
@@ -203,4 +206,31 @@ test('accepted negative decisions stay in context while historical material requ
   assert.match(withHistory.content, /Explicit extra context/);
   assert.match(withHistory.content, /Authority: SUPERSEDED/);
   assert.match(withHistory.content, /Old option A/);
+});
+
+test('reference SaaS reconstructs accepted current policy and keeps superseded policy historical', async () => {
+  const report = await runTaskReadiness({
+    targetDir: referenceRoot,
+    task: 'list-active-invitations',
+    stage: 'implement'
+  });
+  assert.equal(sourceFinding(report).status, 'pass');
+
+  const current = await createContextPack({
+    targetDir: referenceRoot,
+    task: 'list-active-invitations',
+    mode: 'implement'
+  });
+  assert.match(current.content, /Authority: ACCEPTED/);
+  assert.match(current.content, /The rejected alternative—omitting expired pending records/);
+  assert.doesNotMatch(current.content, /Historical invitation listing policy/);
+
+  const withHistory = await createContextPack({
+    targetDir: referenceRoot,
+    task: 'list-active-invitations',
+    mode: 'implement',
+    includes: ['docs/product/HISTORICAL-INVITATION-LISTING.md']
+  });
+  assert.match(withHistory.content, /Authority: SUPERSEDED/);
+  assert.match(withHistory.content, /Historical invitation listing policy/);
 });
