@@ -13,7 +13,7 @@ The command uses the verification commands embedded in a task pack and has two d
 vcp verify accept-invite
 ```
 
-Preview is the default. It does not execute repository commands.
+Preview is the default. It does not execute repository verification commands.
 
 The report shows the exact command keys and command strings that would run. `INSTALL_COMMAND` is excluded from the default verification set because dependency installation is setup, not proof that the task is correct.
 
@@ -64,6 +64,8 @@ vcp verify my-task --dir packages/api --run
 
 The configured commands still execute from `packages/api`. Evidence can then identify the portable workspace-relative project path as `packages/api` while retaining the existing absolute `target` field for backward compatibility.
 
+Symlinked checkout/project paths are canonicalized only for workspace-provenance containment and `scope.projectPath`. The selected project `target` itself remains the caller's resolved project path so the existing VCP project-root contract does not change.
+
 ## Evidence output
 
 Write machine-readable evidence inside the selected project root:
@@ -102,6 +104,22 @@ The absolute `target` value is retained so existing consumers do not break, but 
 If a project is not inside a Git worktree, verification still works. Evidence reports project-only scope and `revision: null` instead of inventing a commit identity.
 
 A dirty worktree does not automatically block verification because developers may intentionally verify uncommitted implementation work. The dirty flag is evidence, not approval. Release/merge policy may separately require a clean exact-head run.
+
+### Safe Git provenance inspection
+
+Git provenance inspection is automatic in both preview and run modes, so VCP treats it as metadata inspection rather than permission to execute repository-controlled functionality.
+
+For provenance commands VCP:
+
+- invokes Git directly without a shell;
+- forces the `C` locale so expected Git failure classes are deterministic across developer/CI locales;
+- disables `core.fsmonitor` and optional Git locks/index refresh writes;
+- canonicalizes filesystem paths before checking workspace/project containment;
+- explicitly uses `--ignore-submodules=none` so repository/submodule ignore settings cannot hide dirty submodule state;
+- checks initialized submodules recursively before dirty-state inspection;
+- refuses dirty-state inspection when a tracked path activates a configured external Git `clean` or `process` filter that could execute code.
+
+The last rule is intentionally conservative. If accurate dirty-state inspection would require executing an active external content filter, verification fails with an actionable provenance error instead of running that filter during preview or silently recording incomplete/false cleanliness. Merely having an unused filter driver installed globally does not trigger this refusal; the driver must be active for tracked repository content.
 
 If a Task Pack contains both `CHECK_COMMAND` and `UNIT_TEST_COMMAND`, both appear independently in human-readable and JSON evidence and both must pass for the verification run to succeed.
 
