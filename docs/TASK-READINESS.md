@@ -99,7 +99,13 @@ This is useful for teams that want a stricter planning-entry policy.
 
 ## Source-of-truth safety
 
-The readiness check validates repository-local references instead of trusting the Markdown text blindly. It rejects:
+The readiness check validates repository-local references instead of trusting the Markdown text blindly.
+
+A Source-of-Truth file reference is explicit when it appears in the canonical table's `Reference` column, or in a labeled bullet such as `- Reference: docs/product/PRD.md`, `- Source: ...`, or `- File: ...`. Backticks are optional in those explicit positions. Markdown links in the `Reference` column are also supported.
+
+Inline code used as explanatory prose is **not** a file reference. Terms such as `members.invite`, `pending`, `CHECK_COMMAND=npm run check`, or `npm test` can therefore appear in the Source-of-Truth explanation without being resolved as repository paths.
+
+For explicit references, readiness still rejects:
 
 - placeholder references such as `#...` or `ADR-...md`;
 - missing referenced files;
