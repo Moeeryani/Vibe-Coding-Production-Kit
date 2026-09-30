@@ -15,6 +15,8 @@ Runtime-only update artifacts are ignored through `.vcp/.gitignore`:
 
 The manifest and baselines are intentionally persistent. They are the evidence needed to distinguish upstream template changes from project-local changes.
 
+`stage/` is intentionally transient. A successful update removes its transaction-specific staged subtree and removes `.vcp/stage/` itself when the directory becomes empty. Recovery from an interrupted transaction does the same after a successful rollback. Cleanup is conservative: VCP never recursively removes unrelated non-empty stage content merely to make the parent directory disappear.
+
 ## Ownership policies
 
 VCP does not treat every file the same.
