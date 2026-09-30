@@ -82,6 +82,7 @@ After approval:
 
 - human dependency frontier for this slice: cleared;
 - `list-active-invitations`: AFK and now eligible, subject to its normal implementation readiness and executable verification checks;
+- governing PRD now fixes the bounded application response to `invitationId`, `email`, `expiresAt`, and derived `state`;
 - no scheduler or graph engine was required to perform this recomputation.
 
 ## Verification commands
@@ -92,7 +93,7 @@ This is a decision Task Pack, not an implementation task. No code verification c
 
 | Finding class | Disposition | Finding / evidence | Resolution or follow-up | Residual risk |
 |---|---|---|---|---|
-| NO ACTION | n/a | Human approval was recorded without inferring rationale, and rejected Option B remains durable. | No change required. | Application implementation still requires deterministic verification. |
+| NO ACTION | n/a | Human approval was recorded without inferring rationale, rejected Option B remains durable, and the downstream contract is bounded in the PRD. | No change required. | Application implementation still requires deterministic verification. |
 
 ## Completion report
 
