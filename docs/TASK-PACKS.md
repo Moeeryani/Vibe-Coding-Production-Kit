@@ -267,13 +267,13 @@ Use this sequence for implementation Task Packs:
 
 1. Satisfy the acceptance criteria, clear current-task blockers/HUMAN DECISION dependencies, run the required implementation/review gate, and resolve or disposition material review findings.
 2. Make the **finalization edit**: set `Status: Done`, update the bounded completion report to the intended final accepted result, and mark retained earlier failures as superseded evidence.
-3. Because that edit moves the head, rerun the required exact-head gate on the finalization head.
+3. Because that edit moves the head, rerun the required exact-head gate on the unchanged finalization head.
 4. `Done` is accepted evidence only if that post-finalization exact-head rerun passes. If it fails, do not merge; return the task to an appropriate non-final state while fixing the failure, then finalize and rerun again.
-5. After a passing finalization gate, any later code/docs head movement requires another exact-head rerun before merge. The Task Pack needs another edit only if the reported outcome changes.
+5. After a passing finalization gate, do not edit the Task Pack merely to mark the rerun as passed; the rerun validates the already-written finalization. Any later code/docs head movement requires another exact-head rerun before merge.
 
-Keep final evidence bounded. The completion report should summarize what actually passed—for example readiness result, named verification commands, full validation, and clean-tree result—without pasting full logs. If an earlier gate failed and the failure matters for auditability, retain a concise **superseded failed evidence** note. It must be obvious that the failure is historical and no longer the current task state.
+Keep final evidence bounded. The completion report should summarize what the finalization claims actually passed—for example readiness result, named verification commands, full validation, and clean-tree result—without pasting full logs. The post-finalization exact-head rerun proves that summary before merge. If an earlier gate failed and the failure matters for auditability, retain a concise **superseded failed evidence** note. It must be obvious that the failure is historical and no longer the current task state.
 
-Do not create self-referential commit churn merely to embed the eventual merge commit SHA in the Task Pack. Git/PR history is authoritative for merge identity; the Task Pack owns engineering completion state and bounded verification/review evidence.
+Do not create self-referential commit churn merely to embed the eventual merge commit SHA or a post-gate checkbox in the Task Pack. Git/PR history is authoritative for merge identity and exact-head merge evidence; the Task Pack owns engineering completion state and the bounded verification/review summary.
 
 Older explicit Task Packs remain compatible. They may be repaired in place when fresh reconstruction finds stale completion metadata; this does not require a schema migration or second workflow database.
 
@@ -395,7 +395,7 @@ Fix current-task defects or record follow-ups
         ↓
 Finalize Task Pack: bounded final evidence + `Status: Done`
         ↓
-Rerun exact-head verification on the finalization head
+Rerun exact-head verification on the unchanged finalization head
         ↓
 vcp doctor .
         ↓
