@@ -63,13 +63,16 @@ vcp verify <slug> --dir <project>
 Within that selected root:
 
 - task slugs resolve to `docs/tasks/<slug>.md`;
-- Source-of-Truth references are repository-relative to that root;
-- context `--include`, `--planned`, and `--output` paths are relative to that root;
+- unqualified Source-of-Truth references are repository-relative to that root;
+- a governing Task Pack reference may explicitly use `workspace:<path>` to resolve one file from the enclosing Git worktree root;
+- context `--include`, `--planned`, and `--output` paths remain relative to the selected project root and do not accept workspace qualification;
 - verification evidence output is relative to that root;
 - verification commands execute with that root as their working directory;
 - human/JSON task paths are reported repository-relative with portable `/` separators.
 
-`--dir` selects which project owns the task. It does **not** rebase a Task Pack authored for another project. If a Task Pack is copied or moved to a different project root, its repository-local references and verification contract must already be valid in that new project or be deliberately updated there. VCP must not fall back to parent-repository files or infer an old root.
+`--dir` selects which project owns the task. It does **not** rebase a Task Pack authored for another project. If a Task Pack is copied or moved to a different project root, its project-local references and verification contract must already be valid in that new project or be deliberately updated there. VCP must not fall back to parent-repository files, search for a nearest matching document, or infer an old root.
+
+A nested project can deliberately opt into shared root authority only through an explicit `workspace:<path>` Source-of-Truth reference. The selected project must be inside an accessible Git worktree, and the qualified path must remain inside that worktree after canonical filesystem resolution. This does not authorize sibling-package inheritance or widen the selected project's command/output/path-safety boundaries.
 
 This keeps nested repositories and monorepo subprojects deterministic without adding a persisted `projectRoot` field or migration to current Task Packs.
 
@@ -93,7 +96,18 @@ This keeps nested repositories and monorepo subprojects deterministic without ad
 - finalization checklist;
 - completion report.
 
-Source-of-Truth file references must be explicit. The canonical Task Pack table uses its `Reference` column for repository-local references; labeled bullets such as `Reference:`, `Source:`, or `File:` are also supported. Ordinary inline code in explanatory prose—permissions, states, commands, identifiers, API names, and similar terms—is not a file reference merely because it is wrapped in backticks. This keeps Task Packs readable without weakening path validation for references that are actually declared.
+Source-of-Truth file references must be explicit. The canonical Task Pack table uses its `Reference` column for project-local paths or explicitly workspace-qualified governing paths; labeled bullets such as `Reference:`, `Source:`, or `File:` are also supported. Ordinary inline code in explanatory prose—permissions, states, commands, identifiers, API names, and similar terms—is not a file reference merely because it is wrapped in backticks. This keeps Task Packs readable without weakening path validation for references that are actually declared.
+
+For nested projects:
+
+```text
+| Source | Reference |
+|---|---|
+| Package PRD | `docs/product/PRD.md` |
+| Shared API policy | `workspace:docs/platform/API-POLICY.md` |
+```
+
+The first reference is owned by the selected VCP project root. The second is an explicit governing reference to the enclosing Git worktree root. Root files that are not declared do not become authority, and `workspace:` is not supported as a generic `--include` escape hatch.
 
 The agent should populate these sections from existing repository evidence and bounded analysis. If a decision changes intended product behavior, security posture, compatibility policy, data ownership, destructive migration policy, architecture direction, risk acceptance, rollout, or another choice that cannot be inferred safely, the agent should ask the developer a focused question and record the approved answer in the task or governing Source of Truth.
 

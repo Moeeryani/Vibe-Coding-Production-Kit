@@ -24,9 +24,11 @@ Create a planning context from a task slug:
 vcp context accept-invite --mode plan
 ```
 
-The command reads `docs/tasks/accept-invite.md`, `AGENTS.md`, the planning prompt, and repository-local files explicitly referenced in the task's `## Source of truth` section.
+The command reads `docs/tasks/accept-invite.md`, `AGENTS.md`, the planning prompt, and files explicitly referenced in the task's `## Source of truth` section. Unqualified governing references resolve from the selected VCP project root. A nested project may explicitly use `workspace:<path>` to include one governing document from the enclosing Git worktree root.
 
 The canonical Task Pack table uses a `Reference` column for file references. Labeled bullets such as `Reference:`, `Source:`, or `File:` are also accepted. Ordinary inline code inside Source-of-Truth prose—permissions, states, commands, identifiers, API names, and similar terms—is descriptive text and is not loaded as a file.
+
+Workspace qualification is explicit authority, not automatic inheritance. Root files and sibling-package files are not included merely because they exist. The manifest preserves `workspace:<path>` as a portable identity rather than emitting a host-specific absolute checkout path.
 
 Running directly from GitHub:
 
@@ -147,13 +149,15 @@ Release review should include version/release state, relevant changes, verificat
 
 Source-of-truth documents describe intent and constraints, but an implementer or reviewer may need a small amount of current code context.
 
-Use repeatable `--include` flags only for repository-local files that already exist and whose current contents belong in the context pack:
+Use repeatable `--include` flags only for files that already exist **inside the selected VCP project root** and whose current contents belong in the context pack:
 
 ```bash
 vcp context accept-invite \
   --mode implement \
   --include src/invitations/repository.ts
 ```
+
+`workspace:` qualification is intentionally not supported by `--include`. Cross-root governing authority belongs in the Task Pack's `## Source of truth` section; ad hoc extra context does not widen the project's path authority.
 
 For greenfield implementation files that do **not** exist yet, use repeatable `--planned` flags in `implement` mode:
 
@@ -164,16 +168,17 @@ vcp context accept-invite \
   --planned test/invitations/service.test.ts
 ```
 
-A planned path is recorded in the context pack and manifest as an approved repository-local implementation path, but no file contents are included because the file does not exist yet. This lets the agent build implement context before creating greenfield files.
+A planned path is recorded in the context pack and manifest as an approved project-local implementation path, but no file contents are included because the file does not exist yet. This lets the agent build implement context before creating greenfield files.
 
 The distinction is deliberate:
 
-- `--include <path>` means **this file exists; include its contents**;
-- `--planned <path>` means **this implement-mode path is approved but does not exist yet**.
+- Task Pack `workspace:<path>` means **this enclosing-worktree document is explicit governing Source of Truth**;
+- `--include <path>` means **this project-local file exists; include its contents**;
+- `--planned <path>` means **this project-local implement-mode path is approved but does not exist yet**.
 
-`--planned` is rejected outside `implement` mode. It is also rejected when the path already exists; use `--include` in that case. Both options reject paths outside the repository root.
+`--planned` is rejected outside `implement` mode. It is also rejected when the path already exists; use `--include` in that case. `--include`, `--planned`, and `--output` remain inside the selected project root.
 
-For review, prefer `--base` (and optional `--head`) for the actual Git changed surface. Use `--include` only for additional existing files that are materially useful but are not already represented by the Task Pack/Source of Truth/Git diff. Do not manually pass a curated subset of changed files when the goal is to prove the whole comparison surface.
+For review, prefer `--base` (and optional `--head`) for the actual Git changed surface. Use `--include` only for additional existing project-local files that are materially useful but are not already represented by the Task Pack/Source of Truth/Git diff. Do not manually pass a curated subset of changed files when the goal is to prove the whole comparison surface.
 
 ## Context and task eligibility are separate
 
@@ -240,7 +245,7 @@ vcp context accept-invite --mode plan --max-bytes 80000
 
 Set `--max-bytes 0` only when you deliberately want no limit.
 
-Git review evidence counts against the same rendered byte budget. If the explicit base/head comparison makes a review pack too large, VCP fails instead of truncating the diff and pretending the reviewer saw the whole comparison. Narrow the task/comparison or raise the limit deliberately; do not silently omit changed files.
+Git review evidence counts against the same rendered byte budget. Workspace-qualified governing Source-of-Truth documents count against the same budget too; they are not a side channel around bounded context. If the explicit base/head comparison or governing references make a pack too large, VCP fails instead of truncating evidence and pretending the agent saw it.
 
 When a pack is too large, prefer:
 
@@ -256,18 +261,21 @@ Good architecture compresses context. A context-budget failure may reveal that t
 
 The command rejects:
 
-- task paths outside the repository;
-- explicit Source-of-Truth references that escape the repository root;
-- explicit includes outside the repository;
-- planned paths outside the repository;
-- output paths outside the repository;
+- task paths outside the selected project root;
+- unqualified Source-of-Truth references that escape the selected project root;
+- workspace-qualified Source-of-Truth references that are used outside an accessible Git worktree;
+- workspace-qualified references that escape the enclosing worktree through traversal or canonical symlink/junction resolution;
+- `workspace:` qualification on `--include`;
+- explicit includes outside the selected project root;
+- planned paths outside the selected project root;
+- output paths outside the selected project root;
 - URL references as local files.
 
 Only explicit Source-of-Truth reference positions enter path resolution. Markdown code spans used for explanatory prose are not path candidates.
 
 Git-aware review uses local Git refs, resolves them to exact commits, rejects option-like refs that begin with `-`, and never treats a Git ref as a filesystem path. It reads the comparison from the enclosing local Git worktree and does not contact a hosting provider. Binary changes remain identified by Git as binary rather than being represented as complete text content.
 
-This prevents a task document or context option from accidentally causing the context builder to read or authorize unrelated local paths while still making the actual Git comparison surface visible to review.
+This prevents a task document or context option from accidentally causing the context builder to read or authorize unrelated local paths while still permitting one explicit shared-root governing reference when the Task Pack says that authority is required.
 
 ## Recommended phase loop
 
