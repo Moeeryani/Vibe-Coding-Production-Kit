@@ -89,6 +89,7 @@ This keeps nested repositories and monorepo subprojects deterministic without ad
 - rollout/migration/recovery thinking;
 - a plan-before-code section;
 - independent review checklist;
+- durable independent-review evidence;
 - completion report.
 
 Source-of-Truth file references must be explicit. The canonical Task Pack table uses its `Reference` column for repository-local references; labeled bullets such as `Reference:`, `Source:`, or `File:` are also supported. Ordinary inline code in explanatory prose—permissions, states, commands, identifiers, API names, and similar terms—is not a file reference merely because it is wrapped in backticks. This keeps Task Packs readable without weakening path validation for references that are actually declared.
@@ -279,6 +280,33 @@ weak checks + AFK = high risk
 clear contract + strong checks + bounded task = good AFK candidate
 ```
 
+## Durable independent-review evidence
+
+Fresh review is only restartable when its **material outcome** survives beyond the reviewer conversation. The canonical Task Pack therefore includes `## Independent review evidence` as the durable handoff location.
+
+For every material finding preserve:
+
+- finding class: `BLOCKER`, `DEFECT`, `RISK`, `FOLLOW-UP`, or `NO ACTION`;
+- current-task disposition: `must fix in this task`, `follow-up candidate`, or `n/a` for summarized `NO ACTION` evidence;
+- concise finding/evidence;
+- resolution or follow-up reference;
+- residual risk where applicable.
+
+Use the bounded table in the Task Pack:
+
+```text
+| Class | Disposition | Finding / evidence | Resolution / follow-up | Residual risk |
+|---|---|---|---|---|
+| DEFECT | must fix in this task | Replay test fails after state mutation | Fixed in service + regression test | none known |
+| FOLLOW-UP | follow-up candidate | Persistent-store race is not exercised | #123 | remains until persistent adapter exists |
+```
+
+Do **not** paste the full review transcript. Do **not** repeat the PRD or other authoritative Source of Truth. Routine `NO ACTION` checks may be summarized in one row rather than exhaustively recorded.
+
+If a finding is fixed in the current task, keep the finding and record its resolution instead of deleting the evidence. If work is deferred, record the durable issue/task reference where possible. This preserves why scope was accepted and lets a fresh continuation agent distinguish resolved findings from residual risk without the old chat.
+
+Older explicit task files remain compatible. If they do not yet contain this section, the reviewer may add the bounded section to the task/completion record; VCP does not require a schema migration or a separate review database.
+
 ## Current task vs follow-up
 
 When implementation/review/QA discovers additional work, ask:
@@ -337,6 +365,8 @@ Use deterministic feedback
 vcp verify <slug> --run
         ↓
 Fresh independent review
+        ↓
+Persist material review evidence in the Task Pack
         ↓
 Manual/product QA where judgment is required
         ↓
