@@ -250,7 +250,7 @@ Reference SaaS dogfood proves current accepted authority remains sufficient for 
 
 Intent, clarification, shared design, decisions, vertical tasks, dependencies, AFK/HITL, eligibility, implementation, verification, review, QA, follow-up.
 
-**Next:** resolve monorepo/project-root + CI evidence semantics; revisit graph validation only if later evidence justifies it.
+**Next:** complete remaining Stage 5 root/package Source-of-Truth and bounded package-context semantics; keep #15 as separate hosted-CI infrastructure work; revisit graph validation only if later evidence justifies it.
 
 ### Track B — Knowledge and State
 
@@ -268,7 +268,7 @@ Verification, Git-aware review, security profiles, prompt evaluation, architectu
 
 CI evidence, monorepos, release automation, stack/mobile profiles, package/repo scale.
 
-**Next:** #15, then monorepo/mobile work after current nested-project/lifecycle contracts remain stable.
+**Next:** finish the remaining Stage 5 monorepo semantics while #15 proceeds as separate infrastructure debt; then advance mobile/repository-scale delivery work.
 
 ### Track E — Developer UX and Ecosystem
 
@@ -357,18 +357,26 @@ Exit criteria achieved:
 
 ### Stage 5 — Monorepo + CI evidence
 
-**Status:** ⬜ Planned.
+**Status:** 🟡 In progress — workspace/project verification provenance foundation merged in PR #58 / Issue #57.
 
-Required:
+Completed foundation:
 
-- explicit workspace/project roots;
-- package-specific verification;
-- root/package Source-of-Truth semantics;
-- bounded package context;
-- nested path safety;
-- CI/local evidence with compatible contracts.
+- `--dir` remains the explicit VCP project root, verification cwd, and path-safety/evidence-output boundary;
+- the enclosing Git worktree is explicit provenance scope only and does not widen project authority;
+- nested/package-specific verification remains executable from the selected project root;
+- verification evidence schema v2 records portable `scope.projectPath`, exact Git revision when available, and pre-verification dirty state while retaining legacy evidence fields;
+- local and CI executions share the same provider-agnostic evidence contract;
+- Git provenance inspection is hardened against locale drift, optional index writes, symlink/junction path aliases, active external clean/process filters, and configured submodule-ignore policy.
 
-Dependencies include #15, #23, #24.
+Remaining before Stage 5 is Done:
+
+- define root/package Source-of-Truth semantics without hidden cross-root inheritance;
+- prove bounded package context for realistic monorepo/workspace workflows;
+- retain nested path-safety and restartability under those shared-root/package rules;
+- restore hosted CI execution or deliberately adopt an equivalent long-term channel under #15, then prove local/CI evidence compatibility in both environments;
+- complete realistic monorepo/workspace conformance and final Stage 5 review evidence.
+
+Dependencies #23 and #24 are complete. Issue #15 remains an open infrastructure dependency for hosted-CI evidence; it does not block continued product-semantic work that can be proven through the accepted exact-head local channel.
 
 ### Stage 6 — Security profiles
 
@@ -608,7 +616,7 @@ Add future `SYSTEM-CONTRACT.md` / `QUALITY-GATES.md` only if they reduce ambigui
 ## 15. Recommended Execution Order From Current Main
 
 1. Keep #15 open and preserve an executable exact-head local validation channel.
-2. Resolve monorepo/project-root + CI evidence semantics.
+2. Complete the remaining Stage 5 root/package Source-of-Truth and bounded package-context semantics while #15 proceeds in parallel.
 3. Build concrete security profiles.
 4. Build prompt behavioral evaluation.
 5. Add architecture fitness functions.
