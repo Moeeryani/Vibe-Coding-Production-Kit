@@ -17,10 +17,12 @@ Read in this order:
 5. [`docs/architecture/adr/ADR-001-invite-token-storage.md`](docs/architecture/adr/ADR-001-invite-token-storage.md)
 6. [`docs/security/THREAT-MODEL.md`](docs/security/THREAT-MODEL.md)
 7. [`docs/testing/TEST-STRATEGY.md`](docs/testing/TEST-STRATEGY.md)
-8. [`docs/delivery/TASK-001-accept-invite.md`](docs/delivery/TASK-001-accept-invite.md)
+8. [`docs/tasks/accept-invite.md`](docs/tasks/accept-invite.md)
 9. [`src/`](src/) and [`test/`](test/)
 
 That order is intentional: **why -> behavior -> domain -> architecture -> decision -> risk -> verification -> bounded task -> code**.
+
+The reference project uses the same current Task Pack convention as `vcp task`: machine-readable work lives at `docs/tasks/<slug>.md`. The older hand-authored `docs/delivery/TASK-*` example convention is not a second task namespace.
 
 ## Run the reference tests
 
@@ -35,11 +37,9 @@ The tests include happy paths and negative paths for authorization, tenant isola
 
 This fixture contains a local [`prompts/`](prompts/) snapshot so `vcp context --dir examples/reference-saas-invite` can resolve its phase prompts entirely from the selected project root. There is no fallback to the repository-root or global prompt content.
 
-The prompt copies are intentionally canonical rather than example-specific. [`test/reference-context.test.mjs`](../../test/reference-context.test.mjs) enforces byte-for-byte parity with the root `prompts/` directory and proves that a clean fixture copy can build `plan`, `implement`, and `review` context packs without manually copying prompt files first.
+The prompt copies are intentionally canonical rather than example-specific. [`test/reference-context.test.mjs`](../../test/reference-context.test.mjs) enforces byte-for-byte parity with the root `prompts/` directory and proves that a clean fixture copy can build `plan`, `implement`, and `review` context packs from the checked-in canonical `docs/tasks/accept-invite.md` Task Pack without manual prompt or task scaffolding.
 
-For dogfood, create or use a Task Pack owned by this selected project root, then run context with that same `--dir`. Source-of-Truth path/root semantics and the repository's historical delivery-task convention are separate compatibility concerns; this fixture change does not silently reinterpret those artifacts.
-
-The fixture-local prompt snapshot is conformance data, not a second lifecycle installation. It intentionally does not add a nested `.vcp/manifest.json`.
+The Task Pack, Source-of-Truth references, context paths, and verification commands are all owned by this selected project root. The fixture-local prompt snapshot is conformance data, not a second lifecycle installation, and intentionally does not add a nested `.vcp/manifest.json`.
 
 ## Production gaps left on purpose
 
