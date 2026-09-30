@@ -1,0 +1,179 @@
+# Task — Bind verification evidence to workspace/project scope and Git revision
+
+Status: Review
+Slug: `verification-workspace-provenance`
+
+## Outcome
+
+A fresh developer or agent can tell which VCP project inside which repository workspace was mechanically verified, at which Git revision/worktree state, using the same evidence contract locally or in CI without expanding the selected project root's authority.
+
+## Source of truth
+
+| Source | Reference |
+|---|---|
+| Roadmap | `docs/ROADMAP.md` |
+| Verification evidence contract | `docs/VERIFICATION-EVIDENCE.md` |
+| Task Pack project-root contract | `docs/TASK-PACKS.md` |
+
+## Requirement restatement
+
+Keep `--dir` as the VCP project root, Task Pack/Source-of-Truth namespace, command cwd, and evidence-output safety root. When that project is inside a Git worktree, use the enclosing worktree only as provenance: record a slash-portable workspace-relative project path, exact Git HEAD when available, and pre-verification dirty state. Keep verification functional outside Git and keep existing evidence fields available to older consumers.
+
+## Acceptance criteria
+
+- [x] AC-001 — Verification evidence adds explicit project/workspace scope without removing existing `task`, `target`, readiness, command, result, timing, or output fields.
+- [x] AC-002 — A nested VCP project records a slash-portable `scope.projectPath` relative to the enclosing Git worktree.
+- [x] AC-003 — Git-backed evidence records exact `revision.headSha` when available and `revision.dirty` before verification commands execute.
+- [x] AC-004 — A non-Git project still verifies successfully and reports project-only scope with `revision: null` rather than invented Git provenance.
+- [x] AC-005 — Verification commands continue to execute with the selected project root as cwd.
+- [x] AC-006 — Evidence output remains constrained to the selected project root; workspace detection does not redirect output to the Git root.
+- [x] AC-007 — Workspace discovery does not widen Source-of-Truth or other project-local path authority.
+- [x] AC-008 — Persisted schema-v2 evidence preserves the new scope/revision metadata; historical schema-v1 evidence requires no migration or rewrite.
+- [x] AC-009 — Documentation defines project root vs workspace root and a provider-agnostic local/CI comparison contract.
+- [ ] AC-010 — Focused tests, strict readiness/context/verification, and full repository validation pass on the pre-final exact head before finalization.
+
+## Scope
+
+### In scope
+- additive verification evidence schema v2;
+- selected project root vs enclosing Git worktree semantics;
+- portable workspace-relative project identity;
+- Git HEAD and dirty-state provenance;
+- non-Git fallback behavior;
+- nested-package verification fixture;
+- local/CI evidence compatibility documentation.
+
+### Out of scope
+- automatic workspace/package discovery;
+- cross-project task scheduling or dependency graph execution;
+- implicit root-level Source-of-Truth inheritance into nested projects;
+- CI provider APIs, remote workflow fetching, hosted runner orchestration, or run-ID persistence;
+- automatic package-check selection from a monorepo root manifest;
+- changing repository-controlled verification commands;
+- making dirty worktrees an automatic verification failure.
+
+## Affected boundaries
+
+- Modules/files likely affected: `lib/verify.mjs`, `test/verification-scope.test.mjs`, `docs/VERIFICATION-EVIDENCE.md`, `docs/tasks/verification-workspace-provenance.md`.
+- Public API/contract impact: no new CLI flags; verification JSON advances to schema version 2 with additive `scope` and `revision` fields while retaining existing fields.
+- Data/schema/migration impact: new verification evidence files use schema v2; historical schema-v1 evidence remains valid and is not backfilled.
+- External integration impact: local `git` executable is consulted for provenance when available; verification remains usable outside Git.
+
+## Domain invariants
+
+- `--dir` defines one VCP project root and remains the command cwd and path-safety boundary.
+- The enclosing Git worktree is workspace provenance only; it does not authorize cross-root reads or writes.
+- Git metadata never proves correctness; command results remain mechanical verification evidence.
+- A dirty worktree is recorded, not silently treated as clean and not automatically approved.
+- Non-Git verification remains supported.
+- Existing evidence consumers retain the legacy absolute `target` field.
+- Portable local/CI comparison uses `scope.projectPath` + Git revision, not host-specific checkout paths.
+
+## Security and privacy
+
+- Authentication impact: n/a — local workflow tooling only.
+- Authorization/resource ownership: project-root path ownership remains unchanged; workspace discovery cannot widen it.
+- Tenant isolation: n/a — no application tenant behavior changes.
+- Input/trust boundaries: Git metadata is read through argument-based `execFile`, not shell interpolation; repository-controlled verification commands still execute only after explicit `--run`.
+- Secrets/PII/logging: raw command stdout/stderr remain unpersisted by default; new evidence stores only project path relative to workspace, Git SHA, and dirty boolean in addition to existing metadata.
+- Abuse/rate/replay considerations: Git metadata reads are bounded; verification timeout/sequential-stop behavior remains unchanged.
+- Relevant threat IDs: n/a — repository-local workflow tooling, with no new remote trust boundary.
+
+## Failure modes and edge cases
+
+- selected project is not in Git → project-only scope and `revision: null`;
+- selected project equals Git worktree root → `scope.projectPath: "."`;
+- selected project is nested → slash-portable relative path such as `packages/api`;
+- Git repository has no commit yet → Git scope may have `headSha: null` rather than inventing a SHA;
+- worktree contains uncommitted/untracked changes → `revision.dirty: true` without blocking verification;
+- evidence output path attempts project escape → existing path-safety rejection remains authoritative;
+- Git workspace root does not contain selected project root → fail rather than record contradictory provenance;
+- absolute `target` differs between developer and CI checkout → compare portable scope/revision fields instead.
+
+## Observability
+
+Human-readable verification output identifies scope and Git revision/dirty state. JSON evidence records schema version, portable scope, optional revision, readiness, exact commands, results, exit/signal/timeout state, durations, and existing output metadata.
+
+## Test plan
+
+### Unit
+- non-Git scope produces `{ kind: "project", projectPath: "." }` and `revision: null`;
+- Git-root project produces `projectPath: "."` and exact clean HEAD.
+
+### Integration / contract
+- nested `packages/api` project command executes from that selected cwd;
+- nested evidence persists `scope.projectPath: "packages/api"` plus exact Git HEAD;
+- evidence file is written inside nested project `.vcp/evidence`, not at workspace root;
+- dirty workspace is captured before command execution.
+
+### E2E / regression
+- existing verification tests continue to pass with additive schema-v2 output;
+- full framework validation remains green.
+
+### Negative/security paths
+- project/output path authority is unchanged despite enclosing workspace discovery;
+- no Git metadata is invented outside Git;
+- absolute target path is retained for compatibility but not promoted as portable identity.
+
+## Rollout, migration, and recovery
+
+- Deployment/compatibility concerns: additive evidence fields and schema version bump; no CLI invocation changes.
+- Migration/backfill: none — keep historical v1 evidence unchanged; new runs emit v2.
+- Rollback or recovery: revert provenance fields/schema bump; existing command execution/readiness/path-safety behavior remains the baseline.
+
+## Implementation plan
+
+1. Inspect enclosing Git worktree before verification execution without changing selected project ownership.
+2. Add portable `scope` and optional Git `revision` to verification reports/evidence.
+3. Render the new provenance in human-readable verification output.
+4. Add focused non-Git/root/nested/dirty fixtures including persisted nested evidence.
+5. Document schema v2, project/workspace semantics, and local/CI comparison behavior.
+6. Run a pre-final exact-head gate; only then finalize this Task Pack to `Done` and rerun exact-head validation before merge per #48.
+
+## Verification commands
+
+Run the relevant configured commands below before completion:
+
+- `CHECK_COMMAND`: `npm run check`
+- `UNIT_TEST_COMMAND`: `npm test`
+
+Do not claim a command passed unless it was actually executed.
+
+## Independent review checklist
+
+- [x] Existing evidence fields remain present.
+- [x] Workspace detection does not change command cwd.
+- [x] Workspace detection does not change Task Pack/Source-of-Truth/output root authority.
+- [x] Non-Git projects remain supported.
+- [x] Dirty state is evidence rather than an inferred failure or approval.
+- [x] Provider-specific CI metadata is not required for the core evidence contract.
+- [x] Historical v1 evidence is not rewritten.
+- [ ] Executable pre-final validation confirms behavior on the exact branch head.
+
+## Independent review evidence
+
+| Class | Disposition | Finding / evidence | Resolution / follow-up | Residual risk |
+|---|---|---|---|---|
+| DEFECT | must fix in this task | Initial nested fixture embedded an absolute Windows path inside `node -e`, creating platform-sensitive nested quoting/backslash behavior. | Replaced the assertion with a portable `path.basename(process.cwd()) === "api"` check while retaining the same cwd contract. | none known |
+| NO ACTION | n/a | The slice deliberately does not add implicit cross-root Source-of-Truth inheritance; current project-root isolation remains deterministic. | Treat shared root/package Source-of-Truth policy as a later Stage 5 slice if concrete monorepo dogfood requires it. | Cross-project shared truth still needs an explicit future contract rather than hidden fallback. |
+
+## Finalization
+
+Prepare the finalization edit only after the pre-final implementation/review gate passes.
+
+- [ ] Acceptance criteria satisfied.
+- [ ] Pre-final implementation/review gate passed before the finalization edit.
+- [x] Independent review evidence is current and no known `must fix in this task` finding remains unresolved in source.
+- [ ] Completion report reflects the intended final accepted gate; earlier failures are marked superseded if retained.
+- [ ] Top-level `Status` changed to `Done`.
+
+After the finalization edit, rerun the required exact-head gate. Do not edit this Task Pack solely to record that rerun; merge only if it passes.
+
+## Completion report
+
+- What changed and why: added portable workspace/project and Git revision provenance to mechanical verification evidence so nested-package local/CI results can be compared without treating host-specific checkout paths as identity.
+- Final accepted verification: pending pre-final executable validation; replace during finalization, then prove the unchanged finalization head with a second exact-head gate.
+- Superseded failed evidence (if material): n/a.
+- Independent review evidence updated: yes; one test-fixture portability defect was corrected before executable validation.
+- Migration/operational impact: new evidence emits schema v2; no historical evidence migration and no CLI flag change.
+- Remaining risks/limitations: this slice does not auto-discover packages, inherit root-level Source of Truth, or integrate remote CI-provider metadata.
