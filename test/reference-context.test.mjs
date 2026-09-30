@@ -25,7 +25,8 @@ async function tempDir() {
 }
 
 async function copyReferenceFixture() {
-  const target = await tempDir();
+  const parent = await tempDir();
+  const target = path.join(parent, 'reference-saas-invite');
   await cp(exampleRoot, target, { recursive: true });
   return target;
 }
