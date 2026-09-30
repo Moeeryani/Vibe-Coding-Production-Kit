@@ -250,7 +250,7 @@ Reference SaaS dogfood proves current accepted authority remains sufficient for 
 
 Intent, clarification, shared design, decisions, vertical tasks, dependencies, AFK/HITL, eligibility, implementation, verification, review, QA, follow-up.
 
-**Next:** complete remaining Stage 5 root/package Source-of-Truth and bounded package-context semantics; keep #15 as separate hosted-CI infrastructure work; revisit graph validation only if later evidence justifies it.
+**Next:** prove realistic Stage 5 monorepo/workspace bounded context using the explicit project/workspace Source-of-Truth contract; keep #15 as separate hosted-CI infrastructure work; revisit graph validation only if later evidence justifies it.
 
 ### Track B — Knowledge and State
 
@@ -268,7 +268,7 @@ Verification, Git-aware review, security profiles, prompt evaluation, architectu
 
 CI evidence, monorepos, release automation, stack/mobile profiles, package/repo scale.
 
-**Next:** finish the remaining Stage 5 monorepo semantics while #15 proceeds as separate infrastructure debt; then advance mobile/repository-scale delivery work.
+**Next:** run realistic Stage 5 monorepo/workspace conformance while #15 proceeds as separate infrastructure debt; then advance mobile/repository-scale delivery work.
 
 ### Track E — Developer UX and Ecosystem
 
@@ -357,7 +357,7 @@ Exit criteria achieved:
 
 ### Stage 5 — Monorepo + CI evidence
 
-**Status:** 🟡 In progress — workspace/project verification provenance foundation merged in PR #58 / Issue #57.
+**Status:** 🟡 In progress — verification provenance foundation merged in PR #58 / Issue #57; explicit root/package Source-of-Truth semantics merged in PR #61 / Issue #60, with reserved project-local `workspace:` boundary enforcement corrected in PR #64.
 
 Completed foundation:
 
@@ -366,13 +366,16 @@ Completed foundation:
 - nested/package-specific verification remains executable from the selected project root;
 - verification evidence schema v2 records portable `scope.projectPath`, exact Git revision when available, and pre-verification dirty state while retaining legacy evidence fields;
 - local and CI executions share the same provider-agnostic evidence contract;
-- Git provenance inspection is hardened against locale drift, optional index writes, symlink/junction path aliases, active external clean/process filters, and configured submodule-ignore policy.
+- Git provenance inspection is hardened against locale drift, optional index writes, symlink/junction path aliases, active external clean/process filters, and configured submodule-ignore policy;
+- unqualified governing Source-of-Truth references remain selected-project-local;
+- `workspace:<path>` explicitly opts into a governing document from the enclosing Git worktree without parent-directory search, nearest-file fallback, sibling-package inheritance, or hidden root authority;
+- freshness/authority rules apply identically to project-local and workspace-qualified governing documents;
+- Context Packs stay bounded to explicitly declared governing references; the reserved `workspace:` qualifier is rejected by project-local include/planned/output paths after normalization (PR #64), so cross-root ad hoc path authority remains disabled.
 
 Remaining before Stage 5 is Done:
 
-- define root/package Source-of-Truth semantics without hidden cross-root inheritance;
-- prove bounded package context for realistic monorepo/workspace workflows;
-- retain nested path-safety and restartability under those shared-root/package rules;
+- prove bounded package context in a realistic monorepo/workspace flow using the explicit project/workspace authority contract;
+- retain nested path-safety and restartability under realistic shared-root/package rules;
 - restore hosted CI execution or deliberately adopt an equivalent long-term channel under #15, then prove local/CI evidence compatibility in both environments;
 - complete realistic monorepo/workspace conformance and final Stage 5 review evidence.
 
@@ -616,7 +619,7 @@ Add future `SYSTEM-CONTRACT.md` / `QUALITY-GATES.md` only if they reduce ambigui
 ## 15. Recommended Execution Order From Current Main
 
 1. Keep #15 open and preserve an executable exact-head local validation channel.
-2. Complete the remaining Stage 5 root/package Source-of-Truth and bounded package-context semantics while #15 proceeds in parallel.
+2. Run the realistic Stage 5 monorepo/workspace conformance slice using the explicit project/workspace Source-of-Truth and verification-provenance contracts while #15 proceeds in parallel.
 3. Build concrete security profiles.
 4. Build prompt behavioral evaluation.
 5. Add architecture fitness functions.
