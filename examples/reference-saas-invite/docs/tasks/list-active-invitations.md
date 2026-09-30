@@ -1,11 +1,11 @@
 # Task — List active invitations for an organization admin
 
-Status: Blocked — waiting for `decide-expired-invitation-listing`
+Status: Ready
 Slug: `list-active-invitations`
 
 ## Outcome
 
-An authorized organization administrator can request the organization's active invitations with tenant-safe application semantics after the expired-record visibility policy is approved.
+An authorized organization administrator can request the organization's active invitations with tenant-safe application semantics. Persisted `pending` invitations remain in the active list even when expired; expired entries are projected as `expired` without mutating stored invitation state.
 
 ## Source of truth
 
@@ -22,41 +22,41 @@ This Task Pack belongs to the `examples/reference-saas-invite` project root. Rep
 
 ## Requirement restatement
 
-Build the application-level admin listing on top of the completed status-neutral repository query. Authorization and tenant ownership can be derived from existing repository contracts, but the correct inclusion/filtering behavior for expired-but-still-`pending` invitations cannot be determined until `decide-expired-invitation-listing` is APPROVED.
+Build the application-level admin listing on top of the completed status-neutral repository query. The previously unresolved expired-record visibility policy is now APPROVED: include records whose stored status is `pending` even when `expiresAt <= now`, and project those entries as `expired`. Accepted and revoked records are terminal and are excluded from the active list.
 
-This task is AFK in execution mode but **not currently eligible**. Its implementation is blocked by a genuine HUMAN DECISION, not by technical difficulty.
+This task is AFK and now eligible because its technical prerequisite is complete and the genuine HUMAN DECISION is approved.
 
 ## Dependency evidence
 
 - Completed prerequisite: `list-invitations-by-organization-repository` (PR #45).
-- Blocking decision: `decide-expired-invitation-listing`.
-- Downstream delivery/API work must wait for this application contract.
+- Approved decision: `decide-expired-invitation-listing` — Option A.
+- Rejected negative decision: do not exclude expired pending records merely because they are expired.
+- Downstream delivery/API work remains dependent on this application contract.
 
 ## Acceptance criteria
 
-The following are stable now:
-
 - [ ] Only an actor with `members.invite` may list invitations for their own organization.
-- [ ] Organization scope comes from the authenticated actor/application request boundary and cannot expose another tenant's records.
+- [ ] Organization scope is derived from the authenticated actor; callers cannot enumerate another tenant by supplying a foreign organization id.
 - [ ] Repository enumeration uses the completed `listByOrganization(orgId)` primitive.
-- [ ] Raw invitation tokens are never returned or logged.
-- [ ] Returned records are detached application/view data rather than mutable repository state.
-
-The following criterion is intentionally unresolved until human approval:
-
-- [ ] Expired-but-still-`pending` records are handled according to the APPROVED option in `decide-expired-invitation-listing`.
+- [ ] Only records whose stored invitation status is `pending` appear in the active list; accepted/revoked records are excluded.
+- [ ] Pending records with `expiresAt > now` are projected with display state `pending`.
+- [ ] Pending records with `expiresAt <= now` remain in the list and are projected with display state `expired`.
+- [ ] Listing never mutates persisted invitation status while deriving display state.
+- [ ] Raw invitation tokens and token hashes are never returned or logged.
+- [ ] Returned values are detached application/view data rather than mutable repository state.
+- [ ] Focused tests cover authorization, tenant isolation, terminal-state exclusion, expiry projection, and secret-field omission.
 
 ## Scope
 
-### In scope after unblock
+### In scope
 - application-service listing method;
 - permission and tenant checks;
-- approved active/expired policy;
-- focused tests for authorization, tenant isolation, and expiry behavior.
+- approved pending/expired projection policy;
+- focused tests for authorization, tenant isolation, filtering, expiry behavior, and response shape.
 
 ### Out of scope
-- resolving the HUMAN DECISION inside implementation;
-- pagination/search/sorting product choices not required by the approved policy;
+- repository filtering changes;
+- pagination/search/sorting;
 - HTTP/UI transport;
 - background expiry mutation/cleanup;
 - graph/scheduler/schema persistence.
@@ -65,41 +65,56 @@ The following criterion is intentionally unresolved until human approval:
 
 - Application invitation service.
 - Existing memory repository organization query.
-- Product PRD after decision approval.
+- Product PRD.
 - Application-service tests.
 
 ## Domain invariants
 
 - Stored invitation status is not rewritten by a read operation.
 - Cross-tenant data never appears in results.
-- Expiry policy must not be inferred from persisted `pending` alone.
-- Raw token material remains outside listing output.
+- Accepted and revoked invitations are terminal and absent from the active list.
+- Expired-but-stored-pending records remain visible and are represented as `expired` only in application/view output.
+- Raw token material and token hashes remain outside listing output.
 
 ## Security and privacy
 
-- Authorization: `members.invite` plus same-organization ownership.
-- Tenant isolation: no caller-selected foreign organization can be used to enumerate another tenant's invitations.
-- PII: email is already invitation state; return only fields required by the approved admin listing contract.
-- Secrets: token hashes/raw tokens are not part of the application listing contract.
+- Authorization: `members.invite` is required.
+- Tenant isolation: organization scope comes from the authenticated actor; listing accepts no caller-selected foreign organization id.
+- PII: email is already invitation state and may be returned to an authorized organization administrator for invitation administration.
+- Secrets: raw tokens and token hashes are not part of the application listing contract.
+- Read-only behavior: no invitation state mutation occurs.
 
 ## Failure modes and edge cases
 
-- actor lacks `members.invite`;
+- actor is missing or lacks `members.invite`;
 - organization has no invitations;
 - mixed pending/accepted/revoked records;
 - expired record remains persisted as `pending`;
 - records from another organization exist in repository;
-- human decision remains unresolved — implementation must not begin by choosing a policy.
+- expiry occurs exactly at `now` (`expiresAt <= now` is `expired`).
 
 ## Test plan
 
 ### Unit / application contract
 - permission denial;
-- tenant isolation;
 - empty result;
-- mixed-state filtering according to approved policy;
-- expired pending behavior according to approved policy;
-- token material absent from response.
+- tenant isolation;
+- accepted/revoked exclusion;
+- unexpired pending → `pending` display state;
+- expired pending → `expired` display state and remains visible;
+- persisted expired record remains stored as `pending` after listing;
+- token/tokenHash fields absent from response.
+
+### Integration / contract
+- service uses repository `listByOrganization(actor.orgId)` and returns detached projection data.
+
+### E2E / regression
+- n/a — no delivery surface in this reference slice.
+
+### Negative/security paths
+- missing permission;
+- foreign-tenant records present in repository but absent from results;
+- token hash never leaks through response.
 
 ## Rollout, migration, and recovery
 
@@ -109,20 +124,21 @@ The following criterion is intentionally unresolved until human approval:
 
 ## Implementation plan
 
-1. Wait for APPROVED `decide-expired-invitation-listing` evidence.
-2. Recompute implementation readiness and eligibility.
-3. Update PRD with the approved active-list contract and preserved negative decision.
-4. Add the application listing with authorization/tenant checks.
-5. Add focused regression tests and deterministic verification evidence.
+1. Add `InvitationService.listActive({ actor })` using `actor.orgId` and `members.invite` authorization.
+2. Read records through `repository.listByOrganization(actor.orgId)`.
+3. Keep stored `pending` records only; exclude terminal accepted/revoked records.
+4. Project `state: 'expired'` when `expiresAt <= now`, otherwise `state: 'pending'`.
+5. Return only invitation administration fields required by the contract; omit token material/hash.
+6. Add focused application-service tests and deterministic verification evidence.
 
 ## Verification commands
 
-When unblocked, run:
+Run:
 
 - `CHECK_COMMAND`: `npm run check`
 - `UNIT_TEST_COMMAND`: `npm test`
 
-Do not claim implementation readiness or verification success while the HUMAN DECISION is unresolved.
+Do not claim implementation readiness or verification success unless the commands were actually executed.
 
 ## Independent review evidence
 
@@ -132,6 +148,6 @@ Do not claim implementation readiness or verification success while the HUMAN DE
 
 ## Completion report
 
-- What changed and why: blocked downstream Task Pack created for Issue #44 dependency dogfood.
-- Verification actually run: not applicable yet; implementation is intentionally blocked.
-- Remaining risks/limitations: correct expired-record semantics depend on the unresolved human decision.
+- What changed and why: Issue #44 eligibility was recomputed after explicit human approval; the task is no longer blocked.
+- Verification actually run: pending downstream implementation.
+- Remaining risks/limitations: delivery/API/UI representation remains out of scope for this application slice.
