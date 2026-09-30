@@ -1,5 +1,7 @@
 # PRD — Organization Invitations
 
+Authority: ACCEPTED
+
 ## Document control
 - Owner: Membership domain
 - Status: Accepted for reference implementation
