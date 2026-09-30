@@ -74,20 +74,21 @@ Keep `--dir` as the VCP project root, Task Pack/Source-of-Truth namespace, comma
 - Authentication impact: n/a — local workflow tooling only.
 - Authorization/resource ownership: project-root path ownership remains unchanged; workspace discovery cannot widen it.
 - Tenant isolation: n/a — no application tenant behavior changes.
-- Input/trust boundaries: Git metadata is read through argument-based `execFile`, not shell interpolation; repository-controlled verification commands still execute only after explicit `--run`.
+- Input/trust boundaries: Git metadata is read through argument-based `execFile`, not shell interpolation; provenance reads force `core.fsmonitor=false`; implementation-unready `--run` requests are refused before provenance processes; repository-controlled verification commands still execute only after explicit `--run`.
 - Secrets/PII/logging: raw command stdout/stderr remain unpersisted by default; new evidence stores only project path relative to workspace, Git SHA, and dirty boolean in addition to existing metadata.
 - Abuse/rate/replay considerations: Git metadata reads are bounded; verification timeout/sequential-stop behavior remains unchanged.
 - Relevant threat IDs: n/a — repository-local workflow tooling, with no new remote trust boundary.
 
 ## Failure modes and edge cases
 
-- selected project is not in Git → project-only scope and `revision: null`;
+- selected project is not in Git or Git is unavailable → project-only scope and `revision: null`;
 - selected project equals Git worktree root → `scope.projectPath: "."`;
 - selected project is nested → slash-portable relative path such as `packages/api`;
 - Git repository has no commit yet → Git scope may have `headSha: null` rather than inventing a SHA;
 - worktree contains uncommitted/untracked changes → `revision.dirty: true` without blocking verification;
 - evidence output path attempts project escape → existing path-safety rejection remains authoritative;
 - Git workspace root does not contain selected project root → fail rather than record contradictory provenance;
+- worktree is detected but later Git HEAD/status metadata fails unexpectedly → fail visibly instead of silently downgrading provenance;
 - absolute `target` differs between developer and CI checkout → compare portable scope/revision fields instead.
 
 ## Observability
@@ -113,6 +114,8 @@ Human-readable verification output identifies scope and Git revision/dirty state
 ### Negative/security paths
 - project/output path authority is unchanged despite enclosing workspace discovery;
 - no Git metadata is invented outside Git;
+- implementation-unready `--run` remains refused before provenance processes;
+- configured external fsmonitor is disabled for provenance reads;
 - absolute target path is retained for compatibility but not promoted as portable identity.
 
 ## Rollout, migration, and recovery
@@ -146,6 +149,9 @@ Do not claim a command passed unless it was actually executed.
 - [x] Workspace detection does not change Task Pack/Source-of-Truth/output root authority.
 - [x] Non-Git projects remain supported.
 - [x] Dirty state is evidence rather than an inferred failure or approval.
+- [x] Detected Git metadata failures cannot silently downgrade to weaker provenance.
+- [x] Git provenance reads disable configured external fsmonitor behavior.
+- [x] Implementation-unready `--run` refuses before provenance processes.
 - [x] Provider-specific CI metadata is not required for the core evidence contract.
 - [x] Historical v1 evidence is not rewritten.
 - [ ] Executable pre-final validation confirms behavior on the exact branch head.
@@ -155,6 +161,8 @@ Do not claim a command passed unless it was actually executed.
 | Class | Disposition | Finding / evidence | Resolution / follow-up | Residual risk |
 |---|---|---|---|---|
 | DEFECT | must fix in this task | Initial nested fixture embedded an absolute Windows path inside `node -e`, creating platform-sensitive nested quoting/backslash behavior. | Replaced the assertion with a portable `path.basename(process.cwd()) === "api"` check while retaining the same cwd contract. | none known |
+| DEFECT | must fix in this task | Initial provenance fallback caught every `git rev-parse --show-toplevel` / HEAD error, so a detected workspace could be silently misreported as project-only or unborn after an unexpected Git failure. | Fallback is now limited to non-Git/missing-Git cases; once a worktree is detected, contradictory HEAD/status failures are actionable errors. | none known |
+| DEFECT | must fix in this task | Automatic provenance collection used `git status` before the `--run` readiness refusal and could consult a repository-configured external fsmonitor. | Readiness refusal now occurs before provenance collection for execution; metadata commands force `core.fsmonitor=false`. | none known |
 | NO ACTION | n/a | The slice deliberately does not add implicit cross-root Source-of-Truth inheritance; current project-root isolation remains deterministic. | Treat shared root/package Source-of-Truth policy as a later Stage 5 slice if concrete monorepo dogfood requires it. | Cross-project shared truth still needs an explicit future contract rather than hidden fallback. |
 
 ## Finalization
@@ -174,6 +182,6 @@ After the finalization edit, rerun the required exact-head gate. Do not edit thi
 - What changed and why: added portable workspace/project and Git revision provenance to mechanical verification evidence so nested-package local/CI results can be compared without treating host-specific checkout paths as identity.
 - Final accepted verification: pending pre-final executable validation; replace during finalization, then prove the unchanged finalization head with a second exact-head gate.
 - Superseded failed evidence (if material): n/a.
-- Independent review evidence updated: yes; one test-fixture portability defect was corrected before executable validation.
+- Independent review evidence updated: yes; three must-fix defects were found and corrected before executable validation.
 - Migration/operational impact: new evidence emits schema v2; no historical evidence migration and no CLI flag change.
 - Remaining risks/limitations: this slice does not auto-discover packages, inherit root-level Source of Truth, or integrate remote CI-provider metadata.
