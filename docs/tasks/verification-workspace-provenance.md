@@ -1,6 +1,6 @@
 # Task — Bind verification evidence to workspace/project scope and Git revision
 
-Status: Done
+Status: Review
 Slug: `verification-workspace-provenance`
 
 ## Outcome
@@ -17,7 +17,7 @@ A fresh developer or agent can tell which VCP project inside which repository wo
 
 ## Requirement restatement
 
-Keep `--dir` as the VCP project root, Task Pack/Source-of-Truth namespace, command cwd, and evidence-output safety root. When that project is inside a Git worktree, use the enclosing worktree only as provenance: record a slash-portable workspace-relative project path, exact Git HEAD when available, and pre-verification dirty state. Keep verification functional outside Git and keep existing evidence fields available to older consumers.
+Keep `--dir` as the VCP project root, Task Pack/Source-of-Truth namespace, command cwd, and evidence-output safety root. When that project is inside a Git worktree, use the enclosing worktree only as provenance: record a slash-portable workspace-relative project path, exact Git HEAD when available, and pre-verification dirty state. Keep verification functional outside Git and keep existing evidence fields available to older consumers. Automatic provenance inspection must not silently widen repository authority or execute repository-controlled Git integrations merely to decide dirty/clean state.
 
 ## Acceptance criteria
 
@@ -29,8 +29,8 @@ Keep `--dir` as the VCP project root, Task Pack/Source-of-Truth namespace, comma
 - [x] AC-006 — Evidence output remains constrained to the selected project root; workspace detection does not redirect output to the Git root.
 - [x] AC-007 — Workspace discovery does not widen Source-of-Truth or other project-local path authority.
 - [x] AC-008 — Persisted schema-v2 evidence preserves the new scope/revision metadata; historical schema-v1 evidence requires no migration or rewrite.
-- [x] AC-009 — Documentation defines project root vs workspace root and a provider-agnostic local/CI comparison contract.
-- [x] AC-010 — Focused tests, strict readiness/context/verification, evidence provenance checks, and full repository validation passed on the pre-final exact head before finalization.
+- [x] AC-009 — Documentation defines project root vs workspace root, safe automatic Git provenance inspection, and a provider-agnostic local/CI comparison contract.
+- [ ] AC-010 — Focused tests, strict readiness/context/verification, evidence provenance checks, and full repository validation pass on the corrected pre-final exact head after all late review fixes.
 
 ## Scope
 
@@ -39,8 +39,9 @@ Keep `--dir` as the VCP project root, Task Pack/Source-of-Truth namespace, comma
 - selected project root vs enclosing Git worktree semantics;
 - portable workspace-relative project identity;
 - Git HEAD and dirty-state provenance;
+- safe automatic Git metadata inspection in preview and run modes;
 - non-Git fallback behavior;
-- nested-package verification fixture;
+- nested-package and submodule verification fixtures;
 - local/CI evidence compatibility documentation.
 
 ### Out of scope
@@ -50,12 +51,13 @@ Keep `--dir` as the VCP project root, Task Pack/Source-of-Truth namespace, comma
 - CI provider APIs, remote workflow fetching, hosted runner orchestration, or run-ID persistence;
 - automatic package-check selection from a monorepo root manifest;
 - changing repository-controlled verification commands;
-- making dirty worktrees an automatic verification failure.
+- making dirty worktrees an automatic verification failure;
+- executing repository Git filters merely to collect provenance.
 
 ## Affected boundaries
 
 - Modules/files likely affected: `lib/verify.mjs`, `test/verification-scope.test.mjs`, `docs/VERIFICATION-EVIDENCE.md`, `docs/tasks/verification-workspace-provenance.md`.
-- Public API/contract impact: no new CLI flags; verification JSON advances to schema version 2 with additive `scope` and `revision` fields while retaining existing fields.
+- Public API/contract impact: no new CLI flags; verification JSON advances to schema version 2 with additive `scope` and `revision` fields while retaining existing fields. Git provenance collection now has explicit safe-failure semantics for active external filters.
 - Data/schema/migration impact: new verification evidence files use schema v2; historical schema-v1 evidence remains valid and is not backfilled.
 - External integration impact: local `git` executable is consulted for provenance when available; verification remains usable outside Git.
 
@@ -65,6 +67,8 @@ Keep `--dir` as the VCP project root, Task Pack/Source-of-Truth namespace, comma
 - The enclosing Git worktree is workspace provenance only; it does not authorize cross-root reads or writes.
 - Git metadata never proves correctness; command results remain mechanical verification evidence.
 - A dirty worktree is recorded, not silently treated as clean and not automatically approved.
+- Automatic provenance collection must not run active repository-configured external clean/process filters.
+- Repository settings must not hide dirty submodule state from provenance.
 - Non-Git verification remains supported.
 - Existing evidence consumers retain the legacy absolute `target` field.
 - Portable local/CI comparison uses `scope.projectPath` + Git revision, not host-specific checkout paths.
@@ -74,7 +78,7 @@ Keep `--dir` as the VCP project root, Task Pack/Source-of-Truth namespace, comma
 - Authentication impact: n/a — local workflow tooling only.
 - Authorization/resource ownership: project-root path ownership remains unchanged; workspace discovery cannot widen it.
 - Tenant isolation: n/a — no application tenant behavior changes.
-- Input/trust boundaries: Git metadata is read through argument-based `execFile`, not shell interpolation; provenance reads force `core.fsmonitor=false`; implementation-unready `--run` requests are refused before provenance processes; repository-controlled verification commands still execute only after explicit `--run`.
+- Input/trust boundaries: Git metadata is invoked without a shell; provenance commands force the `C` locale, disable `core.fsmonitor`, disable optional Git locks/index refresh writes, canonicalize filesystem paths for containment, override submodule-ignore settings, and refuse dirty-state inspection when tracked content activates a configured external Git clean/process filter. Implementation-unready `--run` requests are refused before provenance processes; repository-controlled verification commands still execute only after explicit `--run`.
 - Secrets/PII/logging: raw command stdout/stderr remain unpersisted by default; new evidence stores only project path relative to workspace, Git SHA, and dirty boolean in addition to existing metadata.
 - Abuse/rate/replay considerations: Git metadata reads are bounded; verification timeout/sequential-stop behavior remains unchanged.
 - Relevant threat IDs: n/a — repository-local workflow tooling, with no new remote trust boundary.
@@ -82,10 +86,14 @@ Keep `--dir` as the VCP project root, Task Pack/Source-of-Truth namespace, comma
 ## Failure modes and edge cases
 
 - selected project is not in Git or Git is unavailable → project-only scope and `revision: null`;
+- localized caller environment → Git failure classification remains deterministic via forced `C` locale;
 - selected project equals Git worktree root → `scope.projectPath: "."`;
 - selected project is nested → slash-portable relative path such as `packages/api`;
+- selected project is reached through a filesystem symlink/junction → canonical paths determine workspace containment/projectPath while legacy `target` remains unchanged;
 - Git repository has no commit yet → Git scope may have `headSha: null` rather than inventing a SHA;
 - worktree contains uncommitted/untracked changes → `revision.dirty: true` without blocking verification;
+- configured submodule ignore policy requests `dirty`/`all` → provenance uses explicit `--ignore-submodules=none` so dirty submodules remain visible;
+- tracked content activates an external clean/process filter → fail provenance visibly before `git status` rather than executing the filter during preview;
 - evidence output path attempts project escape → existing path-safety rejection remains authoritative;
 - Git workspace root does not contain selected project root → fail rather than record contradictory provenance;
 - worktree is detected but later Git HEAD/status metadata fails unexpectedly → fail visibly instead of silently downgrading provenance;
@@ -99,39 +107,46 @@ Human-readable verification output identifies scope and Git revision/dirty state
 
 ### Unit
 - non-Git scope produces `{ kind: "project", projectPath: "." }` and `revision: null`;
-- Git-root project produces `projectPath: "."` and exact clean HEAD.
+- Git-root project produces `projectPath: "."` and exact clean HEAD;
+- localized caller environment still handles an unborn repository deterministically.
 
 ### Integration / contract
 - nested `packages/api` project command executes from that selected cwd;
 - nested evidence persists `scope.projectPath: "packages/api"` plus exact Git HEAD;
 - evidence file is written inside nested project `.vcp/evidence`, not at workspace root;
-- dirty workspace is captured before command execution.
+- symlinked/junction project selection canonicalizes only provenance identity and does not change `target`;
+- dirty workspace is captured before command execution;
+- dirty initialized submodule remains visible despite `.gitmodules ignore=all`.
 
 ### E2E / regression
 - existing verification tests continue to pass with additive schema-v2 output;
+- active external filter fixture fails safely before the filter can execute;
 - full framework validation remains green.
 
 ### Negative/security paths
 - project/output path authority is unchanged despite enclosing workspace discovery;
 - no Git metadata is invented outside Git;
 - implementation-unready `--run` remains refused before provenance processes;
-- configured external fsmonitor is disabled for provenance reads;
+- configured external fsmonitor and optional Git index-lock side effects are disabled for provenance reads;
+- active external clean/process filters are refused rather than executed during automatic dirty-state inspection;
+- configured submodule ignore state cannot hide dirty submodule evidence;
 - absolute target path is retained for compatibility but not promoted as portable identity.
 
 ## Rollout, migration, and recovery
 
-- Deployment/compatibility concerns: additive evidence fields and schema version bump; no CLI invocation changes.
+- Deployment/compatibility concerns: additive evidence fields and schema version bump; no CLI invocation changes. Repositories whose tracked content requires an external clean/process filter may receive a visible provenance refusal rather than automatic dirty-state evidence.
 - Migration/backfill: none — keep historical v1 evidence unchanged; new runs emit v2.
 - Rollback or recovery: revert provenance fields/schema bump; existing command execution/readiness/path-safety behavior remains the baseline.
 
 ## Implementation plan
 
-1. Inspect enclosing Git worktree before verification execution without changing selected project ownership.
+1. Inspect enclosing Git worktree without changing selected project ownership.
 2. Add portable `scope` and optional Git `revision` to verification reports/evidence.
 3. Render the new provenance in human-readable verification output.
-4. Add focused non-Git/root/nested/dirty fixtures including persisted nested evidence.
-5. Document schema v2, project/workspace semantics, and local/CI comparison behavior.
-6. Run a pre-final exact-head gate; only then finalize this Task Pack to `Done` and rerun exact-head validation before merge per #48.
+4. Harden automatic Git provenance so locale, optional locks, symlink aliases, filters, and submodule ignore rules cannot silently weaken the evidence contract.
+5. Add focused non-Git/root/nested/dirty/localized/symlink/filter/submodule fixtures including persisted nested evidence.
+6. Document schema v2, project/workspace semantics, safe provenance inspection, and local/CI comparison behavior.
+7. Run a corrected pre-final exact-head gate; only then finalize this Task Pack to `Done` and rerun exact-head validation before merge per #48.
 
 ## Verification commands
 
@@ -150,39 +165,47 @@ Do not claim a command passed unless it was actually executed.
 - [x] Non-Git projects remain supported.
 - [x] Dirty state is evidence rather than an inferred failure or approval.
 - [x] Detected Git metadata failures cannot silently downgrade to weaker provenance.
-- [x] Git provenance reads disable configured external fsmonitor behavior.
+- [x] Git provenance reads disable configured external fsmonitor behavior and optional index-lock writes.
+- [x] Git failure classification is locale-stable.
+- [x] Symlinked project/workspace paths use canonical provenance containment without changing the selected target.
+- [x] Active external clean/process filters cannot execute during automatic dirty-state inspection.
+- [x] Submodule ignore settings cannot hide dirty submodule state.
 - [x] Implementation-unready `--run` refuses before provenance processes.
 - [x] Provider-specific CI metadata is not required for the core evidence contract.
 - [x] Historical v1 evidence is not rewritten.
-- [x] Executable pre-final validation confirmed behavior on exact head `54dd88e26822e9e5a54669423069ad493d9079b1`.
+- [ ] Executable corrected pre-final validation confirms behavior on the exact branch head.
 
 ## Independent review evidence
 
 | Class | Disposition | Finding / evidence | Resolution / follow-up | Residual risk |
 |---|---|---|---|---|
 | DEFECT | must fix in this task | Initial nested fixture embedded an absolute Windows path inside `node -e`, creating platform-sensitive nested quoting/backslash behavior. | Replaced the assertion with a portable `path.basename(process.cwd()) === "api"` check while retaining the same cwd contract. | none known |
-| DEFECT | must fix in this task | Initial provenance fallback caught every `git rev-parse --show-toplevel` / HEAD error, so a detected workspace could be silently misreported as project-only or unborn after an unexpected Git failure. | Fallback is now limited to non-Git/missing-Git cases; once a worktree is detected, contradictory HEAD/status failures are actionable errors. | none known |
-| DEFECT | must fix in this task | Automatic provenance collection used `git status` before the `--run` readiness refusal and could consult a repository-configured external fsmonitor. | Readiness refusal now occurs before provenance collection for execution; metadata commands force `core.fsmonitor=false`. | none known |
+| DEFECT | must fix in this task | Initial provenance fallback caught every `git rev-parse --show-toplevel` / HEAD error, so a detected workspace could be silently misreported as project-only or unborn after an unexpected Git failure. | Fallback is limited to non-Git/missing-Git cases; once a worktree is detected, contradictory HEAD/status failures are actionable errors. | none known |
+| DEFECT | must fix in this task | Automatic provenance collection used `git status` before the `--run` readiness refusal and could consult a repository-configured external fsmonitor. | Readiness refusal occurs before provenance collection for execution; metadata commands force `core.fsmonitor=false`. | none known |
+| DEFECT | must fix in this task | Late review found Git error matching depended on localized stderr, so non-Git/unborn fallback could fail under non-English locales. | Provenance commands force `LC_ALL/LANG/LANGUAGE=C`; HEAD uses `--quiet` exit-code handling; localized-environment regression added. | corrected head still needs executable validation |
+| DEFECT | must fix in this task | Late review found `git status` could perform optional index refresh writes/locks during provenance inspection, including preview mode. | All metadata commands use Git `--no-optional-locks`; provenance remains metadata-only with no optional index writes. | corrected head still needs executable validation |
+| DEFECT | must fix in this task | Late review found lexical `path.resolve()` containment rejected valid symlink/junction-selected projects because Git reports a physical worktree path. | Canonicalize project/workspace with filesystem `realpath()`, use `path.relative()` containment, preserve legacy selected `target`; regression added. | corrected head still needs executable validation |
+| DEFECT | must fix in this task | Late security review found automatic `git status` may execute active external clean/process filters while collecting dirty state, including preview mode. | Determine filter drivers active for tracked files (including initialized submodules) without executing them; if an active driver has external `clean`/`process` config, fail provenance before status. | conservative refusal for repositories that genuinely require active external filters; documented |
+| DEFECT | must fix in this task | Late review found `.gitmodules`/Git submodule ignore settings could hide a dirty submodule and falsely record `revision.dirty: false`. | Status forces `--ignore-submodules=none`; initialized submodules are recursively safety-checked; dirty-submodule regression added. | corrected head still needs executable validation |
 | NO ACTION | n/a | The slice deliberately does not add implicit cross-root Source-of-Truth inheritance; current project-root isolation remains deterministic. | Treat shared root/package Source-of-Truth policy as a later Stage 5 slice if concrete monorepo dogfood requires it. | Cross-project shared truth still needs an explicit future contract rather than hidden fallback. |
 
 ## Finalization
 
-Prepared only after the pre-final implementation/review gate passed.
+The earlier finalization was invalidated by late review findings that required source changes. Return to `Review` until the corrected implementation passes the complete pre-final gate.
 
-- [x] Acceptance criteria satisfied.
-- [x] Pre-final implementation/review gate passed before the finalization edit.
-- [x] Independent review evidence is current and no known `must fix in this task` finding remains unresolved in source.
-- [x] Completion report reflects the bounded accepted pre-final gate; no failed pre-final evidence is being promoted as current truth.
-- [x] Top-level `Status` changed to `Done`.
+- [ ] Acceptance criteria satisfied on the corrected head.
+- [ ] Corrected pre-final implementation/review gate passed before the next finalization edit.
+- [x] Independent review evidence is current and all known late findings have source/test/documentation resolutions.
+- [ ] Completion report reflects the corrected accepted pre-final gate and marks earlier-head evidence superseded.
+- [ ] Top-level `Status` changed to `Done`.
 
-After this finalization edit, rerun the required exact-head gate. Do not edit this Task Pack solely to record that rerun; merge only if it passes.
+After a new finalization edit, rerun the required exact-head gate. Do not edit this Task Pack solely to record that rerun; merge only if it passes.
 
 ## Completion report
 
-- What changed and why: added portable workspace/project and Git revision provenance to mechanical verification evidence so nested-package local/CI results can be compared without treating host-specific checkout paths as identity.
-- Accepted pre-final verification: the maintainer reported the complete requested pre-final gate passed on exact head `54dd88e26822e9e5a54669423069ad493d9079b1`, including focused verification-scope/verify tests, repository check script, strict implementation readiness, Git-aware review context and changed-file visibility, schema-v2 scope/SHA evidence checks, both VCP verification commands, full repository validation, unchanged exact head, and a clean working tree. No test counts are inferred from that report.
-- Finalization-head requirement: rerun the same required gate on this Task Pack-only finalization head before merge; do not edit the Task Pack solely to record that rerun.
-- Superseded failed evidence (if material): n/a.
-- Independent review evidence updated: yes; three must-fix defects were found and corrected before executable validation.
-- Migration/operational impact: new evidence emits schema v2; no historical evidence migration and no CLI flag change.
-- Remaining risks/limitations: this slice does not auto-discover packages, inherit root-level Source of Truth, or integrate remote CI-provider metadata.
+- What changed and why: added portable workspace/project and Git revision provenance to mechanical verification evidence so nested-package local/CI results can be compared without treating host-specific checkout paths as identity; late review additionally hardened automatic Git provenance against locale drift, optional writes, path aliases, external filters, and hidden dirty submodules.
+- Final accepted verification: pending corrected pre-final executable validation on the new head.
+- Superseded evidence: the maintainer reported the complete requested pre-final gate passed on `54dd88e26822e9e5a54669423069ad493d9079b1`, and the finalization-head gate passed on `fb47b0611578f9ab2631c5a16967913d8eb817d8`; both are superseded for merge eligibility because late review findings required source changes afterward. No test counts are inferred from those reports.
+- Independent review evidence updated: yes; all late findings are recorded above with bounded fixes and regression coverage.
+- Migration/operational impact: new evidence emits schema v2; no historical evidence migration and no CLI flag change. Active external content filters may cause a visible safe provenance refusal rather than automatic dirty-state collection.
+- Remaining risks/limitations: this slice does not auto-discover packages, inherit root-level Source of Truth, integrate remote CI-provider metadata, or attempt to execute repository-controlled Git filters to obtain dirty-state evidence.
