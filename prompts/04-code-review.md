@@ -41,7 +41,16 @@ Finding class and current-task disposition are separate concepts. For example, a
 
 Use `must fix in this task` when the issue is required for acceptance criteria, correctness, security, compatibility, data integrity, or the agreed Definition of Done. Use `follow-up candidate` for broader improvements, optional refactors, or newly discovered work that is valuable but not required for this bounded task.
 
-Before declaring review complete, record material findings and their dispositions in durable repository/VCP task or completion evidence so a fresh continuation agent can reconstruct what was found, what was fixed, what became follow-up work, and what residual risks remain without needing the reviewer chat. Do not persist the entire review transcript; preserve the concise engineering evidence needed for auditability and restartability.
+Before declaring review complete, persist concise material findings in the Task Pack's `## Independent review evidence` section when that section is available. For each material finding preserve:
+- class;
+- current-task disposition;
+- concise finding/evidence;
+- resolution or follow-up reference;
+- residual risk where applicable.
+
+Do not persist the full reviewer conversation. Do not duplicate requirements already governed by Source of Truth. Routine NO ACTION checks may be summarized instead of logged one by one. If an older explicit task file lacks the review-evidence section, add the same bounded evidence to its task/completion record rather than creating a separate review database.
+
+A review is not restartable merely because a chat message says it completed. A fresh continuation agent must be able to reconstruct what was found, what was fixed, what became follow-up work, and what residual risks remain from repository/VCP evidence alone.
 
 Do not give style-only feedback unless it affects readability, maintainability, correctness, or agreed conventions. If you find no blocking issue, state what you verified, any NO ACTION concerns you checked, and residual risks rather than merely saying “LGTM”.
 ```
