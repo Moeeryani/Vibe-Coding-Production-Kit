@@ -100,6 +100,11 @@ test('Git comparison options are review-only and head requires an explicit base'
     createContextPack({ targetDir: target, task: 'bounded-review', mode: 'review', gitHead: 'HEAD' }),
     /--head requires --base/
   );
+
+  await assert.rejects(
+    createContextPack({ targetDir: target, task: 'bounded-review', mode: 'review', gitBase: '  -c' }),
+    /Review base must not start with "-": -c/
+  );
 });
 
 test('invalid Git base fails visibly instead of producing an incomplete review surface', async () => {
