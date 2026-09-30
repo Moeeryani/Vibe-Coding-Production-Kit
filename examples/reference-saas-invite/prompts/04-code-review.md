@@ -2,6 +2,8 @@
 
 Use a fresh context/agent when practical. The reviewer should reconstruct intent from the task, Source of Truth, accepted decisions, acceptance criteria, actual diff, tests, and verification evidence rather than inheriting the implementation agent's confidence or summary as fact.
 
+When the Context Pack contains a `## Git review surface`, treat its explicit base/head SHAs, full changed-file list, working-tree status, and bounded diff as the changed-surface evidence for this review. Git evidence shows **what changed**; it does not prove correctness. Do not silently ignore files just because they appear unrelated to the Task Pack—unexpected changed files may be accidental scope expansion. If the pack has no Git review surface, state that changed-surface reconstruction is incomplete and inspect the smallest necessary repository/Git area before making a completion claim.
+
 ```text
 Review this change as a senior engineer. Start from the task requirements and acceptance criteria, then inspect the actual changed area. Do not assume the implementation author's summary is correct.
 
