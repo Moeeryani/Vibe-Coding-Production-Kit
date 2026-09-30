@@ -1,6 +1,6 @@
 # Task — Add explicit workspace Source-of-Truth references
 
-Status: Review
+Status: Done
 Slug: `workspace-source-truth`
 
 ## Outcome
@@ -31,7 +31,7 @@ Preserve unqualified Task Pack Source-of-Truth references as project-local. Add 
 - [x] AC-007 — Context remains bounded: unrelated root documents and sibling-package documents are not auto-included.
 - [x] AC-008 — `workspace:` is rejected for `--include`; `--planned`, `--output`, verification output, verification cwd, task files, prompts, and AGENTS ownership remain project-local.
 - [x] AC-009 — Documentation defines explicit project-local vs workspace-qualified authority and rejects hidden parent/sibling inheritance.
-- [ ] AC-010 — Focused contract tests, strict readiness/context/verification dogfood, and full repository validation pass on the exact pre-final head.
+- [x] AC-010 — Focused contract tests, strict readiness/context/verification dogfood, and full repository validation passed on exact pre-final head `85d6bfa96aa3eead0068e066c0ffd733619592f8` before Task Pack finalization.
 
 ## Scope
 
@@ -163,7 +163,7 @@ Do not claim a command passed unless it was actually executed.
 - [x] Context manifest identity is portable and bounded.
 - [x] Root and sibling files are not auto-included.
 - [x] Verification cwd/output and context extra/planned/output paths remain project-local.
-- [ ] Executable exact-head validation confirms the implementation.
+- [x] Executable exact-head pre-final validation confirmed the implementation on `85d6bfa96aa3eead0068e066c0ffd733619592f8`.
 
 ## Independent review evidence
 
@@ -178,18 +178,19 @@ Do not claim a command passed unless it was actually executed.
 
 ## Finalization
 
-- [ ] Acceptance criteria satisfied on the exact pre-final head.
-- [ ] Pre-final implementation/review gate passed before finalization edit.
+- [x] Acceptance criteria satisfied on the exact pre-final head.
+- [x] Pre-final implementation/review gate passed before finalization edit.
 - [x] Independent review evidence is current.
-- [ ] Completion report reflects accepted executable evidence.
-- [ ] Top-level `Status` changed to `Done`.
+- [x] Completion report reflects accepted executable evidence.
+- [x] Top-level `Status` changed to `Done`.
 
 After the finalization edit, rerun the same required exact-head gate. Do not edit this Task Pack solely to record that rerun; merge only if it passes.
 
 ## Completion report
 
 - What changed and why: added explicit shared-worktree governing Source-of-Truth qualification for nested projects without hidden inheritance or widened project boundaries.
-- Final accepted verification: pending exact-head pre-final executable validation.
-- Independent review evidence updated: yes; static contract findings are recorded above.
+- Final accepted verification: exact pre-final gate passed on `85d6bfa96aa3eead0068e066c0ffd733619592f8`, covering focused Source-of-Truth/context regressions, repository check, strict implementation readiness, bounded context dogfood, configured CHECK/UNIT verification, full repository validation, and clean/unchanged-head checks.
+- Finalization state: this Task Pack-only edit moves the branch head; the same exact-head gate must pass again on the finalization head before merge.
+- Independent review evidence updated: yes; static contract findings and resolutions are recorded above, with no unresolved review thread at finalization time.
 - Migration/operational impact: additive Task Pack syntax; no migration. Workspace-qualified references require an accessible local Git worktree.
 - Remaining risks/limitations: no automatic package discovery, sibling imports, workspace scheduler, root/package precedence engine, provider CI integration, or full realistic monorepo conformance yet.
