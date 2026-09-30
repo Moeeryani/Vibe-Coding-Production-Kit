@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { mkdir, mkdtemp, symlink, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, realpath, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -76,7 +76,7 @@ test('nested project can explicitly use accepted workspace authority without inh
   assert.match(context.content, /Shared workspace rule: API changes preserve tenant boundaries\./);
   assert.doesNotMatch(context.content, /Do not auto-include me\./);
   assert.doesNotMatch(context.content, /Do not inherit sibling authority\./);
-  assert.doesNotMatch(context.content, new RegExp(root.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  assert.equal(context.content.includes(root), false);
 });
 
 test('workspace-qualified starter templates still trigger the existing readiness warning', async () => {
@@ -161,7 +161,7 @@ test('workspace root discovery ignores ambient Git directory/worktree overrides'
   try {
     const resolved = await resolveWorkspaceSourceTruthReference(project, 'workspace:docs/platform/POLICY.md');
     assert.equal(resolved.relative, 'workspace:docs/platform/POLICY.md');
-    assert.equal(resolved.workspaceRoot, await import('node:fs/promises').then(({ realpath }) => realpath(root)));
+    assert.equal(resolved.workspaceRoot, await realpath(root));
   } finally {
     if (previousGitDir === undefined) delete process.env.GIT_DIR;
     else process.env.GIT_DIR = previousGitDir;
