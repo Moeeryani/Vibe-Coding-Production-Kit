@@ -27,6 +27,13 @@ export class MemoryInvitationRepository {
     return true;
   }
 
+  async revokeIfPending(revoked) {
+    const current = this.#byId.get(revoked.id);
+    if (!current || current.status !== 'pending') return false;
+    this.#byId.set(revoked.id, structuredClone(revoked));
+    return true;
+  }
+
   async findById(id) {
     const value = this.#byId.get(id);
     return value ? structuredClone(value) : null;
