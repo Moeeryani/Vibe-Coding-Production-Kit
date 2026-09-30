@@ -70,7 +70,7 @@ This task is AFK because its correct next action is determined by existing repos
 - Input/trust boundaries: `orgId` is a repository selector only; records are not reassigned or inferred.
 - Secrets/PII/logging: no logging is added; raw token values remain absent from repository state.
 - Abuse/rate/replay considerations: n/a for the in-memory primitive.
-- Relevant threat boundary: cross-tenant record exposure must not occur.
+- Relevant threat IDs: T-001 — cross-tenant invite/data exposure is the relevant threat for this tenant-scoped repository query; authorization/token-use threats remain enforced at their owning application/domain boundaries.
 
 ## Failure modes and edge cases
 
