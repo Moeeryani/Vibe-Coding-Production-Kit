@@ -62,6 +62,8 @@ vcp task accept-invite --force
 - independent review checklist;
 - completion report.
 
+Source-of-Truth file references must be explicit. The canonical Task Pack table uses its `Reference` column for repository-local references; labeled bullets such as `Reference:`, `Source:`, or `File:` are also supported. Ordinary inline code in explanatory prose—permissions, states, commands, identifiers, API names, and similar terms—is not a file reference merely because it is wrapped in backticks. This keeps Task Packs readable without weakening path validation for references that are actually declared.
+
 The agent should populate these sections from existing repository evidence and bounded analysis. If a decision changes intended product behavior, security posture, compatibility policy, data ownership, destructive migration policy, architecture direction, risk acceptance, rollout, or another choice that cannot be inferred safely, the agent should ask the developer a focused question and record the approved answer in the task or governing Source of Truth.
 
 Preserve approved negative decisions and explicit exclusions as well as positive requirements. A later agent should not reopen rejected scope merely because it is absent from the implementation diff.

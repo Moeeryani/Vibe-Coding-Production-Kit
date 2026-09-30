@@ -24,7 +24,9 @@ Create a planning context from a task slug:
 vcp context accept-invite --mode plan
 ```
 
-The command reads `docs/tasks/accept-invite.md`, `AGENTS.md`, the planning prompt, and repository-local files referenced in the task's `## Source of truth` section.
+The command reads `docs/tasks/accept-invite.md`, `AGENTS.md`, the planning prompt, and repository-local files explicitly referenced in the task's `## Source of truth` section.
+
+The canonical Task Pack table uses a `Reference` column for file references. Labeled bullets such as `Reference:`, `Source:`, or `File:` are also accepted. Ordinary inline code inside Source-of-Truth prose—permissions, states, commands, identifiers, API names, and similar terms—is descriptive text and is not loaded as a file.
 
 Running directly from GitHub:
 
@@ -219,11 +221,13 @@ Good architecture compresses context. A context-budget failure may reveal that t
 The command rejects:
 
 - task paths outside the repository;
-- Source-of-Truth references that escape the repository root;
+- explicit Source-of-Truth references that escape the repository root;
 - explicit includes outside the repository;
 - planned paths outside the repository;
 - output paths outside the repository;
 - URL references as local files.
+
+Only explicit Source-of-Truth reference positions enter path resolution. Markdown code spans used for explanatory prose are not path candidates.
 
 This prevents a task document or context option from accidentally causing the context builder to read or authorize unrelated local paths.
 
