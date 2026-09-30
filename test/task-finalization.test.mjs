@@ -18,7 +18,7 @@ test('generated Task Packs define a bounded finalization contract', () => {
   assert.match(task, /## Finalization/);
   assert.match(task, /`Status: Done` is the durable final state/);
   assert.match(task, /required verification command has actually passed on the current final head/);
-  assert.match(task, /earlier failed gate is materially useful, summarize it separately as superseded evidence/);
+  assert.match(task, /prior failed gate is materially useful, summarize it separately as superseded evidence/);
   assert.match(task, /Git\/PR history owns merge identity/);
   assert.match(task, /Final accepted verification: pending — replace before setting `Status: Done`/);
   assert.match(task, /Superseded failed evidence \(if material\): n\/a/);
