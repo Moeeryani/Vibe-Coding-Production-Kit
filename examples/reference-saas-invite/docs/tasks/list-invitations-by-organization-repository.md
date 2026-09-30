@@ -1,6 +1,6 @@
 # Task — Add organization-scoped invitation repository query
 
-Status: In progress
+Status: Done
 Slug: `list-invitations-by-organization-repository`
 
 ## Outcome
@@ -123,12 +123,12 @@ Do not claim a command passed unless it was actually executed.
 
 ## Independent review checklist
 
-- [ ] Scope stays below the application/user-facing policy layer.
-- [ ] Cross-tenant records cannot appear in query results.
-- [ ] Returned values cannot mutate stored state.
-- [ ] No hidden active/expired semantics are introduced.
-- [ ] No graph/scheduler/schema persistence is added.
-- [ ] Tests prove the repository contract rather than a proposed UI policy.
+- [x] Scope stays below the application/user-facing policy layer.
+- [x] Cross-tenant records cannot appear in query results.
+- [x] Returned values cannot mutate stored state.
+- [x] No hidden active/expired semantics are introduced.
+- [x] No graph/scheduler/schema persistence is added.
+- [x] Tests prove the repository contract rather than a proposed UI policy.
 
 ## Independent review evidence
 
@@ -136,12 +136,21 @@ Record concise material findings here after a fresh review. Do not copy the full
 
 | Finding class | Disposition | Finding / evidence | Resolution or follow-up | Residual risk |
 |---|---|---|---|---|
-| | | | | |
+| NO ACTION | n/a | Fresh PR #45 review confirmed the repository query is tenant-scoped, returns detached copies, and remains status-neutral without choosing the unresolved admin-list policy. | No correction required before merge. | Application authorization and user-facing active/expired semantics were intentionally separate downstream work. |
+
+## Finalization
+
+- [x] Acceptance criteria satisfied.
+- [x] Required verification passed on the final reviewed PR #45 head.
+- [x] Independent review evidence is current and no `must fix in this task` finding remains unresolved.
+- [x] Completion report reflects the final accepted gate rather than stale pending text.
+- [x] Top-level `Status` is `Done`.
 
 ## Completion report
 
 - What changed and why: added the independent AFK repository prerequisite for Issue #44's multi-branch dogfood without resolving the separate HUMAN DECISION.
-- Verification actually run: pending exact-head local validation.
+- Final accepted verification: maintainer-local exact-head gate for PR #45 passed the requested focused repository test, reference fixture test/check, implementation readiness, VCP verification commands, full framework validation, and clean-tree/unchanged-head checks. Detailed historical counts are intentionally not reconstructed here.
+- Superseded failed evidence (if material): n/a.
+- Independent review evidence updated: yes; no blocking finding remained at merge.
 - Migration/operational impact: none; additive in-memory reference behavior only.
-- Remaining risks/limitations: application authorization and active-list semantics remain intentionally unimplemented until the dogfood dependency frontier advances.
-- Independent review evidence updated: pending fresh review.
+- Remaining risks/limitations: the repository primitive remains status-neutral by design; application authorization and active-list policy were completed separately downstream.
