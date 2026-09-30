@@ -35,6 +35,11 @@ test('parser supports plain or linked values in the canonical Reference column',
   ]);
 });
 
+test('parser preserves malformed explicit references for readiness diagnostics and ignores reasoned n/a', () => {
+  const task = `## Source of truth\n\n| Source | Reference |\n|---|---|\n| Product | \`<define-path>\` |\n| Security | n/a — no separate security source |\n`;
+  assert.deepEqual(extractSourceTruthReferences(task), ['<define-path>']);
+});
+
 test('readiness does not interpret Source-of-Truth prose code spans as repository paths', async () => {
   const target = await tempDir();
   await initProject({ targetDir: target, agent: 'generic', stack: 'generic', includeGitHub: false });
