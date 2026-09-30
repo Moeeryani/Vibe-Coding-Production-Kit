@@ -250,19 +250,19 @@ Reference SaaS dogfood proves current accepted authority remains sufficient for 
 
 Intent, clarification, shared design, decisions, vertical tasks, dependencies, AFK/HITL, eligibility, implementation, verification, review, QA, follow-up.
 
-**Next:** build Git-aware bounded review; revisit graph validation only if later evidence justifies it.
+**Next:** resolve monorepo/project-root + CI evidence semantics; revisit graph validation only if later evidence justifies it.
 
 ### Track B — Knowledge and State
 
 Source-of-Truth freshness, decision lifecycle, negative decisions, task state, lifecycle state, migrations, ownership, rollback.
 
-**Next:** preserve freshness/negative-decision semantics through upcoming review and repository-scale work; add more persisted state only when concrete restartability evidence requires it.
+**Next:** preserve freshness/negative-decision semantics through repository-scale work; add more persisted state only when concrete restartability evidence requires it.
 
 ### Track C — Engineering Assurance
 
 Verification, Git-aware review, security profiles, prompt evaluation, architecture fitness, conformance.
 
-**Next:** Git-aware review foundation and conformance fixtures.
+**Next:** concrete security profiles and prompt behavioral evaluation after repository-scale/CI evidence semantics are coherent.
 
 ### Track D — Repository Scale and Delivery
 
@@ -321,11 +321,23 @@ Prioritize by dependency and user impact, not issue number.
 
 ### Stage 3 — Git-aware bounded review
 
-**Status:** ⬜ Planned.
+**Status:** ✅ Done — PR #55 / Issue #54.
 
-Review should consume actual changed surface, task/acceptance decisions, Source of Truth, tests, and evidence rather than implementation narration.
+Implemented an additive local Git review surface for review Context Packs:
 
-Exit criteria:
+- explicit `--base <ref>` with optional `--head <ref>` (default `HEAD`);
+- exact resolved base/head commit SHAs;
+- merge-base changed-file and bounded textual diff evidence;
+- changed files from the enclosing worktree root so nested projects cannot hide root/workspace changes;
+- separately labeled dirty working-tree state;
+- committed submodule-pointer visibility even when repository config ignores submodules;
+- binary-safe diff behavior with textconv disabled;
+- existing Context Pack byte-budget enforcement;
+- durable fresh-review findings and finalization evidence.
+
+Legacy review context remains backward compatible when no Git comparison is requested. Git evidence defines the changed surface only; Task Pack, current Source of Truth, accepted decisions, tests, and executed verification remain the correctness/acceptance authority.
+
+Exit criteria achieved:
 
 - bounded changed-file/diff discovery;
 - branch/base awareness;
@@ -596,14 +608,13 @@ Add future `SYSTEM-CONTRACT.md` / `QUALITY-GATES.md` only if they reduce ambigui
 ## 15. Recommended Execution Order From Current Main
 
 1. Keep #15 open and preserve an executable exact-head local validation channel.
-2. Build Git-aware bounded review.
-3. Resolve monorepo/project-root + CI evidence semantics.
-4. Build concrete security profiles.
-5. Build prompt behavioral evaluation.
-6. Add architecture fitness functions.
-7. Automate release mechanics without automating approval.
-8. Extend mobile/plugins/ecosystem only after core contracts stabilize.
-9. Revisit graph validation/eligibility only if later dogfood demonstrates a concrete problem that required metadata would solve.
+2. Resolve monorepo/project-root + CI evidence semantics.
+3. Build concrete security profiles.
+4. Build prompt behavioral evaluation.
+5. Add architecture fitness functions.
+6. Automate release mechanics without automating approval.
+7. Extend mobile/plugins/ecosystem only after core contracts stabilize.
+8. Revisit graph validation/eligibility only if later dogfood demonstrates a concrete problem that required metadata would solve.
 
 ---
 
