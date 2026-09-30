@@ -82,6 +82,7 @@ This task was AFK and became eligible after its technical prerequisite completed
 
 - Authentication impact: actor identity and organization context remain supplied by the upstream authenticated boundary.
 - Authorization/resource ownership: `members.invite` is required and tenant scope is derived only from `actor.orgId`.
+- Tenant isolation: results are obtained only through `repository.listByOrganization(actor.orgId)`; no caller-selected organization id is accepted, and records from other organizations are excluded by the repository query contract.
 - Input/trust boundaries: listing accepts no caller-selected organization id; repository records are treated as stored state and projected into a bounded view model.
 - Secrets/PII/logging: email is the only returned identity field; raw tokens, token hashes, issuer identity, acceptance attribution, and repository-only fields are omitted; no logging is added.
 - Abuse/rate/replay considerations: read-only in-memory listing adds no replay mutation risk; production rate limiting/pagination remain out of scope.
@@ -167,7 +168,7 @@ Record concise material findings here after a fresh review. Do not copy the full
 ## Completion report
 
 - What changed and why: implemented the now-unblocked active-invitation application contract using the approved Option A policy from Issue #44.
-- Verification actually run: focused listing tests, reference tests/check, and full framework validation passed on prior head `b26dbcab31d7839a0cb1d3e3aae73e847ce2162a`; readiness/verify failed because this Task Pack had drifted from canonical readiness labels, so exact-head validation must be rerun after this documentation correction.
+- Verification actually run: focused listing tests, reference tests/check, and full framework validation passed on prior heads, but readiness/verify remained blocked by Task Pack readiness-label drift; exact-head validation must be rerun after this final documentation correction.
 - Migration/operational impact: none; additive read-only reference behavior only.
 - Remaining risks/limitations: delivery/API/UI representation and production persistence/indexing remain out of scope.
 - Independent review evidence updated: yes; no blocking finding in the bounded implementation review.
