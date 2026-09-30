@@ -130,9 +130,18 @@ Do not claim a command passed unless it was actually executed.
 - [x] Tests prove behavior rather than implementation details.
 - [x] Docs/contracts/ADRs were updated when required.
 
+## Independent review evidence
+
+This historical reference task predates the durable-review-evidence contract. Do not invent retrospective findings. Future fresh reviews of this task should record concise material outcomes in the table below.
+
+| Class | Disposition | Finding / evidence | Resolution / follow-up | Residual risk |
+|---|---|---|---|---|
+| | | | | |
+
 ## Completion report
 
 - What changed and why: implemented the bounded reference invitation-acceptance behavior governed by the PRD, domain model, ADR, and threat model.
 - Verification actually run: this Task Pack requires `npm run check` and `npm test`; current conformance validation must execute them before using this file as release evidence.
+- Independent review evidence updated: historical findings were not reconstructed; future fresh review evidence belongs in the bounded table above.
 - Migration/operational impact: none; reference-only in-memory implementation.
 - Remaining risks/limitations: production persistence, authentication, transport, rate limiting, delivery, and observability remain intentionally out of scope as documented by the reference project.
