@@ -106,7 +106,8 @@ test('auto-detects JavaScript package projects and imports existing check/test s
 
   assert.equal(result.stack, 'javascript');
   assert.match(agents, /INSTALL_COMMAND=npm install/);
-  assert.match(agents, /LINT_COMMAND=npm run check/);
+  assert.match(agents, /LINT_COMMAND=n\/a/);
+  assert.match(agents, /CHECK_COMMAND=npm run check/);
   assert.match(agents, /UNIT_TEST_COMMAND=npm run test/);
   assert.match(agents, /FORMAT_CHECK_COMMAND=n\/a/);
   assert.match(agents, /TYPECHECK_COMMAND=n\/a/);

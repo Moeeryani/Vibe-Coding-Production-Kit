@@ -17,13 +17,17 @@ Preview is the default. It does not execute repository commands.
 
 The report shows the exact command keys and command strings that would run. `INSTALL_COMMAND` is excluded from the default verification set because dependency installation is setup, not proof that the task is correct.
 
+A repository-defined general validation command that does not accurately fit format, lint, typecheck, test, build, or E2E belongs in `CHECK_COMMAND`. VCP records and executes it as its own verification step rather than relabeling it as lint.
+
 Select only specific configured checks when useful:
 
 ```bash
 vcp verify accept-invite \
-  --only LINT_COMMAND \
+  --only CHECK_COMMAND \
   --only UNIT_TEST_COMMAND
 ```
+
+Existing Task Packs that use older configured keys such as `LINT_COMMAND` remain valid; adding `CHECK_COMMAND` does not reinterpret historical task evidence.
 
 ## Execute explicitly
 
@@ -67,6 +71,8 @@ The evidence contains:
 - duration;
 - timeout state.
 
+If a Task Pack contains both `CHECK_COMMAND` and `UNIT_TEST_COMMAND`, both appear independently in human-readable and JSON evidence and both must pass for the verification run to succeed.
+
 Raw stdout/stderr are **not persisted by default**. This reduces the risk of storing tokens, credentials, PII, or noisy build logs in a versioned evidence file. Normal non-JSON runs still show command output in the terminal.
 
 Existing evidence files are protected. Use `--force` only after reviewing the existing artifact.
@@ -96,6 +102,7 @@ A timeout is a verification failure.
 A run exits non-zero when any command fails. The first failed command blocks later commands:
 
 ```text
+PASS    project check
 PASS    lint
 PASS    typecheck
 FAIL    unit tests

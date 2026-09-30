@@ -143,11 +143,14 @@ INSTALL_COMMAND=<define>
 FORMAT_CHECK_COMMAND=<define>
 LINT_COMMAND=<define>
 TYPECHECK_COMMAND=<define or n/a>
+CHECK_COMMAND=<define or n/a>
 UNIT_TEST_COMMAND=<define>
 INTEGRATION_TEST_COMMAND=<define>
 BUILD_COMMAND=<define>
 E2E_COMMAND=<define or n/a>
 ```
+
+Use `CHECK_COMMAND` for a repository-defined general validation command that is required by the project but is not accurately described as format, lint, typecheck, test, build, or E2E.
 
 Before declaring a task complete, run every relevant configured command. Never claim a command passed if it was not executed successfully.
 

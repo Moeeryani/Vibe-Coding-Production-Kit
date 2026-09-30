@@ -30,10 +30,13 @@ The profile:
 
 - detects npm, pnpm, Yarn, or Bun from lockfiles;
 - reads `package.json` scripts;
-- maps existing `lint` or general `check` scripts into the lint/static-check slot;
+- maps an existing `lint` script to `LINT_COMMAND`;
+- maps a repository-defined general `check` script to the separate `CHECK_COMMAND` slot instead of pretending that every `check` script is lint;
 - detects `test`, `test:unit`, `test:integration`, `build`, `test:e2e`, and `e2e` when present;
 - marks clearly non-applicable checks such as TypeScript type checking as `n/a` instead of forcing the developer to fill irrelevant placeholders;
 - adds JavaScript/Node-specific rules around runtime validation, module contracts, environment dependence, and regression tests.
+
+A generic `check` script is never copied into `LINT_COMMAND`. For backward-compatible Doctor behavior, a Node profile that has `check` but no dedicated `lint` records `LINT_COMMAND=n/a` and `CHECK_COMMAND=<configured check>`. If neither `lint` nor `check` exists, `LINT_COMMAND` remains `<define>` so a genuinely unresolved lint decision is still visible.
 
 ## TypeScript
 
@@ -43,10 +46,11 @@ The profile:
 
 - detects npm, pnpm, Yarn, or Bun from lockfiles;
 - reads `package.json` scripts;
-- fills only commands backed by existing scripts such as `lint`, `check`, `typecheck`, `test`, `build`, `test:integration`, and `test:e2e`;
+- maps `lint` and general `check` to their distinct verification slots;
+- fills only commands backed by existing scripts such as `typecheck`, `test`, `build`, `test:integration`, and `test:e2e`;
 - adds TypeScript-specific rules around strictness, runtime validation, module boundaries, and async behavior.
 
-If a required script does not exist, the CLI leaves the command as `<define>` instead of inventing one.
+A check-only TypeScript project uses the same compatibility rule: `LINT_COMMAND=n/a` plus the concrete `CHECK_COMMAND`. If neither `lint` nor `check` exists, lint remains `<define>`. Optional generic `CHECK_COMMAND` is `n/a` when no repository `check` script exists.
 
 ## Python
 
@@ -72,11 +76,18 @@ INSTALL_COMMAND=go mod download
 FORMAT_CHECK_COMMAND=test -z "$(gofmt -l .)"
 LINT_COMMAND=go vet ./...
 TYPECHECK_COMMAND=go test ./...
+CHECK_COMMAND=n/a
 UNIT_TEST_COMMAND=go test ./...
 BUILD_COMMAND=go build ./...
 ```
 
 The profile also adds rules for error wrapping, `context.Context`, goroutine lifecycle, interfaces, and shared state.
+
+## Generic project checks
+
+`CHECK_COMMAND` represents a required project-defined validation command that does not accurately fit format, lint, typecheck, test, build, or E2E.
+
+Examples include repository syntax validation or a project-specific aggregate check. It is additive: existing Task Packs using older verification keys remain valid, and VCP does not reinterpret an existing `LINT_COMMAND` automatically.
 
 ## Why evidence-based detection matters
 

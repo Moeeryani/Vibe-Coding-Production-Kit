@@ -7,10 +7,12 @@ All notable changes to this project will be documented here.
 ### Added
 - Stack-selection provenance is now preserved in `.vcp/manifest.json` as `install.requestedStack`, distinguishing automatic selection from an explicit stack choice for future lifecycle decisions.
 - Update check, dry-run, apply, and JSON reporting now expose eligible `stackProfileChange` transitions for auto-selected `generic` installs when deterministic repository evidence resolves to a concrete supported stack.
+- `CHECK_COMMAND` now represents repository-defined required validation that does not accurately fit format, lint, typecheck, test, build, or E2E, and flows through Task Packs, readiness, `vcp verify`, and JSON evidence.
 
 ### Changed
 - Auto-selected `generic` installs with recorded provenance may safely adopt a newly detectable concrete stack through the normal transactional update path.
 - Explicit `generic` selections and legacy manifests without stack-selection provenance remain conservative: stored `generic` profiles are not silently re-detected.
+- JavaScript and TypeScript stack profiles now keep package `check` scripts distinct from `LINT_COMMAND`; a generic `check` script is no longer silently labeled as lint.
 
 ## [0.9.2] - 2026-09-25
 
