@@ -31,12 +31,30 @@ test('JavaScript package check script is represented as CHECK_COMMAND in generat
   await initProject({ targetDir: target, agent: 'generic', stack: 'auto', includeGitHub: false });
   const agents = await readFile(path.join(target, 'AGENTS.md'), 'utf8');
   assert.match(agents, /^CHECK_COMMAND=npm run check$/m);
+  assert.match(agents, /^LINT_COMMAND=n\/a$/m);
   assert.doesNotMatch(agents, /^LINT_COMMAND=npm run check$/m);
 
   const task = await createTaskPack({ targetDir: target, slug: 'check-contract', title: 'Check contract' });
   assert.match(task.content, /`CHECK_COMMAND`: `npm run check`/);
   assert.match(task.content, /`UNIT_TEST_COMMAND`: `npm run test`/);
   assert.doesNotMatch(task.content, /`LINT_COMMAND`: `npm run check`/);
+  assert.doesNotMatch(task.content, /`LINT_COMMAND`: `n\/a`/);
+});
+
+test('JavaScript profile keeps lint unresolved when neither lint nor general check is configured', async () => {
+  const target = await tempDir();
+  await writeFile(path.join(target, 'package.json'), JSON.stringify({
+    private: true,
+    type: 'module',
+    scripts: {
+      test: 'node --test'
+    }
+  }));
+
+  await initProject({ targetDir: target, agent: 'generic', stack: 'auto', includeGitHub: false });
+  const agents = await readFile(path.join(target, 'AGENTS.md'), 'utf8');
+  assert.match(agents, /^LINT_COMMAND=<define>$/m);
+  assert.match(agents, /^CHECK_COMMAND=n\/a$/m);
 });
 
 test('verify executes and persists CHECK_COMMAND alongside unit tests', async () => {
