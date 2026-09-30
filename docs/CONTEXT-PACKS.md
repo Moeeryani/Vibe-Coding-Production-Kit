@@ -103,6 +103,38 @@ verification evidence
 
 The reviewer should not need the implementation agent's conversation history or summary to reconstruct the intended behavior.
 
+For Git-aware bounded review, bind the pack to an explicit base ref:
+
+```bash
+vcp context accept-invite \
+  --mode review \
+  --base main
+```
+
+`--head` defaults to `HEAD` and may be set explicitly when reviewing another local commit/ref:
+
+```bash
+vcp context accept-invite \
+  --mode review \
+  --base main \
+  --head feature/invite-list
+```
+
+When `--base` is present, VCP resolves the base/head refs to exact commit SHAs and adds one `## Git review surface` containing:
+
+- the project path relative to the enclosing Git worktree root;
+- exact base/head refs and SHAs;
+- merge-base comparison semantics (`base...head`);
+- the complete changed-file list for that comparison;
+- current working-tree status, explicitly separated from the committed comparison;
+- the bounded textual diff.
+
+The Git comparison runs from the enclosing Git worktree root, even when `--dir` points at a nested VCP project. This is deliberate: a changed root/workspace file remains visible to a reviewer instead of disappearing merely because it is outside the nested project directory.
+
+Git evidence answers **what changed**, not whether the change is correct. The reviewer must still compare it against the Task Pack, current Source of Truth, accepted decisions, tests, verification evidence, and repository constraints. Unexpected files in the changed-file list are review evidence for possible accidental scope expansion, not files to silently filter out.
+
+`--base` / `--head` are review-context-only. `--head` requires `--base`. Review context without `--base` remains backward compatible, but it does not contain a deterministic Git changed-surface snapshot; a fresh reviewer must then inspect the smallest necessary Git/repository area before claiming completion.
+
 ### Security context
 
 Security review should include only the relevant trust boundaries, data flows, authorization/authentication rules, threat model, affected code, tests, and evidence needed to assess the change.
@@ -139,7 +171,9 @@ The distinction is deliberate:
 - `--include <path>` means **this file exists; include its contents**;
 - `--planned <path>` means **this implement-mode path is approved but does not exist yet**.
 
-`--planned` is rejected outside `implement` mode. It is also rejected when the path already exists; use `--include` in that case. Both options reject paths outside the repository root. Review context remains strict: changed files should exist by review time and should be passed with `--include`.
+`--planned` is rejected outside `implement` mode. It is also rejected when the path already exists; use `--include` in that case. Both options reject paths outside the repository root.
+
+For review, prefer `--base` (and optional `--head`) for the actual Git changed surface. Use `--include` only for additional existing files that are materially useful but are not already represented by the Task Pack/Source of Truth/Git diff. Do not manually pass a curated subset of changed files when the goal is to prove the whole comparison surface.
 
 ## Context and task eligibility are separate
 
@@ -166,12 +200,12 @@ Implementation Agent
       ↓
 Verification Evidence
       ↓
-Fresh Review Context
+Git-aware Fresh Review Context
       ↓
 Independent Reviewer
 ```
 
-The review pack should reconstruct requirements and evidence independently instead of embedding unnecessary implementation narration.
+The review pack should reconstruct requirements and evidence independently instead of embedding unnecessary implementation narration. When a Git base is supplied, the pack also reconstructs the changed surface independently from Git rather than from the builder's file list.
 
 Material review findings, dispositions, resolutions, follow-up references, and residual risks should then be written back to durable Task Pack/completion evidence. The context pack is transport into review; reviewer chat is not durable engineering state.
 
@@ -206,11 +240,13 @@ vcp context accept-invite --mode plan --max-bytes 80000
 
 Set `--max-bytes 0` only when you deliberately want no limit.
 
+Git review evidence counts against the same rendered byte budget. If the explicit base/head comparison makes a review pack too large, VCP fails instead of truncating the diff and pretending the reviewer saw the whole comparison. Narrow the task/comparison or raise the limit deliberately; do not silently omit changed files.
+
 When a pack is too large, prefer:
 
 1. removing irrelevant Source-of-Truth references;
 2. removing unnecessary `--include` files;
-3. tightening the task boundary;
+3. tightening the task boundary or Git comparison;
 4. preferring stable module interfaces over loading many implementation files;
 5. only then considering a larger budget.
 
@@ -229,7 +265,9 @@ The command rejects:
 
 Only explicit Source-of-Truth reference positions enter path resolution. Markdown code spans used for explanatory prose are not path candidates.
 
-This prevents a task document or context option from accidentally causing the context builder to read or authorize unrelated local paths.
+Git-aware review uses local Git refs, resolves them to exact commits, rejects option-like refs that begin with `-`, and never treats a Git ref as a filesystem path. It reads the comparison from the enclosing local Git worktree and does not contact a hosting provider. Binary changes remain identified by Git as binary rather than being represented as complete text content.
+
+This prevents a task document or context option from accidentally causing the context builder to read or authorize unrelated local paths while still making the actual Git comparison surface visible to review.
 
 ## Recommended phase loop
 
@@ -270,7 +308,7 @@ Implement bounded scope + deterministic feedback
       ↓
 vcp verify <slug> --run
       ↓
-vcp context <slug> --mode review --include <changed files/tests>
+vcp context <slug> --mode review --base <base-ref> [--head <head-ref>]
       ↓
 Fresh independent review
       ↓
