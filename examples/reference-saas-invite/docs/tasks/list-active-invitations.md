@@ -1,6 +1,6 @@
 # Task — List active invitations for an organization admin
 
-Status: Ready
+Status: Review
 Slug: `list-active-invitations`
 
 ## Outcome
@@ -22,9 +22,9 @@ This Task Pack belongs to the `examples/reference-saas-invite` project root. Rep
 
 ## Requirement restatement
 
-Build the application-level admin listing on top of the completed status-neutral repository query. The previously unresolved expired-record visibility policy is now APPROVED: include records whose stored status is `pending` even when `expiresAt <= now`, and project those entries as `expired`. Accepted and revoked records are terminal and are excluded from the active list.
+Build the application-level admin listing on top of the completed status-neutral repository query. The previously unresolved expired-record visibility policy is APPROVED: include records whose stored status is `pending` even when `expiresAt <= now`, and project those entries as `expired`. Accepted and revoked records are terminal and are excluded from the active list.
 
-This task is AFK and now eligible because its technical prerequisite is complete and the genuine HUMAN DECISION is approved.
+This task was AFK and became eligible after its technical prerequisite completed and the genuine HUMAN DECISION was approved. The implementation now follows that durable evidence without adding graph state.
 
 ## Dependency evidence
 
@@ -35,17 +35,17 @@ This task is AFK and now eligible because its technical prerequisite is complete
 
 ## Acceptance criteria
 
-- [ ] Only an actor with `members.invite` may list invitations for their own organization.
-- [ ] Organization scope is derived from the authenticated actor; callers cannot enumerate another tenant by supplying a foreign organization id.
-- [ ] Repository enumeration uses the completed `listByOrganization(orgId)` primitive.
-- [ ] Only records whose stored invitation status is `pending` appear in the active list; accepted/revoked records are excluded.
-- [ ] Pending records with `expiresAt > now` are projected with display state `pending`.
-- [ ] Pending records with `expiresAt <= now` remain in the list and are projected with display state `expired`.
-- [ ] Listing never mutates persisted invitation status while deriving display state.
-- [ ] Listing returns only `invitationId`, `email`, `expiresAt`, and derived `state` for each item.
-- [ ] Raw invitation tokens, token hashes, issuer identity, acceptance attribution, and other persistence-only fields are not returned or logged.
-- [ ] Returned values are detached application/view data rather than mutable repository state.
-- [ ] Focused tests cover authorization, tenant isolation, terminal-state exclusion, expiry projection, and response-shape/secret-field omission.
+- [x] Only an actor with `members.invite` may list invitations for their own organization.
+- [x] Organization scope is derived from the authenticated actor; callers cannot enumerate another tenant by supplying a foreign organization id.
+- [x] Repository enumeration uses the completed `listByOrganization(orgId)` primitive.
+- [x] Only records whose stored invitation status is `pending` appear in the active list; accepted/revoked records are excluded.
+- [x] Pending records with `expiresAt > now` are projected with display state `pending`.
+- [x] Pending records with `expiresAt <= now` remain in the list and are projected with display state `expired`.
+- [x] Listing never mutates persisted invitation status while deriving display state.
+- [x] Listing returns only `invitationId`, `email`, `expiresAt`, and derived `state` for each item.
+- [x] Raw invitation tokens, token hashes, issuer identity, acceptance attribution, and other persistence-only fields are not returned or logged.
+- [x] Returned values are detached application/view data rather than mutable repository state.
+- [x] Focused tests cover authorization, tenant isolation, terminal-state exclusion, expiry projection, and response-shape/secret-field omission.
 
 ## Scope
 
@@ -68,6 +68,7 @@ This task is AFK and now eligible because its technical prerequisite is complete
 - Application invitation service.
 - Existing memory repository organization query.
 - Product PRD.
+- Architecture boundary documentation.
 - Application-service tests.
 
 ## Domain invariants
@@ -90,6 +91,7 @@ This task is AFK and now eligible because its technical prerequisite is complete
 ## Failure modes and edge cases
 
 - actor is missing or lacks `members.invite`;
+- actor lacks an organization context;
 - organization has no invitations;
 - mixed pending/accepted/revoked records;
 - expired record remains persisted as `pending`;
@@ -99,14 +101,15 @@ This task is AFK and now eligible because its technical prerequisite is complete
 ## Test plan
 
 ### Unit / application contract
-- permission denial;
+- permission denial and missing actor organization;
 - empty result;
 - tenant isolation;
 - accepted/revoked exclusion;
 - unexpired pending → `pending` display state;
 - expired pending → `expired` display state and remains visible;
 - persisted expired record remains stored as `pending` after listing;
-- exact output shape contains only `invitationId`, `email`, `expiresAt`, `state`.
+- exact output shape contains only `invitationId`, `email`, `expiresAt`, `state`;
+- returned projection mutation does not alter repository state.
 
 ### Integration / contract
 - service uses repository `listByOrganization(actor.orgId)` and returns detached projection data.
@@ -116,6 +119,7 @@ This task is AFK and now eligible because its technical prerequisite is complete
 
 ### Negative/security paths
 - missing permission;
+- missing actor organization context;
 - foreign-tenant records present in repository but absent from results;
 - token hash and persistence-only attribution never leak through response.
 
@@ -147,10 +151,12 @@ Do not claim implementation readiness or verification success unless the command
 
 | Finding class | Disposition | Finding / evidence | Resolution or follow-up | Residual risk |
 |---|---|---|---|---|
-| | | | | |
+| NO ACTION | n/a | Fresh branch review confirmed tenant scope comes only from `actor.orgId`, terminal records are filtered, expiry is a read-time projection, and the service constructs an exact four-field response with no token/hash or persistence attribution. | No correction required before executable validation. | Production persistence/indexing and HTTP/UI delivery remain outside this reference slice. |
 
 ## Completion report
 
-- What changed and why: Issue #44 eligibility was recomputed after explicit human approval; the task is no longer blocked.
-- Verification actually run: pending downstream implementation.
-- Remaining risks/limitations: delivery/API/UI representation remains out of scope for this application slice.
+- What changed and why: implemented the now-unblocked active-invitation application contract using the approved Option A policy from Issue #44.
+- Verification actually run: pending exact-head maintainer-local validation.
+- Migration/operational impact: none; additive read-only reference behavior only.
+- Remaining risks/limitations: delivery/API/UI representation and production persistence/indexing remain out of scope.
+- Independent review evidence updated: yes; no blocking finding in the bounded implementation review.
