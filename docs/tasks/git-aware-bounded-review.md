@@ -1,6 +1,6 @@
 # Task — Add Git-aware bounded review context
 
-Status: Review
+Status: Done
 Slug: `git-aware-bounded-review`
 
 ## Outcome
@@ -30,7 +30,7 @@ Extend existing review context additively. When the caller supplies `--base <ref
 - [x] AC-007 — Binary changes remain explicitly identified by Git rather than being represented as complete text content.
 - [x] AC-008 — Git evidence counts against the existing Context Pack byte budget; oversize packs fail instead of silently truncating changed surface.
 - [x] AC-009 — Existing review context without `--base` and all non-review modes remain backward compatible.
-- [ ] AC-010 — Focused tests, readiness/context/verification, and the full repository validation pass on the corrected pre-final exact head before finalization.
+- [x] AC-010 — Focused tests, readiness/context/verification, real-branch Git-aware dogfood, and full repository validation passed on corrected pre-final exact head `692e15bb73638f4a72254dae5173ee1c19a2309f` before finalization.
 
 ## Scope
 
@@ -166,7 +166,7 @@ Do not claim a command passed unless it was actually executed.
 - [x] Binary diff text conversion is disabled for deterministic binary identification.
 - [x] Existing Source-of-Truth freshness and legacy review behavior remain intact.
 - [x] No hosted reviewer, database, scheduler, automatic approval, or embedded AI runtime was introduced.
-- [ ] Executable pre-final validation confirms behavior on the corrected exact branch head.
+- [x] Executable pre-final validation confirmed behavior on corrected exact head `692e15bb73638f4a72254dae5173ee1c19a2309f`.
 
 ## Independent review evidence
 
@@ -175,25 +175,26 @@ Do not claim a command passed unless it was actually executed.
 | DEFECT | must fix in this task | Initial ref validation checked `startsWith('-')` before trimming; a programmatic value such as `"  -c"` could normalize into an option-like Git argument after the safety check. | Normalize first, then reject leading `-`; focused regression coverage added. | none known |
 | DEFECT | must fix in this task | Post-gate review found explicit empty `--base=` / `--head=` values were truthy-checked as if the options were absent, allowing a requested Git surface or command restriction to be silently skipped. | Context validation now distinguishes supplied-vs-absent with `!== null`; the public CLI entrypoint rejects blank equals-form Git options before dispatch; regression coverage exercises context and CLI paths. | none known |
 | DEFECT | must fix in this task | Post-gate review found repository `diff.ignoreSubmodules=all` could hide committed submodule-pointer changes from both the changed-file list and textual diff. | Both Git comparison commands now force `--ignore-submodules=dirty`, preserving committed gitlink changes while ignoring submodule worktree dirt; regression fixture sets the hiding config and requires the gitlink change to remain visible. | none known |
-| NO ACTION | n/a | Static design review keeps Git responsible only for changed-surface evidence and preserves Task Pack/Source-of-Truth authority, explicit byte budgeting, nested-project visibility, and durable review findings. | No further design correction required before executable validation. | Local Git/version/platform behavior remains gated on corrected exact-head executable tests. |
+| NO ACTION | n/a | Static design review keeps Git responsible only for changed-surface evidence and preserves Task Pack/Source-of-Truth authority, explicit byte budgeting, nested-project visibility, and durable review findings. | No further design correction required before executable validation. | Finalization head still requires the exact-head rerun before merge. |
 
 ## Finalization
 
-Prepare the finalization edit only after the corrected pre-final implementation/review gate passes.
+Prepared only after the corrected pre-final implementation/review gate passed.
 
-- [ ] Acceptance criteria satisfied.
-- [ ] Corrected pre-final implementation/review gate passed before the finalization edit.
+- [x] Acceptance criteria satisfied.
+- [x] Corrected pre-final implementation/review gate passed before the finalization edit.
 - [x] Independent review evidence is current and no known `must fix in this task` finding remains unresolved in source.
-- [ ] Completion report reflects the intended final accepted gate; earlier head evidence is marked superseded if retained.
-- [ ] Top-level `Status` changed to `Done`.
+- [x] Completion report reflects the bounded accepted pre-final gate and clearly marks earlier-head evidence superseded.
+- [x] Top-level `Status` changed to `Done`.
 
-After the finalization edit, rerun the required exact-head gate. Do not edit this Task Pack solely to record that rerun; merge only if it passes.
+After this finalization edit, rerun the required exact-head gate. Do not edit this Task Pack solely to record that rerun; merge only if it passes.
 
 ## Completion report
 
 - What changed and why: added explicit local Git changed-surface evidence to review Context Packs so fresh review is bounded by requirements and the actual comparison rather than implementation narration.
-- Final accepted verification: pending corrected pre-final executable validation; replace during finalization, then prove the unchanged finalization head with a second exact-head gate.
+- Accepted pre-final verification: the maintainer reported the complete requested corrected pre-final gate passed on exact head `692e15bb73638f4a72254dae5173ee1c19a2309f`, including focused tests, syntax/check script, strict implementation readiness, real-branch Git-aware review dogfood/surface checks, both VCP verification commands, full repository validation, unchanged exact head, and a clean working tree. No test counts are inferred from that report.
+- Finalization-head requirement: rerun the same required gate on this Task Pack-only finalization head before merge; do not edit the Task Pack solely to record that rerun.
 - Superseded evidence: the maintainer-reported pre-final gate passed on `012301979ff50f037048733c15c1440664936aeb`, but late review findings required source changes afterward, so that head is not merge evidence for the corrected implementation.
-- Independent review evidence updated: yes; three must-fix defects were found across static and late review and corrected in source before the corrected pre-final gate.
+- Independent review evidence updated: yes; three must-fix defects were found across static and late review and corrected before the accepted corrected pre-final gate; the live PR review threads were resolved before finalization.
 - Migration/operational impact: none; additive review flags, no schema/backfill.
 - Remaining risks/limitations: VCP does not discover remote PR metadata or choose the correct base automatically; caller supplies the intended local base ref.
