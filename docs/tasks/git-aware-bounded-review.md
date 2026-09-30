@@ -76,7 +76,7 @@ Extend existing review context additively. When the caller supplies `--base <ref
 - Authentication impact: n/a — no authentication surface.
 - Authorization/resource ownership: n/a — local developer tooling only.
 - Tenant isolation: n/a — no application tenant behavior changes.
-- Input/trust boundaries: user-supplied local Git refs are validated and passed as process arguments, never through a shell; option-like refs beginning with `-` are rejected.
+- Input/trust boundaries: user-supplied local Git refs are normalized, validated, and passed as process arguments, never through a shell; option-like refs beginning with `-` are rejected after trimming.
 - Secrets/PII/logging: Git diff/context may contain repository content already selected by the explicit comparison; VCP does not upload it or add remote transport.
 - Abuse/rate/replay considerations: context byte budget bounds normal output; local Git process output has a finite buffer and errors visibly.
 - Relevant threat IDs: n/a — this is repository-local workflow tooling, not a new application trust boundary.
@@ -85,14 +85,14 @@ Extend existing review context additively. When the caller supplies `--base <ref
 
 - project directory is not inside a Git worktree → deterministic actionable failure;
 - base/head ref is missing or invalid → deterministic actionable failure;
-- ref begins with `-` → rejected before Git invocation;
+- ref normalizes to a value beginning with `-` → rejected before Git invocation;
 - `--head` without `--base` → rejected;
 - Git flags used outside review mode → rejected;
 - Git flags used on a non-context command → rejected;
 - no committed changes → explicit zero-file / empty-diff review surface;
 - nested project with root-level change → root-level change remains visible;
 - dirty working tree → separately displayed, not folded into comparison;
-- binary file → Git binary marker retained;
+- binary file → Git binary marker retained and textconv disabled;
 - comparison makes pack exceed `--max-bytes` → fail; do not truncate and pretend review is complete.
 
 ## Observability
@@ -110,6 +110,8 @@ The Context Pack itself records exact base/head SHAs, comparison semantics, chan
 - changed implementation file plus unrelated root-level file visibility;
 - dirty worktree separation;
 - invalid base failure;
+- non-Git worktree failure;
+- normalized option-like ref rejection;
 - review-only option enforcement;
 - Git evidence tipping an otherwise-valid pack over the byte budget;
 - CLI forwarding of `--base` / `--head`.
@@ -118,8 +120,8 @@ The Context Pack itself records exact base/head SHAs, comparison semantics, chan
 - build a real review pack for this repository branch against its base and confirm a fresh reviewer can reconstruct intended scope from Task Pack + current truth + actual diff without implementation narration.
 
 ### Negative/security paths
-- option-like Git refs rejected;
-- binary change identified, not decoded as complete text;
+- option-like Git refs rejected after normalization;
+- binary change identified with textconv disabled, not decoded as complete text;
 - non-Git project fails visibly;
 - no silent changed-file filtering or diff truncation.
 
@@ -134,7 +136,7 @@ The Context Pack itself records exact base/head SHAs, comparison semantics, chan
 1. Add a local Git review snapshot helper that finds the enclosing worktree, validates refs, resolves exact commits, and collects changed files/diff/status.
 2. Extend review Context Pack rendering with explicit Git evidence while keeping existing Source-of-Truth and context-budget semantics.
 3. Add additive CLI `--base` / `--head` flags with strict command/mode validation.
-4. Add nested-project, dirty-state, invalid-ref, budget, binary, and CLI tests.
+4. Add nested-project, dirty-state, invalid-ref, non-Git, budget, binary, and CLI tests.
 5. Update review prompt and Context Pack docs so agents use the Git snapshot as changed-surface evidence rather than author narration.
 6. Run a pre-final exact-head gate; then finalize this Task Pack to `Done` and rerun the exact-head gate before merge per #48.
 
@@ -150,9 +152,11 @@ Do not claim a command passed unless it was actually executed.
 ## Independent review checklist
 
 - [x] Git refs are process arguments, not shell interpolation.
+- [x] Ref normalization happens before option-like-ref rejection.
 - [x] Review sees the enclosing worktree comparison rather than only the nested project directory.
 - [x] Changed files are not filtered by guessed relevance.
 - [x] Working-tree dirt is explicitly separated from committed comparison evidence.
+- [x] Binary diff text conversion is disabled for deterministic binary identification.
 - [x] Existing Source-of-Truth freshness and legacy review behavior remain intact.
 - [x] No hosted reviewer, database, scheduler, automatic approval, or embedded AI runtime was introduced.
 - [ ] Executable pre-final validation confirms behavior on the exact branch head.
@@ -161,7 +165,8 @@ Do not claim a command passed unless it was actually executed.
 
 | Class | Disposition | Finding / evidence | Resolution / follow-up | Residual risk |
 |---|---|---|---|---|
-| NO ACTION | n/a | Static design review keeps Git responsible only for changed-surface evidence and preserves Task Pack/Source-of-Truth authority, explicit byte budgeting, nested-project visibility, and durable review findings. | No design correction required before executable validation. | Local Git/version/platform behavior remains gated on exact-head executable tests. |
+| DEFECT | must fix in this task | Initial ref validation checked `startsWith('-')` before trimming; a programmatic value such as `"  -c"` could normalize into an option-like Git argument after the safety check. | Normalize first, then reject leading `-`; focused regression coverage added. | none known |
+| NO ACTION | n/a | Static review keeps Git responsible only for changed-surface evidence and preserves Task Pack/Source-of-Truth authority, explicit byte budgeting, nested-project visibility, and durable review findings. | No further design correction required before executable validation. | Local Git/version/platform behavior remains gated on exact-head executable tests. |
 
 ## Finalization
 
@@ -180,6 +185,6 @@ After the finalization edit, rerun the required exact-head gate. Do not edit thi
 - What changed and why: added explicit local Git changed-surface evidence to review Context Packs so fresh review is bounded by requirements and the actual comparison rather than implementation narration.
 - Final accepted verification: pending pre-final executable validation; replace during finalization, then prove the unchanged finalization head with a second exact-head gate.
 - Superseded failed evidence (if material): n/a.
-- Independent review evidence updated: yes; static review found no blocking design issue before executable validation.
+- Independent review evidence updated: yes; one must-fix ref-normalization defect was found and corrected before executable validation.
 - Migration/operational impact: none; additive review flags, no schema/backfill.
 - Remaining risks/limitations: VCP does not discover remote PR metadata or choose the correct base automatically; caller supplies the intended local base ref.
