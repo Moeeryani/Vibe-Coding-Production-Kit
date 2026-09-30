@@ -1,5 +1,5 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
-import { acceptInvitationEntity, createInvitationEntity, normalizeEmail } from '../domain/invitation.mjs';
+import { acceptInvitationEntity, createInvitationEntity, normalizeEmail, revokeInvitation } from '../domain/invitation.mjs';
 
 export class AuthorizationError extends Error {
   constructor(message = 'Not authorized.') {
@@ -46,6 +46,28 @@ export class InvitationService {
 
     await this.repository.replacePending(invitation);
     return { invitation, deliveryToken: rawToken };
+  }
+
+  async revoke({ actor, invitationId }) {
+    if (!actor || !actor.userId || !actor.permissions?.includes('members.invite')) {
+      throw new AuthorizationError();
+    }
+    if (typeof invitationId !== 'string' || !invitationId) throw new InvalidInviteError();
+
+    const invitation = await this.repository.findById(invitationId);
+    if (!invitation || invitation.orgId !== actor.orgId) throw new InvalidInviteError();
+
+    let revoked;
+    try {
+      revoked = revokeInvitation(invitation);
+    } catch {
+      throw new InvalidInviteError();
+    }
+
+    const committed = await this.repository.revokeIfPending(revoked);
+    if (!committed) throw new InvalidInviteError();
+
+    return { invitationId: revoked.id, status: revoked.status };
   }
 
   async accept({ token, authenticatedUser }) {
