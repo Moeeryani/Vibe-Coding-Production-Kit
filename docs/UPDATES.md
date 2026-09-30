@@ -50,6 +50,33 @@ With `--offline`, VCP does not claim to know the npm registry's latest version. 
 
 A newer npm version is not applied by an older CLI. VCP prints a version-pinned `npx` command so the target templates and migration code come from the version being installed. If the running CLI is already newer than the registry version, VCP never recommends downgrading to the registry copy. The delegated command targets the project path that was actually checked rather than assuming the current directory.
 
+## Lifecycle status and exit codes
+
+Automation should not interpret exit code `0` from `vcp update --check` as "nothing to do." Check mode is informational and exits `0` both when no work exists and when lifecycle work is available.
+
+Machine-readable update/check reports expose `lifecycleStatus`:
+
+- `no-work` — no lifecycle change is pending;
+- `available` — lifecycle work exists and can be previewed/applied;
+- `blocked` — a computed plan contains a conflict or safety blocker, so no project-file mutation is allowed;
+- `applied` — apply completed successfully.
+
+The exit-code contract remains compatibility-preserving:
+
+| Command/result | Exit | JSON lifecycle status |
+| --- | ---: | --- |
+| `update --check`: no work | `0` | `no-work` |
+| `update --check`: work available | `0` | `available` |
+| `update --dry-run`: no work | `0` | `no-work` |
+| `update --dry-run`: safe work available | `0` | `available` |
+| `update --dry-run`: blocked by conflict | `1` | `blocked` |
+| `update`: no work | `0` | `no-work` |
+| `update`: applied successfully | `0` | `applied` |
+| `update`: blocked by conflict | `1` | `blocked` |
+| lifecycle execution/read/apply failure | `1` | no normal lifecycle report is guaranteed |
+
+This distinction is deliberate. A blocked plan is a valid lifecycle result and, with `--json`, is emitted as a normal report even though the process exits `1`. An execution failure is an error path: the CLI exits `1` and reports the error on stderr rather than fabricating a successful JSON lifecycle report. CI/wrappers that need to distinguish the two should parse `lifecycleStatus` when valid JSON is present; otherwise treat the non-zero exit as an execution failure.
+
 ## Stack-selection provenance and safe re-profiling
 
 VCP stores two different stack facts for new installs:
