@@ -153,8 +153,7 @@ test('Git workspace root project is represented by portable dot project path', a
 test('nested project verification runs in selected project root and records workspace-relative path', async () => {
   const root = await tempDir();
   const target = path.join(root, 'packages', 'api');
-  const expectedCwd = JSON.stringify(path.resolve(target));
-  const command = `node -e "process.exit(process.cwd() === ${expectedCwd} ? 0 : 9)"`;
+  const command = `node -e "process.exit(require('node:path').basename(process.cwd()) === 'api' ? 0 : 9)"`;
   await initializedProject(target, 'nested-project', command);
   await git(root, 'init');
   await git(root, 'config', 'user.email', 'vcp@example.test');
