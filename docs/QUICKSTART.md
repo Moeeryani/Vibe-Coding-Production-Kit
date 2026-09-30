@@ -70,7 +70,13 @@ vcp task accept-invite --title "Accept organization invitation"
 
 Then it should draft the task contract: outcome, Source of Truth, acceptance criteria, scope, affected boundaries, security/privacy decisions, failure modes, tests, rollout/recovery, and implementation plan.
 
-If product intent is genuinely ambiguous, the agent should ask focused questions instead of guessing.
+Before interrupting you, the agent should classify each open question:
+
+- **DISCOVERABLE** — answer it from repository evidence;
+- **PROPOSABLE** — state a small reversible engineering default explicitly as a proposal/assumption; a material proposal does not become approved merely because the agent suggested it;
+- **HUMAN DECISION** — ask when the answer changes product behavior, security/privacy posture, compatibility policy, data ownership, architecture direction, destructive migration policy, risk acceptance, rollout, or another decision the repository cannot establish safely.
+
+The agent should group genuinely blocking human questions instead of asking one question at a time for minor uncertainties.
 
 ## 4. Gate planning readiness
 
@@ -92,7 +98,11 @@ vcp context accept-invite --mode plan
 
 The context pack includes repository rules, the task, the planning prompt, and Source of Truth references from the task. It does not dump the whole repository.
 
-The agent produces a bounded implementation plan. You review important product or architectural decisions and approve or correct them.
+The agent produces a bounded implementation plan. For non-trivial work, prefer the smallest coherent **vertical slices**: one testable end-to-end capability at a time, crossing only the domain/data/API/UI boundaries needed for that capability. Avoid plans that first build an entire technical layer before any slice can be accepted or verified.
+
+Each slice should state its acceptance evidence, tests, and dependencies. Dependencies should distinguish work the agent can complete autonomously from decisions that require human input.
+
+You review important product or architectural decisions and approve or correct them.
 
 ## 6. Gate implementation readiness
 
@@ -118,7 +128,9 @@ vcp context accept-invite \
 
 `--include` stays strict so a typo is not silently treated as a future file. `--planned` is explicit, implement-mode only, and records the approved future path without inventing file contents.
 
-The agent implements only the approved task scope.
+The agent implements only the approved task scope. It may proceed through **AFK-safe** work that follows from approved scope and repository evidence, but it should stop before crossing a dependency explicitly classified as **HITL required**. A blocked human decision should not unnecessarily stop unrelated autonomous slices that can still be completed safely.
+
+AFK-safe work never bypasses readiness failures, conflicts, safety rules, unresolved human intent, verification failures, or another explicit blocker.
 
 ## 8. Preview verification
 
@@ -153,7 +165,22 @@ vcp context accept-invite \
   --include test/invitations/service.test.ts
 ```
 
-Prefer a fresh agent/context for review rather than relying only on the agent that wrote the change.
+Prefer a fresh agent/context for review rather than relying only on the agent that wrote the change. The reviewer should reconstruct intent from the task, Source of Truth, acceptance criteria, diff, tests, and verification evidence instead of assuming the implementation summary is correct.
+
+Classify each finding by type:
+
+- `BLOCKER`
+- `DEFECT`
+- `RISK`
+- `FOLLOW-UP`
+- `NO ACTION`
+
+Then decide current-task disposition separately:
+
+- **must fix now** — required for acceptance criteria, correctness, security, compatibility, data integrity, or Definition of Done;
+- **follow-up candidate** — valuable broader work that is not required for this bounded task.
+
+Fix must-fix findings before completion. Record follow-up candidates explicitly rather than silently expanding the current task.
 
 ## 11. Audit the repository before merge/release
 
@@ -172,11 +199,11 @@ What the developer should experience:
 ```text
 State intent
    ↓
-Answer only unresolved product/engineering decisions
+Answer only unresolved HUMAN DECISION questions
    ↓
-Review the proposed plan
+Review the proposed vertical-slice plan
    ↓
-Review the final result and evidence
+Review the final result, evidence, and explicit follow-ups
 ```
 
 What the coding agent should execute behind that experience:
@@ -186,23 +213,27 @@ Inspect repository / draft Source of Truth
       ↓
 vcp task <slug>
       ↓
+Classify open questions: DISCOVERABLE / PROPOSABLE / HUMAN DECISION
+      ↓
 vcp ready <slug> --stage plan
       ↓
 vcp context <slug> --mode plan
       ↓
-Plan / human decision approval
+Plan vertical slices + autonomous/HITL dependencies / human decision approval
       ↓
 vcp ready <slug> --stage implement
       ↓
 vcp context <slug> --mode implement [--include <existing files>] [--planned <new files>]
       ↓
-Implement bounded scope
+Implement bounded slices; pause at unresolved HITL or any safety/verification blocker
       ↓
 vcp verify <slug>
       ↓
 vcp verify <slug> --run --output .vcp/evidence/<slug>.json
       ↓
 vcp context <slug> --mode review --include <changed files/tests>
+      ↓
+Fresh review → finding class + current-task disposition
       ↓
 vcp doctor .
       ↓

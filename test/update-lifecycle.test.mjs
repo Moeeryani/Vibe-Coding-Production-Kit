@@ -6,7 +6,7 @@ import test from 'node:test';
 import { initProject } from '../lib/init.mjs';
 import { runDoctor } from '../lib/doctor.mjs';
 import { ignorePath, trackPath } from '../lib/manage.mjs';
-import { applyUpdate, planUpdate, rollbackProject } from '../lib/update.mjs';
+import { applyUpdate, checkForUpdate, planUpdate, rollbackProject } from '../lib/update.mjs';
 
 async function tempDir() {
   return mkdtemp(path.join(os.tmpdir(), 'vcp-update-'));
@@ -20,13 +20,123 @@ async function writeManifest(root, value) {
   await writeFile(path.join(root, '.vcp/manifest.json'), `${JSON.stringify(value, null, 2)}\n`);
 }
 
+test('fresh auto install records requested stack separately from resolved stack', async () => {
+  const root = await tempDir();
+  await writeFile(path.join(root, 'package.json'), `${JSON.stringify({ name: 'fixture' }, null, 2)}\n`, 'utf8');
+  await initProject({ targetDir: root, agent: 'generic', stack: 'auto', includeGitHub: false });
+
+  const installed = await manifest(root);
+  assert.equal(installed.install.stack, 'javascript');
+  assert.equal(installed.install.requestedStack, 'auto');
+});
+
 test('fresh v0.9 install is update-idempotent', async () => {
   const root = await tempDir();
   await initProject({ targetDir: root, agent: 'generic', stack: 'generic', includeGitHub: false });
+  assert.equal((await manifest(root)).install.requestedStack, 'generic');
   const plan = await planUpdate({ targetDir: root });
   assert.equal(plan.upToDate, true);
   assert.equal(plan.conflicts, 0);
   assert.equal(plan.changes, 0);
+});
+
+test('proven automatic generic install re-profiles when deterministic evidence appears', async () => {
+  const root = await tempDir();
+  await initProject({ targetDir: root, agent: 'generic', stack: 'auto', includeGitHub: false });
+  assert.equal((await manifest(root)).install.stack, 'generic');
+  assert.equal((await manifest(root)).install.requestedStack, 'auto');
+
+  await writeFile(path.join(root, 'package.json'), `${JSON.stringify({
+    name: 'now-javascript',
+    scripts: { test: 'node --test' }
+  }, null, 2)}\n`, 'utf8');
+
+  const check = await checkForUpdate({ targetDir: root, fetchLatest: false });
+  assert.equal(check.versionUpdateAvailable, false);
+  assert.equal(check.updateAvailable, true);
+  assert.equal(check.stackProfileChange.from, 'generic');
+  assert.equal(check.stackProfileChange.to, 'javascript');
+
+  const plan = await planUpdate({ targetDir: root });
+  assert.equal(plan.stack, 'javascript');
+  assert.equal(plan.stackProfileChange.from, 'generic');
+  assert.equal(plan.stackProfileChange.to, 'javascript');
+  assert.equal(plan.needsApply, true);
+  assert.equal(plan.upToDate, false);
+
+  const applied = await applyUpdate({ targetDir: root });
+  assert.equal(applied.applied, true);
+  assert.equal(applied.blocked, false);
+  const updated = await manifest(root);
+  assert.equal(updated.install.stack, 'javascript');
+  assert.equal(updated.install.requestedStack, 'auto');
+  assert.match(await readFile(path.join(root, 'AGENTS.md'), 'utf8'), /JavaScript \/ Node\.js stack profile/);
+
+  const after = await planUpdate({ targetDir: root });
+  assert.equal(after.stackProfileChange, null);
+  assert.equal(after.upToDate, true);
+});
+
+test('automatic re-profiling does not overwrite a local verification-command decision', async () => {
+  const root = await tempDir();
+  await initProject({ targetDir: root, agent: 'generic', stack: 'auto', includeGitHub: false });
+  const agentsPath = path.join(root, 'AGENTS.md');
+  const originalAgents = await readFile(agentsPath, 'utf8');
+  assert.match(originalAgents, /UNIT_TEST_COMMAND=<define>/);
+  const customizedAgents = originalAgents.replace(
+    'UNIT_TEST_COMMAND=<define>',
+    'UNIT_TEST_COMMAND=node custom-tests.mjs'
+  );
+  await writeFile(agentsPath, customizedAgents, 'utf8');
+  await writeFile(path.join(root, 'package.json'), `${JSON.stringify({
+    name: 'conflicting-js',
+    scripts: { test: 'node --test' }
+  }, null, 2)}\n`, 'utf8');
+
+  const plan = await planUpdate({ targetDir: root });
+  const agentsAction = plan.actions.find((item) => item.path === 'AGENTS.md');
+  assert.equal(plan.stackProfileChange.to, 'javascript');
+  assert.equal(agentsAction.type, 'CONFLICT');
+  assert.equal(plan.conflicts > 0, true);
+
+  const applied = await applyUpdate({ targetDir: root });
+  assert.equal(applied.blocked, true);
+  assert.equal(applied.applied, false);
+  assert.equal((await manifest(root)).install.stack, 'generic');
+  assert.equal((await manifest(root)).install.requestedStack, 'auto');
+  assert.equal(await readFile(agentsPath, 'utf8'), customizedAgents);
+});
+
+test('explicit generic install stays generic when new stack evidence appears', async () => {
+  const root = await tempDir();
+  await initProject({ targetDir: root, agent: 'generic', stack: 'generic', includeGitHub: false });
+  await writeFile(path.join(root, 'package.json'), `${JSON.stringify({ name: 'explicit-generic' }, null, 2)}\n`, 'utf8');
+
+  const check = await checkForUpdate({ targetDir: root, fetchLatest: false });
+  assert.equal(check.stackProfileChange, null);
+  assert.equal(check.updateAvailable, false);
+
+  const plan = await planUpdate({ targetDir: root });
+  assert.equal(plan.stack, 'generic');
+  assert.equal(plan.stackProfileChange, null);
+  assert.equal(plan.upToDate, true);
+});
+
+test('legacy generic install with unknown stack provenance stays generic', async () => {
+  const root = await tempDir();
+  await writeFile(path.join(root, 'package.json'), `${JSON.stringify({ name: 'legacy-js' }, null, 2)}\n`, 'utf8');
+  await initProject({ targetDir: root, agent: 'generic', stack: 'generic', includeGitHub: false });
+
+  const oldManifest = await manifest(root);
+  delete oldManifest.install.requestedStack;
+  oldManifest.installedVersion = '0.9.0';
+  for (const entry of Object.values(oldManifest.managedFiles)) entry.templateVersion = '0.9.0';
+  await writeManifest(root, oldManifest);
+
+  const plan = await planUpdate({ targetDir: root });
+  assert.equal(plan.stack, 'generic');
+  assert.equal(plan.stackProfileChange, null);
+  assert.equal(plan.migratedManifest.install.requestedStack, undefined);
 });
 
 test('local AGENTS edits are preserved on same-version planning', async () => {
