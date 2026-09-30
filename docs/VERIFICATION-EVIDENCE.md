@@ -47,9 +47,26 @@ If implementation readiness has blocking failures, verification execution is ref
 
 Commands run sequentially. After the first failure, later commands are marked `skipped` instead of pretending the verification set completed.
 
+## Project root and workspace root
+
+Verification keeps two scopes distinct:
+
+- **project root** — the VCP root selected by `--dir`; owns the Task Pack, Source-of-Truth references, readiness, verification commands, command working directory, and evidence-output path safety;
+- **workspace root** — the enclosing Git worktree root when one exists; used only to describe repository provenance.
+
+Workspace discovery never expands project authority. A nested project cannot use the enclosing workspace to read a Source-of-Truth file or write an evidence file outside its selected project root.
+
+For a monorepo package such as `packages/api`, run VCP against that package root when it is its own VCP project:
+
+```bash
+vcp verify my-task --dir packages/api --run
+```
+
+The configured commands still execute from `packages/api`. Evidence can then identify the portable workspace-relative project path as `packages/api` while retaining the existing absolute `target` field for backward compatibility.
+
 ## Evidence output
 
-Write machine-readable evidence inside the repository:
+Write machine-readable evidence inside the selected project root:
 
 ```bash
 vcp verify accept-invite \
@@ -57,11 +74,20 @@ vcp verify accept-invite \
   --output .vcp/evidence/accept-invite.json
 ```
 
+Current evidence uses schema version 2. Historical schema-v1 evidence remains valid history and does not require migration or rewriting.
+
 The evidence contains:
 
 - schema version;
 - task path;
-- target repository;
+- legacy absolute `target` project path;
+- portable scope metadata:
+  - `scope.kind = "git-worktree"` when the selected project is inside Git, otherwise `"project"`;
+  - `scope.projectPath`, relative to the Git workspace root when available, or `.` for project-only scope;
+- Git revision metadata when available:
+  - `revision.system = "git"`;
+  - exact `revision.headSha`, or `null` for an unborn repository;
+  - `revision.dirty`, captured before verification commands execute;
 - preview/run mode;
 - creation timestamp;
 - implementation-readiness summary;
@@ -71,11 +97,23 @@ The evidence contains:
 - duration;
 - timeout state.
 
+The absolute `target` value is retained so existing consumers do not break, but it is host-specific. To compare local and CI evidence for the same nested project, use the portable `scope.projectPath` plus Git `revision.headSha`; do not expect absolute checkout paths to match across machines.
+
+If a project is not inside a Git worktree, verification still works. Evidence reports project-only scope and `revision: null` instead of inventing a commit identity.
+
+A dirty worktree does not automatically block verification because developers may intentionally verify uncommitted implementation work. The dirty flag is evidence, not approval. Release/merge policy may separately require a clean exact-head run.
+
 If a Task Pack contains both `CHECK_COMMAND` and `UNIT_TEST_COMMAND`, both appear independently in human-readable and JSON evidence and both must pass for the verification run to succeed.
 
 Raw stdout/stderr are **not persisted by default**. This reduces the risk of storing tokens, credentials, PII, or noisy build logs in a versioned evidence file. Normal non-JSON runs still show command output in the terminal.
 
 Existing evidence files are protected. Use `--force` only after reviewing the existing artifact.
+
+## Local and CI compatibility
+
+VCP uses the same evidence shape whether `vcp verify` is executed by a developer or by CI. The core contract is provider-agnostic: project scope, Git revision when available, repository-controlled commands, results, and timestamps.
+
+Provider-specific run IDs, URLs, runner names, or remote workflow APIs are not required for mechanical verification evidence. They may be retained separately by the CI system. This keeps local fallback evidence and CI evidence comparable without claiming that one execution environment is equivalent to another in every operational detail.
 
 ## JSON output without an evidence file
 
