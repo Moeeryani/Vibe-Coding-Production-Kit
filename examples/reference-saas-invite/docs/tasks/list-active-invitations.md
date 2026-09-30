@@ -42,9 +42,10 @@ This task is AFK and now eligible because its technical prerequisite is complete
 - [ ] Pending records with `expiresAt > now` are projected with display state `pending`.
 - [ ] Pending records with `expiresAt <= now` remain in the list and are projected with display state `expired`.
 - [ ] Listing never mutates persisted invitation status while deriving display state.
-- [ ] Raw invitation tokens and token hashes are never returned or logged.
+- [ ] Listing returns only `invitationId`, `email`, `expiresAt`, and derived `state` for each item.
+- [ ] Raw invitation tokens, token hashes, issuer identity, acceptance attribution, and other persistence-only fields are not returned or logged.
 - [ ] Returned values are detached application/view data rather than mutable repository state.
-- [ ] Focused tests cover authorization, tenant isolation, terminal-state exclusion, expiry projection, and secret-field omission.
+- [ ] Focused tests cover authorization, tenant isolation, terminal-state exclusion, expiry projection, and response-shape/secret-field omission.
 
 ## Scope
 
@@ -52,6 +53,7 @@ This task is AFK and now eligible because its technical prerequisite is complete
 - application-service listing method;
 - permission and tenant checks;
 - approved pending/expired projection policy;
+- bounded administration-safe response shape;
 - focused tests for authorization, tenant isolation, filtering, expiry behavior, and response shape.
 
 ### Out of scope
@@ -80,8 +82,9 @@ This task is AFK and now eligible because its technical prerequisite is complete
 
 - Authorization: `members.invite` is required.
 - Tenant isolation: organization scope comes from the authenticated actor; listing accepts no caller-selected foreign organization id.
-- PII: email is already invitation state and may be returned to an authorized organization administrator for invitation administration.
+- PII: email is already invitation state and is the only identity field returned to an authorized organization administrator for invitation administration.
 - Secrets: raw tokens and token hashes are not part of the application listing contract.
+- Data minimization: issuer identity, acceptance attribution, and repository-only fields are omitted.
 - Read-only behavior: no invitation state mutation occurs.
 
 ## Failure modes and edge cases
@@ -103,7 +106,7 @@ This task is AFK and now eligible because its technical prerequisite is complete
 - unexpired pending → `pending` display state;
 - expired pending → `expired` display state and remains visible;
 - persisted expired record remains stored as `pending` after listing;
-- token/tokenHash fields absent from response.
+- exact output shape contains only `invitationId`, `email`, `expiresAt`, `state`.
 
 ### Integration / contract
 - service uses repository `listByOrganization(actor.orgId)` and returns detached projection data.
@@ -114,7 +117,7 @@ This task is AFK and now eligible because its technical prerequisite is complete
 ### Negative/security paths
 - missing permission;
 - foreign-tenant records present in repository but absent from results;
-- token hash never leaks through response.
+- token hash and persistence-only attribution never leak through response.
 
 ## Rollout, migration, and recovery
 
@@ -128,7 +131,7 @@ This task is AFK and now eligible because its technical prerequisite is complete
 2. Read records through `repository.listByOrganization(actor.orgId)`.
 3. Keep stored `pending` records only; exclude terminal accepted/revoked records.
 4. Project `state: 'expired'` when `expiresAt <= now`, otherwise `state: 'pending'`.
-5. Return only invitation administration fields required by the contract; omit token material/hash.
+5. Return exactly `invitationId`, `email`, `expiresAt`, and derived `state`; omit token material/hash and persistence-only attribution.
 6. Add focused application-service tests and deterministic verification evidence.
 
 ## Verification commands
