@@ -79,6 +79,20 @@ test('nested project can explicitly use accepted workspace authority without inh
   assert.doesNotMatch(context.content, new RegExp(root.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 });
 
+test('workspace-qualified starter templates still trigger the existing readiness warning', async () => {
+  const { root, project } = await workspaceFixture();
+  await mkdir(path.join(root, 'docs', 'product'), { recursive: true });
+  await writeFile(path.join(root, 'docs', 'product', 'PRD.md'), '# Root PRD\n\nAuthority: ACCEPTED\n\nFR-001 — <Requirement name>\n', 'utf8');
+  await writeTask(project, 'workspace-template', ['workspace:docs/product/PRD.md']);
+
+  const report = await runTaskReadiness({ targetDir: project, task: 'workspace-template', stage: 'plan' });
+  const source = sourceFinding(report);
+  assert.equal(source.status, 'warn');
+  assert.equal(source.title, 'Source of truth');
+  assert.match(source.detail, /workspace:docs\/product\/PRD\.md/);
+  assert.match(source.detail, /starter-template signals/);
+});
+
 test('workspace freshness rules match project-local governing authority rules', async () => {
   const { root, project } = await workspaceFixture();
   await writeTask(project, 'workspace-freshness', ['workspace:docs/platform/POLICY.md']);
@@ -132,6 +146,30 @@ test('workspace references reject traversal and filesystem symlink or junction e
     resolveWorkspaceSourceTruthReference(project, 'workspace:linked-outside/SECRET.md'),
     /escapes the enclosing Git worktree/
   );
+});
+
+test('workspace root discovery ignores ambient Git directory/worktree overrides', { concurrency: false }, async () => {
+  const { root, project } = await workspaceFixture();
+  const unrelated = await tempDir();
+  await git(unrelated, 'init');
+  const previousGitDir = process.env.GIT_DIR;
+  const previousGitWorkTree = process.env.GIT_WORK_TREE;
+  const previousGitCommonDir = process.env.GIT_COMMON_DIR;
+  process.env.GIT_DIR = path.join(unrelated, '.git');
+  process.env.GIT_WORK_TREE = unrelated;
+  process.env.GIT_COMMON_DIR = path.join(unrelated, '.git');
+  try {
+    const resolved = await resolveWorkspaceSourceTruthReference(project, 'workspace:docs/platform/POLICY.md');
+    assert.equal(resolved.relative, 'workspace:docs/platform/POLICY.md');
+    assert.equal(resolved.workspaceRoot, await import('node:fs/promises').then(({ realpath }) => realpath(root)));
+  } finally {
+    if (previousGitDir === undefined) delete process.env.GIT_DIR;
+    else process.env.GIT_DIR = previousGitDir;
+    if (previousGitWorkTree === undefined) delete process.env.GIT_WORK_TREE;
+    else process.env.GIT_WORK_TREE = previousGitWorkTree;
+    if (previousGitCommonDir === undefined) delete process.env.GIT_COMMON_DIR;
+    else process.env.GIT_COMMON_DIR = previousGitCommonDir;
+  }
 });
 
 test('workspace qualifier is not a general cross-root include escape hatch', async () => {
