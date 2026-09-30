@@ -88,7 +88,7 @@ test('review context surfaces dirty working-tree state separately from the commi
   assert.match(result.content, /scratch\.txt/);
 });
 
-test('Git comparison options are review-only and head requires an explicit base', async () => {
+test('Git comparison options are review-only, non-blank, and head requires an explicit base', async () => {
   const { target, base } = await fixture();
 
   await assert.rejects(
@@ -99,6 +99,16 @@ test('Git comparison options are review-only and head requires an explicit base'
   await assert.rejects(
     createContextPack({ targetDir: target, task: 'bounded-review', mode: 'review', gitHead: 'HEAD' }),
     /--head requires --base/
+  );
+
+  await assert.rejects(
+    createContextPack({ targetDir: target, task: 'bounded-review', mode: 'review', gitBase: '' }),
+    /--base requires a value/
+  );
+
+  await assert.rejects(
+    createContextPack({ targetDir: target, task: 'bounded-review', mode: 'review', gitBase: base, gitHead: '   ' }),
+    /--head requires a value/
   );
 
   await assert.rejects(
@@ -170,6 +180,28 @@ test('binary changes are identified by Git rather than represented as complete t
   assert.match(result.content, /Binary files .* differ/);
 });
 
+test('committed gitlink changes remain visible when repository config ignores submodules', async () => {
+  const { root, target, base, head } = await fixture();
+  await git(root, 'update-index', '--add', '--cacheinfo', `160000,${base},vendor/sub`);
+  await git(root, 'commit', '-m', 'add gitlink');
+  const comparisonBase = await git(root, 'rev-parse', 'HEAD');
+
+  await git(root, 'update-index', '--cacheinfo', `160000,${head},vendor/sub`);
+  await git(root, 'commit', '-m', 'move gitlink');
+  await git(root, 'config', 'diff.ignoreSubmodules', 'all');
+
+  const result = await createContextPack({
+    targetDir: target,
+    task: 'bounded-review',
+    mode: 'review',
+    gitBase: comparisonBase
+  });
+
+  assert.ok(result.gitReview.changedFiles.some((item) => item.path === 'vendor/sub'));
+  assert.match(result.content, /vendor\/sub/);
+  assert.match(result.content, /Subproject commit/);
+});
+
 test('context CLI forwards explicit Git base/head into review mode', async () => {
   const { target, base, head } = await fixture();
   const bin = path.resolve('bin/vibe-coding-production.mjs');
@@ -192,4 +224,18 @@ test('context CLI forwards explicit Git base/head into review mode', async () =>
   assert.match(stdout, new RegExp(base));
   assert.match(stdout, new RegExp(head));
   assert.match(stdout, /outside\.txt/);
+});
+
+test('CLI rejects explicitly blank equals-form Git refs before command dispatch', async () => {
+  const bin = path.resolve('bin/vibe-coding-production.mjs');
+
+  await assert.rejects(
+    execFileAsync(process.execPath, [bin, 'doctor', '--base='], { encoding: 'utf8' }),
+    (error) => error.code === 1 && /--base requires a value/.test(error.stderr)
+  );
+
+  await assert.rejects(
+    execFileAsync(process.execPath, [bin, 'context', 'anything', '--mode', 'review', '--head=   '], { encoding: 'utf8' }),
+    (error) => error.code === 1 && /--head requires a value/.test(error.stderr)
+  );
 });
