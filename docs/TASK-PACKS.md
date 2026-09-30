@@ -90,6 +90,7 @@ This keeps nested repositories and monorepo subprojects deterministic without ad
 - a plan-before-code section;
 - independent review checklist;
 - durable independent-review evidence;
+- finalization checklist;
 - completion report.
 
 Source-of-Truth file references must be explicit. The canonical Task Pack table uses its `Reference` column for repository-local references; labeled bullets such as `Reference:`, `Source:`, or `File:` are also supported. Ordinary inline code in explanatory prose—permissions, states, commands, identifiers, API names, and similar terms—is not a file reference merely because it is wrapped in backticks. This keeps Task Packs readable without weakening path validation for references that are actually declared.
@@ -256,6 +257,29 @@ DONE
 
 These are not new required schema fields in this protocol slice. Before persistence, VCP must define legal transitions, readiness interaction, external issue-tracker interaction, failure/reopen behavior, and backward compatibility.
 
+The existing top-level `Status:` line is lightweight human/agent-maintained Task Pack evidence, not a workflow database or scheduler state machine. For implementation Task Packs, use `Done` as the durable final state under the finalization rules below. Decision-only Task Packs may use a decision-specific terminal state such as `Approved` when that more accurately describes the artifact.
+
+## Task finalization
+
+A Task Pack must not stay `In progress`, `Review`, or contain stale `pending` verification text after the task has actually crossed its accepted final gate. That mismatch weakens restartability even when the code itself is correct.
+
+For an implementation Task Pack, set `Status: Done` only when all of these are true:
+
+- acceptance criteria are satisfied;
+- every required verification command has actually passed on the **current final head**;
+- material independent-review findings are resolved or given an explicit follow-up disposition;
+- no `must fix in this task` finding remains unresolved;
+- no current-task blocker or unresolved HUMAN DECISION remains;
+- the completion report describes the final accepted gate rather than an older failed or pending state.
+
+The finalization edit should be part of the final task-changing commit before merge. After that edit, rerun the required exact-head gate. If code/docs move the head again, the prior exact-head evidence is no longer the merge gate; rerun it before merging. The Task Pack does not need another edit unless the reported outcome changes.
+
+Keep final evidence bounded. The completion report should summarize what actually passed—for example readiness result, named verification commands, full validation, and clean-tree result—without pasting full logs. If an earlier gate failed and the failure matters for auditability, retain a concise **superseded failed evidence** note. It must be obvious that the failure is historical and no longer the current task state.
+
+Do not create self-referential commit churn merely to embed the eventual merge commit SHA in the Task Pack. Git/PR history is authoritative for merge identity; the Task Pack owns engineering completion state and bounded verification/review evidence.
+
+Older explicit Task Packs remain compatible. They may be repaired in place when fresh reconstruction finds stale completion metadata; this does not require a schema migration or second workflow database.
+
 ## Context-aware verification
 
 If `AGENTS.md` contains concrete verification commands, the generator copies the applicable configured commands into the Task Pack.
@@ -371,6 +395,10 @@ Persist material review evidence in the Task Pack
 Manual/product QA where judgment is required
         ↓
 Fix current-task defects or record follow-ups
+        ↓
+Finalize Task Pack: final gate evidence + `Status: Done`
+        ↓
+Rerun exact-head verification after the finalization edit
         ↓
 vcp doctor .
         ↓
