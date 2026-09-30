@@ -1,6 +1,6 @@
 # Task — Bind verification evidence to workspace/project scope and Git revision
 
-Status: Review
+Status: Done
 Slug: `verification-workspace-provenance`
 
 ## Outcome
@@ -30,7 +30,7 @@ Keep `--dir` as the VCP project root, Task Pack/Source-of-Truth namespace, comma
 - [x] AC-007 — Workspace discovery does not widen Source-of-Truth or other project-local path authority.
 - [x] AC-008 — Persisted schema-v2 evidence preserves the new scope/revision metadata; historical schema-v1 evidence requires no migration or rewrite.
 - [x] AC-009 — Documentation defines project root vs workspace root, safe automatic Git provenance inspection, and a provider-agnostic local/CI comparison contract.
-- [ ] AC-010 — Focused tests, strict readiness/context/verification, evidence provenance checks, and full repository validation pass on the corrected pre-final exact head after all late review fixes.
+- [x] AC-010 — Focused tests, strict readiness/context/verification, evidence provenance checks, and full repository validation passed on corrected pre-final exact head `c4b45d0db74a5e56551336d7a7658aaed8e98420` after all late review fixes.
 
 ## Scope
 
@@ -173,7 +173,7 @@ Do not claim a command passed unless it was actually executed.
 - [x] Implementation-unready `--run` refuses before provenance processes.
 - [x] Provider-specific CI metadata is not required for the core evidence contract.
 - [x] Historical v1 evidence is not rewritten.
-- [ ] Executable corrected pre-final validation confirms behavior on the exact branch head.
+- [x] Executable corrected pre-final validation confirmed behavior on exact head `c4b45d0db74a5e56551336d7a7658aaed8e98420`.
 
 ## Independent review evidence
 
@@ -182,30 +182,31 @@ Do not claim a command passed unless it was actually executed.
 | DEFECT | must fix in this task | Initial nested fixture embedded an absolute Windows path inside `node -e`, creating platform-sensitive nested quoting/backslash behavior. | Replaced the assertion with a portable `path.basename(process.cwd()) === "api"` check while retaining the same cwd contract. | none known |
 | DEFECT | must fix in this task | Initial provenance fallback caught every `git rev-parse --show-toplevel` / HEAD error, so a detected workspace could be silently misreported as project-only or unborn after an unexpected Git failure. | Fallback is limited to non-Git/missing-Git cases; once a worktree is detected, contradictory HEAD/status failures are actionable errors. | none known |
 | DEFECT | must fix in this task | Automatic provenance collection used `git status` before the `--run` readiness refusal and could consult a repository-configured external fsmonitor. | Readiness refusal occurs before provenance collection for execution; metadata commands force `core.fsmonitor=false`. | none known |
-| DEFECT | must fix in this task | Late review found Git error matching depended on localized stderr, so non-Git/unborn fallback could fail under non-English locales. | Provenance commands force `LC_ALL/LANG/LANGUAGE=C`; HEAD uses `--quiet` exit-code handling; localized-environment regression added. | corrected head still needs executable validation |
-| DEFECT | must fix in this task | Late review found `git status` could perform optional index refresh writes/locks during provenance inspection, including preview mode. | All metadata commands use Git `--no-optional-locks`; provenance remains metadata-only with no optional index writes. | corrected head still needs executable validation |
-| DEFECT | must fix in this task | Late review found lexical `path.resolve()` containment rejected valid symlink/junction-selected projects because Git reports a physical worktree path. | Canonicalize project/workspace with filesystem `realpath()`, use `path.relative()` containment, preserve legacy selected `target`; regression added. | corrected head still needs executable validation |
+| DEFECT | must fix in this task | Late review found Git error matching depended on localized stderr, so non-Git/unborn fallback could fail under non-English locales. | Provenance commands force `LC_ALL/LANG/LANGUAGE=C`; HEAD uses `--quiet` exit-code handling; localized-environment regression added. | none known |
+| DEFECT | must fix in this task | Late review found `git status` could perform optional index refresh writes/locks during provenance inspection, including preview mode. | All metadata commands use Git `--no-optional-locks`; provenance remains metadata-only with no optional index writes. | none known |
+| DEFECT | must fix in this task | Late review found lexical `path.resolve()` containment rejected valid symlink/junction-selected projects because Git reports a physical worktree path. | Canonicalize project/workspace with filesystem `realpath()`, use `path.relative()` containment, preserve legacy selected `target`; regression added. | none known |
 | DEFECT | must fix in this task | Late security review found automatic `git status` may execute active external clean/process filters while collecting dirty state, including preview mode. | Determine filter drivers active for tracked files (including initialized submodules) without executing them; if an active driver has external `clean`/`process` config, fail provenance before status. | conservative refusal for repositories that genuinely require active external filters; documented |
-| DEFECT | must fix in this task | Late review found `.gitmodules`/Git submodule ignore settings could hide a dirty submodule and falsely record `revision.dirty: false`. | Status forces `--ignore-submodules=none`; initialized submodules are recursively safety-checked; dirty-submodule regression added. | corrected head still needs executable validation |
+| DEFECT | must fix in this task | Late review found `.gitmodules`/Git submodule ignore settings could hide a dirty submodule and falsely record `revision.dirty: false`. | Status forces `--ignore-submodules=none`; initialized submodules are recursively safety-checked; dirty-submodule regression added. | none known |
 | NO ACTION | n/a | The slice deliberately does not add implicit cross-root Source-of-Truth inheritance; current project-root isolation remains deterministic. | Treat shared root/package Source-of-Truth policy as a later Stage 5 slice if concrete monorepo dogfood requires it. | Cross-project shared truth still needs an explicit future contract rather than hidden fallback. |
 
 ## Finalization
 
-The earlier finalization was invalidated by late review findings that required source changes. Return to `Review` until the corrected implementation passes the complete pre-final gate.
+Prepared only after the corrected pre-final implementation/review gate passed.
 
-- [ ] Acceptance criteria satisfied on the corrected head.
-- [ ] Corrected pre-final implementation/review gate passed before the next finalization edit.
+- [x] Acceptance criteria satisfied on the corrected head.
+- [x] Corrected pre-final implementation/review gate passed before this finalization edit.
 - [x] Independent review evidence is current and all known late findings have source/test/documentation resolutions.
-- [ ] Completion report reflects the corrected accepted pre-final gate and marks earlier-head evidence superseded.
-- [ ] Top-level `Status` changed to `Done`.
+- [x] Completion report reflects the corrected accepted pre-final gate and marks earlier-head evidence superseded.
+- [x] Top-level `Status` changed to `Done`.
 
-After a new finalization edit, rerun the required exact-head gate. Do not edit this Task Pack solely to record that rerun; merge only if it passes.
+After this finalization edit, rerun the required exact-head gate. Do not edit this Task Pack solely to record that rerun; merge only if it passes.
 
 ## Completion report
 
 - What changed and why: added portable workspace/project and Git revision provenance to mechanical verification evidence so nested-package local/CI results can be compared without treating host-specific checkout paths as identity; late review additionally hardened automatic Git provenance against locale drift, optional writes, path aliases, external filters, and hidden dirty submodules.
-- Final accepted verification: pending corrected pre-final executable validation on the new head.
-- Superseded evidence: the maintainer reported the complete requested pre-final gate passed on `54dd88e26822e9e5a54669423069ad493d9079b1`, and the finalization-head gate passed on `fb47b0611578f9ab2631c5a16967913d8eb817d8`; both are superseded for merge eligibility because late review findings required source changes afterward. No test counts are inferred from those reports.
-- Independent review evidence updated: yes; all late findings are recorded above with bounded fixes and regression coverage.
+- Accepted corrected pre-final verification: the maintainer reported the complete requested corrected pre-final gate passed on exact head `c4b45d0db74a5e56551336d7a7658aaed8e98420`, including diff hygiene, focused verification-scope/verify tests, repository check script, strict implementation readiness, Git-aware review context and changed-file visibility, schema-v2 scope/SHA evidence checks, both VCP verification commands, full repository validation, unchanged exact head, and a clean working tree. No test counts are inferred from that report.
+- Finalization-head requirement: rerun the same required gate on this Task Pack-only finalization head before merge; do not edit the Task Pack solely to record that rerun.
+- Superseded evidence: the maintainer reported the complete requested pre-final gate passed on `54dd88e26822e9e5a54669423069ad493d9079b1`, and the earlier finalization-head gate passed on `fb47b0611578f9ab2631c5a16967913d8eb817d8`; both are superseded for merge eligibility because late review findings required source changes afterward. No test counts are inferred from those reports.
+- Independent review evidence updated: yes; all late findings are recorded above with bounded fixes and regression coverage, and their live review threads were resolved/outdated before this finalization edit.
 - Migration/operational impact: new evidence emits schema v2; no historical evidence migration and no CLI flag change. Active external content filters may cause a visible safe provenance refusal rather than automatic dirty-state collection.
 - Remaining risks/limitations: this slice does not auto-discover packages, inherit root-level Source of Truth, integrate remote CI-provider metadata, or attempt to execute repository-controlled Git filters to obtain dirty-state evidence.
