@@ -48,6 +48,24 @@ export class InvitationService {
     return { invitation, deliveryToken: rawToken };
   }
 
+  async listActive({ actor }) {
+    if (!actor?.userId || !actor.orgId || !actor.permissions?.includes('members.invite')) {
+      throw new AuthorizationError();
+    }
+
+    const invitations = await this.repository.listByOrganization(actor.orgId);
+    const now = this.now();
+
+    return invitations
+      .filter((invitation) => invitation.status === 'pending')
+      .map((invitation) => ({
+        invitationId: invitation.id,
+        email: invitation.email,
+        expiresAt: new Date(invitation.expiresAt),
+        state: new Date(invitation.expiresAt).getTime() <= now.getTime() ? 'expired' : 'pending'
+      }));
+  }
+
   async revoke({ actor, invitationId }) {
     if (!actor || !actor.userId || !actor.permissions?.includes('members.invite')) {
       throw new AuthorizationError();
