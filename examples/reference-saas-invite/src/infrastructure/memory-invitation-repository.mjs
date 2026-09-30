@@ -20,6 +20,14 @@ export class MemoryInvitationRepository {
     return value ? structuredClone(value) : null;
   }
 
+  async listByOrganization(orgId) {
+    const invitations = [];
+    for (const invitation of this.#byId.values()) {
+      if (invitation.orgId === orgId) invitations.push(structuredClone(invitation));
+    }
+    return invitations;
+  }
+
   async acceptIfPending(accepted) {
     const current = this.#byId.get(accepted.id);
     if (!current || current.status !== 'pending') return false;
