@@ -88,7 +88,7 @@
 2. Keep only records whose persisted invitation status is `pending`; accepted and revoked records are terminal and excluded.
 3. Project an unexpired pending record with display state `pending`.
 4. Project a pending record with `expiresAt <= now` with display state `expired` while leaving persisted status unchanged.
-5. Return only administration-safe fields; raw tokens and token hashes are excluded.
+5. Return exactly `invitationId`, `email`, `expiresAt`, and derived `state` for each listed invitation.
 
 **Acceptance criteria**
 - AC-301: Missing `members.invite` permission is rejected.
@@ -96,7 +96,7 @@
 - AC-303: Accepted and revoked invitations are excluded from the active list.
 - AC-304: Expired-but-still-pending invitations remain visible and are marked `expired` in the application/view model.
 - AC-305: Listing does not mutate persisted invitation status.
-- AC-306: Raw token and token-hash material are never returned by the listing contract.
+- AC-306: Each result contains only `invitationId`, `email`, `expiresAt`, and derived `state`; raw token, token hash, issuer identity, acceptance attribution, and other persistence-only fields are excluded.
 
 **Decision note (2026-09-30)**: Option A was explicitly approved during Issue #44 dogfood. The active list includes expired records that are still persisted as `pending`, marking them `expired` in the application/view model. The rejected alternative—omitting expired pending records from the active list—is preserved as a negative product decision.
 
