@@ -36,7 +36,7 @@ The profile:
 - marks clearly non-applicable checks such as TypeScript type checking as `n/a` instead of forcing the developer to fill irrelevant placeholders;
 - adds JavaScript/Node-specific rules around runtime validation, module contracts, environment dependence, and regression tests.
 
-A missing lint script is not silently replaced with a generic `check` script. If lint is required but repository evidence does not identify it, the lint slot remains explicit for the project to decide.
+A generic `check` script is never copied into `LINT_COMMAND`. For backward-compatible Doctor behavior, a Node profile that has `check` but no dedicated `lint` records `LINT_COMMAND=n/a` and `CHECK_COMMAND=<configured check>`. If neither `lint` nor `check` exists, `LINT_COMMAND` remains `<define>` so a genuinely unresolved lint decision is still visible.
 
 ## TypeScript
 
@@ -50,7 +50,7 @@ The profile:
 - fills only commands backed by existing scripts such as `typecheck`, `test`, `build`, `test:integration`, and `test:e2e`;
 - adds TypeScript-specific rules around strictness, runtime validation, module boundaries, and async behavior.
 
-If a required script does not exist, the CLI leaves the relevant command as `<define>` rather than inventing one. Optional generic `CHECK_COMMAND` is `n/a` when no repository `check` script exists.
+A check-only TypeScript project uses the same compatibility rule: `LINT_COMMAND=n/a` plus the concrete `CHECK_COMMAND`. If neither `lint` nor `check` exists, lint remains `<define>`. Optional generic `CHECK_COMMAND` is `n/a` when no repository `check` script exists.
 
 ## Python
 
