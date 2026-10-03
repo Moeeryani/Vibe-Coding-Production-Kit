@@ -22,13 +22,11 @@ async function runVcp(args) {
 }
 
 async function expectVcpFailure(args, pattern) {
-  try {
-    await runVcp(args);
-    assert.fail(`Expected VCP command to fail: ${args.join(' ')}`);
-  } catch (error) {
+  await assert.rejects(runVcp(args), (error) => {
     const output = [error.stdout, error.stderr, error.message].filter(Boolean).join('\n');
     assert.match(output, pattern);
-  }
+    return true;
+  });
 }
 
 async function freshWorkspace() {
@@ -115,6 +113,13 @@ test('fresh workspace checkout reconstructs bounded package context, verificatio
     headSha: baseline,
     dirty: false
   });
+  assert.deepEqual(
+    evidence.commands.map(({ key, command }) => ({ key, command })),
+    [
+      { key: 'CHECK_COMMAND', command: 'npm run check' },
+      { key: 'UNIT_TEST_COMMAND', command: 'npm test' }
+    ]
+  );
   assert.equal(evidence.commands.every((command) => command.status === 'pass'), true);
   await assert.rejects(
     readFile(path.join(root, '.vcp', 'evidence', 'format-order-id.json'), 'utf8'),
@@ -147,9 +152,17 @@ test('fresh workspace checkout reconstructs bounded package context, verificatio
     head
   ]);
 
-  assert.match(review.stdout, /## Git review surface/);
-  assert.match(review.stdout, /docs\/platform\/SHARED-ORDER-POLICY\.md/);
-  assert.match(review.stdout, /ROOT-WORKSPACE-CHANGE-VISIBLE/);
+  const reviewHeading = '## Git review surface';
+  const reviewStart = review.stdout.indexOf(reviewHeading);
+  assert.notEqual(reviewStart, -1);
+  const afterHeading = review.stdout.slice(reviewStart + reviewHeading.length);
+  const nextHeading = afterHeading.search(/\n## /);
+  const reviewSurface = nextHeading === -1 ? afterHeading : afterHeading.slice(0, nextHeading);
+
+  assert.ok(reviewSurface.includes(baseline));
+  assert.ok(reviewSurface.includes(head));
+  assert.match(reviewSurface, /docs\/platform\/SHARED-ORDER-POLICY\.md/);
+  assert.match(reviewSurface, /ROOT-WORKSPACE-CHANGE-VISIBLE/);
   assert.doesNotMatch(review.stdout, /UNRELATED-ROOT-SENTINEL/);
   assert.doesNotMatch(review.stdout, /SIBLING-PACKAGE-SENTINEL/);
 });

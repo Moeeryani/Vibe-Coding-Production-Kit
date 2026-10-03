@@ -1,6 +1,6 @@
 # Task — Prove Stage 5 monorepo/workspace conformance
 
-Status: Done
+Status: Review
 Slug: `stage5-monorepo-workspace-conformance`
 
 ## Outcome
@@ -149,26 +149,28 @@ Do not claim a command passed unless it was actually executed.
 
 | Class | Disposition | Finding / evidence | Resolution / follow-up | Residual risk |
 |---|---|---|---|---|
-| NO ACTION | n/a | Fresh full-diff changed-surface audit of PR #67 verified the fixture has explicit local + workspace authority, unrelated root/sibling sentinels, public-CLI readiness/context/verify/review conformance, realistic project-boundary negatives, and no scheduler/discovery/orchestration expansion. No source-level must-fix finding was identified. | No source correction was required before executable validation. | Final merge still requires the post-finalization exact-head rerun. |
+| NO ACTION | n/a | Fresh full-diff changed-surface audit of PR #67 verified the intended fixture/scope boundaries and no scheduler/discovery/orchestration expansion. | Superseded as completion evidence by the later CodeRabbit review below; the high-level scope audit remains valid. | Test assertions still required correction before final acceptance. |
 | NO ACTION | n/a | Maintainer reported the complete Stage 5 pre-final gate passed on exact head `2a5254d1374e57bb78bd4029f247d7a7ad0da375`: diff check; 34/34 focused Stage 5 tests; repository check over 29 modules; strict implementation readiness 15 pass / 0 warn / 0 fail; VCP verification 2 pass / 0 fail on a clean exact revision; full validation 223 tests / 0 fail; package-content check; unchanged remote/local head; clean tree. Observed toolchain: Node v24.5.0, npm 11.5.2. | Accepted as the pre-final exact-head evidence. | The same gate must rerun after this Task Pack-only finalization commit. |
-| RISK | follow-up candidate | CodeRabbit selected all 17 changed files on exact head `92c851281ab87a296df4612f12a5ad51a360e03f` but remained pending and emitted no submitted review or inline thread, including after an explicit review request. | Do not treat the pending bot as approval or absence-of-findings evidence; re-audit submitted reviews + inline threads immediately before merge. | External automated review availability remains nondeterministic. |
+| DEFECT | must fix in this task | Late CodeRabbit review on pre-final head `2a5254d1374e57bb78bd4029f247d7a7ad0da375` found the negative-test helper could catch its own `assert.fail`; a successful CLI call whose assertion text matched `outside` could be misclassified as the expected rejection. | Corrective source now uses `assert.rejects(runVcp(...))` and matches diagnostics only from the actual rejected CLI call. | Requires corrected exact-head validation before finalization. |
+| DEFECT | must fix in this task | Late review found `evidence.commands.every(...)` vacuously passes for an empty array, so missing command records could still satisfy the conformance assertion. | Corrective source now asserts the exact expected `CHECK_COMMAND=npm run check` and `UNIT_TEST_COMMAND=npm test` records before requiring both statuses to be `pass`. | Requires corrected exact-head validation before finalization. |
+| DEFECT | must fix in this task | Late review found the root-change assertions searched all review stdout, allowing governing Source-of-Truth content to satisfy AC-005 even if the Git review surface omitted the workspace-root change. | Corrective source isolates the `## Git review surface` section, requires its resolved base/head SHAs, and requires the shared-policy path + review marker inside that bounded section. | Requires corrected exact-head validation before finalization. |
 | RISK | follow-up candidate | Hosted Framework Validation reproduced Issue #15 on both implementation head `92c851281ab87a296df4612f12a5ad51a360e03f` (run `37159472243`, job `111309712396`) and pre-final head `2a5254d1374e57bb78bd4029f247d7a7ad0da375` (run `37159724002`, job `111310476370`), each failing with zero executed steps before checkout/setup/install/validation. | Evidence was added to #15; keep #15 open and classify these as infrastructure-only failures. | Stage 5 cannot honestly claim hosted-CI execution until #15 recovers or a deliberate long-term equivalent is approved. |
 
 ## Finalization
 
-- [x] Acceptance criteria satisfied.
-- [x] Comprehensive Stage 5 pre-final gate passed on exact head `2a5254d1374e57bb78bd4029f247d7a7ad0da375`.
-- [x] Independent review evidence is current.
-- [x] Task Pack-only finalization edit made after the pre-final gate.
-- [ ] Same comprehensive exact-head gate rerun on this finalization head.
-- [x] Top-level `Status` changed to `Done`.
+- [ ] Acceptance criteria satisfied on the corrected exact head.
+- [ ] Corrected comprehensive Stage 5 pre-final gate passed after all late review fixes.
+- [x] Independent review evidence records the late must-fix findings and their source corrections.
+- [ ] Task Pack-only finalization edit made after the corrected pre-final gate.
+- [ ] Same comprehensive exact-head gate rerun on the eventual finalization head.
+- [ ] Top-level `Status` changed to `Done`.
 
 ## Completion report
 
 - What changed and why: added a realistic nested workspace/monorepo conformance fixture and public-CLI coverage proving explicit project/workspace authority, bounded context, package-local verification/evidence, root-aware Git review, nested path safety, and zero-chat restartability without adding a scheduler, graph engine, implicit inheritance, package discovery, or package-manager orchestration.
-- Accepted pre-final verification: maintainer reported the complete requested Stage 5 gate passed on exact head `2a5254d1374e57bb78bd4029f247d7a7ad0da375`. The reported run included 34/34 focused Stage 5 tests, repository syntax/check over 29 modules, strict implementation readiness 15 pass / 0 warn / 0 fail, VCP verification 2 pass / 0 fail on a clean exact revision, full repository validation with 223 tests / 0 fail, package-content validation, clean-tree checks, and unchanged local/remote head. Toolchain observed: Node v24.5.0 and npm 11.5.2.
+- Superseded pre-final verification: maintainer reported the complete requested Stage 5 gate passed on exact head `2a5254d1374e57bb78bd4029f247d7a7ad0da375` (34/34 focused tests; repository check over 29 modules; readiness 15 pass / 0 warn / 0 fail; VCP verification 2 pass / 0 fail; full validation 223 tests / 0 fail; package-content validation; clean unchanged head; Node v24.5.0 / npm 11.5.2). Late CodeRabbit findings required source/test changes afterward, so that passing head is historical evidence, not merge evidence for the corrected implementation.
 - Windows batch note: the maintainer used `call` for npm invocations so the parent batch continued through every gate step; command intent, environment, working tree, and required checks were otherwise unchanged.
 - Hosted CI: GitHub Actions remains blocked under Issue #15 and failed before any job step executed on the Stage 5 candidate. This is infrastructure evidence, not a source-test failure; #15 remains open.
-- Independent review evidence updated: yes; the complete changed surface was reviewed with no source-level must-fix finding. CodeRabbit remained pending and is not counted as approval or clean-review evidence.
-- Finalization-head requirement: this Task Pack-only edit moves the branch head. Rerun the same comprehensive Stage 5 gate on this exact finalization head before merge; do not edit the Task Pack solely to record that rerun.
-- Remaining limitation: Stage 5 product semantics are complete subject to the finalization-head rerun and merge, while hosted-CI execution remains separate unresolved infrastructure debt in #15.
+- Independent review evidence updated: yes; CodeRabbit later published three must-fix conformance-test findings (two major, one minor). All three are corrected in source, but the corrections are not yet accepted by an exact-head executable gate.
+- Corrective state: because source changed after the attempted `Done` finalization, this Task Pack has returned to `Review`. Run the full Stage 5 gate on the corrected exact head before making a new Task Pack-only finalization edit.
+- Remaining limitation: hosted-CI execution remains separate unresolved infrastructure debt in #15.
