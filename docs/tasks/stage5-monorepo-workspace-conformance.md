@@ -1,6 +1,6 @@
 # Task — Prove Stage 5 monorepo/workspace conformance
 
-Status: Review
+Status: Done
 Slug: `stage5-monorepo-workspace-conformance`
 
 ## Outcome
@@ -154,17 +154,18 @@ Do not claim a command passed unless it was actually executed.
 | DEFECT | must fix in this task | Late CodeRabbit review on pre-final head `2a5254d1374e57bb78bd4029f247d7a7ad0da375` found the negative-test helper could catch its own `assert.fail`; a successful CLI call whose assertion text matched `outside` could be misclassified as the expected rejection. | Corrective source now uses `assert.rejects(runVcp(...))` and matches diagnostics only from the actual rejected CLI call. | Requires corrected exact-head validation before finalization. |
 | DEFECT | must fix in this task | Late review found `evidence.commands.every(...)` vacuously passes for an empty array, so missing command records could still satisfy the conformance assertion. | Corrective source now asserts the exact expected `CHECK_COMMAND=npm run check` and `UNIT_TEST_COMMAND=npm test` records before requiring both statuses to be `pass`. | Requires corrected exact-head validation before finalization. |
 | DEFECT | must fix in this task | Late review found the root-change assertions searched all review stdout, allowing governing Source-of-Truth content to satisfy AC-005 even if the Git review surface omitted the workspace-root change. | Corrective source isolates the `## Git review surface` section, requires its resolved base/head SHAs, and requires the shared-policy path + review marker inside that bounded section. | Requires corrected exact-head validation before finalization. |
-| DEFECT | must fix in this task | Corrected-head gate on `d1003f762d053939ba9d11a92d9d504e7548156d` failed deterministically because the new review-surface locator used `indexOf('## Git review surface')`; the canonical review prompt contains that literal inline before the actual rendered section, so the test sliced the wrong content and could never find the resolved base/head SHAs. | Locator now matches only a line-start heading with `/^## Git review surface$/m`, then slices from that actual rendered section. Product rendering itself was independently confirmed correct; this is a test-only correction. | Requires a new exact-head comprehensive Stage 5 pre-final gate. |
+| DEFECT | fixed | Corrected-head gate on `d1003f762d053939ba9d11a92d9d504e7548156d` failed deterministically because the new review-surface locator used `indexOf('## Git review surface')`; the canonical review prompt contains that literal inline before the actual rendered section, so the test sliced the wrong content and could never find the resolved base/head SHAs. | Locator now matches only a line-start heading with `/^## Git review surface$/m`, then slices from that actual rendered section. Product rendering itself was independently confirmed correct; the comprehensive corrected-head gate then passed on `c7b85064ca873120bb42042e3cf11c55518755bc`. | Final merge still requires the same comprehensive gate on this Task Pack-only finalization head. |
+| NO ACTION | n/a | Maintainer reported the complete corrected Stage 5 pre-final gate passed on exact head `c7b85064ca873120bb42042e3cf11c55518755bc`: exact remote/local head before and after; clean tree; diff check; 34/34 focused Stage 5 tests; repository check over 29 modules; strict implementation readiness 15 pass / 0 warn / 0 fail; VCP verification 2 pass / 0 fail bound to a clean exact revision; full validation 223/223; package-content check over 132 files. Observed toolchain: Node v24.5.0, npm 11.5.2. | Accepted as the corrected pre-final exact-head evidence after the locator regression was proven red on `d1003f7` and green on `c7b8506`. | The same comprehensive gate must rerun on this Task Pack-only finalization head before merge. |
 | RISK | follow-up candidate | Hosted Framework Validation reproduced Issue #15 on both implementation head `92c851281ab87a296df4612f12a5ad51a360e03f` (run `37159472243`, job `111309712396`) and pre-final head `2a5254d1374e57bb78bd4029f247d7a7ad0da375` (run `37159724002`, job `111310476370`), each failing with zero executed steps before checkout/setup/install/validation. | Evidence was added to #15; keep #15 open and classify these as infrastructure-only failures. | Stage 5 cannot honestly claim hosted-CI execution until #15 recovers or a deliberate long-term equivalent is approved. |
 
 ## Finalization
 
-- [ ] Acceptance criteria satisfied on the corrected exact head.
-- [ ] Corrected comprehensive Stage 5 pre-final gate passed after all late review fixes.
-- [x] Independent review evidence records the late must-fix findings and their source corrections.
-- [ ] Task Pack-only finalization edit made after the corrected pre-final gate.
-- [ ] Same comprehensive exact-head gate rerun on the eventual finalization head.
-- [ ] Top-level `Status` changed to `Done`.
+- [x] Acceptance criteria satisfied on corrected exact head `c7b85064ca873120bb42042e3cf11c55518755bc`.
+- [x] Corrected comprehensive Stage 5 pre-final gate passed after all late review fixes.
+- [x] Independent review evidence records the late must-fix findings, their corrections, and the corrected passing gate.
+- [x] Task Pack-only finalization edit made after the corrected pre-final gate.
+- [ ] Same comprehensive exact-head gate rerun on this finalization head.
+- [x] Top-level `Status` changed to `Done`.
 
 ## Completion report
 
@@ -172,6 +173,7 @@ Do not claim a command passed unless it was actually executed.
 - Superseded pre-final verification: maintainer reported the complete requested Stage 5 gate passed on exact head `2a5254d1374e57bb78bd4029f247d7a7ad0da375` (34/34 focused tests; repository check over 29 modules; readiness 15 pass / 0 warn / 0 fail; VCP verification 2 pass / 0 fail; full validation 223 tests / 0 fail; package-content validation; clean unchanged head; Node v24.5.0 / npm 11.5.2). Late CodeRabbit findings required source/test changes afterward, so that passing head is historical evidence, not merge evidence for the corrected implementation.
 - Windows batch note: the maintainer used `call` for npm invocations so the parent batch continued through every gate step; command intent, environment, working tree, and required checks were otherwise unchanged.
 - Hosted CI: GitHub Actions remains blocked under Issue #15 and failed before any job step executed on the Stage 5 candidate. This is infrastructure evidence, not a source-test failure; #15 remains open.
-- Independent review evidence updated: yes; CodeRabbit later published three must-fix conformance-test findings (two major, one minor). All three are corrected in source, but the corrections are not yet accepted by an exact-head executable gate.
-- Corrective state: because source changed after the attempted `Done` finalization, this Task Pack remains in `Review`. The first corrected-head gate on `d1003f762d053939ba9d11a92d9d504e7548156d` failed 33/34 focused tests, VCP verification, and full validation because the hardened test locator matched the prompt's inline prose mention instead of the actual Git review-surface heading. That test-only defect is now corrected; run the full Stage 5 gate again on the new exact head before any new Task Pack-only finalization edit.
-- Remaining limitation: hosted-CI execution remains separate unresolved infrastructure debt in #15.
+- Independent review evidence updated: yes; CodeRabbit published three must-fix conformance-test findings (two major, one minor). All three were corrected, all three threads are resolved and marked addressed, and the corrected implementation passed the comprehensive exact-head gate on `c7b85064ca873120bb42042e3cf11c55518755bc`.
+- Corrected pre-final verification: maintainer reported the full Stage 5 gate passed on exact head `c7b85064ca873120bb42042e3cf11c55518755bc`: 34/34 focused tests, repository check over 29 modules, readiness 15 pass / 0 warn / 0 fail, VCP verification 2 pass / 0 fail on a clean exact revision, full validation 223/223, package-content check over 132 files, clean tree, and unchanged local/remote head. The previously failing `d1003f7` locator regression was therefore demonstrated as red before the line-anchored correction and green afterward.
+- Finalization-head requirement: this Task Pack-only edit moves the branch head. Rerun the same comprehensive Stage 5 gate on this exact finalization head before merge; do not edit the Task Pack solely to record that rerun.
+- Remaining limitation: hosted-CI execution remains separate unresolved infrastructure debt in #15. Latest exact-head hosted attempts still fail with zero executed job steps, so #15 remains open and is not treated as source-test evidence.
