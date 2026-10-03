@@ -152,11 +152,11 @@ test('fresh workspace checkout reconstructs bounded package context, verificatio
     head
   ]);
 
-  const reviewHeading = '## Git review surface';
-  const reviewStart = review.stdout.indexOf(reviewHeading);
-  assert.notEqual(reviewStart, -1);
-  const afterHeading = review.stdout.slice(reviewStart + reviewHeading.length);
-  const nextHeading = afterHeading.search(/\n## /);
+  const reviewHeading = /^## Git review surface$/m;
+  const reviewHeadingMatch = reviewHeading.exec(review.stdout);
+  assert.ok(reviewHeadingMatch);
+  const afterHeading = review.stdout.slice(reviewHeadingMatch.index + reviewHeadingMatch[0].length);
+  const nextHeading = afterHeading.search(/^## /m);
   const reviewSurface = nextHeading === -1 ? afterHeading : afterHeading.slice(0, nextHeading);
 
   assert.ok(reviewSurface.includes(baseline));
