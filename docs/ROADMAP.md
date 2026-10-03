@@ -377,7 +377,7 @@ Remaining before Stage 5 is Done:
 - prove bounded package context in a realistic monorepo/workspace flow using the explicit project/workspace authority contract;
 - retain nested path-safety and restartability under realistic shared-root/package rules;
 - restore hosted CI execution or deliberately adopt an equivalent long-term channel under #15, then prove local/CI evidence compatibility in both environments;
-- complete realistic monorepo/workspace conformance and final Stage 5 review evidence.
+- complete realistic monorepo/workspace conformance and final Stage 5 review evidence. The Issue #66 implementation candidate is represented by `examples/reference-workspace-monorepo/` plus `test/stage5-workspace-conformance.test.mjs`; Stage 5 remains in progress until the final combined gate and hosted-CI status are resolved accurately.
 
 Dependencies #23 and #24 are complete. Issue #15 remains an open infrastructure dependency for hosted-CI evidence; it does not block continued product-semantic work that can be proven through the accepted exact-head local channel.
 
