@@ -1,6 +1,6 @@
 # Task — Prove Stage 5 monorepo/workspace conformance
 
-Status: Review
+Status: Done
 Slug: `stage5-monorepo-workspace-conformance`
 
 ## Outcome
@@ -23,17 +23,17 @@ Complete the product-semantic remainder of Roadmap Stage 5 without adding automa
 
 ## Acceptance criteria
 
-- [ ] AC-001 — Checked-in fixture has one nested VCP package, one explicit workspace governing document, one unrelated root document, and one unrelated sibling package.
-- [ ] AC-002 — Fresh-checkout implementation readiness succeeds using project-local + explicit workspace Source of Truth.
-- [ ] AC-003 — Plan and implementation context include only declared governing authority and exclude unrelated root/sibling sentinels.
-- [ ] AC-004 — Verification runs from the selected nested package and persists schema-v2 `scope.projectPath`, exact Git revision, and pre-run dirty state inside the project boundary.
-- [ ] AC-005 — Git-aware review from the nested package exposes a committed workspace-root governing-document change.
-- [ ] AC-006 — Project-local include/planned/output paths reject sibling/root escape in the realistic fixture.
-- [ ] AC-007 — Workspace-qualified traversal outside the worktree fails visibly.
-- [ ] AC-008 — Fixture-local plan/implement/review prompts remain byte-identical to canonical prompts, so a fresh checkout needs no undocumented prompt copying.
-- [ ] AC-009 — No scheduler, graph engine, implicit inheritance, package discovery, or package-manager orchestration is added.
-- [ ] AC-010 — Hosted CI status is re-checked on the implementation branch/PR and Issue #15 is closed only if repository steps actually execute normally.
-- [ ] AC-011 — One comprehensive maintainer-local Stage 5 exact-head gate is run after the complete implementation is ready; no partial local pass is treated as final Stage 5 evidence.
+- [x] AC-001 — Checked-in fixture has one nested VCP package, one explicit workspace governing document, one unrelated root document, and one unrelated sibling package.
+- [x] AC-002 — Fresh-checkout implementation readiness succeeds using project-local + explicit workspace Source of Truth.
+- [x] AC-003 — Plan and implementation context include only declared governing authority and exclude unrelated root/sibling sentinels.
+- [x] AC-004 — Verification runs from the selected nested package and persists schema-v2 `scope.projectPath`, exact Git revision, and pre-run dirty state inside the project boundary.
+- [x] AC-005 — Git-aware review from the nested package exposes a committed workspace-root governing-document change.
+- [x] AC-006 — Project-local include/planned/output paths reject sibling/root escape in the realistic fixture.
+- [x] AC-007 — Workspace-qualified traversal outside the worktree fails visibly.
+- [x] AC-008 — Fixture-local plan/implement/review prompts remain byte-identical to canonical prompts, so a fresh checkout needs no undocumented prompt copying.
+- [x] AC-009 — No scheduler, graph engine, implicit inheritance, package discovery, or package-manager orchestration is added.
+- [x] AC-010 — Hosted CI status is re-checked on the implementation branch/PR and Issue #15 is closed only if repository steps actually execute normally.
+- [x] AC-011 — One comprehensive maintainer-local Stage 5 exact-head gate is run after the complete implementation is ready; no partial local pass is treated as final Stage 5 evidence.
 
 ## Scope
 
@@ -136,32 +136,39 @@ Do not claim a command passed unless it was actually executed.
 
 ## Independent review checklist
 
-- [ ] Fresh checkout needs no prior chat or manual VCP scaffolding.
-- [ ] Explicit workspace authority is necessary and sufficient.
-- [ ] Unrelated root/sibling content stays absent.
-- [ ] Verification evidence remains package-local and portable.
-- [ ] Root changes remain review-visible from nested project.
-- [ ] Negative path tests prove project/workspace ownership boundaries.
-- [ ] No scheduler/implicit inheritance/product-scope expansion appears.
-- [ ] Hosted CI state is classified from executed steps, not check color alone.
+- [x] Fresh checkout needs no prior chat or manual VCP scaffolding.
+- [x] Explicit workspace authority is necessary and sufficient.
+- [x] Unrelated root/sibling content stays absent.
+- [x] Verification evidence remains package-local and portable.
+- [x] Root changes remain review-visible from nested project.
+- [x] Negative path tests prove project/workspace ownership boundaries.
+- [x] No scheduler/implicit inheritance/product-scope expansion appears.
+- [x] Hosted CI state is classified from executed steps, not check color alone.
 
 ## Independent review evidence
 
 | Class | Disposition | Finding / evidence | Resolution / follow-up | Residual risk |
 |---|---|---|---|---|
-| NO ACTION | n/a | Fresh full-diff changed-surface audit of PR #67 verified the fixture has explicit local + workspace authority, unrelated root/sibling sentinels, public-CLI readiness/context/verify/review conformance, realistic project-boundary negatives, and no scheduler/discovery/orchestration expansion. No source-level must-fix finding was identified. | Keep the task in Review until executable Stage 5 validation passes. | Executable behavior still requires the comprehensive exact-head gate. |
-| RISK | follow-up candidate | CodeRabbit selected all 17 changed files on exact head `92c851281ab87a296df4612f12a5ad51a360e03f` but remained pending and emitted no submitted review or inline thread, including after an explicit review request. | Do not treat the pending bot as approval or absence-of-findings evidence; re-audit submitted reviews + inline threads before merge. | External automated review availability remains nondeterministic. |
-| RISK | follow-up candidate | Hosted Framework Validation run `37159472243` / job `111309712396` failed with zero executed steps, reproducing Issue #15 before checkout/setup/install/validation. | Fresh evidence was added to #15; keep #15 open and classify the result as infrastructure-only. | Stage 5 cannot honestly claim hosted-CI execution until #15 recovers or a deliberate long-term equivalent is approved. |
+| NO ACTION | n/a | Fresh full-diff changed-surface audit of PR #67 verified the fixture has explicit local + workspace authority, unrelated root/sibling sentinels, public-CLI readiness/context/verify/review conformance, realistic project-boundary negatives, and no scheduler/discovery/orchestration expansion. No source-level must-fix finding was identified. | No source correction was required before executable validation. | Final merge still requires the post-finalization exact-head rerun. |
+| NO ACTION | n/a | Maintainer reported the complete Stage 5 pre-final gate passed on exact head `2a5254d1374e57bb78bd4029f247d7a7ad0da375`: diff check; 34/34 focused Stage 5 tests; repository check over 29 modules; strict implementation readiness 15 pass / 0 warn / 0 fail; VCP verification 2 pass / 0 fail on a clean exact revision; full validation 223 tests / 0 fail; package-content check; unchanged remote/local head; clean tree. Observed toolchain: Node v24.5.0, npm 11.5.2. | Accepted as the pre-final exact-head evidence. | The same gate must rerun after this Task Pack-only finalization commit. |
+| RISK | follow-up candidate | CodeRabbit selected all 17 changed files on exact head `92c851281ab87a296df4612f12a5ad51a360e03f` but remained pending and emitted no submitted review or inline thread, including after an explicit review request. | Do not treat the pending bot as approval or absence-of-findings evidence; re-audit submitted reviews + inline threads immediately before merge. | External automated review availability remains nondeterministic. |
+| RISK | follow-up candidate | Hosted Framework Validation reproduced Issue #15 on both implementation head `92c851281ab87a296df4612f12a5ad51a360e03f` (run `37159472243`, job `111309712396`) and pre-final head `2a5254d1374e57bb78bd4029f247d7a7ad0da375` (run `37159724002`, job `111310476370`), each failing with zero executed steps before checkout/setup/install/validation. | Evidence was added to #15; keep #15 open and classify these as infrastructure-only failures. | Stage 5 cannot honestly claim hosted-CI execution until #15 recovers or a deliberate long-term equivalent is approved. |
 
 ## Finalization
 
-- [ ] Acceptance criteria satisfied.
-- [ ] Comprehensive Stage 5 pre-final gate passed on the exact reviewed head.
-- [ ] Independent review evidence is current.
-- [ ] Task Pack-only finalization edit made after the pre-final gate.
-- [ ] Same comprehensive exact-head gate rerun on the finalization head.
-- [ ] Top-level `Status` changed to `Done`.
+- [x] Acceptance criteria satisfied.
+- [x] Comprehensive Stage 5 pre-final gate passed on exact head `2a5254d1374e57bb78bd4029f247d7a7ad0da375`.
+- [x] Independent review evidence is current.
+- [x] Task Pack-only finalization edit made after the pre-final gate.
+- [ ] Same comprehensive exact-head gate rerun on this finalization head.
+- [x] Top-level `Status` changed to `Done`.
 
 ## Completion report
 
-Pending the final combined Stage 5 validation/review sequence. No partial or hosted-infrastructure result is treated as final evidence.
+- What changed and why: added a realistic nested workspace/monorepo conformance fixture and public-CLI coverage proving explicit project/workspace authority, bounded context, package-local verification/evidence, root-aware Git review, nested path safety, and zero-chat restartability without adding a scheduler, graph engine, implicit inheritance, package discovery, or package-manager orchestration.
+- Accepted pre-final verification: maintainer reported the complete requested Stage 5 gate passed on exact head `2a5254d1374e57bb78bd4029f247d7a7ad0da375`. The reported run included 34/34 focused Stage 5 tests, repository syntax/check over 29 modules, strict implementation readiness 15 pass / 0 warn / 0 fail, VCP verification 2 pass / 0 fail on a clean exact revision, full repository validation with 223 tests / 0 fail, package-content validation, clean-tree checks, and unchanged local/remote head. Toolchain observed: Node v24.5.0 and npm 11.5.2.
+- Windows batch note: the maintainer used `call` for npm invocations so the parent batch continued through every gate step; command intent, environment, working tree, and required checks were otherwise unchanged.
+- Hosted CI: GitHub Actions remains blocked under Issue #15 and failed before any job step executed on the Stage 5 candidate. This is infrastructure evidence, not a source-test failure; #15 remains open.
+- Independent review evidence updated: yes; the complete changed surface was reviewed with no source-level must-fix finding. CodeRabbit remained pending and is not counted as approval or clean-review evidence.
+- Finalization-head requirement: this Task Pack-only edit moves the branch head. Rerun the same comprehensive Stage 5 gate on this exact finalization head before merge; do not edit the Task Pack solely to record that rerun.
+- Remaining limitation: Stage 5 product semantics are complete subject to the finalization-head rerun and merge, while hosted-CI execution remains separate unresolved infrastructure debt in #15.
