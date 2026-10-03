@@ -149,7 +149,9 @@ Do not claim a command passed unless it was actually executed.
 
 | Class | Disposition | Finding / evidence | Resolution / follow-up | Residual risk |
 |---|---|---|---|---|
-| NO ACTION | n/a | Implementation is awaiting fresh PR review and the final combined Stage 5 gate. | Do not finalize or merge yet. | Hosted CI #15 may remain an external blocker. |
+| NO ACTION | n/a | Fresh full-diff changed-surface audit of PR #67 verified the fixture has explicit local + workspace authority, unrelated root/sibling sentinels, public-CLI readiness/context/verify/review conformance, realistic project-boundary negatives, and no scheduler/discovery/orchestration expansion. No source-level must-fix finding was identified. | Keep the task in Review until executable Stage 5 validation passes. | Executable behavior still requires the comprehensive exact-head gate. |
+| RISK | follow-up candidate | CodeRabbit selected all 17 changed files on exact head `92c851281ab87a296df4612f12a5ad51a360e03f` but remained pending and emitted no submitted review or inline thread, including after an explicit review request. | Do not treat the pending bot as approval or absence-of-findings evidence; re-audit submitted reviews + inline threads before merge. | External automated review availability remains nondeterministic. |
+| RISK | follow-up candidate | Hosted Framework Validation run `37159472243` / job `111309712396` failed with zero executed steps, reproducing Issue #15 before checkout/setup/install/validation. | Fresh evidence was added to #15; keep #15 open and classify the result as infrastructure-only. | Stage 5 cannot honestly claim hosted-CI execution until #15 recovers or a deliberate long-term equivalent is approved. |
 
 ## Finalization
 
