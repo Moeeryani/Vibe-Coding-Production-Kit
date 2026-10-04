@@ -9,6 +9,13 @@ const repoRoot = path.resolve('.');
 const bin = path.join(repoRoot, 'bin', 'vibe-coding-production.mjs');
 const example = path.join(repoRoot, 'examples', 'community-profile-react-native');
 
+test('CLI help advertises plugin inspection and digest authoring', async () => {
+  const { stdout } = await execFileAsync(process.execPath, [bin, '--help'], { cwd: repoRoot });
+  assert.match(stdout, /vcp plugins \[--dir <directory>\] \[--digest <bundle>\] \[--json\]/);
+  assert.match(stdout, /--digest <path>\s+Plugins: compute canonical SHA-256/);
+  assert.match(stdout, /vibe-coding-production plugins --dir \. --json/);
+});
+
 test('plugins CLI inspects the pinned reference fixture as JSON without applying proposals', async () => {
   const { stdout, stderr } = await execFileAsync(process.execPath, [
     bin,
