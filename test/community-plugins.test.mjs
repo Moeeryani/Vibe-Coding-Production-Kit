@@ -230,6 +230,75 @@ test('selection rejects traversal, URLs, and Windows drive-style paths before lo
   }
 });
 
+test('selection requires canonical lowercase digest text', async () => {
+  const target = await tempDir();
+  await copyBundle(target);
+  const digest = (await computeCommunityPluginDigest(target, bundleRelative)).digest;
+  await writeSelection(target, { sha256: `sha256:${digest.slice('sha256:'.length).toUpperCase()}` });
+
+  await assert.rejects(loadCommunityPlugins(target), /64 lowercase hex characters/);
+});
+
+test('selection cannot grant a capability the plugin manifest does not declare', async () => {
+  const { target } = await selectedProject();
+  await mutateManifest(target, value => {
+    value.capabilities = ['guidance'];
+    value.contributions.verificationProposals = [];
+  });
+  const configPath = path.join(target, ...COMMUNITY_PLUGIN_CONFIG.split('/'));
+  const config = JSON.parse(await readFile(configPath, 'utf8'));
+  config.plugins[0].grants = ['guidance', 'verification-proposals'];
+  await writeJson(configPath, config);
+
+  await assert.rejects(loadCommunityPlugins(target), /grant verification-proposals is not declared by the plugin/);
+});
+
+test('selected plugins are returned in deterministic id order independent of declaration order', async () => {
+  const target = await tempDir();
+  const alphaPath = 'community-plugins/alpha';
+  const zetaPath = 'community-plugins/zeta';
+
+  await mkdir(path.join(target, 'community-plugins'), { recursive: true });
+  await cp(exampleBundle, path.join(target, ...alphaPath.split('/')), { recursive: true });
+  await cp(exampleBundle, path.join(target, ...zetaPath.split('/')), { recursive: true });
+
+  for (const [pluginPath, id, name] of [
+    [alphaPath, 'community.alpha', 'Alpha profile'],
+    [zetaPath, 'community.zeta', 'Zeta profile']
+  ]) {
+    const manifestPath = path.join(target, ...pluginPath.split('/'), 'plugin.json');
+    const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+    manifest.id = id;
+    manifest.name = name;
+    await writeJson(manifestPath, manifest);
+  }
+
+  const alphaDigest = (await computeCommunityPluginDigest(target, alphaPath)).digest;
+  const zetaDigest = (await computeCommunityPluginDigest(target, zetaPath)).digest;
+  await writeJson(path.join(target, ...COMMUNITY_PLUGIN_CONFIG.split('/')), {
+    schemaVersion: 1,
+    plugins: [
+      {
+        id: 'community.zeta',
+        version: '1.0.0',
+        path: zetaPath,
+        sha256: zetaDigest,
+        grants: ['guidance', 'verification-proposals']
+      },
+      {
+        id: 'community.alpha',
+        version: '1.0.0',
+        path: alphaPath,
+        sha256: alphaDigest,
+        grants: ['guidance', 'verification-proposals']
+      }
+    ]
+  });
+
+  const loaded = await loadCommunityPlugins(target);
+  assert.deepEqual(loaded.plugins.map((plugin) => plugin.id), ['community.alpha', 'community.zeta']);
+});
+
 test('selection rejects duplicate ids, paths, and grants deterministically', async () => {
   const target = await tempDir();
   await copyBundle(target);
