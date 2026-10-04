@@ -320,6 +320,7 @@ Idea
 - `vcp prompt-eval` — deterministic behavioral evaluation of external-agent prompt runs without an embedded LLM.
 - `vcp fitness` — explicit architecture ownership/dependency/public-contract/cycle checks without inferred graph authority.
 - `vcp release-check` — exact-revision release-candidate evidence for pack/publish-dry-run/install/update mechanics without publishing or creating tags.
+- `vcp plugins` — inspect explicit local digest-pinned community profiles and compute canonical bundle pins without executing plugin code.
 - `vcp update` — lifecycle-aware safe updates with merge/migrations/recovery.
 - Agent prompts — discovery, planning, implementation, review, security, refactoring, release review.
 - GitHub hygiene — issue templates, PR template, contributing guide, security policy, validation workflow.
@@ -440,7 +441,7 @@ Do not duplicate conflicting rules across multiple agent configuration files. Pr
 - [x] Git-aware review/release automation
 - [x] Prompt behavioral evaluation harness for coding agents
 - [x] Architecture fitness functions
-- [ ] Extensible community profile/plugin system
+- [x] Extensible community profile/plugin system
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) if you want to help.
 
