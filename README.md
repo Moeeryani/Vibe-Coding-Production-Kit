@@ -317,6 +317,7 @@ Idea
 - `vcp context` — bounded phase-specific AI context packs.
 - `vcp verify` — explicit execution and verification evidence.
 - `vcp doctor` — repository/system health audit without a misleading magic score.
+- `vcp prompt-eval` — deterministic behavioral evaluation of external-agent prompt runs without an embedded LLM.
 - `vcp update` — lifecycle-aware safe updates with merge/migrations/recovery.
 - Agent prompts — discovery, planning, implementation, review, security, refactoring, release review.
 - GitHub hygiene — issue templates, PR template, contributing guide, security policy, validation workflow.
@@ -434,7 +435,7 @@ Do not duplicate conflicting rules across multiple agent configuration files. Pr
 - [x] Monorepo-aware project/evidence semantics
 - [x] Project-sensitive security profiles
 - [ ] Git-aware review/release automation
-- [ ] Prompt evaluation suite for coding agents
+- [x] Prompt behavioral evaluation harness for coding agents
 - [ ] Architecture fitness-function examples
 - [ ] Extensible community profile/plugin system
 
