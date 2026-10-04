@@ -66,6 +66,12 @@
             "ready": false,
             "blockedBy": [
               "decision.expiry"
+            ],
+            "scope": [
+              "domain",
+              "service",
+              "api",
+              "tests"
             ]
           },
           {
@@ -80,7 +86,11 @@
               "global-auth-rewrite"
             ],
             "ready": true,
-            "blockedBy": []
+            "blockedBy": [],
+            "scope": [
+              "domain",
+              "tests"
+            ]
           }
         ],
         "blockedActions": [
