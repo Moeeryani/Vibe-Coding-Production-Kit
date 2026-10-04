@@ -101,6 +101,15 @@ For cross-platform reproducibility:
 
 A digest change is not auto-trusted. Review the bundle and deliberately update the project declaration.
 
+V1 also bounds local extension input before it reaches context rendering:
+
+- at most 32 selected plugins per project declaration;
+- at most 64 files per bundle;
+- at most 2,000,000 raw bytes read across one bundle;
+- at most 1,000,000 bytes after LF-normalized UTF-8 text decoding.
+
+These are safety/resource limits, not signals of trust.
+
 ## Plugin manifest
 
 Example:
