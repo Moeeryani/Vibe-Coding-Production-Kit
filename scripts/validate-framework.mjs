@@ -9,6 +9,7 @@ const requiredFiles = [
   'docs/00-START-HERE.md',
   'docs/OPERATING-MODEL.md',
   'docs/CLI.md',
+  'docs/PROMPT-EVALUATION.md',
   'docs/DOCTOR.md',
   'docs/STACK-PROFILES.md',
   'docs/SECURITY-PROFILES.md',
@@ -44,6 +45,12 @@ const requiredFiles = [
   'prompts/05-security-review.md',
   'prompts/06-refactor.md',
   'prompts/07-release-review.md',
+  'evaluations/prompt-behavior/scenarios.json',
+  'evaluations/prompt-behavior/mutations.json',
+  'evaluations/prompt-behavior/reference-pass/discovery-boundaries.json',
+  'evaluations/prompt-behavior/reference-pass/plan-vertical-blockers.json',
+  'evaluations/prompt-behavior/reference-pass/verification-followup.json',
+  'evaluations/prompt-behavior/reference-pass/review-restartability.json',
   'scripts/validate-framework.sh',
   'scripts/validate-framework.mjs'
 ];
