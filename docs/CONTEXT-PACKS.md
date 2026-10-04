@@ -141,6 +141,10 @@ Git evidence answers **what changed**, not whether the change is correct. The re
 
 Security review should include only the relevant trust boundaries, data flows, authorization/authentication rules, threat model, affected code, tests, and evidence needed to assess the change.
 
+Stage 6 makes this mode project-sensitive. `security` mode automatically loads the mandatory `baseline` security profile plus profiles explicitly selected in `docs/security/SECURITY-PROFILE.md`. The declaration and exact profile documents appear in the Context manifest. Existing projects without the declaration remain backward compatible and receive baseline guidance from the running VCP package.
+
+Profile guidance is security-review context only. It does not authorize implementation, accept residual risk, infer policy intent, or claim compliance. Plan/implement/review/release modes do not silently inherit these profile files. See `docs/SECURITY-PROFILES.md`.
+
 ### Release context
 
 Release review should include version/release state, relevant changes, verification evidence, operational/recovery concerns, and release-specific Source of Truth—not unrelated historical conversation.
