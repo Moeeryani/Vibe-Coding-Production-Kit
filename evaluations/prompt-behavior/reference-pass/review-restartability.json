@@ -20,5 +20,6 @@
       ".vcp/evidence/accept-invite.json"
     ],
     "dependsOnChatHistory": false
-  }
+  },
+  "promptBlobSha": "f09093eb4101a97ee426d2fad70edb73b5fd8738"
 }
