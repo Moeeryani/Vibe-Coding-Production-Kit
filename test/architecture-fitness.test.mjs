@@ -544,3 +544,44 @@ test('import.meta usage is valid analyzer syntax and does not create dependency 
   assert.equal(codes(report).includes('unsupported-static-import'), false);
   assert.deepEqual(report.dependencies.map((item) => [item.from, item.to]), [['application', 'domain']]);
 });
+
+
+test('architecture contract markers inside fenced examples do not satisfy governing contracts', async () => {
+  const target = await copyReference();
+  const file = path.join(target, 'docs', 'architecture', 'ARCHITECTURE.md');
+  const content = await readFile(file, 'utf8');
+  await writeFile(
+    file,
+    content.replace(
+      'ARCHITECTURE-CONTRACT: invitation-layering-v1',
+      '```text\nARCHITECTURE-CONTRACT: invitation-layering-v1\n```'
+    ),
+    'utf8'
+  );
+
+  const report = await runArchitectureFitness({ targetDir: target });
+
+  assert.equal(report.success, false);
+  const violation = report.violations.find((item) => item.code === 'architecture-contract-regression');
+  assert.equal(violation.marker, 'ARCHITECTURE-CONTRACT: invitation-layering-v1');
+});
+
+test('Accepted text inside a fenced ADR example does not create governing status authority', async () => {
+  const target = await copyReference();
+  const file = path.join(target, 'docs', 'architecture', 'adr', 'ADR-001-invite-token-storage.md');
+  const content = await readFile(file, 'utf8');
+  await writeFile(
+    file,
+    content.replace(
+      '## Status\nAccepted',
+      '```markdown\n- Status: Accepted\n```'
+    ),
+    'utf8'
+  );
+
+  const report = await runArchitectureFitness({ targetDir: target });
+
+  assert.equal(report.success, false);
+  const violation = report.violations.find((item) => item.code === 'adr-not-accepted');
+  assert.equal(violation.statusSectionCount, 0);
+});
