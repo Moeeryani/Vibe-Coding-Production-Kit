@@ -396,6 +396,7 @@ npm run check
 - `vcp context` لبناء سياق محدود.
 - `vcp verify` لإثبات التحقق.
 - `vcp doctor` لفحص النظام.
+- `vcp prompt-eval` لتقييم سلوك تشغيل الـPrompts بشكل deterministic بدون تضمين LLM runtime.
 - `vcp update` للترقيات الآمنة.
 - Prompts مستقلة للتخطيط والتنفيذ والمراجعة والأمن والإطلاق.
 - GitHub Issue/PR templates وvalidation workflow.
@@ -447,7 +448,7 @@ npm run check
 - [x] Monorepo/project evidence semantics
 - [x] Project-sensitive security profiles
 - [ ] Git-aware review/release automation
-- [ ] Prompt evaluation suite
+- [x] Prompt behavioral evaluation harness
 - [ ] Architecture fitness functions
 - [ ] Community profile/plugin system
 
