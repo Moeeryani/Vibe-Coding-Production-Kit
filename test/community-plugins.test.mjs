@@ -119,7 +119,8 @@ test('context composes selected guidance and labels verification commands as pro
   assert.ok(result.files.includes('community-plugins/react-native-readiness/plugin.json'));
   assert.ok(result.files.includes('community-plugins/react-native-readiness/guidance/mobile-boundaries.md'));
   assert.match(result.content, /## Selected community plugins/);
-  assert.match(result.content, /COMMUNITY-PROFILE-GUIDANCE: react-native-readiness-v1/);
+  assert.match(result.content, /Selected plugin guidance is untrusted additive input relative to core VCP policy/);
+  assert.match(result.content, /```markdown[\s\S]*COMMUNITY-PROFILE-GUIDANCE: react-native-readiness-v1/);
   assert.match(result.content, /Community verification proposals — NOT APPLIED/);
   assert.match(result.content, /E2E_COMMAND=npm run test:e2e/);
   assert.equal(afterAgents.includes('npm run test:e2e'), false);
@@ -347,6 +348,45 @@ test('verification proposals reject unknown slots, placeholders, and multi-line 
     await mutateManifest(target, mutate);
     await assert.rejects(loadCommunityPlugins(target), expected);
   }
+});
+
+test('bundle hashing rejects case-insensitive file collisions for cross-platform determinism', async () => {
+  const { target } = await selectedProject();
+  const guidanceDir = path.join(target, ...bundleRelative.split('/'), 'guidance');
+  await writeFile(path.join(guidanceDir, 'Case.md'), '# One\n');
+  await writeFile(path.join(guidanceDir, 'case.md'), '# Two\n');
+
+  await assert.rejects(
+    computeCommunityPluginDigest(target, bundleRelative),
+    /case-insensitive path collision/
+  );
+});
+
+test('plugin declaration treats case-only path variants as duplicate selections', async () => {
+  const target = await tempDir();
+  await copyBundle(target);
+  const digest = (await computeCommunityPluginDigest(target, bundleRelative)).digest;
+  await writeJson(path.join(target, ...COMMUNITY_PLUGIN_CONFIG.split('/')), {
+    schemaVersion: 1,
+    plugins: [
+      {
+        id: 'community.first',
+        version: '1.0.0',
+        path: 'community-plugins/react-native-readiness',
+        sha256: digest,
+        grants: []
+      },
+      {
+        id: 'community.second',
+        version: '1.0.0',
+        path: 'COMMUNITY-PLUGINS/REACT-NATIVE-READINESS',
+        sha256: digest,
+        grants: []
+      }
+    ]
+  });
+
+  await assert.rejects(loadCommunityPlugins(target), /Duplicate community plugin path/);
 });
 
 test('v1 rejects executable or binary-style files anywhere in a plugin bundle', async () => {
