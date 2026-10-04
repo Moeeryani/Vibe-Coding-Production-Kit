@@ -446,3 +446,22 @@ test('architecture source roots refuse symlinked path components', async () => {
     /Refusing to follow symlink in managed path/
   );
 });
+
+
+test('compact static re-export syntax still contributes dependency edges and cycles', async () => {
+  const target = await copyReference();
+  const config = await readConfig(target);
+  config.modules.find((item) => item.name === 'domain').mayImport = ['application'];
+  await writeConfig(target, config);
+  await writeFile(
+    path.join(target, 'src', 'domain', 'index.mjs'),
+    "export{InvitationService}from'../application/invitation-service.mjs';export*from'./invitation.mjs';\n",
+    'utf8'
+  );
+
+  const report = await runArchitectureFitness({ targetDir: target });
+
+  assert.equal(report.success, false);
+  assert.deepEqual(report.cycles, [['application', 'domain']]);
+  assert.ok(codes(report).includes('module-dependency-cycle'));
+});
