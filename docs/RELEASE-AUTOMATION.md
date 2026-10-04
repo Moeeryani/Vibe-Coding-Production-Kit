@@ -86,7 +86,7 @@ Output is preflighted **before** executable mechanics:
 - symlink traversal is refused;
 - overwrite requires `--force`.
 
-Evidence records exact Git revision/clean state, check outcomes, candidate package artifact identity, migration/update summary, and HUMAN_DECISION items. Command stdout/stderr is not retained.
+Evidence records exact Git revision/clean state, sanitized declared mechanics, check outcomes, candidate package artifact identity, migration/update summary, and HUMAN_DECISION items. Temporary paths and command stdout/stderr are not retained.
 
 ## Evidence schema
 
@@ -99,6 +99,7 @@ mode: preview | run
 revision
 previousRelease
 candidateTag
+mechanics[]
 checks[]
 humanDecisions[]
 package
