@@ -8,6 +8,7 @@ import { buildDesiredFiles } from '../lib/template.mjs';
 import { createTaskPack } from '../lib/task.mjs';
 import { createContextPack } from '../lib/context.mjs';
 import { runDoctor } from '../lib/doctor.mjs';
+import { planUpdate } from '../lib/update.mjs';
 import { parseSecurityProfileDeclaration, SECURITY_PROFILE_CONFIG } from '../lib/security-profiles.mjs';
 
 async function project() {
@@ -45,6 +46,10 @@ test('security profile parser rejects unknown, duplicate, malformed, and missing
   assert.throws(
     () => parseSecurityProfileDeclaration('# Security Profile\n\nNo active profile section.\n'),
     /must contain a "## Active profiles" section/
+  );
+  assert.throws(
+    () => parseSecurityProfileDeclaration('# Security Profile\n\n## Active profiles\n\n- `web-api`\n\n## Active profiles\n\n- `multi-tenant`\n'),
+    /exactly one "## Active profiles" section/
   );
 });
 
@@ -235,4 +240,49 @@ test('invalid security declaration remains isolated from non-security context mo
   const result = await createContextPack({ targetDir: target, task: 'security-change', mode: 'plan' });
   assert.deepEqual(result.securityProfiles, []);
   assert.doesNotMatch(result.content, /Active security profiles/);
+});
+
+
+test('update planning adds Stage 6 assets to a simulated pre-Stage-6 project', async () => {
+  const target = await project();
+  const manifestPath = path.join(target, '.vcp', 'manifest.json');
+  const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+
+  const newPaths = [
+    'docs/SECURITY-PROFILES.md',
+    'docs/security/SECURITY-PROFILE.md',
+    'docs/security/profiles/baseline.md',
+    'docs/security/profiles/web-api.md',
+    'docs/security/profiles/multi-tenant.md',
+    'docs/security/profiles/sensitive-data.md',
+    'docs/security/profiles/stateful-data.md'
+  ];
+
+  for (const relative of newPaths) delete manifest.managedFiles[relative];
+  await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
+  await rm(path.join(target, 'docs', 'SECURITY-PROFILES.md'));
+  await rm(path.join(target, 'docs', 'security', 'SECURITY-PROFILE.md'));
+  await rm(path.join(target, 'docs', 'security', 'profiles'), { recursive: true, force: true });
+
+  const plan = await planUpdate({ targetDir: target });
+  for (const relative of newPaths) {
+    const action = plan.actions.find((item) => item.path === relative);
+    assert.equal(action?.type, 'ADD', `${relative} should be added by update planning`);
+  }
+});
+
+test('update planning preserves project-owned security profile selection', async () => {
+  const target = await project();
+  const configPath = path.join(target, ...SECURITY_PROFILE_CONFIG.split('/'));
+  await writeFile(
+    configPath,
+    '# Security Profile\n\nAuthority: ACCEPTED\n\n## Active profiles\n\n- `multi-tenant`\n',
+    'utf8'
+  );
+
+  const plan = await planUpdate({ targetDir: target });
+  const action = plan.actions.find((item) => item.path === SECURITY_PROFILE_CONFIG);
+
+  assert.equal(action?.type, 'PRESERVE');
+  assert.equal(plan.conflicts, 0);
 });
