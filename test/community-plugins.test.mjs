@@ -254,6 +254,50 @@ test('selection rejects duplicate ids, paths, and grants deterministically', asy
   await assert.rejects(loadCommunityPlugins(target), /duplicate value "guidance"/);
 });
 
+test('declaration schema and unknown selection keys are rejected before plugin loading', async () => {
+  const target = await tempDir();
+  await writeJson(path.join(target, ...COMMUNITY_PLUGIN_CONFIG.split('/')), {
+    schemaVersion: 2,
+    plugins: []
+  });
+  await assert.rejects(loadCommunityPlugins(target), /Unsupported community plugin declaration schemaVersion/);
+
+  await writeJson(path.join(target, ...COMMUNITY_PLUGIN_CONFIG.split('/')), {
+    schemaVersion: 1,
+    plugins: [{
+      id: 'community.invalid',
+      version: '1.0.0',
+      path: 'community-plugins/invalid',
+      sha256: 'sha256:' + '0'.repeat(64),
+      grants: [],
+      trustMe: true
+    }]
+  });
+  await assert.rejects(loadCommunityPlugins(target), /unsupported key "trustMe"/);
+});
+
+test('manifest rejects duplicate guidance paths and verification proposal keys', async () => {
+  const guidanceDup = await selectedProject();
+  await mutateManifest(guidanceDup.target, value => {
+    value.contributions.guidance.push({ ...value.contributions.guidance[0] });
+  });
+  await assert.rejects(loadCommunityPlugins(guidanceDup.target), /duplicate guidance path/);
+
+  const proposalDup = await selectedProject();
+  await mutateManifest(proposalDup.target, value => {
+    value.contributions.verificationProposals.push({ ...value.contributions.verificationProposals[0] });
+  });
+  await assert.rejects(loadCommunityPlugins(proposalDup.target), /duplicate verification proposal key/);
+});
+
+test('missing declared guidance fails instead of silently dropping plugin context', async () => {
+  const { target } = await selectedProject();
+  await rm(path.join(target, ...bundleRelative.split('/'), 'guidance', 'mobile-boundaries.md'));
+  const newDigest = await computeCommunityPluginDigest(target, bundleRelative);
+  await writeSelection(target, { sha256: newDigest.digest });
+  await assert.rejects(loadCommunityPlugins(target), /guidance file is missing from bundle/);
+});
+
 test('manifest rejects unsupported schema, kind, capability, executable-style keys, and empty guidance modes', async () => {
   const cases = [
     [value => { value.schemaVersion = 2; }, /Unsupported community plugin manifest schemaVersion/],
