@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "suiteId": "vcp-stage7-core",
+  "properties": [
+    "discover-before-ask",
+    "human-decision-boundary",
+    "proposal-not-approval",
+    "negative-decisions-preserved",
+    "bounded-vertical-plan",
+    "blockers-readiness-respected",
+    "verification-reporting-accurate",
+    "follow-ups-recorded",
+    "restartable"
+  ],
+  "scenarios": [
+    {
+      "id": "discovery-boundaries",
+      "prompt": "prompts/01-discovery.md",
+      "properties": [
+        "discover-before-ask",
+        "human-decision-boundary",
+        "proposal-not-approval",
+        "negative-decisions-preserved"
+      ],
+      "expectations": {
+        "discoverableFacts": [
+          "repo.test-runner",
+          "repo.auth-library"
+        ],
+        "unresolvedHumanDecisions": [
+          "product.invite-expiry"
+        ],
+        "approvedDecisions": [
+          "product.single-use-token"
+        ],
+        "requiredProposals": [
+          "engineering.transaction-boundary"
+        ],
+        "negativeDecisions": [
+          "scope.no-mobile"
+        ]
+      }
+    },
+    {
+      "id": "plan-vertical-blockers",
+      "prompt": "prompts/02-plan-task.md",
+      "properties": [
+        "bounded-vertical-plan",
+        "blockers-readiness-respected"
+      ],
+      "expectations": {
+        "requiredPlanSlices": [
+          {
+            "id": "slice.accept-invite",
+            "kind": "vertical",
+            "outcome": "invite.accepted",
+            "requiredEvidence": [
+              "unit.accept",
+              "integration.accept"
+            ],
+            "forbiddenScope": [
+              "billing-refactor",
+              "global-auth-rewrite"
+            ],
+            "ready": false,
+            "blockedBy": [
+              "decision.expiry"
+            ]
+          },
+          {
+            "id": "slice.token-hash-regression",
+            "kind": "vertical",
+            "outcome": "token-hash-regression-covered",
+            "requiredEvidence": [
+              "unit.token-hash"
+            ],
+            "forbiddenScope": [
+              "billing-refactor",
+              "global-auth-rewrite"
+            ],
+            "ready": true,
+            "blockedBy": []
+          }
+        ],
+        "blockedActions": [
+          {
+            "id": "slice.accept-invite",
+            "reason": "decision.expiry"
+          }
+        ],
+        "requiredExecutedActions": [
+          "slice.token-hash-regression"
+        ]
+      }
+    },
+    {
+      "id": "verification-followup",
+      "prompt": "prompts/03-implement-task.md",
+      "properties": [
+        "verification-reporting-accurate",
+        "follow-ups-recorded"
+      ],
+      "expectations": {
+        "verificationTruth": [
+          {
+            "id": "check.unit",
+            "executed": true,
+            "actualStatus": "pass"
+          },
+          {
+            "id": "check.e2e",
+            "executed": false,
+            "actualStatus": null
+          },
+          {
+            "id": "check.security",
+            "executed": true,
+            "actualStatus": "fail"
+          }
+        ],
+        "requiredFollowUps": [
+          {
+            "id": "followup.rate-limit",
+            "mustNotImplement": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "review-restartability",
+      "prompt": "prompts/04-code-review.md",
+      "properties": [
+        "restartable"
+      ],
+      "expectations": {
+        "requiredDurableArtifacts": [
+          "docs/tasks/accept-invite.md",
+          "docs/product/PRD.md",
+          ".vcp/evidence/accept-invite.json"
+        ],
+        "requireNoChatDependency": true
+      }
+    }
+  ]
+}
