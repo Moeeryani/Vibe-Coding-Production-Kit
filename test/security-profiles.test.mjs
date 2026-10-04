@@ -7,6 +7,7 @@ import { initProject } from '../lib/init.mjs';
 import { buildDesiredFiles } from '../lib/template.mjs';
 import { createTaskPack } from '../lib/task.mjs';
 import { createContextPack } from '../lib/context.mjs';
+import { runDoctor } from '../lib/doctor.mjs';
 import { parseSecurityProfileDeclaration, SECURITY_PROFILE_CONFIG } from '../lib/security-profiles.mjs';
 
 async function project() {
@@ -191,4 +192,33 @@ test('reference SaaS security context dogfoods all Stage 6 profiles', async () =
   assert.match(result.content, /SECURITY-PROFILE: multi-tenant/);
   assert.match(result.content, /Do not claim legal\/regulatory compliance/);
   assert.ok(result.files.includes('docs/security/SECURITY-PROFILE.md'));
+});
+
+
+test('doctor exposes active profiles and baseline fallback without warning old projects', async () => {
+  const target = await project();
+  await rm(path.join(target, ...SECURITY_PROFILE_CONFIG.split('/')));
+
+  const report = await runDoctor(target);
+  const security = report.checks.find((item) => item.id === 'security-profiles');
+
+  assert.deepEqual(report.securityProfiles, ['baseline']);
+  assert.equal(security.status, 'pass');
+  assert.match(security.detail, /packaged baseline fallback applies/);
+});
+
+test('doctor fails visibly for invalid explicit security profile state', async () => {
+  const target = await project();
+  await writeFile(
+    path.join(target, ...SECURITY_PROFILE_CONFIG.split('/')),
+    '# Security Profile\n\nAuthority: ACCEPTED\n\n## Active profiles\n\n- `invalid-profile`\n',
+    'utf8'
+  );
+
+  const report = await runDoctor(target);
+  const security = report.checks.find((item) => item.id === 'security-profiles');
+
+  assert.deepEqual(report.securityProfiles, []);
+  assert.equal(security.status, 'fail');
+  assert.match(security.detail, /Unknown security profile/);
 });
