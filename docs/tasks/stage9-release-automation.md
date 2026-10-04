@@ -81,9 +81,10 @@ Complete Stage 9 by automating release-candidate mechanics and retained evidence
 
 - Authentication impact: release-check never needs or stores registry credentials for publication; actual publish is outside the command.
 - Authorization/resource ownership: command only reads the selected release repo and creates temporary local worktrees/consumers; optional evidence output is project-local.
+- Tenant isolation: n/a — release-check is a local single-repository maintainer command and has no tenant model or shared tenant-owned state.
 - Input/trust boundaries: policy/changelog/package metadata/Git history/npm JSON are validated; output paths reject traversal/symlinks.
 - Secrets/PII/logging: no command stdout/stderr is retained in evidence.
-- Abuse/replay considerations: reruns are deterministic evidence collection; candidate tag mismatch fails rather than being repaired.
+- Abuse/rate/replay considerations: reruns are deterministic evidence collection; no remote rate-controlled operation is performed except npm dry-run tooling, and candidate tag mismatch fails rather than being repaired.
 - Relevant threat IDs: n/a — no accepted project-specific threat ID governs this local release-candidate gate and none should be invented.
 
 ## Failure modes and edge cases
@@ -119,6 +120,10 @@ Human output shows each PASS/FAIL/PLANNED/HUMAN_DECISION item. JSON evidence sto
 - candidate dry-run/apply/Doctor/framework/idempotence update smoke;
 - retained evidence schema and no stdout/stderr fields.
 
+### E2E / regression
+- exact-head `vcp release-check 0.9.3 --run` dogfood from a fresh clone proves package inspection, publish dry-run, both installed CLI aliases, previous-release local pack/init, offline 0.9.2→0.9.3 update, Doctor/framework validation, and idempotence;
+- regression coverage keeps earlier version/changelog/tag/output-path/provider-boundary/current-version failures red-capable.
+
 ### Negative/security paths
 - dirty tree;
 - mismatched version/changelog;
@@ -130,9 +135,9 @@ Human output shows each PASS/FAIL/PLANNED/HUMAN_DECISION item. JSON evidence sto
 
 ## Rollout, migration, and recovery
 
-- Compatibility: additive CLI plus 0.9.3 lifecycle migration.
+- Deployment/compatibility concerns: no deployment is performed; the additive CLI and 0.9.3 lifecycle migration must preserve existing managed-project behavior, while Linux/hosted compatibility remains the separate non-blocking follow-up #69.
 - Migration/backfill: fresh 0.9.2 managed project is the executable upgrade dogfood source.
-- Recovery: release-check never changes candidate repository source/tag/publication state; temporary worktrees/consumers are removed. Lifecycle smoke uses VCP's normal backup/rollback-protected update path.
+- Rollback or recovery: release-check never changes candidate repository source/tag/publication state; temporary worktrees/consumers are removed. Lifecycle smoke uses VCP's normal backup/rollback-protected update path and requires a backup before a successful apply.
 
 ## Implementation plan
 
@@ -155,6 +160,7 @@ Human output shows each PASS/FAIL/PLANNED/HUMAN_DECISION item. JSON evidence sto
 
 | Class | Disposition | Finding / evidence | Resolution / follow-up | Residual risk |
 |---|---|---|---|---|
+| TEST / AUTHORING DEFECT | corrected after red pre-final gate | Fresh-clone gate on `92ccb3551e5722a43a6e9a887ebd24a31c4a2dca` proved the Stage 9 mechanics themselves green (focused 68/68, Doctor 0 fail, full validation 337/337, package check pass, release-check run success with 0.9.2→0.9.3 lifecycle and HUMAN_DECISION publication/tag boundary) but failed `git diff --check` on one trailing-space Roadmap line and strict readiness on three missing Task Pack labels. VCP verify correctly refused because readiness had 3 failures. | Remove the Roadmap trailing whitespace; add exact readiness labels for tenant isolation, abuse/rate/replay, E2E/regression, deployment/compatibility, and rollback/recovery with reasoned n/a/bounded statements. | Same fresh-clone exact-head gate must rerun; prior green mechanics are superseded as merge evidence by the red overall gate. |
 | NO ACTION | n/a | Awaiting complete Stage 9 changed-surface review and exact-head executable validation. | Keep in Review. | Actual publication/tag creation remain intentionally outside automated evidence. |
 
 ## Finalization
