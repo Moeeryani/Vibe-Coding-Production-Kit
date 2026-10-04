@@ -10,6 +10,7 @@ const requiredFiles = [
   'docs/OPERATING-MODEL.md',
   'docs/CLI.md',
   'docs/PROMPT-EVALUATION.md',
+  'docs/ARCHITECTURE-FITNESS.md',
   'docs/DOCTOR.md',
   'docs/STACK-PROFILES.md',
   'docs/SECURITY-PROFILES.md',
