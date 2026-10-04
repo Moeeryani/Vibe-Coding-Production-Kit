@@ -8,6 +8,7 @@ import {
   COMMUNITY_PLUGIN_CONFIG_MAX_BYTES,
   COMMUNITY_PLUGIN_MAX_ENTRIES,
   assertCaseFoldUniquePaths,
+  assertExactPathCase,
   computeCommunityPluginDigest,
   inspectCommunityPlugins,
   loadCommunityPlugins
@@ -547,6 +548,15 @@ test('case-insensitive path collision contract is host-independent', () => {
   assert.throws(
     () => assertCaseFoldUniquePaths(['guidance/Case.md', 'guidance/case.md']),
     /case-insensitive path collision/
+  );
+});
+
+test('authoritative bundle path casing must match the filesystem exactly', async () => {
+  const target = await tempDir();
+  await copyBundle(target);
+  await assert.rejects(
+    assertExactPathCase(target, 'community-plugins/React-Native-Readiness'),
+    /casing does not match the filesystem entry/
   );
 });
 
