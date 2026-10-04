@@ -36,10 +36,18 @@ Rejected in v1:
 - hooks/scripts/entrypoints/core overrides;
 - implicit trust from Git/GitHub ownership.
 
+Every v1 bundle must live under the dedicated project-owned namespace:
+
+```text
+community-plugins/<bundle-name>/
+```
+
+Bundle and guidance path segments are intentionally portable ASCII only: letters, digits, dot, underscore, and hyphen; segments cannot start with punctuation, end with a dot, or use Windows-reserved device names such as `CON`, `NUL`, `COM1`, or `LPT1`.
+
 The manifest must be:
 
 ```text
-<bundle>/plugin.json
+community-plugins/<bundle-name>/plugin.json
 ```
 
 ## Project declaration
@@ -105,8 +113,11 @@ V1 also bounds local extension input before it reaches context rendering:
 
 - at most 32 selected plugins per project declaration;
 - at most 64 files per bundle;
+- at most 128 filesystem entries traversed per bundle, including directories;
 - at most 2,000,000 raw bytes read across one bundle;
-- at most 1,000,000 bytes after LF-normalized UTF-8 text decoding.
+- at most 1,000,000 bytes after LF-normalized UTF-8 text decoding;
+- at most 128,000 bytes for the project plugin declaration before JSON parsing;
+- disallowed terminal/control characters are rejected in schema strings and bundle text.
 
 These are safety/resource limits, not signals of trust.
 
@@ -225,7 +236,7 @@ Doctor never repairs trust or updates a digest.
 
 VCP does not create `docs/plugins/PLUGINS.json` during `init`.
 
-Project declarations and local bundles are project-owned, outside the VCP managed-file manifest unless the project deliberately manages them through some separate mechanism. VCP update therefore does not invent selections or replace local community bundles.
+Project declarations and bundles under `community-plugins/` are project-owned and outside the VCP managed-file manifest. VCP update therefore does not invent selections or replace local community bundles.
 
 ## Security/trust boundaries
 
