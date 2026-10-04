@@ -417,6 +417,31 @@ test('selected plugins are returned in deterministic id order independent of dec
   assert.deepEqual(loaded.plugins.map((plugin) => plugin.id), ['community.alpha', 'community.zeta']);
 });
 
+test('plugin ids and versions reject leading or trailing Unicode whitespace instead of trimming exact pins', async () => {
+  const cases = [
+    [{ id: 'community.react-native-readiness\u00a0' }, /id must not have leading or trailing whitespace/],
+    [{ version: ' 1.0.0' }, /version must not have leading or trailing whitespace/]
+  ];
+
+  for (const [override, expected] of cases) {
+    const target = await tempDir();
+    await copyBundle(target);
+    const digest = (await computeCommunityPluginDigest(target, bundleRelative)).digest;
+    await writeJson(path.join(target, ...COMMUNITY_PLUGIN_CONFIG.split('/')), {
+      schemaVersion: 1,
+      plugins: [{
+        id: 'community.react-native-readiness',
+        version: '1.0.0',
+        path: bundleRelative,
+        sha256: digest,
+        grants: ['guidance', 'verification-proposals'],
+        ...override
+      }]
+    });
+    await assert.rejects(loadCommunityPlugins(target), expected);
+  }
+});
+
 test('selection rejects duplicate ids, paths, and grants deterministically', async () => {
   const target = await tempDir();
   await copyBundle(target);
