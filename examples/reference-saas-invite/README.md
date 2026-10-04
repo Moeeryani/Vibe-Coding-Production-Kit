@@ -16,9 +16,10 @@ Read in this order:
 4. [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
 5. [`docs/architecture/adr/ADR-001-invite-token-storage.md`](docs/architecture/adr/ADR-001-invite-token-storage.md)
 6. [`docs/security/THREAT-MODEL.md`](docs/security/THREAT-MODEL.md)
-7. [`docs/testing/TEST-STRATEGY.md`](docs/testing/TEST-STRATEGY.md)
-8. [`docs/tasks/accept-invite.md`](docs/tasks/accept-invite.md)
-9. [`src/`](src/) and [`test/`](test/)
+7. [`docs/security/SECURITY-PROFILE.md`](docs/security/SECURITY-PROFILE.md)
+8. [`docs/testing/TEST-STRATEGY.md`](docs/testing/TEST-STRATEGY.md)
+9. [`docs/tasks/accept-invite.md`](docs/tasks/accept-invite.md)
+10. [`src/`](src/) and [`test/`](test/)
 
 That order is intentional: **why -> behavior -> domain -> architecture -> decision -> risk -> verification -> bounded task -> code**.
 

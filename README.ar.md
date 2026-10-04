@@ -444,8 +444,8 @@ npm run check
 - [x] Safe `vcp update`
 - [x] Three-way merge + migrations + backup/rollback + manage
 - [ ] Mobile stack profiles
-- [ ] Monorepo/CI profiles
-- [ ] Security profiles
+- [x] Monorepo/project evidence semantics
+- [x] Project-sensitive security profiles
 - [ ] Git-aware review/release automation
 - [ ] Prompt evaluation suite
 - [ ] Architecture fitness functions
