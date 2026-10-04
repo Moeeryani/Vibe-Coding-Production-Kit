@@ -300,6 +300,30 @@ Evidence output is preflighted before executable mechanics, stays inside the sel
 
 See [`RELEASE-AUTOMATION.md`](RELEASE-AUTOMATION.md).
 
+## Inspect explicitly selected community plugins
+
+Stage 10 is local and declarative. VCP never auto-discovers or downloads plugins.
+
+Inspect selected/pinned bundles:
+
+```bash
+vcp plugins --dir .
+vcp plugins --dir . --json
+```
+
+Compute the canonical digest while authoring or reviewing a local bundle:
+
+```bash
+vcp plugins --dir . --digest community-plugins/example
+vcp plugins --dir . --digest community-plugins/example --json
+```
+
+Digest computation is read-only. It does not select the plugin, update `docs/plugins/PLUGINS.json`, or grant capabilities.
+
+Selected plugin guidance may appear additively in bounded context packs. Verification commands remain labeled proposals and are never copied into `AGENTS.md` or executed automatically.
+
+See [`COMMUNITY-PLUGINS.md`](COMMUNITY-PLUGINS.md).
+
 ## Safety behavior
 
 The CLI is intentionally conservative:
@@ -339,7 +363,7 @@ Before using bootstrap `--force`, inspect the reported conflicts. The CLI never 
 --timeout-ms <n>   verify/release-check: command timeout
 --title <text>     task title
 --stage <name>     readiness stage: plan | implement
---dir <path>       task/ready/context/verify/manage/prompt-eval/fitness/release-check project root
+--dir <path>       task/ready/context/verify/manage/prompt-eval/fitness/release-check/plugins project root
 --mode <name>      context mode: plan | implement | review | security | release
                     security mode also loads baseline + explicit docs/security/SECURITY-PROFILE.md profiles
 --include <path>   add an existing explicit context file; repeatable
@@ -349,7 +373,7 @@ Before using bootstrap `--force`, inspect the reported conflicts. The CLI never 
 --response <path>   prompt-eval: one behavior-record JSON inside the project
 --responses <dir>  prompt-eval all: directory containing <scenario-id>.json files
 --config <path>    fitness: project-relative config (default: docs/architecture/FITNESS.json)
---policy <path>    release-check: repository-relative release policy (default: .github/release-policy.json)
+--policy <path>    release-check: repository-relative release policy (default: .github/release-policy.json)\n--digest <path>    plugins: compute canonical SHA-256 for one local declarative bundle
 --help, -h         show help
 --version, -v      show version
 ```
