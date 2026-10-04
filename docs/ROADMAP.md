@@ -262,7 +262,7 @@ Source-of-Truth freshness, decision lifecycle, negative decisions, task state, l
 
 Verification, Git-aware review, security profiles, prompt evaluation, architecture fitness, conformance.
 
-**Next:** prompt behavioral evaluation after Stage 6 security-profile completion; keep Linux/hosted compatibility as non-blocking conformance follow-up #69.
+**Next:** architecture fitness functions after completed Stage 7 prompt behavioral evaluation; keep Linux/hosted compatibility as non-blocking conformance follow-up #69.
 
 ### Track D — Repository Scale and Delivery
 
