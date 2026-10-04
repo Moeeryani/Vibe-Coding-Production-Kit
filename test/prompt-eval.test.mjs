@@ -10,7 +10,8 @@ import {
   evaluatePromptSuite,
   listPromptEvalScenarios,
   loadCanonicalPromptEvalSuite,
-  promptEvalExitCode
+  promptEvalExitCode,
+  validatePromptEvalSuite
 } from '../lib/prompt-eval.mjs';
 
 const repoRoot = path.resolve('.');
@@ -402,4 +403,21 @@ test('canonical stimuli and evaluator ground truth agree on decision identities'
   for (const key of discovery.expectations.discoverableFacts) {
     assert.ok(discovery.stimulus.repositoryEvidence.some((item) => item.key === key));
   }
+});
+
+
+test('canonical scenario prompt paths cannot traverse or escape the prompts root', async () => {
+  const suite = await loadCanonicalPromptEvalSuite();
+  const invalid = structuredClone(suite);
+  delete invalid.suiteBlobSha;
+  for (const scenario of invalid.scenarios) {
+    delete scenario.suiteBlobSha;
+    delete scenario.promptContent;
+  }
+  invalid.scenarios[0].prompt = 'prompts/../package.json';
+
+  assert.throws(
+    () => validatePromptEvalSuite(invalid),
+    /canonical top-level prompts\/<file>\.md path/
+  );
 });
