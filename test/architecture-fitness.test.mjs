@@ -339,3 +339,20 @@ test('empty configured source roots cannot produce a vacuous green result', asyn
   assert.equal(report.success, false);
   assert.ok(codes(report).includes('no-analyzed-source-files'));
 });
+
+
+test('same-line second import cannot hide a forbidden dependency', async () => {
+  const target = await copyReference();
+  const file = path.join(target, 'src', 'application', 'invitation-service.mjs');
+  const content = await readFile(file, 'utf8');
+  await writeFile(
+    file,
+    `import '../domain/index.mjs'; import '../infrastructure/memory-invitation-repository.mjs';\n${content}`,
+    'utf8'
+  );
+
+  const report = await runArchitectureFitness({ targetDir: target });
+
+  assert.equal(report.success, false);
+  assert.ok(codes(report).includes('forbidden-dependency-direction'));
+});
