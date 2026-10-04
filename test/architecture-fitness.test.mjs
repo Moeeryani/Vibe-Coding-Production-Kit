@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { cp, mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, readFile, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -420,4 +420,29 @@ test('dense cyclic module graph reports one bounded strongly connected component
   assert.equal(report.success, false);
   assert.deepEqual(report.cycles, [['a', 'b', 'c', 'd']]);
   assert.equal(report.violations.filter((item) => item.code === 'module-dependency-cycle').length, 1);
+});
+
+
+test('architecture source roots refuse symlinked path components', async () => {
+  const target = await copyReference();
+  const outside = await mkdtemp(path.join(os.tmpdir(), 'vcp-stage8-symlink-outside-'));
+  await mkdir(path.join(outside, 'domain'), { recursive: true });
+  await writeFile(path.join(outside, 'domain', 'index.mjs'), 'export const outside = true;\n', 'utf8');
+  await symlink(outside, path.join(target, 'linked-src'), process.platform === 'win32' ? 'junction' : 'dir');
+
+  const config = await readConfig(target);
+  config.sourceRoots = ['linked-src'];
+  config.modules = [{
+    name: 'domain',
+    owner: 'membership-domain',
+    roots: ['linked-src/domain'],
+    mayImport: [],
+    publicEntries: ['linked-src/domain/index.mjs']
+  }];
+  await writeConfig(target, config);
+
+  await assert.rejects(
+    runArchitectureFitness({ targetDir: target }),
+    /Refusing to follow symlink in managed path/
+  );
 });
