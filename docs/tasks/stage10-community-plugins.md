@@ -25,7 +25,7 @@ Complete Stage 10 with a deterministic/versioned plugin model that is explicit i
 - [ ] AC-001 — project declaration and plugin manifest schemaVersion 1 are strict and versioned.
 - [ ] AC-002 — plugin selection is explicit; absence of declaration performs no discovery and remains backward compatible.
 - [ ] AC-003 — selected id/version/path/digest/grants must exactly match validated local bundle state.
-- [ ] AC-004 — bundle paths are repository-local, drive/URL/traversal/symlink safe.
+- [ ] AC-004 — bundle paths are confined to project-owned `community-plugins/`, portable across Windows/Linux, and drive/URL/traversal/symlink safe.
 - [ ] AC-005 — canonical digest covers all LF-normalized text files deterministically and detects add/remove/edit tampering.
 - [ ] AC-006 — v1 rejects executable/binary bundle files and executable-style/unknown manifest contribution keys.
 - [ ] AC-007 — VCP compatibility range, known capabilities, duplicates, and concrete verification slots are validated exactly.
@@ -95,9 +95,9 @@ Complete Stage 10 with a deterministic/versioned plugin model that is explicit i
 
 - missing declaration or empty plugin list;
 - malformed/duplicate declaration entries;
-- path traversal, URL, drive path, symlink;
+- path traversal, URL, drive path, path outside `community-plugins/`, non-portable/reserved path segment, symlink;
 - missing bundle/manifest/guidance;
-- binary/executable file in bundle;
+- binary/executable file or disallowed control character in bundle/schema text;
 - digest mismatch after any file change;
 - plugin id/version mismatch;
 - incompatible VCP version range;
@@ -106,6 +106,7 @@ Complete Stage 10 with a deterministic/versioned plugin model that is explicit i
 - unsupported manifest/contribution key;
 - guidance with no modes;
 - invalid verification slot or placeholder command;
+- declaration/bundle entry/read/text resource limits exceeded;
 - context budget exceeded after plugin guidance;
 - invalid selected plugin causing Doctor/context/inspection failure.
 
@@ -182,6 +183,8 @@ Human and JSON plugin inspection show selected id/version/path/digest/grants/cap
 | NO ACTION | reviewed design boundary | Changed-surface static audit confirms the v1 loader has no executable hook/entrypoint/network/npm discovery path; unknown manifest/contribution namespaces fail; command contributions remain proposal-only; init/update do not invent or manage project plugin state; the React Native fixture does not change stack detection or satisfy the separate Mobile profiles commitment. | Preserve the narrow declarative v1 scope. | Remote distribution/signatures and native mobile support remain intentionally out of scope. |
 | NO ACTION | release/package boundary | Stage 10 remains part of the unpublished 0.9.3 candidate, so release policy now requires both `lib/community-plugins.mjs` and `docs/COMMUNITY-PLUGINS.md` in the package surface. | Re-run package validation and the existing 0.9.3 release-check dogfood before merge. | No `v0.9.3` tag or npm publication is authorized by Stage 10. |
 | TEST DEFECT | corrected before executable gate | Final pre-gate audit found the case-only file-collision regression tried to create both `Case.md` and `case.md` on disk, which is not a portable test on Windows case-insensitive filesystems. | Factor the case-fold uniqueness rule into the actual loader helper and test that helper directly with synthetic portable paths; bundle walking still invokes the same rule. | Prevents Windows test behavior from depending on filesystem case semantics. |
+| DEFECT | corrected before executable gate | Final trust-boundary audit found that a nominally project-owned plugin could be selected from arbitrary repository directories, path names were not fully portable across Windows/Linux, schema/text control characters could reach terminal/context output, and file-count/byte limits did not bound excessive empty-directory traversal or declaration size. | Require all bundles under `community-plugins/`; restrict local path segments to portable ASCII and reject Windows-reserved names; reject control characters; cap declaration size and total traversed entries in addition to file/raw/normalized-byte limits. | These are deterministic v1 portability/resource contracts, not trust signals. |
+| DEFECT | corrected before executable gate | Public CLI implemented `vcp plugins` and `--digest` but runtime `--help` omitted the command/option/examples. | Add the missing help surface and an executable regression. | Help text must pass the same exact-head gate as the implementation. |
 | NO ACTION | pending external review | CodeRabbit has not yet emitted a submitted review or inline finding on the complete current Stage 10 source surface. | Request review on the exact pre-gate candidate and audit submitted review bodies, inline threads, and top-level comments before finalization. | Absence/pending state is not approval. |
 
 ## Finalization
