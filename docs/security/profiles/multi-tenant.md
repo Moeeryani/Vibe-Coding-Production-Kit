@@ -11,7 +11,7 @@ Use when multiple customers/organizations/tenants share application or infrastru
 - inspect direct-object references and lookup-before-authorization patterns;
 - separate tenant-admin, platform-admin, support/operator, and ordinary-user authority;
 - check shared caches, queues, object storage keys, analytics, search indexes, and async consumers for tenant context loss;
-- inspect bulk operations and error behavior for cross-tenant existence leaks;
+- inspect bulk operations and error behavior for cross-tenant isolation leaks, including existence leaks;
 - preserve tenant context across retries, callbacks, scheduled/background work, and idempotency keys.
 
 ## Negative tests
