@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { initProject } from '../lib/init.mjs';
+import { buildDesiredFiles } from '../lib/template.mjs';
 import { createTaskPack } from '../lib/task.mjs';
 import { createContextPack } from '../lib/context.mjs';
 import { parseSecurityProfileDeclaration, SECURITY_PROFILE_CONFIG } from '../lib/security-profiles.mjs';
@@ -108,5 +109,26 @@ test('explicit invalid profile state fails security context instead of silently 
   await assert.rejects(
     createContextPack({ targetDir: target, task: 'security-change', mode: 'security' }),
     /Unknown security profile/
+  );
+});
+
+
+test('lifecycle ownership preserves project selection and merge-manages canonical guidance', async () => {
+  const target = await mkdtemp(path.join(os.tmpdir(), 'vcp-security-profile-ownership-'));
+  const desired = await buildDesiredFiles({ targetDir: target, agent: 'generic', stack: 'generic', includeGitHub: false });
+
+  assert.equal(desired.files.get('docs/security/SECURITY-PROFILE.md').policy, 'preserve');
+  assert.equal(desired.files.get('docs/security/profiles/baseline.md').policy, 'merge');
+  assert.equal(desired.files.get('docs/security/profiles/web-api.md').policy, 'merge');
+});
+
+test('reference SaaS selects all project-sensitive Stage 6 profiles explicitly', async () => {
+  const content = await readFile(
+    path.resolve('examples/reference-saas-invite/docs/security/SECURITY-PROFILE.md'),
+    'utf8'
+  );
+  assert.deepEqual(
+    parseSecurityProfileDeclaration(content),
+    ['baseline', 'web-api', 'multi-tenant', 'sensitive-data', 'stateful-data']
   );
 });
