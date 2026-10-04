@@ -132,3 +132,37 @@ test('reference SaaS selects all project-sensitive Stage 6 profiles explicitly',
     ['baseline', 'web-api', 'multi-tenant', 'sensitive-data', 'stateful-data']
   );
 });
+
+
+test('draft security profile declaration cannot govern security review', async () => {
+  const target = await project();
+  await writeFile(
+    path.join(target, ...SECURITY_PROFILE_CONFIG.split('/')),
+    '# Security Profile\n\nAuthority: DRAFT\n\n## Active profiles\n\n- `web-api`\n',
+    'utf8'
+  );
+
+  await assert.rejects(
+    createContextPack({ targetDir: target, task: 'security-change', mode: 'security' }),
+    /only plan context may use draft governing material/
+  );
+});
+
+test('security profile document identity must match the selected profile', async () => {
+  const target = await project();
+  await writeFile(
+    path.join(target, ...SECURITY_PROFILE_CONFIG.split('/')),
+    '# Security Profile\n\nAuthority: ACCEPTED\n\n## Active profiles\n\n- `web-api`\n',
+    'utf8'
+  );
+  await writeFile(
+    path.join(target, 'docs', 'security', 'profiles', 'web-api.md'),
+    '# Wrong profile\n\nSECURITY-PROFILE: multi-tenant\n',
+    'utf8'
+  );
+
+  await assert.rejects(
+    createContextPack({ targetDir: target, task: 'security-change', mode: 'security' }),
+    /must declare exactly "SECURITY-PROFILE: web-api"/
+  );
+});
