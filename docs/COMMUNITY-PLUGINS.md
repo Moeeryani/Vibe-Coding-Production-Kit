@@ -42,7 +42,7 @@ Every v1 bundle must live under the dedicated project-owned namespace:
 community-plugins/<bundle-name>/
 ```
 
-Bundle and guidance path segments are intentionally portable ASCII only: letters, digits, dot, underscore, and hyphen; segments cannot start with punctuation, end with a dot, or use Windows-reserved device names such as `CON`, `NUL`, `COM1`, or `LPT1`.
+Bundle and guidance path segments are intentionally portable ASCII only: letters, digits, dot, underscore, and hyphen; segments cannot start with punctuation, end with a dot, or use Windows-reserved device names such as `CON`, `NUL`, `COM1`, or `LPT1`. Authoritative declaration paths must also match the filesystem's actual letter casing exactly so a Windows-successful declaration cannot fail later on a case-sensitive host.
 
 The manifest must be:
 
