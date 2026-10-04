@@ -93,6 +93,13 @@ test('config validation rejects overlapping roots, unknown dependencies, and inv
     () => validateArchitectureFitnessConfig(invalidPublic),
     /outside that module's roots/
   );
+
+  const overlappingSources = structuredClone(base);
+  overlappingSources.sourceRoots = ['src', 'src/domain'];
+  assert.throws(
+    () => validateArchitectureFitnessConfig(overlappingSources),
+    /sourceRoots must not overlap/
+  );
 });
 
 test('unowned configured source file turns ownership lane red', async () => {
@@ -294,7 +301,7 @@ test('governing ADR must have exactly one status section', async () => {
   assert.equal(report.success, false);
   const violation = report.violations.find((item) => item.code === 'adr-not-accepted');
   assert.equal(violation.statusSectionCount, 2);
-  assert.match(violation.message, /exactly one ## Status section/);
+  assert.match(violation.message, /exactly one canonical status declaration/);
 });
 
 
