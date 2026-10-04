@@ -296,3 +296,16 @@ test('governing ADR must have exactly one status section', async () => {
   assert.equal(violation.statusSectionCount, 2);
   assert.match(violation.message, /exactly one ## Status section/);
 });
+
+
+test('canonical VCP ADR metadata status format is accepted', async () => {
+  const target = await copyReference();
+  const file = path.join(target, 'docs', 'architecture', 'adr', 'ADR-001-invite-token-storage.md');
+  const content = await readFile(file, 'utf8');
+  await writeFile(file, content.replace('## Status\nAccepted', '- Status: Accepted'), 'utf8');
+
+  const report = await runArchitectureFitness({ targetDir: target });
+
+  assert.equal(report.success, true);
+  assert.equal(report.contracts.find((item) => item.kind === 'adr').status, 'Accepted');
+});
