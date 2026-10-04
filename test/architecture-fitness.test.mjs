@@ -260,3 +260,39 @@ test('unsupported static import syntax fails instead of disappearing from analys
   assert.equal(report.success, false);
   assert.ok(codes(report).includes('unsupported-static-import'));
 });
+
+
+test('missing declared module roots and public entries fail visibly', async () => {
+  const missingRootTarget = await copyReference();
+  let config = await readConfig(missingRootTarget);
+  config.modules.find((item) => item.name === 'infrastructure').roots = ['src/missing-infrastructure'];
+  config.modules.find((item) => item.name === 'infrastructure').publicEntries = [];
+  await writeConfig(missingRootTarget, config);
+
+  let report = await runArchitectureFitness({ targetDir: missingRootTarget });
+  assert.equal(report.success, false);
+  assert.ok(codes(report).includes('missing-module-root'));
+
+  const missingEntryTarget = await copyReference();
+  config = await readConfig(missingEntryTarget);
+  config.modules.find((item) => item.name === 'domain').publicEntries = ['src/domain/public.mjs'];
+  await writeConfig(missingEntryTarget, config);
+
+  report = await runArchitectureFitness({ targetDir: missingEntryTarget });
+  assert.equal(report.success, false);
+  assert.ok(codes(report).includes('missing-public-entry'));
+});
+
+test('governing ADR must have exactly one status section', async () => {
+  const target = await copyReference();
+  const file = path.join(target, 'docs', 'architecture', 'adr', 'ADR-001-invite-token-storage.md');
+  const content = await readFile(file, 'utf8');
+  await writeFile(file, `${content}\n## Status\nProposed\n`, 'utf8');
+
+  const report = await runArchitectureFitness({ targetDir: target });
+
+  assert.equal(report.success, false);
+  const violation = report.violations.find((item) => item.code === 'adr-not-accepted');
+  assert.equal(violation.statusSectionCount, 2);
+  assert.match(violation.message, /exactly one ## Status section/);
+});
