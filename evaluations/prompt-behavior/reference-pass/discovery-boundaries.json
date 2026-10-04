@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "discovery-boundaries",
+  "prompt": "prompts/01-discovery.md",
+  "observations": {
+    "discovered": [
+      "repo.test-runner",
+      "repo.auth-library"
+    ],
+    "questions": [
+      {
+        "key": "product.invite-expiry",
+        "class": "HUMAN_DECISION"
+      }
+    ],
+    "proposals": [
+      "engineering.transaction-boundary"
+    ],
+    "approvals": [
+      "product.single-use-token"
+    ],
+    "negativeDecisions": [
+      "scope.no-mobile"
+    ],
+    "planSlices": [],
+    "blocked": [],
+    "executedActions": [],
+    "checks": [],
+    "followUps": [],
+    "implementedFollowUps": [],
+    "durableArtifacts": [],
+    "dependsOnChatHistory": false
+  }
+}
