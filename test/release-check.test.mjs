@@ -11,7 +11,8 @@ import {
   releaseCheckExitCode,
   runReleaseCheck,
   validateInstallEvidence,
-  validateLifecycleEvidence
+  validateLifecycleEvidence,
+  windowsAliasCommand
 } from '../lib/release-check.mjs';
 
 const execFileAsync = promisify(execFile);
@@ -352,6 +353,13 @@ test('release-authority file symlinks are refused when the host supports symlink
     runReleaseCheck({ targetDir: root, version: '0.9.3' }),
     /Refusing to follow symlink in changelog path/
   );
+});
+
+test('Windows alias command preserves a spaced .cmd path behind the /s outer quote pair', () => {
+  const command = windowsAliasCommand('C:\\Temp Folder\\node_modules\\.bin\\vcp.cmd');
+  assert.equal(command, '""C:\\Temp Folder\\node_modules\\.bin\\vcp.cmd" --version"');
+  assert.throws(() => windowsAliasCommand('C:\\bad"path\\vcp.cmd'), /not safe/);
+  assert.throws(() => windowsAliasCommand('C:\\bad\npath\\vcp.cmd'), /not safe/);
 });
 
 test('package-surface validator turns red when a required packed file is missing', () => {
