@@ -26,6 +26,11 @@ The running VCP package owns:
 
 `evaluations/prompt-behavior/scenarios.json`
 
+Each scenario contains two distinct parts:
+
+- `stimulus` — reproducible developer intent, repository/run evidence, decision state, and task state that an external adapter may expose to the agent;
+- `expectations` — deterministic evaluator ground truth that is not returned by `vcp prompt-eval list --json`.
+
 Each scenario names the prompt under evaluation and declares structured ground truth such as:
 
 - repository facts that are discoverable;
@@ -48,7 +53,7 @@ An external agent or adapter records one JSON object per scenario:
 ```json
 {
   "schemaVersion": 1,
-  "suiteBlobSha": "268bb010ae7eb1fcfb82c7def1ac1935c2e4c871",
+  "suiteBlobSha": "ea48aa91c63ea157509cd8e465d57e5d9e53c96c",
   "scenarioId": "discovery-boundaries",
   "prompt": "prompts/01-discovery.md",
   "promptBlobSha": "15b42636ef4d4a64248ea3c971da8b3195014be5",
@@ -91,6 +96,8 @@ List canonical scenarios:
 vcp prompt-eval list
 vcp prompt-eval list --json
 ```
+
+The JSON listing includes each scenario's `stimulus`, prompt identity, and property names, but not the private `expectations` answer key. An external adapter can therefore construct a reproducible run without receiving the evaluator's pass criteria.
 
 Evaluate one recorded run:
 
