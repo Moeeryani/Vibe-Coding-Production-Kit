@@ -454,9 +454,21 @@ This Done state reaches `main` only through the standard exact-head Review → p
 
 ### Stage 10 — Community profiles / plugin model
 
-**Status:** ⬜ Planned.
+**Status:** ✅ Done — PR #79 / Issue #78.
 
-Only after core contracts stabilize. Extension loading must remain deterministic, versioned, explicit in trust, and unable to weaken core safety rules silently.
+Stage 10 adds a deliberately narrow declarative extension model:
+
+- project-owned `docs/plugins/PLUGINS.json` is the only selection authority;
+- local plugin bundles are exact id/version/path/digest pinned;
+- bundles are text-only in v1 and cannot execute code or hooks;
+- capability grants are explicit and cannot be self-granted;
+- guidance is additive bounded context only;
+- verification commands remain proposals until a human deliberately adopts them into project-owned verification state;
+- Doctor and `vcp plugins` use the same validator;
+- invalid/tampered/incompatible/ungranted/symlinked bundles fail rather than silently weakening core behavior;
+- no npm/network plugin discovery, marketplace, remote signature system, Source-of-Truth override, or core-policy override is introduced.
+
+A React Native-readiness fixture dogfoods the plugin model only. It does **not** implement native mobile detection or make the separate Mobile profiles commitment complete.
 
 ### Mobile profiles
 
