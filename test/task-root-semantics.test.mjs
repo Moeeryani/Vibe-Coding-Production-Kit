@@ -32,7 +32,7 @@ test('CLI help advertises --dir for context and verification', async () => {
   const { stdout } = await runVcp(['--help']);
   assert.match(stdout, /vcp verify <task> \[--dir <directory>\]/);
   assert.match(stdout, /vcp context <task> \[--dir <directory>\]/);
-  assert.match(stdout, /--dir <directory>  Task\/ready\/context\/verify\/manage\/prompt-eval\/fitness: project directory/);
+  assert.match(stdout, /--dir <directory>  Task\/ready\/context\/verify\/manage\/prompt-eval\/fitness\/release-check: project directory/);
 });
 
 test('task, ready, context, and verify share one selected project root', async () => {
