@@ -12,6 +12,7 @@ All notable changes to this project will be documented here.
 - Provider-independent prompt behavioral evaluation with canonical reproducible scenarios, exact suite/prompt provenance, red mutation lanes, and human/JSON reports.
 - Explicit project-owned architecture fitness functions for module ownership, dependency direction, narrow public entrypoints, realized cycles, local import failures, and governing architecture/ADR contracts.
 - Release-candidate automation that validates version/changelog consistency, immutable historical tags, package/publish dry-runs, local tarball install/update smoke, migration continuity, and retained exact-revision evidence without performing publication or tag creation.
+- Deterministic local community profile/plugin loading with explicit project selection, canonical digest pinning, capability grants, bounded guidance context, read-only inspection, and non-applied verification proposals.
 - Stack-selection provenance in `.vcp/manifest.json`, safe evidence-based generic-to-concrete lifecycle transitions, and repository-level `CHECK_COMMAND` verification support.
 
 ### Changed
