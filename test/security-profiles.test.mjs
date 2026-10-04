@@ -222,3 +222,17 @@ test('doctor fails visibly for invalid explicit security profile state', async (
   assert.equal(security.status, 'fail');
   assert.match(security.detail, /Unknown security profile/);
 });
+
+
+test('invalid security declaration remains isolated from non-security context modes', async () => {
+  const target = await project();
+  await writeFile(
+    path.join(target, ...SECURITY_PROFILE_CONFIG.split('/')),
+    '# Security Profile\n\nAuthority: SUPERSEDED\n\n## Active profiles\n\n- `not-a-profile`\n',
+    'utf8'
+  );
+
+  const result = await createContextPack({ targetDir: target, task: 'security-change', mode: 'plan' });
+  assert.deepEqual(result.securityProfiles, []);
+  assert.doesNotMatch(result.content, /Active security profiles/);
+});
