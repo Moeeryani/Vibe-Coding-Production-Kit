@@ -147,13 +147,13 @@ Evidence:
 - four-scenario realistic dogfood;
 - final-head review.
 
-### 🔴 GitHub Actions infrastructure — Issue #15
+### ✅ Executable evidence policy — Issue #15 closed; Linux/hosted follow-up #69
 
-Jobs still fail before repository steps execute. This is infrastructure evidence, not source-test evidence.
+GitHub Actions on this account repeatedly failed before runner assignment and before any repository step executed. Those zero-step failures were infrastructure evidence, not source-test evidence.
 
-An accepted interim local validation channel binds evidence to exact SHA, clean tree, Node/npm versions, commands, exit codes, and revalidation after head movement.
+VCP now deliberately accepts the proven fresh-clone Windows exact-head maintainer channel as the current long-term executable evidence policy. Evidence remains bound to exact SHA, clean tree, toolchain versions, commands, exit codes, and revalidation after head movement.
 
-Issue #15 stays open until Actions itself works or a deliberate long-term equivalent is adopted.
+Issue #15 is closed by that deliberate alternative policy; this does **not** claim GitHub Actions itself was repaired. Linux/hosted cross-OS compatibility remains explicitly unproven and is tracked as non-blocking follow-up #69.
 
 ---
 
@@ -262,13 +262,13 @@ Source-of-Truth freshness, decision lifecycle, negative decisions, task state, l
 
 Verification, Git-aware review, security profiles, prompt evaluation, architecture fitness, conformance.
 
-**Next:** concrete security profiles and prompt behavioral evaluation after repository-scale/CI evidence semantics are coherent.
+**Next:** prompt behavioral evaluation after Stage 6 security-profile completion; keep Linux/hosted compatibility as non-blocking conformance follow-up #69.
 
 ### Track D — Repository Scale and Delivery
 
 CI evidence, monorepos, release automation, stack/mobile profiles, package/repo scale.
 
-**Next:** run realistic Stage 5 monorepo/workspace conformance while #15 proceeds as separate infrastructure debt; then advance mobile/repository-scale delivery work.
+**Next:** Linux/hosted compatibility proof when an authorized environment exists (#69), then release/mobile/repository-scale delivery work without reopening completed Stage 5.
 
 ### Track E — Developer UX and Ecosystem
 
@@ -373,11 +373,21 @@ Linux/hosted cross-OS compatibility is **not claimed**. Existing local Docker im
 
 ### Stage 6 — Security profiles
 
-**Status:** 🟡 In progress — Issue #68 implementation candidate on `stage6-security-profiles`.
+**Status:** ✅ Done — PR #70 / Issue #68.
 
-Move from generic security prose to explicit project-sensitive review profiles for authorization, tenant isolation, secrets/PII, trust boundaries, abuse/rate/replay controls, migration/data safety, and negative-path testing.
+Implemented repository-native project-sensitive security review profiles:
 
-The Stage 6 design keeps baseline protections mandatory, composes explicit repository-owned profiles deterministically, limits automatic profile context to security mode, preserves backward compatibility for pre-Stage-6 projects, and does not infer risk acceptance or claim compliance.
+- mandatory `baseline` guidance even for pre-Stage-6 projects with no declaration;
+- explicit composable `web-api`, `multi-tenant`, `sensitive-data`, and `stateful-data` profiles;
+- deterministic `docs/security/SECURITY-PROFILE.md` selection with current-authority enforcement, duplicate/unknown/malformed rejection, and exact profile-document identity checks;
+- automatic profile inclusion only in `security` Context Packs, with exact active profiles/files exposed in the bounded manifest;
+- project-root/symlink safety for automatic local profile reads and packaged baseline fallback for older projects;
+- lifecycle ownership that preserves project selection while merge-managing canonical VCP guidance;
+- project-sensitive guidance for authorization/resource ownership, tenant isolation, secrets/PII/logging, trust boundaries, abuse/rate/replay, migrations/data integrity/recovery, and negative-path testing;
+- explicit prohibition on inferred risk acceptance and compliance claims;
+- reference multi-tenant SaaS dogfood selecting all project-sensitive profiles.
+
+Stage 6 lands only through the normal exact-head Review → pre-final gate → Task Pack-only finalization → final gate sequence, so this Done status reaches `main` only with accepted executable/review evidence.
 
 ### Stage 7 — Prompt evaluation harness
 
@@ -608,9 +618,9 @@ Add future `SYSTEM-CONTRACT.md` / `QUALITY-GATES.md` only if they reduce ambigui
 
 ## 15. Recommended Execution Order From Current Main
 
-1. Keep #15 open and preserve an executable exact-head local validation channel.
-2. Run the realistic Stage 5 monorepo/workspace conformance slice using the explicit project/workspace Source-of-Truth and verification-provenance contracts while #15 proceeds in parallel.
-3. Build concrete security profiles.
+1. Preserve the fresh-clone Windows exact-head evidence channel adopted under closed Issue #15; keep Linux/hosted compatibility as non-blocking follow-up #69.
+2. Maintain completed Stage 5 monorepo/workspace semantics and conformance.
+3. Maintain completed Stage 6 project-sensitive security profiles.
 4. Build prompt behavioral evaluation.
 5. Add architecture fitness functions.
 6. Automate release mechanics without automating approval.
