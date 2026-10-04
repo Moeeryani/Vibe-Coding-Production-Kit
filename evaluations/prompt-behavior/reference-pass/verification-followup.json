@@ -37,5 +37,6 @@
     "implementedFollowUps": [],
     "durableArtifacts": [],
     "dependsOnChatHistory": false
-  }
+  },
+  "promptBlobSha": "f3238941554525313c2da6041181c3135760bf5b"
 }
