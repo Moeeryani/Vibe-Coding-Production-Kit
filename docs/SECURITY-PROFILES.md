@@ -57,7 +57,7 @@ Plan, implement, review, and release modes do not gain hidden profile context. S
 4. each explicitly selected additional profile;
 5. any explicit project-local `--include` files.
 
-The Context manifest records the exact security profile identities used.
+The Context manifest records the exact security profile identities used. `vcp doctor .` also reports the active profile set and fails visibly when an explicit declaration or selected profile document is invalid.
 
 ## Human decision boundary
 
