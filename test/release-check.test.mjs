@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdir, mkdtemp, readFile, symlink, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import os from 'node:os';
@@ -12,7 +12,8 @@ import {
   runReleaseCheck,
   validateInstallEvidence,
   validateLifecycleEvidence,
-  windowsAliasCommand
+  windowsAliasCommand,
+  runAliasVersion
 } from '../lib/release-check.mjs';
 
 const execFileAsync = promisify(execFile);
@@ -353,6 +354,25 @@ test('release-authority file symlinks are refused when the host supports symlink
     runReleaseCheck({ targetDir: root, version: '0.9.3' }),
     /Refusing to follow symlink in changelog path/
   );
+});
+
+test('Windows alias execution succeeds through cmd.exe when the .cmd path contains spaces', async (t) => {
+  if (process.platform !== 'win32') {
+    t.skip('Windows cmd.exe execution contract.');
+    return;
+  }
+
+  const root = await mkdtemp(path.join(os.tmpdir(), 'vcp alias execution '));
+  const alias = path.join(root, 'vcp.cmd');
+  await writeFile(alias, '@echo off\r\necho 0.9.3\r\n', 'utf8');
+
+  try {
+    const result = await runAliasVersion(alias, { cwd: root, timeoutMs: 30_000 });
+    assert.equal(result.ok, true, result.stderr || result.stdout);
+    assert.equal(result.stdout.trim(), '0.9.3');
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 });
 
 test('Windows alias command preserves a spaced .cmd path behind the /s outer quote pair', () => {
