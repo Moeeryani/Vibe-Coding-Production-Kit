@@ -5,6 +5,8 @@ import path from 'node:path';
 import test from 'node:test';
 import {
   COMMUNITY_PLUGIN_CONFIG,
+  COMMUNITY_PLUGIN_CONFIG_MAX_BYTES,
+  COMMUNITY_PLUGIN_MAX_ENTRIES,
   assertCaseFoldUniquePaths,
   computeCommunityPluginDigest,
   inspectCommunityPlugins,
@@ -230,6 +232,79 @@ test('selection rejects traversal, URLs, and Windows drive-style paths before lo
     });
     await assert.rejects(loadCommunityPlugins(target), /repository-relative local path|Unsafe managed path/);
   }
+});
+
+test('selection and digest authoring are confined to the project-owned community-plugins namespace', async () => {
+  for (const pluginPath of ['plugins/example', 'docs/plugins/example', 'community-plugins']) {
+    const target = await tempDir();
+    await writeJson(path.join(target, ...COMMUNITY_PLUGIN_CONFIG.split('/')), {
+      schemaVersion: 1,
+      plugins: [{
+        id: 'community.invalid',
+        version: '1.0.0',
+        path: pluginPath,
+        sha256: 'sha256:' + '0'.repeat(64),
+        grants: []
+      }]
+    });
+    await assert.rejects(loadCommunityPlugins(target), /must be inside community-plugins\//);
+    await assert.rejects(
+      computeCommunityPluginDigest(target, pluginPath),
+      /must be inside community-plugins\//
+    );
+  }
+});
+
+test('plugin paths use portable ASCII segments and reject Windows-reserved names', async () => {
+  for (const pluginPath of [
+    'community-plugins/with space',
+    'community-plugins/café',
+    'community-plugins/CON',
+    'community-plugins/profile.'
+  ]) {
+    const target = await tempDir();
+    await writeJson(path.join(target, ...COMMUNITY_PLUGIN_CONFIG.split('/')), {
+      schemaVersion: 1,
+      plugins: [{
+        id: 'community.invalid',
+        version: '1.0.0',
+        path: pluginPath,
+        sha256: 'sha256:' + '0'.repeat(64),
+        grants: []
+      }]
+    });
+    await assert.rejects(loadCommunityPlugins(target), /portable ASCII path segments/);
+  }
+
+  const guidancePath = await selectedProject();
+  await mutateManifest(guidancePath.target, value => {
+    value.contributions.guidance[0].path = 'guidance/bad name.md';
+  });
+  await assert.rejects(loadCommunityPlugins(guidancePath.target), /portable ASCII path segments/);
+});
+
+test('plugin schema strings and text files reject terminal/control characters', async () => {
+  const schemaControl = await selectedProject();
+  await mutateManifest(schemaControl.target, value => {
+    value.name = 'Unsafe\\u001b[31m';
+  });
+  // Turn the JSON escape into an actual control character after parsing the manifest.
+  const manifestPath = path.join(schemaControl.target, ...bundleRelative.split('/'), 'plugin.json');
+  const manifestRaw = await readFile(manifestPath, 'utf8');
+  await writeFile(manifestPath, manifestRaw.replace('Unsafe\\\\u001b[31m', 'Unsafe\\u001b[31m'), 'utf8');
+  const configPath = path.join(schemaControl.target, ...COMMUNITY_PLUGIN_CONFIG.split('/'));
+  const config = JSON.parse(await readFile(configPath, 'utf8'));
+  config.plugins[0].sha256 = (await computeCommunityPluginDigest(schemaControl.target, bundleRelative)).digest;
+  await writeJson(configPath, config);
+  await assert.rejects(loadCommunityPlugins(schemaControl.target), /contains a control character/);
+
+  const textControl = await selectedProject();
+  const guidance = path.join(textControl.target, ...bundleRelative.split('/'), 'guidance', 'mobile-boundaries.md');
+  await writeFile(guidance, (await readFile(guidance, 'utf8')) + '\u001b[31m', 'utf8');
+  await assert.rejects(
+    computeCommunityPluginDigest(textControl.target, bundleRelative),
+    /disallowed control character/
+  );
 });
 
 test('selection requires canonical lowercase digest text', async () => {
@@ -483,6 +558,32 @@ test('plugin bundles reject excessive file count and normalized text size before
   await assert.rejects(
     computeCommunityPluginDigest(byteLimit.target, bundleRelative),
     /1000000-byte normalized text limit/
+  );
+});
+
+test('community plugin declaration is size-bounded before JSON parsing', async () => {
+  const target = await tempDir();
+  const configPath = path.join(target, ...COMMUNITY_PLUGIN_CONFIG.split('/'));
+  await mkdir(path.dirname(configPath), { recursive: true });
+  await writeFile(configPath, ' '.repeat(COMMUNITY_PLUGIN_CONFIG_MAX_BYTES + 1), 'utf8');
+  await assert.rejects(
+    loadCommunityPlugins(target),
+    new RegExp(`${COMMUNITY_PLUGIN_CONFIG_MAX_BYTES}-byte limit`)
+  );
+});
+
+test('bundle traversal is entry-bounded even when excess entries are empty directories', async () => {
+  const { target } = await selectedProject();
+  const extraRoot = path.join(target, ...bundleRelative.split('/'), 'empty');
+  await mkdir(extraRoot, { recursive: true });
+  // Base bundle contributes three entries; add enough empty directories to cross the traversal cap
+  // without relying on the separate file-count limit.
+  for (let index = 0; index < COMMUNITY_PLUGIN_MAX_ENTRIES; index += 1) {
+    await mkdir(path.join(extraRoot, `d${String(index).padStart(3, '0')}`));
+  }
+  await assert.rejects(
+    computeCommunityPluginDigest(target, bundleRelative),
+    new RegExp(`${COMMUNITY_PLUGIN_MAX_ENTRIES}-entry traversal limit`)
   );
 });
 
