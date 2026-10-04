@@ -373,7 +373,8 @@ Before using bootstrap `--force`, inspect the reported conflicts. The CLI never 
 --response <path>   prompt-eval: one behavior-record JSON inside the project
 --responses <dir>  prompt-eval all: directory containing <scenario-id>.json files
 --config <path>    fitness: project-relative config (default: docs/architecture/FITNESS.json)
---policy <path>    release-check: repository-relative release policy (default: .github/release-policy.json)\n--digest <path>    plugins: compute canonical SHA-256 for one local declarative bundle
+--policy <path>    release-check: repository-relative release policy (default: .github/release-policy.json)
+--digest <path>    plugins: compute canonical SHA-256 for one local declarative bundle
 --help, -h         show help
 --version, -v      show version
 ```
