@@ -526,3 +526,21 @@ test('comment trivia cannot hide non-literal dynamic dependency expressions', as
   assert.ok(codes(report).includes('unsupported-dynamic-import'));
   assert.ok(codes(report).includes('unsupported-dynamic-require'));
 });
+
+
+test('import.meta usage is valid analyzer syntax and does not create dependency evidence', async () => {
+  const target = await copyReference();
+  const file = path.join(target, 'src', 'domain', 'invitation.mjs');
+  const content = await readFile(file, 'utf8');
+  await writeFile(
+    file,
+    `import.meta.url;\n${content}`,
+    'utf8'
+  );
+
+  const report = await runArchitectureFitness({ targetDir: target });
+
+  assert.equal(report.success, true);
+  assert.equal(codes(report).includes('unsupported-static-import'), false);
+  assert.deepEqual(report.dependencies.map((item) => [item.from, item.to]), [['application', 'domain']]);
+});
