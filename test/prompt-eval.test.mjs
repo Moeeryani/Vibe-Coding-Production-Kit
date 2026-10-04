@@ -150,7 +150,11 @@ test('canonical scenario listing is deterministic and exposes property coverage'
   const listing = await listPromptEvalScenarios();
 
   assert.equal(listing.suiteId, 'vcp-stage7-core');
+  assert.match(listing.suiteBlobSha, /^[0-9a-f]{40}$/);
   assert.deepEqual(listing.properties, PROMPT_EVAL_PROPERTIES);
+  for (const scenario of listing.scenarios) {
+    assert.match(scenario.promptBlobSha, /^[0-9a-f]{40}$/);
+  }
   assert.deepEqual(
     listing.scenarios.map((item) => item.id),
     ['discovery-boundaries', 'plan-vertical-blockers', 'verification-followup', 'review-restartability']
@@ -353,4 +357,29 @@ test('prompt response paths reject traversal even when normalization would retur
 
   assert.equal(report.success, false);
   assert.match(report.error, /contains traversal/);
+});
+
+
+test('canonical reference records are bound to the current suite and prompt blobs', async () => {
+  const suite = await loadCanonicalPromptEvalSuite();
+
+  for (const scenario of suite.scenarios) {
+    const record = await readPassRecord(scenario.id);
+    assert.equal(record.suiteBlobSha, suite.suiteBlobSha);
+    assert.equal(record.promptBlobSha, scenario.promptBlobSha);
+  }
+});
+
+test('scenario ground truth is internally consistent and exact for bounded slices', async () => {
+  const suite = await loadCanonicalPromptEvalSuite();
+  const scenario = suite.scenarios.find((item) => item.id === 'plan-vertical-blockers');
+
+  assert.deepEqual(
+    scenario.expectations.requiredPlanSlices.find((item) => item.id === 'slice.accept-invite').scope,
+    ['domain', 'service', 'api', 'tests']
+  );
+  assert.deepEqual(
+    scenario.expectations.requiredPlanSlices.find((item) => item.id === 'slice.token-hash-regression').scope,
+    ['domain', 'tests']
+  );
 });
