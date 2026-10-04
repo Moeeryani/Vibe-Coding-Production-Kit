@@ -286,3 +286,36 @@ test('update planning preserves project-owned security profile selection', async
   assert.equal(action?.type, 'PRESERVE');
   assert.equal(plan.conflicts, 0);
 });
+
+
+test('canonical profiles retain the Stage 6 security coverage contract', async () => {
+  const root = path.resolve('docs/security/profiles');
+  const baseline = await readFile(path.join(root, 'baseline.md'), 'utf8');
+  const web = await readFile(path.join(root, 'web-api.md'), 'utf8');
+  const tenant = await readFile(path.join(root, 'multi-tenant.md'), 'utf8');
+  const sensitive = await readFile(path.join(root, 'sensitive-data.md'), 'utf8');
+  const stateful = await readFile(path.join(root, 'stateful-data.md'), 'utf8');
+
+  assert.match(baseline, /trust boundaries/i);
+  assert.match(baseline, /secrets\/credentials/i);
+  assert.match(baseline, /replay/i);
+  assert.match(baseline, /negative-path/i);
+
+  assert.match(web, /authentication\/session/i);
+  assert.match(web, /injection/i);
+  assert.match(web, /SSRF/i);
+  assert.match(web, /rate limiting/i);
+
+  assert.match(tenant, /tenant\/resource ownership/i);
+  assert.match(tenant, /cross-tenant isolation/i);
+  assert.match(tenant, /authorization/i);
+
+  assert.match(sensitive, /PII/i);
+  assert.match(sensitive, /logging\/redaction/i);
+  assert.match(sensitive, /retention\/deletion/i);
+
+  assert.match(stateful, /migration\/backfill/i);
+  assert.match(stateful, /rollback\/recovery/i);
+  assert.match(stateful, /integrity/i);
+  assert.match(stateful, /race conditions/i);
+});
