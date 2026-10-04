@@ -111,3 +111,32 @@ test('prompt-eval all returns non-zero when a required canonical response is mis
     }
   );
 });
+
+
+test('prompt-eval human failure output includes the failed property and assertion detail', async () => {
+  const temp = await mkdtemp(path.join(os.tmpdir(), 'vcp-prompt-eval-human-'));
+  const source = JSON.parse(await readFile(
+    path.join(repoRoot, 'evaluations', 'prompt-behavior', 'reference-pass', 'verification-followup.json'),
+    'utf8'
+  ));
+  source.observations.checks.find((item) => item.id === 'check.security').reportedStatus = 'pass';
+  await writeFile(path.join(temp, 'verification-followup.json'), JSON.stringify(source, null, 2));
+
+  await assert.rejects(
+    run([
+      'prompt-eval',
+      'verification-followup',
+      '--dir',
+      temp,
+      '--response',
+      'verification-followup.json'
+    ]),
+    (error) => {
+      assert.equal(error.code, 1);
+      assert.match(error.stdout, /FAIL verification-reporting-accurate/);
+      assert.match(error.stdout, /check-reported:check\.security/);
+      assert.match(error.stdout, /expected fail/);
+      return true;
+    }
+  );
+});
