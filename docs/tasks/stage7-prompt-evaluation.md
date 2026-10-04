@@ -155,7 +155,8 @@ Human output reports scenario/property/assertion pass/fail counts and failed ass
 
 | Class | Disposition | Finding / evidence | Resolution / follow-up | Residual risk |
 |---|---|---|---|---|
-| NO ACTION | n/a | Awaiting complete changed-surface review and executable Stage 7 gate. | Keep in Review. | External agent/provider behavior beyond canonical recorded scenarios is not yet claimed. |
+| NO ACTION | n/a | Full 18-file changed-surface static audit of the functional source candidate `2c99d38034f0357f1d8054cea7f258ab10db5ab3` found no remaining source-level must-fix issue. The audit covered evaluator false-green paths, decision-class boundaries, exact vertical scope/evidence, blocker execution, verification truth/reporting, follow-up scope, restartability, project-local path/symlink handling, suite + prompt blob provenance, self-contained runner stimulus, CLI exit/report behavior, package/runtime asset boundaries, and lifecycle separation. | Freeze functional source and require the comprehensive exact-head gate before finalization. | Executable behavior still requires the maintainer-local gate; canonical fixtures prove the harness contract, not universal provider/model quality. |
+| RISK | follow-up before finalization | CodeRabbit repeatedly began incremental processing while the source was still moving but, at pre-gate freeze time, had emitted no submitted review body or inline review thread on the final functional candidate. Its visible processing comment remained anchored to an older head. | Do not treat pending/absent external review as approval. Re-audit submitted reviews, inline threads, top-level comments, and status after the executable gate and immediately before finalization. | A late actionable finding may require returning the Task Pack to Review and rerunning the corrected exact-head gate. |
 
 ## Finalization
 
