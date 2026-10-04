@@ -445,7 +445,7 @@ npm run check
 - [x] Three-way merge + migrations + backup/rollback + manage
 - [ ] Mobile stack profiles
 - [x] Monorepo/project evidence semantics
-- [ ] Security profiles — Stage 6 قيد التنفيذ
+- [x] Project-sensitive security profiles
 - [ ] Git-aware review/release automation
 - [ ] Prompt evaluation suite
 - [ ] Architecture fitness functions
