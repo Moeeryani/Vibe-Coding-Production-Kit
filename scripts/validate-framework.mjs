@@ -45,14 +45,17 @@ const requiredFiles = [
   'prompts/05-security-review.md',
   'prompts/06-refactor.md',
   'prompts/07-release-review.md',
+  'scripts/validate-framework.sh',
+  'scripts/validate-framework.mjs'
+];
+
+const providerRuntimeRequiredFiles = [
   'evaluations/prompt-behavior/scenarios.json',
   'evaluations/prompt-behavior/mutations.json',
   'evaluations/prompt-behavior/reference-pass/discovery-boundaries.json',
   'evaluations/prompt-behavior/reference-pass/plan-vertical-blockers.json',
   'evaluations/prompt-behavior/reference-pass/verification-followup.json',
-  'evaluations/prompt-behavior/reference-pass/review-restartability.json',
-  'scripts/validate-framework.sh',
-  'scripts/validate-framework.mjs'
+  'evaluations/prompt-behavior/reference-pass/review-restartability.json'
 ];
 
 const excludedDirs = new Set(['.git', 'node_modules', '.vcp']);
@@ -131,7 +134,12 @@ async function validateExecutableLineEndings() {
 }
 
 let failed = false;
-for (const relative of requiredFiles) {
+const providerRuntimePresent = await existsNonEmpty('lib/prompt-eval.mjs');
+const effectiveRequiredFiles = providerRuntimePresent
+  ? [...requiredFiles, ...providerRuntimeRequiredFiles]
+  : requiredFiles;
+
+for (const relative of effectiveRequiredFiles) {
   if (!(await existsNonEmpty(relative))) {
     console.error(`ERROR: required file missing or empty: ${relative}`);
     failed = true;
