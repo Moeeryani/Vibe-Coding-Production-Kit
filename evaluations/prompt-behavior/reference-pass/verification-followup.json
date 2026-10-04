@@ -38,5 +38,6 @@
     "durableArtifacts": [],
     "dependsOnChatHistory": false
   },
-  "promptBlobSha": "f3238941554525313c2da6041181c3135760bf5b"
+  "promptBlobSha": "f3238941554525313c2da6041181c3135760bf5b",
+  "suiteBlobSha": "268bb010ae7eb1fcfb82c7def1ac1935c2e4c871"
 }
