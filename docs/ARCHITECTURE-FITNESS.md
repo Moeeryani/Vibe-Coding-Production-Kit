@@ -157,7 +157,7 @@ The analyzer recognizes:
 - literal dynamic `import("...")`;
 - literal `require("...")`.
 
-Local imports must resolve to an explicit configured extension. Non-literal dynamic local dependency behavior is not silently accepted. Module specifiers containing JavaScript backslash escapes are rejected rather than decoded or classified as external, so an escaped runtime-relative path cannot bypass the declared module boundary.
+Local imports must resolve to an explicit configured extension. Non-literal dynamic local dependency behavior is not silently accepted. Module specifiers containing JavaScript backslash escapes are rejected rather than decoded or classified as external, so an escaped runtime-relative path cannot bypass the declared module boundary. The `externalImports` summary counts only specifiers proven non-relative (for example packages or Node builtins); rejected/unsupported specifiers do not inflate that count.
 
 This is intentionally not a universal AST/dependency engine. The conservative lexer ignores comments/string/template raw text and observes template expressions, but it does not claim complete JavaScript lexical parsing. If quote/template state becomes ambiguous or remains unterminated—for example because dependency-looking syntax interacts with an unsupported regular-expression form—the run fails closed with an `unsupported-lexer-state` violation instead of silently producing a green architecture result. If a project needs a richer language/framework analyzer, path-alias resolver, or full JavaScript parser, that is a future explicit extension rather than hidden Stage 8 inference.
 
