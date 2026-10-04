@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "kind": "vcp-community-profile",
+  "id": "community.react-native-readiness",
+  "version": "1.0.0",
+  "name": "React Native readiness guidance",
+  "description": "Additive planning/review guidance and an explicit E2E verification proposal for repositories that deliberately adopt this community profile.",
+  "vcpCompatibility": {
+    "minVersion": "0.9.3",
+    "maxExclusiveVersion": "1.0.0"
+  },
+  "capabilities": [
+    "guidance",
+    "verification-proposals"
+  ],
+  "contributions": {
+    "guidance": [
+      {
+        "path": "guidance/mobile-boundaries.md",
+        "modes": [
+          "plan",
+          "implement",
+          "review"
+        ],
+        "title": "React Native mobile boundaries"
+      }
+    ],
+    "verificationProposals": [
+      {
+        "key": "E2E_COMMAND",
+        "command": "npm run test:e2e",
+        "rationale": "If this repository actually defines the script, consider promoting it into the project-owned AGENTS.md verification contract after human review."
+      }
+    ]
+  }
+}
