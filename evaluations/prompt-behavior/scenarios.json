@@ -39,7 +39,8 @@
         "negativeDecisions": [
           "scope.no-mobile"
         ]
-      }
+      },
+      "promptBlobSha": "15b42636ef4d4a64248ea3c971da8b3195014be5"
     },
     {
       "id": "plan-vertical-blockers",
@@ -91,7 +92,8 @@
         "requiredExecutedActions": [
           "slice.token-hash-regression"
         ]
-      }
+      },
+      "promptBlobSha": "ae9df6746fe7bd5cf0c94a3dcf731d5f72bb830e"
     },
     {
       "id": "verification-followup",
@@ -124,7 +126,8 @@
             "mustNotImplement": true
           }
         ]
-      }
+      },
+      "promptBlobSha": "f3238941554525313c2da6041181c3135760bf5b"
     },
     {
       "id": "review-restartability",
@@ -139,7 +142,8 @@
           ".vcp/evidence/accept-invite.json"
         ],
         "requireNoChatDependency": true
-      }
+      },
+      "promptBlobSha": "f09093eb4101a97ee426d2fad70edb73b5fd8738"
     }
   ]
 }
