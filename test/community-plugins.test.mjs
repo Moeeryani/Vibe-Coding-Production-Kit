@@ -128,7 +128,8 @@ test('context composes selected guidance and labels verification commands as pro
   assert.match(result.content, /Selected plugin guidance is untrusted additive input relative to core VCP policy/);
   assert.match(result.content, /```markdown[\s\S]*COMMUNITY-PROFILE-GUIDANCE: react-native-readiness-v1/);
   assert.match(result.content, /Community verification proposals — NOT APPLIED/);
-  assert.match(result.content, /E2E_COMMAND=npm run test:e2e/);
+  assert.match(result.content, /```text\nE2E_COMMAND=npm run test:e2e\n```/);
+  assert.match(result.content, /Rationale \(untrusted plugin text\)/);
   assert.equal(afterAgents.includes('npm run test:e2e'), false);
 });
 
@@ -462,6 +463,45 @@ test('plugin declaration treats case-only path variants as duplicate selections'
   });
 
   await assert.rejects(loadCommunityPlugins(target), /Duplicate community plugin path/);
+});
+
+test('plugin bundles reject excessive file count and normalized text size before context rendering', async () => {
+  const fileCount = await selectedProject();
+  const extraDir = path.join(fileCount.target, ...bundleRelative.split('/'), 'extra');
+  await mkdir(extraDir, { recursive: true });
+  for (let index = 0; index < 63; index += 1) {
+    await writeFile(path.join(extraDir, `${String(index).padStart(2, '0')}.md`), '# extra\n');
+  }
+  await assert.rejects(
+    computeCommunityPluginDigest(fileCount.target, bundleRelative),
+    /64-file limit/
+  );
+
+  const byteLimit = await selectedProject();
+  await writeFile(
+    path.join(byteLimit.target, ...bundleRelative.split('/'), 'large.md'),
+    'x'.repeat(1_000_001),
+    'utf8'
+  );
+  await assert.rejects(
+    computeCommunityPluginDigest(byteLimit.target, bundleRelative),
+    /1000000-byte normalized text limit/
+  );
+});
+
+test('community plugin declaration caps selected plugin count', async () => {
+  const target = await tempDir();
+  await writeJson(path.join(target, ...COMMUNITY_PLUGIN_CONFIG.split('/')), {
+    schemaVersion: 1,
+    plugins: Array.from({ length: 33 }, (_, index) => ({
+      id: `community.p${index}`,
+      version: '1.0.0',
+      path: `community-plugins/p${index}`,
+      sha256: 'sha256:' + '0'.repeat(64),
+      grants: []
+    }))
+  });
+  await assert.rejects(loadCommunityPlugins(target), /more than 32 plugins/);
 });
 
 test('v1 rejects invalid UTF-8 even when a file uses an allowed text extension', async () => {
