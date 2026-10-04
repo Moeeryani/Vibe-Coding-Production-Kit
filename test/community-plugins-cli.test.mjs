@@ -44,6 +44,7 @@ test('plugins CLI human report preserves the HUMAN DECISION boundary', async () 
   ], { cwd: repoRoot });
 
   assert.match(stdout, /community\.react-native-readiness@1\.0\.0/);
+  assert.match(stdout, /name \(untrusted metadata\): "React Native readiness guidance"/);
   assert.match(stdout, /PROPOSAL E2E_COMMAND=npm run test:e2e — not applied by VCP/);
   assert.match(stdout, /remain HUMAN DECISION actions/);
 });
