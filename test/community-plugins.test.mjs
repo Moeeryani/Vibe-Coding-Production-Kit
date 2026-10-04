@@ -5,6 +5,7 @@ import path from 'node:path';
 import test from 'node:test';
 import {
   COMMUNITY_PLUGIN_CONFIG,
+  assertCaseFoldUniquePaths,
   computeCommunityPluginDigest,
   inspectCommunityPlugins,
   loadCommunityPlugins
@@ -426,14 +427,10 @@ test('verification proposals reject unknown slots, placeholders, and multi-line 
   }
 });
 
-test('bundle hashing rejects case-insensitive file collisions for cross-platform determinism', async () => {
-  const { target } = await selectedProject();
-  const guidanceDir = path.join(target, ...bundleRelative.split('/'), 'guidance');
-  await writeFile(path.join(guidanceDir, 'Case.md'), '# One\n');
-  await writeFile(path.join(guidanceDir, 'case.md'), '# Two\n');
-
-  await assert.rejects(
-    computeCommunityPluginDigest(target, bundleRelative),
+test('case-insensitive path collision contract is host-independent', () => {
+  assert.equal(assertCaseFoldUniquePaths(['plugin.json', 'guidance/mobile.md']), true);
+  assert.throws(
+    () => assertCaseFoldUniquePaths(['guidance/Case.md', 'guidance/case.md']),
     /case-insensitive path collision/
   );
 });
