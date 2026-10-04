@@ -97,7 +97,7 @@ vcp prompt-eval list
 vcp prompt-eval list --json
 ```
 
-The JSON listing includes each scenario's `stimulus`, prompt identity, and property names, but not the evaluator `expectations` answer key in that command output. The packaged scenario file remains fully inspectable; this separation is an interface boundary, not secrecy. An external adapter can construct a reproducible run from the listing without coupling its run payload to the evaluator's assertion structure.
+The JSON listing includes each scenario's canonical `promptContent`, prompt identity/hash, `stimulus`, and property names, but not the evaluator `expectations` answer key in that command output. The packaged scenario file remains fully inspectable; this separation is an interface boundary, not secrecy. An external adapter can construct a reproducible run from the listing without coupling its run payload to the evaluator's assertion structure.
 
 Evaluate one recorded run:
 
