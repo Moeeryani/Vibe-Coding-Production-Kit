@@ -55,6 +55,24 @@ test('release-check requires an explicit candidate version', async () => {
   );
 });
 
+test('release-check rejects a non-numeric timeout instead of silently using a default', async () => {
+  await assert.rejects(
+    execFileAsync(process.execPath, [
+      bin,
+      'release-check',
+      '0.9.3',
+      '--dir',
+      repoRoot,
+      '--timeout-ms',
+      'nope'
+    ], { cwd: repoRoot }),
+    (error) => {
+      assert.match(error.stderr, /--timeout-ms must be a non-negative integer/);
+      return true;
+    }
+  );
+});
+
 test('--policy is scoped to release-check', async () => {
   await assert.rejects(
     execFileAsync(process.execPath, [bin, 'doctor', '.', '--policy', '.github/release-policy.json']),
