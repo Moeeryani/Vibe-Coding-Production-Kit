@@ -42,6 +42,7 @@ test('reference SaaS passes explicit Stage 8 architecture fitness', async () => 
   assert.equal(report.summary.violations, 0);
   assert.equal(report.summary.sourceFiles, 4);
   assert.equal(report.summary.modules, 3);
+  assert.equal(report.summary.localImports, 2);
   assert.deepEqual(
     report.dependencies.map((item) => [item.from, item.to]),
     [['application', 'domain']]
@@ -241,4 +242,21 @@ test('duplicate governing marker is a regression rather than an implicit pass', 
   assert.equal(report.success, false);
   const violation = report.violations.find((item) => item.code === 'architecture-contract-regression');
   assert.match(violation.message, /found 2/);
+});
+
+
+test('unsupported static import syntax fails instead of disappearing from analysis', async () => {
+  const target = await copyReference();
+  const file = path.join(target, 'src', 'application', 'invitation-service.mjs');
+  const content = await readFile(file, 'utf8');
+  await writeFile(
+    file,
+    `import type DomainContract = require('../domain/index.mjs');\n${content}`,
+    'utf8'
+  );
+
+  const report = await runArchitectureFitness({ targetDir: target });
+
+  assert.equal(report.success, false);
+  assert.ok(codes(report).includes('unsupported-static-import'));
 });
