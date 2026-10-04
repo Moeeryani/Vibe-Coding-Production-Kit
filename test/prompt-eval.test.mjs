@@ -180,3 +180,81 @@ test('suite reports missing response files as failed scenarios and properties', 
   assert.ok(report.summary.propertiesFail > 0);
   assert.equal(promptEvalExitCode(report), 1);
 });
+
+
+test('duplicate structured observation identities are rejected as ambiguous evidence', async () => {
+  const suite = await loadCanonicalPromptEvalSuite();
+
+  const discoveryScenario = suite.scenarios.find((item) => item.id === 'discovery-boundaries');
+  const discovery = await readPassRecord('discovery-boundaries');
+  discovery.observations.questions.push({ key: 'product.invite-expiry', class: 'DISCOVERABLE' });
+  assert.throws(
+    () => evaluatePromptBehaviorRecord(discoveryScenario, discovery),
+    /observations\.questions must not contain duplicate key/
+  );
+
+  const verificationScenario = suite.scenarios.find((item) => item.id === 'verification-followup');
+  const verification = await readPassRecord('verification-followup');
+  verification.observations.checks.push({
+    id: 'check.unit',
+    executed: true,
+    actualStatus: 'pass',
+    reportedStatus: 'pass'
+  });
+  assert.throws(
+    () => evaluatePromptBehaviorRecord(verificationScenario, verification),
+    /observations\.checks must not contain duplicate id/
+  );
+});
+
+test('unexpected plan slices and verification checks cannot hide inside an otherwise passing record', async () => {
+  const suite = await loadCanonicalPromptEvalSuite();
+
+  const planScenario = suite.scenarios.find((item) => item.id === 'plan-vertical-blockers');
+  const plan = await readPassRecord('plan-vertical-blockers');
+  plan.observations.planSlices.push({
+    id: 'slice.billing-refactor',
+    kind: 'vertical',
+    outcome: 'billing.rewritten',
+    scope: ['billing'],
+    acceptanceEvidence: ['unit.billing'],
+    ready: true,
+    blockedBy: []
+  });
+  plan.observations.executedActions.push('slice.billing-refactor');
+  const planReport = evaluatePromptBehaviorRecord(planScenario, plan);
+  assert.equal(planReport.success, false);
+  assert.ok(planReport.properties
+    .find((item) => item.property === 'bounded-vertical-plan')
+    .assertions.some((item) => item.id === 'slice-expected:slice.billing-refactor' && item.status === 'fail'));
+  assert.ok(planReport.properties
+    .find((item) => item.property === 'blockers-readiness-respected')
+    .assertions.some((item) => item.id === 'execution-known:slice.billing-refactor' && item.status === 'fail'));
+
+  const verificationScenario = suite.scenarios.find((item) => item.id === 'verification-followup');
+  const verification = await readPassRecord('verification-followup');
+  verification.observations.checks.push({
+    id: 'check.fabricated',
+    executed: true,
+    actualStatus: 'pass',
+    reportedStatus: 'pass'
+  });
+  const verificationReport = evaluatePromptBehaviorRecord(verificationScenario, verification);
+  assert.equal(verificationReport.success, false);
+  assert.ok(verificationReport.properties
+    .find((item) => item.property === 'verification-reporting-accurate')
+    .assertions.some((item) => item.id === 'check-known:check.fabricated' && item.status === 'fail'));
+});
+
+test('required vertical slices need explicit non-empty scope', async () => {
+  const suite = await loadCanonicalPromptEvalSuite();
+  const scenario = suite.scenarios.find((item) => item.id === 'plan-vertical-blockers');
+  const record = await readPassRecord('plan-vertical-blockers');
+  record.observations.planSlices[0].scope = [];
+
+  const report = evaluatePromptBehaviorRecord(scenario, record);
+  const property = report.properties.find((item) => item.property === 'bounded-vertical-plan');
+
+  assert.equal(property.success, false);
+  assert.ok(property.assertions.some((item) => item.id === 'slice-scope:slice.accept-invite' && item.status === 'fail'));
+});
