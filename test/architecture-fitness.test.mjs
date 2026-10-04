@@ -316,3 +316,26 @@ test('canonical VCP ADR metadata status format is accepted', async () => {
   assert.equal(report.success, true);
   assert.equal(report.contracts.find((item) => item.kind === 'adr').status, 'Accepted');
 });
+
+
+test('empty configured source roots cannot produce a vacuous green result', async () => {
+  const target = await copyReference();
+  const config = await readConfig(target);
+  config.sourceRoots = ['empty-src'];
+  config.modules = [
+    {
+      name: 'empty',
+      owner: 'empty-owner',
+      roots: ['empty-src/module'],
+      mayImport: [],
+      publicEntries: []
+    }
+  ];
+  await mkdir(path.join(target, 'empty-src', 'module'), { recursive: true });
+  await writeConfig(target, config);
+
+  const report = await runArchitectureFitness({ targetDir: target });
+
+  assert.equal(report.success, false);
+  assert.ok(codes(report).includes('no-analyzed-source-files'));
+});
