@@ -21,7 +21,14 @@ test('security profile parser composes baseline before explicit profiles', () =>
   assert.deepEqual(parseSecurityProfileDeclaration(content), ['baseline', 'web-api', 'multi-tenant']);
 });
 
-test('security profile parser rejects unknown, duplicate, and malformed declarations', () => {
+test('security profile parser keeps baseline mandatory for an explicit empty selection', () => {
+  assert.deepEqual(
+    parseSecurityProfileDeclaration('# Security Profile\n\n## Active profiles\n\nNo extra profiles.\n'),
+    ['baseline']
+  );
+});
+
+test('security profile parser rejects unknown, duplicate, malformed, and missing-section declarations', () => {
   assert.throws(
     () => parseSecurityProfileDeclaration('# Security Profile\n\n## Active profiles\n\n- `unknown`\n'),
     /Unknown security profile/
@@ -33,6 +40,10 @@ test('security profile parser rejects unknown, duplicate, and malformed declarat
   assert.throws(
     () => parseSecurityProfileDeclaration('# Security Profile\n\n## Active profiles\n\n- web api\n'),
     /Invalid security profile entry/
+  );
+  assert.throws(
+    () => parseSecurityProfileDeclaration('# Security Profile\n\nNo active profile section.\n'),
+    /must contain a "## Active profiles" section/
   );
 });
 
@@ -165,4 +176,19 @@ test('security profile document identity must match the selected profile', async
     createContextPack({ targetDir: target, task: 'security-change', mode: 'security' }),
     /must declare exactly "SECURITY-PROFILE: web-api"/
   );
+});
+
+
+test('reference SaaS security context dogfoods all Stage 6 profiles', async () => {
+  const target = path.resolve('examples/reference-saas-invite');
+  const result = await createContextPack({ targetDir: target, task: 'accept-invite', mode: 'security' });
+
+  assert.deepEqual(
+    result.securityProfiles,
+    ['baseline', 'web-api', 'multi-tenant', 'sensitive-data', 'stateful-data']
+  );
+  assert.match(result.content, /SECURITY-PROFILE: baseline/);
+  assert.match(result.content, /SECURITY-PROFILE: multi-tenant/);
+  assert.match(result.content, /Do not claim legal\/regulatory compliance/);
+  assert.ok(result.files.includes('docs/security/SECURITY-PROFILE.md'));
 });
