@@ -22,6 +22,11 @@
     "docs/RELEASE-AUTOMATION.md",
     "prompts/07-release-review.md",
     "lib/community-plugins.mjs",
-    "docs/COMMUNITY-PLUGINS.md"
+    "docs/COMMUNITY-PLUGINS.md",
+    "examples/community-profile-react-native/README.md",
+    "examples/community-profile-react-native/package.json",
+    "examples/community-profile-react-native/docs/plugins/PLUGINS.json",
+    "examples/community-profile-react-native/community-plugins/react-native-readiness/plugin.json",
+    "examples/community-profile-react-native/community-plugins/react-native-readiness/guidance/mobile-boundaries.md"
   ]
 }
