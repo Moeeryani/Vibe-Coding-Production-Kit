@@ -185,7 +185,7 @@ test('single-scenario evaluation rejects unknown ids and reports unsafe response
     response: '../outside.json'
   });
   assert.equal(unsafe.success, false);
-  assert.match(unsafe.error, /escapes the project root/);
+  assert.match(unsafe.error, /contains traversal/);
 });
 
 test('suite reports missing response files as failed scenarios and properties', async () => {
