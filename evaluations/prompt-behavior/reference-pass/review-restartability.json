@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "review-restartability",
+  "prompt": "prompts/04-code-review.md",
+  "observations": {
+    "discovered": [],
+    "questions": [],
+    "proposals": [],
+    "approvals": [],
+    "negativeDecisions": [],
+    "planSlices": [],
+    "blocked": [],
+    "executedActions": [],
+    "checks": [],
+    "followUps": [],
+    "implementedFollowUps": [],
+    "durableArtifacts": [
+      "docs/tasks/accept-invite.md",
+      "docs/product/PRD.md",
+      ".vcp/evidence/accept-invite.json"
+    ],
+    "dependsOnChatHistory": false
+  }
+}
