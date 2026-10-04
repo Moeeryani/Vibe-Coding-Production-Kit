@@ -107,7 +107,7 @@ For cross-platform reproducibility:
 - each path, normalized byte length, and content are framed into the hash;
 - adding/removing/editing any bundle file changes the digest.
 
-A digest change is not auto-trusted. Review the bundle and deliberately update the project declaration.
+A digest change is not auto-trusted. Review the bundle and deliberately update the project declaration. `plugins --digest` reports the canonical normalized bundle path; digest calculation alone does not validate or select the plugin.
 
 V1 also bounds local extension input before it reaches context rendering:
 
@@ -119,7 +119,7 @@ V1 also bounds local extension input before it reaches context rendering:
 - at most 128,000 bytes for the project plugin declaration before JSON parsing;
 - disallowed terminal/control characters are rejected in schema strings and bundle text.
 
-These are safety/resource limits, not signals of trust.
+These are safety/resource limits, not signals of trust. Directory enumeration is streamed and globally entry-bounded so excessive empty-directory trees do not bypass the file-count limit.
 
 ## Plugin manifest
 
@@ -236,7 +236,7 @@ Doctor never repairs trust or updates a digest.
 
 VCP does not create `docs/plugins/PLUGINS.json` during `init`.
 
-Project declarations and bundles under `community-plugins/` are project-owned and outside the VCP managed-file manifest. VCP update therefore does not invent selections or replace local community bundles.
+Project declarations and bundles under `community-plugins/` are project-owned and outside the VCP managed-file manifest. VCP update therefore does not invent selections or replace local community bundles. Before an update plan is accepted, the running target CLI validates any explicitly selected plugin state, including its digest and VCP compatibility range. An incompatible or tampered selected plugin blocks the update plan without mutating project files; remove/fix/re-pin the selection deliberately before retrying.
 
 ## Security/trust boundaries
 
@@ -261,3 +261,10 @@ See:
 It demonstrates the plugin model with React Native-oriented guidance.
 
 It is **not** native mobile profile support and does not change `--stack auto`. Mobile profiles remain a separate roadmap item.
+
+
+## Concurrent filesystem mutation
+
+Stage 10 rejects traversal and symlinks that exist when paths are checked, and it binds parsed manifest/guidance semantics to the exact bytes hashed during one loader pass.
+
+It does **not** claim atomic protection against another privileged/local process replacing path components concurrently between filesystem checks and reads. That portable root-anchored no-follow problem is tracked in Issue #73 and remains a non-blocking local TOCTOU follow-up across VCP readers. Static path/symlink guarantees remain enforced; no stronger atomic guarantee is claimed.
