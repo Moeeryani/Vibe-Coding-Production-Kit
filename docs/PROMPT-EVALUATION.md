@@ -50,6 +50,7 @@ An external agent or adapter records one JSON object per scenario:
   "schemaVersion": 1,
   "scenarioId": "discovery-boundaries",
   "prompt": "prompts/01-discovery.md",
+  "promptBlobSha": "15b42636ef4d4a64248ea3c971da8b3195014be5",
   "observations": {
     "discovered": ["repo.test-runner"],
     "questions": [
@@ -72,7 +73,9 @@ An external agent or adapter records one JSON object per scenario:
 
 All observation arrays are required even when empty. Missing evidence does not default to pass.
 
-Keys are scenario identities, not wording extracted from the model response. The adapter is responsible for recording what the agent actually did. Do not fabricate events after the fact merely to satisfy the evaluator.
+Keys are scenario identities, not wording extracted from the model response. Each scenario and behavior record also carries the exact Git blob SHA of the canonical prompt. VCP recomputes that blob identity from the packaged prompt before evaluation, so evidence recorded against an older prompt cannot silently pass after prompt content changes.
+
+The adapter is responsible for recording what the agent actually did. Do not fabricate events after the fact merely to satisfy the evaluator.
 
 ## CLI
 
