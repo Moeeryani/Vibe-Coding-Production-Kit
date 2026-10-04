@@ -438,7 +438,7 @@ Do not duplicate conflicting rules across multiple agent configuration files. Pr
 - [x] Project-sensitive security profiles
 - [ ] Git-aware review/release automation
 - [x] Prompt behavioral evaluation harness for coding agents
-- [x] Architecture fitness-function examples
+- [x] Architecture fitness functions
 - [ ] Extensible community profile/plugin system
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) if you want to help.
