@@ -2,6 +2,10 @@
 
 ## Before release
 - [ ] Scope/version identified.
+- [ ] Release-candidate evidence is bound to the exact clean revision.
+- [ ] Package/lockfile/changelog/candidate notes agree on the version.
+- [ ] Package inspection, publish dry-run, local install smoke, migration/update smoke, and immutable historical tag checks pass where applicable.
+- [ ] Missing candidate tag / actual publication remain explicit HUMAN DECISION actions; no automation has moved a tag or published the package.
 - [ ] CI is green for the release commit.
 - [ ] Critical acceptance journeys verified.
 - [ ] Database migrations reviewed for lock/load/compatibility risk.
