@@ -48,8 +48,8 @@ test('interrupted-update rollback removes its staged subtree and empty stage dir
     schemaVersion: 1,
     id: applied.backupId,
     backupId: applied.backupId,
-    fromVersion: '0.9.2',
-    toVersion: '0.9.2',
+    fromVersion: '0.9.3',
+    toVersion: '0.9.3',
     phase: 'applying',
     startedAt: new Date().toISOString()
   }, null, 2)}\n`, 'utf8');
