@@ -25,6 +25,8 @@ Authority: ACCEPTED
 - `stateful-data`
 ```
 
+The declaration participates in the same freshness discipline as governing security state: an explicit authority marker must be current for security context (normally `Authority: ACCEPTED`; legacy unmarked files remain backward compatible). `DRAFT`, `SUPERSEDED`, and `ARCHIVED` declarations cannot govern security review.
+
 The `baseline` profile always applies, whether or not it is listed. It cannot be disabled by omission.
 
 Supported profiles:
