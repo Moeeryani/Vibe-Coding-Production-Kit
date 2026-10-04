@@ -23,7 +23,7 @@ It can enforce:
 - declared architecture/ADR contract markers remain present;
 - governing ADRs remain `Accepted`.
 
-External package and Node builtin imports are reported but are not scored as module-direction dependencies in Stage 8.
+Non-relative import specifiers are counted as external-to-this-analyzer and are not scored as module-direction dependencies in Stage 8. This includes Node builtins, package imports, and project path aliases that do not begin with `.`; projects that rely on aliases need a future explicit resolver extension rather than assuming Stage 8 resolved them.
 
 ## Configuration
 
@@ -163,7 +163,7 @@ This is intentionally not a universal AST/dependency engine. If a project needs 
 
 ## What a pass proves
 
-A pass proves only that the files and imports covered by the explicit configuration satisfy those declared rules at that revision.
+A pass proves only that at least one configured source file was analyzed and that the files/import forms covered by the explicit configuration satisfy those declared rules at that revision.
 
 It does **not** prove:
 
