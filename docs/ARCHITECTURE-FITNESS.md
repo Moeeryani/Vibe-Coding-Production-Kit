@@ -103,11 +103,17 @@ A deep internal file may still import siblings inside its own module. The rule p
 
 Each configured marker must appear as an exact trimmed line exactly once in its document.
 
-For `kind: "adr"`, the document must also contain:
+For `kind: "adr"`, the document must also contain exactly one canonical status declaration whose value is `Accepted`. Stage 8 accepts both VCP ADR styles:
 
 ```markdown
 ## Status
 Accepted
+```
+
+or:
+
+```markdown
+- Status: Accepted
 ```
 
 Markers are contract identifiers, not semantic prose grading. Editing explanatory prose does not break the check as long as the named contract is still intentionally valid. If the architecture decision changes, update the document marker/config together through normal review rather than silently weakening the executable boundary.
