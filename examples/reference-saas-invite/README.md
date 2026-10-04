@@ -14,12 +14,13 @@ Read in this order:
 2. [`docs/product/PRD.md`](docs/product/PRD.md)
 3. [`docs/architecture/DOMAIN.md`](docs/architecture/DOMAIN.md)
 4. [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
-5. [`docs/architecture/adr/ADR-001-invite-token-storage.md`](docs/architecture/adr/ADR-001-invite-token-storage.md)
-6. [`docs/security/THREAT-MODEL.md`](docs/security/THREAT-MODEL.md)
-7. [`docs/security/SECURITY-PROFILE.md`](docs/security/SECURITY-PROFILE.md)
-8. [`docs/testing/TEST-STRATEGY.md`](docs/testing/TEST-STRATEGY.md)
-9. [`docs/tasks/accept-invite.md`](docs/tasks/accept-invite.md)
-10. [`src/`](src/) and [`test/`](test/)
+5. [`docs/architecture/FITNESS.json`](docs/architecture/FITNESS.json)
+6. [`docs/architecture/adr/ADR-001-invite-token-storage.md`](docs/architecture/adr/ADR-001-invite-token-storage.md)
+7. [`docs/security/THREAT-MODEL.md`](docs/security/THREAT-MODEL.md)
+8. [`docs/security/SECURITY-PROFILE.md`](docs/security/SECURITY-PROFILE.md)
+9. [`docs/testing/TEST-STRATEGY.md`](docs/testing/TEST-STRATEGY.md)
+10. [`docs/tasks/accept-invite.md`](docs/tasks/accept-invite.md)
+11. [`src/`](src/) and [`test/`](test/)
 
 That order is intentional: **why -> behavior -> domain -> architecture -> decision -> risk -> verification -> bounded task -> code**.
 
@@ -30,9 +31,10 @@ The reference project uses the same current Task Pack convention as `vcp task`: 
 ```bash
 npm test
 npm run check
+node ../../bin/vibe-coding-production.mjs fitness --dir .
 ```
 
-The tests include happy paths and negative paths for authorization, tenant isolation, token replay, expiry, revocation, and verified-email matching.
+The tests include happy paths and negative paths for authorization, tenant isolation, token replay, expiry, revocation, and verified-email matching. The Stage 8 fitness config additionally proves explicit source ownership, application → domain dependency direction, the narrow `src/domain/index.mjs` public contract, absence of module cycles, and durable architecture/ADR contract markers.
 
 ## VCP context dogfood
 

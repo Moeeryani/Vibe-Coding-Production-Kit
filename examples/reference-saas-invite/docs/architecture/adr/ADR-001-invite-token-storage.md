@@ -1,5 +1,7 @@
 # ADR-001 — Persist invitation token hashes, not raw tokens
 
+ADR-CONTRACT: invite-token-hash-v1
+
 ## Status
 Accepted
 

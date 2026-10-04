@@ -1,5 +1,7 @@
 # Architecture — Invitation Vertical Slice
 
+ARCHITECTURE-CONTRACT: invitation-layering-v1
+
 ## Style
 
 Layered modular slice:
@@ -16,7 +18,7 @@ Repository / token / clock adapters
 
 ## Dependency direction
 
-Domain has no dependency on application or infrastructure. Application depends on the domain and repository contract behavior. Infrastructure implements persistence behavior.
+Domain has no dependency on application or infrastructure. Application depends on the domain only through `src/domain/index.mjs`. Infrastructure implements persistence behavior and remains independent of application/domain implementation imports in this reference.
 
 ## Boundaries
 

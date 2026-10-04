@@ -248,6 +248,24 @@ Response paths are resolved inside the selected `--dir` project root and reject 
 
 See [`PROMPT-EVALUATION.md`](PROMPT-EVALUATION.md).
 
+## Enforce explicit architecture fitness functions
+
+Stage 8 executes project-owned architecture boundaries without inferring a dependency graph:
+
+```bash
+vcp fitness --dir .
+vcp fitness --dir . --json
+vcp fitness --dir . --config docs/architecture/FITNESS.json
+```
+
+The default configuration path is `docs/architecture/FITNESS.json`. A project must create that file deliberately; a missing config is an error rather than an inferred architecture.
+
+The initial `javascript-static-imports` analyzer checks explicitly configured JavaScript-family source roots for module ownership, dependency direction, narrow public entrypoints, realized module cycles, unresolved/out-of-root local imports, unsupported dynamic dependency expressions, and durable architecture/ADR contract markers.
+
+A passing report proves only the configured executable boundaries. Non-relative specifiers are outside the Stage 8 module graph, so package imports, Node builtins, and unresolved project aliases are not scored as module edges. It does not claim universal architecture correctness.
+
+See [`ARCHITECTURE-FITNESS.md`](ARCHITECTURE-FITNESS.md).
+
 ## Safety behavior
 
 The CLI is intentionally conservative:
@@ -287,7 +305,7 @@ Before using bootstrap `--force`, inspect the reported conflicts. The CLI never 
 --timeout-ms <n>   verify: per-command timeout
 --title <text>     task title
 --stage <name>     readiness stage: plan | implement
---dir <path>       task/ready/context/verify/manage/prompt-eval project root
+--dir <path>       task/ready/context/verify/manage/prompt-eval/fitness project root
 --mode <name>      context mode: plan | implement | review | security | release
                     security mode also loads baseline + explicit docs/security/SECURITY-PROFILE.md profiles
 --include <path>   add an existing explicit context file; repeatable
@@ -296,6 +314,7 @@ Before using bootstrap `--force`, inspect the reported conflicts. The CLI never 
 --max-bytes <n>    maximum context pack bytes; 0 disables the limit
 --response <path>   prompt-eval: one behavior-record JSON inside the project
 --responses <dir>  prompt-eval all: directory containing <scenario-id>.json files
+--config <path>    fitness: project-relative config (default: docs/architecture/FITNESS.json)
 --help, -h         show help
 --version, -v      show version
 ```

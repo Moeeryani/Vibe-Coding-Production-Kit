@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "analyzer": "javascript-static-imports",
+  "sourceRoots": [
+    "src"
+  ],
+  "extensions": [
+    ".mjs"
+  ],
+  "modules": [
+    {
+      "name": "domain",
+      "owner": "membership-domain",
+      "roots": [
+        "src/domain"
+      ],
+      "mayImport": [],
+      "publicEntries": [
+        "src/domain/index.mjs"
+      ]
+    },
+    {
+      "name": "application",
+      "owner": "membership-application",
+      "roots": [
+        "src/application"
+      ],
+      "mayImport": [
+        "domain"
+      ],
+      "publicEntries": [
+        "src/application/invitation-service.mjs"
+      ]
+    },
+    {
+      "name": "infrastructure",
+      "owner": "membership-infrastructure",
+      "roots": [
+        "src/infrastructure"
+      ],
+      "mayImport": [],
+      "publicEntries": [
+        "src/infrastructure/memory-invitation-repository.mjs"
+      ]
+    }
+  ],
+  "rules": {
+    "forbidCycles": true,
+    "requireOwnership": true,
+    "enforcePublicEntries": true
+  },
+  "governingContracts": [
+    {
+      "path": "docs/architecture/ARCHITECTURE.md",
+      "kind": "architecture",
+      "marker": "ARCHITECTURE-CONTRACT: invitation-layering-v1"
+    },
+    {
+      "path": "docs/architecture/adr/ADR-001-invite-token-storage.md",
+      "kind": "adr",
+      "marker": "ADR-CONTRACT: invite-token-hash-v1"
+    }
+  ]
+}
