@@ -425,7 +425,7 @@ Stage 8 makes explicit project architecture boundaries executable without revivi
 - governing architecture contract markers must remain present exactly once;
 - governing ADRs must retain their configured contract marker and exactly one `Accepted` status.
 
-The initial analyzer is deliberately bounded to explicitly configured JavaScript-family source roots and local import forms. External package/builtin dependencies are not scored as module edges. VCP does not infer modules, persist a dependency graph, require graph metadata in Task Packs, or claim architectural correctness beyond the configured rules.
+The initial analyzer is deliberately bounded to explicitly configured JavaScript-family source roots and relative/local import forms. Non-relative specifiers—including package imports, Node builtins, and project aliases—are outside the Stage 8 module graph and are not scored as module edges. VCP does not infer modules, persist a dependency graph, require graph metadata in Task Packs, or claim architectural correctness beyond the configured rules.
 
 The reference SaaS dogfoods a layered `application -> domain` dependency through the narrow `src/domain/index.mjs` public contract and binds the executable rules to durable architecture/ADR markers.
 
