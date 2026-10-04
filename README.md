@@ -431,8 +431,8 @@ Do not duplicate conflicting rules across multiple agent configuration files. Pr
 - [x] Versioned lifecycle state and safe `vcp update`
 - [x] Three-way merge, migrations, locking, backup, rollback, and manage ignore/track
 - [ ] Mobile stack profiles
-- [ ] Monorepo-aware stack/CI profiles
-- [ ] Security profiles for common application classes
+- [x] Monorepo-aware project/evidence semantics
+- [ ] Security profiles for common application classes — Stage 6 in progress
 - [ ] Git-aware review/release automation
 - [ ] Prompt evaluation suite for coding agents
 - [ ] Architecture fitness-function examples
