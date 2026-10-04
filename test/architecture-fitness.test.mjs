@@ -465,3 +465,40 @@ test('compact static re-export syntax still contributes dependency edges and cyc
   assert.deepEqual(report.cycles, [['application', 'domain']]);
   assert.ok(codes(report).includes('module-dependency-cycle'));
 });
+
+
+test('dependency lookalikes in comments strings and template raw text do not create false edges', async () => {
+  const target = await copyReference();
+  const file = path.join(target, 'src', 'application', 'invitation-service.mjs');
+  const content = await readFile(file, 'utf8');
+  const prefix = [
+    "/*",
+    "import '../infrastructure/memory-invitation-repository.mjs';",
+    "*/",
+    "const importNote = \"import('../infrastructure/memory-invitation-repository.mjs')\";",
+    "const requireNote = 'require(\\'../infrastructure/memory-invitation-repository.mjs\\')';",
+    "const templateNote = `import('../infrastructure/memory-invitation-repository.mjs')`;"
+  ].join('\n');
+  await writeFile(file, `${prefix}\n${content}`, 'utf8');
+
+  const report = await runArchitectureFitness({ targetDir: target });
+
+  assert.equal(report.success, true);
+  assert.deepEqual(report.dependencies.map((item) => [item.from, item.to]), [['application', 'domain']]);
+});
+
+test('dynamic import inside a template expression remains visible to the analyzer', async () => {
+  const target = await copyReference();
+  const file = path.join(target, 'src', 'application', 'invitation-service.mjs');
+  const content = await readFile(file, 'utf8');
+  await writeFile(
+    file,
+    "const templateDependency = `${import('../infrastructure/memory-invitation-repository.mjs')}`;\n" + content,
+    'utf8'
+  );
+
+  const report = await runArchitectureFitness({ targetDir: target });
+
+  assert.equal(report.success, false);
+  assert.ok(codes(report).includes('forbidden-dependency-direction'));
+});
