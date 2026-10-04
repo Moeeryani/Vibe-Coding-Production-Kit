@@ -1,6 +1,6 @@
 {
   "name": "vibe-coding-production",
-  "version": "0.9.2",
+  "version": "0.9.3",
   "description": "Production-grade vibe coding framework and CLI: specs, architecture, agent rules, testing, security, reviews, delivery, and safe lifecycle updates from idea to production.",
   "type": "module",
   "bin": {

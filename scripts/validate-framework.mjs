@@ -11,6 +11,7 @@ const requiredFiles = [
   'docs/CLI.md',
   'docs/PROMPT-EVALUATION.md',
   'docs/ARCHITECTURE-FITNESS.md',
+  'docs/RELEASE-AUTOMATION.md',
   'docs/DOCTOR.md',
   'docs/STACK-PROFILES.md',
   'docs/SECURITY-PROFILES.md',
@@ -57,6 +58,10 @@ const providerRuntimeRequiredFiles = [
   'evaluations/prompt-behavior/reference-pass/plan-vertical-blockers.json',
   'evaluations/prompt-behavior/reference-pass/verification-followup.json',
   'evaluations/prompt-behavior/reference-pass/review-restartability.json'
+];
+
+const providerReleaseRequiredFiles = [
+  '.github/release-policy.json'
 ];
 
 const excludedDirs = new Set(['.git', 'node_modules', '.vcp']);
@@ -136,9 +141,12 @@ async function validateExecutableLineEndings() {
 
 let failed = false;
 const providerRuntimePresent = await existsNonEmpty('lib/prompt-eval.mjs');
-const effectiveRequiredFiles = providerRuntimePresent
-  ? [...requiredFiles, ...providerRuntimeRequiredFiles]
-  : requiredFiles;
+const providerReleasePresent = await existsNonEmpty('lib/release-check.mjs');
+const effectiveRequiredFiles = [
+  ...requiredFiles,
+  ...(providerRuntimePresent ? providerRuntimeRequiredFiles : []),
+  ...(providerReleasePresent ? providerReleaseRequiredFiles : [])
+];
 
 for (const relative of effectiveRequiredFiles) {
   if (!(await existsNonEmpty(relative))) {

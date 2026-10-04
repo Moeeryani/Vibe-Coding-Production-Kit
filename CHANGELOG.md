@@ -4,15 +4,23 @@ All notable changes to this project will be documented here.
 
 ## [Unreleased]
 
+## [0.9.3] - 2026-10-04
+
 ### Added
-- Stack-selection provenance is now preserved in `.vcp/manifest.json` as `install.requestedStack`, distinguishing automatic selection from an explicit stack choice for future lifecycle decisions.
-- Update check, dry-run, apply, and JSON reporting now expose eligible `stackProfileChange` transitions for auto-selected `generic` installs when deterministic repository evidence resolves to a concrete supported stack.
-- `CHECK_COMMAND` now represents repository-defined required validation that does not accurately fit format, lint, typecheck, test, build, or E2E, and flows through Task Packs, readiness, `vcp verify`, and JSON evidence.
+- Git-aware bounded review context, Source-of-Truth freshness checks, verification provenance, and realistic workspace/monorepo conformance coverage.
+- Project-sensitive security profiles with deterministic baseline composition plus web/API, multi-tenant, sensitive-data, and stateful-data guidance.
+- Provider-independent prompt behavioral evaluation with canonical reproducible scenarios, exact suite/prompt provenance, red mutation lanes, and human/JSON reports.
+- Explicit project-owned architecture fitness functions for module ownership, dependency direction, narrow public entrypoints, realized cycles, local import failures, and governing architecture/ADR contracts.
+- Release-candidate automation that validates version/changelog consistency, immutable historical tags, package/publish dry-runs, local tarball install/update smoke, migration continuity, and retained exact-revision evidence without performing publication or tag creation.
+- Stack-selection provenance in `.vcp/manifest.json`, safe evidence-based generic-to-concrete lifecycle transitions, and repository-level `CHECK_COMMAND` verification support.
 
 ### Changed
-- Auto-selected `generic` installs with recorded provenance may safely adopt a newly detectable concrete stack through the normal transactional update path.
-- Explicit `generic` selections and legacy manifests without stack-selection provenance remain conservative: stored `generic` profiles are not silently re-detected.
-- JavaScript and TypeScript stack profiles now keep package `check` scripts distinct from `LINT_COMMAND`; a generic `check` script is no longer silently labeled as lint.
+- Release/source evidence now follows exact-head Windows maintainer validation when hosted Actions cannot execute; Linux/hosted compatibility remains a separate non-blocking follow-up rather than an implied claim.
+- Auto-selected generic installs with recorded provenance may adopt a deterministically detected supported stack through the transactional update path, while explicit generic and legacy unknown-provenance installs remain conservative.
+- JavaScript/TypeScript stack profiles keep general package `check` scripts distinct from lint semantics.
+
+### Fixed
+- Workspace Source-of-Truth handling, review-scope provenance, release-adjacent package/install boundaries, and multiple false-green/false-red paths discovered by non-vacuous Stage 5–8 dogfood gates are covered by durable regressions.
 
 ## [0.9.2] - 2026-09-25
 
