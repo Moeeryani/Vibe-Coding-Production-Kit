@@ -159,6 +159,11 @@ test('canonical scenario listing is deterministic and exposes property coverage'
     listing.scenarios.map((item) => item.id),
     ['discovery-boundaries', 'plan-vertical-blockers', 'verification-followup', 'review-restartability']
   );
+  for (const scenario of listing.scenarios) {
+    assert.equal(typeof scenario.stimulus.developerIntent, 'string');
+    assert.ok(scenario.stimulus.repositoryEvidence.length > 0);
+    assert.equal(Object.hasOwn(scenario, 'expectations'), false);
+  }
 });
 
 test('single-scenario evaluation rejects unknown ids and reports unsafe response paths as failure evidence', async () => {
@@ -382,4 +387,17 @@ test('scenario ground truth is internally consistent and exact for bounded slice
     scenario.expectations.requiredPlanSlices.find((item) => item.id === 'slice.token-hash-regression').scope,
     ['domain', 'tests']
   );
+});
+
+
+test('canonical stimuli and evaluator ground truth agree on decision identities', async () => {
+  const suite = await loadCanonicalPromptEvalSuite();
+  const discovery = suite.scenarios.find((item) => item.id === 'discovery-boundaries');
+
+  assert.deepEqual(discovery.stimulus.decisionState.approved, discovery.expectations.approvedDecisions);
+  assert.deepEqual(discovery.stimulus.decisionState.unresolved, discovery.expectations.unresolvedHumanDecisions);
+  assert.deepEqual(discovery.stimulus.decisionState.negative, discovery.expectations.negativeDecisions);
+  for (const key of discovery.expectations.discoverableFacts) {
+    assert.ok(discovery.stimulus.repositoryEvidence.some((item) => item.key === key));
+  }
 });
