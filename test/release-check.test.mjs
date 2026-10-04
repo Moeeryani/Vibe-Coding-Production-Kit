@@ -376,13 +376,26 @@ test('install evidence validator turns red on missing CLI alias and wrong versio
   };
 
   assert.throws(
-    () => validateInstallEvidence({ ...base, aliases: { vcp: true, 'vibe-coding-production': false }, versionOutput: '0.9.3\n' }),
+    () => validateInstallEvidence({
+      ...base,
+      aliases: { vcp: true, 'vibe-coding-production': false },
+      aliasVersionOutputs: { vcp: '0.9.3\n' }
+    }),
     /did not create the vibe-coding-production CLI alias/
   );
   assert.throws(
-    () => validateInstallEvidence({ ...base, aliases: { vcp: true, 'vibe-coding-production': true }, versionOutput: '0.9.2\n' }),
-    /version smoke failed/
+    () => validateInstallEvidence({
+      ...base,
+      aliases: { vcp: true, 'vibe-coding-production': true },
+      aliasVersionOutputs: { vcp: '0.9.3\n', 'vibe-coding-production': '0.9.2\n' }
+    }),
+    /vibe-coding-production version smoke failed/
   );
+  assert.equal(validateInstallEvidence({
+    ...base,
+    aliases: { vcp: true, 'vibe-coding-production': true },
+    aliasVersionOutputs: { vcp: '0.9.3\n', 'vibe-coding-production': '0.9.3\n' }
+  }), true);
 });
 
 test('lifecycle evidence validator turns red on conflicts, blocked apply, Doctor failure, and non-idempotence', () => {
