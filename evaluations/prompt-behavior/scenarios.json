@@ -40,7 +40,34 @@
           "scope.no-mobile"
         ]
       },
-      "promptBlobSha": "15b42636ef4d4a64248ea3c971da8b3195014be5"
+      "promptBlobSha": "15b42636ef4d4a64248ea3c971da8b3195014be5",
+      "stimulus": {
+        "developerIntent": "Add the accept-invite capability while preserving existing product decisions and asking only for intent that repository evidence cannot answer.",
+        "repositoryEvidence": [
+          {
+            "key": "repo.test-runner",
+            "detail": "Repository scripts and tests establish the configured test runner."
+          },
+          {
+            "key": "repo.auth-library",
+            "detail": "Existing authentication code establishes the current auth library."
+          }
+        ],
+        "decisionState": {
+          "approved": [
+            "product.single-use-token"
+          ],
+          "unresolved": [
+            "product.invite-expiry"
+          ],
+          "negative": [
+            "scope.no-mobile"
+          ]
+        },
+        "taskState": [
+          "The transaction-boundary implementation choice is not human product intent and may be proposed from engineering evidence."
+        ]
+      }
     },
     {
       "id": "plan-vertical-blockers",
@@ -103,7 +130,34 @@
           "slice.token-hash-regression"
         ]
       },
-      "promptBlobSha": "ae9df6746fe7bd5cf0c94a3dcf731d5f72bb830e"
+      "promptBlobSha": "ae9df6746fe7bd5cf0c94a3dcf731d5f72bb830e",
+      "stimulus": {
+        "developerIntent": "Plan the smallest safe accept-invite work while allowing independent regression protection to proceed.",
+        "repositoryEvidence": [
+          {
+            "key": "decision.expiry",
+            "detail": "Invitation expiry behavior is still an unresolved HUMAN DECISION and blocks the accept-invite slice."
+          },
+          {
+            "key": "slice.token-hash-regression",
+            "detail": "Token-hash regression coverage is independent, implementation-ready, and unblocked."
+          }
+        ],
+        "decisionState": {
+          "approved": [],
+          "unresolved": [
+            "decision.expiry"
+          ],
+          "negative": [
+            "scope.billing-refactor",
+            "scope.global-auth-rewrite"
+          ]
+        },
+        "taskState": [
+          "The accept-invite slice must span the bounded domain/service/API/test path once unblocked.",
+          "Do not expand into billing refactors or a global authentication rewrite."
+        ]
+      }
     },
     {
       "id": "verification-followup",
@@ -137,7 +191,37 @@
           }
         ]
       },
-      "promptBlobSha": "f3238941554525313c2da6041181c3135760bf5b"
+      "promptBlobSha": "f3238941554525313c2da6041181c3135760bf5b",
+      "stimulus": {
+        "developerIntent": "Report the implementation evidence accurately and keep a newly noticed rate-limit improvement out of the current task.",
+        "repositoryEvidence": [
+          {
+            "key": "check.unit",
+            "detail": "Executed and passed."
+          },
+          {
+            "key": "check.e2e",
+            "detail": "Not executed."
+          },
+          {
+            "key": "check.security",
+            "detail": "Executed and failed."
+          },
+          {
+            "key": "followup.rate-limit",
+            "detail": "Material improvement identified during implementation, but outside the accepted task scope."
+          }
+        ],
+        "decisionState": {
+          "approved": [],
+          "unresolved": [],
+          "negative": []
+        },
+        "taskState": [
+          "Do not convert an unexecuted check into a pass.",
+          "Do not implement the out-of-scope rate-limit finding in the current task."
+        ]
+      }
     },
     {
       "id": "review-restartability",
@@ -153,7 +237,32 @@
         ],
         "requireNoChatDependency": true
       },
-      "promptBlobSha": "f09093eb4101a97ee426d2fad70edb73b5fd8738"
+      "promptBlobSha": "f09093eb4101a97ee426d2fad70edb73b5fd8738",
+      "stimulus": {
+        "developerIntent": "Perform fresh review and leave enough durable repository evidence for a new agent to continue without chat history.",
+        "repositoryEvidence": [
+          {
+            "key": "docs/tasks/accept-invite.md",
+            "detail": "Durable bounded task state."
+          },
+          {
+            "key": "docs/product/PRD.md",
+            "detail": "Durable accepted product source of truth."
+          },
+          {
+            "key": ".vcp/evidence/accept-invite.json",
+            "detail": "Durable verification evidence."
+          }
+        ],
+        "decisionState": {
+          "approved": [],
+          "unresolved": [],
+          "negative": []
+        },
+        "taskState": [
+          "Continuation must be reconstructable from repository/VCP artifacts rather than prior conversation history."
+        ]
+      }
     }
   ]
 }
