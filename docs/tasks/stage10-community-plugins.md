@@ -34,10 +34,10 @@ Complete Stage 10 with a deterministic/versioned plugin model that is explicit i
 - [ ] AC-010 — Doctor uses the same loader and reports absent/valid state as pass and invalid/tampered state as fail.
 - [ ] AC-011 — `vcp plugins` provides read-only human/JSON inspection.
 - [ ] AC-012 — `vcp plugins --digest` computes the canonical pin without changing selection/trust.
-- [ ] AC-013 — init/update lifecycle never invents plugin selections and leaves project-owned declaration/bundles outside managed template state.
+- [ ] AC-013 — init/update lifecycle never invents or rewrites plugin selections/bundles, and update planning fails closed when explicitly selected plugin state is invalid or incompatible with the running target CLI.
 - [ ] AC-014 — realistic React Native-readiness community fixture dogfoods guidance + verification-proposal capabilities without claiming mobile support.
 - [ ] AC-015 — negative tests independently prove traversal, URL/drive path, symlink, digest mismatch, duplicate id/path/grant, unsupported schema/kind/capability/file type, id/version/compatibility mismatch, forbidden manifest key, and ungranted command paths fail.
-- [ ] AC-016 — docs/README/CLI/Roadmap/package validation explain trust, authoring, compatibility, and non-goals.
+- [ ] AC-016 — docs/README/CLI/Roadmap/package/release validation explain trust, authoring, compatibility, and non-goals and guard the Stage 10 reference fixture in the candidate tarball.
 - [ ] AC-017 — Stage 10 does not change stack auto-detection or implement the separate Mobile profiles roadmap commitment.
 
 ## Scope
@@ -130,7 +130,7 @@ Human and JSON plugin inspection show selected id/version/path/digest/grants/cap
 - Context composition + budget/manifest;
 - Doctor absent/valid/invalid behavior;
 - CLI human/JSON inspection + digest;
-- init/update project-owned preservation semantics.
+- init/update project-owned preservation semantics and incompatible-plugin update preflight.
 
 ### E2E / regression
 
@@ -147,6 +147,7 @@ Human and JSON plugin inspection show selected id/version/path/digest/grants/cap
 - unsupported schema/kind/capability/file type/key;
 - id/version/compatibility mismatch;
 - ungranted verification proposal;
+- declaration/bundle entry/read/text resource limits;
 - context budget enforcement.
 
 ## Rollout, migration, and recovery
@@ -185,6 +186,7 @@ Human and JSON plugin inspection show selected id/version/path/digest/grants/cap
 | TEST DEFECT | corrected before executable gate | Final pre-gate audit found the case-only file-collision regression tried to create both `Case.md` and `case.md` on disk, which is not a portable test on Windows case-insensitive filesystems. | Factor the case-fold uniqueness rule into the actual loader helper and test that helper directly with synthetic portable paths; bundle walking still invokes the same rule. | Prevents Windows test behavior from depending on filesystem case semantics. |
 | DEFECT | corrected before executable gate | Final trust-boundary audit found that a nominally project-owned plugin could be selected from arbitrary repository directories, path names were not fully portable across Windows/Linux, schema/text control characters could reach terminal/context output, and file-count/byte limits did not bound excessive empty-directory traversal or declaration size. | Require all bundles under `community-plugins/`; restrict local path segments to portable ASCII and reject Windows-reserved names; reject control characters; cap declaration size and total traversed entries in addition to file/raw/normalized-byte limits. | These are deterministic v1 portability/resource contracts, not trust signals. |
 | DEFECT | corrected before executable gate | Public CLI implemented `vcp plugins` and `--digest` but runtime `--help` omitted the command/option/examples. | Add the missing help surface and an executable regression. | Help text must pass the same exact-head gate as the implementation. |
+| RISK | follow-up candidate / non-blocking | Like the existing prompt-eval reader, Stage 10 performs portable path/symlink checks and later filesystem reads by pathname; a concurrently privileged/local writer could replace a checked component between operations. Node does not currently provide the required portable root-anchored no-follow traversal/open primitive across Windows/Linux. | Reuse Issue #73 as the portable concurrent-filesystem-confinement follow-up; document the actual guarantee and do not claim an atomic filesystem snapshot. | Static traversal/symlink/digest-snapshot contracts remain in-scope and gated; concurrent local mutation remains outside the current atomic guarantee. |
 | NO ACTION | pending external review | CodeRabbit has not yet emitted a submitted review or inline finding on the complete current Stage 10 source surface. | Request review on the exact pre-gate candidate and audit submitted review bodies, inline threads, and top-level comments before finalization. | Absence/pending state is not approval. |
 
 ## Finalization
