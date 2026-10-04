@@ -165,6 +165,16 @@ test('fenced changelog headings cannot satisfy release authority', async () => {
   assert.equal(checkById(report, 'changelog-version').status, 'fail');
 });
 
+test('duplicate Unreleased headings fail release authority', async () => {
+  const { root } = await makeReleaseFixture();
+  const changelog = await readFile(path.join(root, 'CHANGELOG.md'), 'utf8');
+  await writeFile(path.join(root, 'CHANGELOG.md'), changelog + '\n## [Unreleased]\n');
+  await commitAll(root, 'duplicate unreleased heading');
+
+  const report = await runReleaseCheck({ targetDir: root, version: '0.9.3' });
+  assert.equal(checkById(report, 'changelog-unreleased').status, 'fail');
+});
+
 test('Unreleased bullets block a prepared release candidate', async () => {
   const { root } = await makeReleaseFixture();
   const changelog = await readFile(path.join(root, 'CHANGELOG.md'), 'utf8');
@@ -173,6 +183,18 @@ test('Unreleased bullets block a prepared release candidate', async () => {
 
   const report = await runReleaseCheck({ targetDir: root, version: '0.9.3' });
   assert.equal(checkById(report, 'changelog-unreleased').status, 'fail');
+});
+
+test('release notes require candidate version identity in the top-level title', async () => {
+  const { root } = await makeReleaseFixture();
+  await writeFile(
+    path.join(root, 'docs', 'releases', 'v0.9.3.md'),
+    '# Generic release candidate\n\nRelease status: Candidate — publication requires HUMAN DECISION.\n\nMentions v0.9.3 only in body text.\n'
+  );
+  await commitAll(root, 'weak release notes identity');
+
+  const report = await runReleaseCheck({ targetDir: root, version: '0.9.3' });
+  assert.equal(checkById(report, 'release-notes').status, 'fail');
 });
 
 test('candidate release marker inside a fenced example is not release authority', async () => {
