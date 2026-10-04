@@ -357,37 +357,27 @@ Exit criteria achieved:
 
 ### Stage 5 — Monorepo + CI evidence
 
-**Status:** 🟡 In progress — verification provenance foundation merged in PR #58 / Issue #57; explicit root/package Source-of-Truth semantics merged in PR #61 / Issue #60, with reserved project-local `workspace:` boundary enforcement corrected in PR #64.
+**Status:** ✅ Done — verification provenance foundation PR #58 / Issue #57; explicit project/workspace Source-of-Truth semantics PR #61 + PR #64 / Issue #60; realistic monorepo/workspace conformance PR #67 / Issue #66; evidence-policy decision closes Issue #15.
 
-Completed foundation:
+Exit criteria achieved:
 
 - `--dir` remains the explicit VCP project root, verification cwd, and path-safety/evidence-output boundary;
-- the enclosing Git worktree is explicit provenance scope only and does not widen project authority;
-- nested/package-specific verification remains executable from the selected project root;
-- verification evidence schema v2 records portable `scope.projectPath`, exact Git revision when available, and pre-verification dirty state while retaining legacy evidence fields;
-- local and CI executions share the same provider-agnostic evidence contract;
-- Git provenance inspection is hardened against locale drift, optional index writes, symlink/junction path aliases, active external clean/process filters, and configured submodule-ignore policy;
-- unqualified governing Source-of-Truth references remain selected-project-local;
-- `workspace:<path>` explicitly opts into a governing document from the enclosing Git worktree without parent-directory search, nearest-file fallback, sibling-package inheritance, or hidden root authority;
-- freshness/authority rules apply identically to project-local and workspace-qualified governing documents;
-- Context Packs stay bounded to explicitly declared governing references; the reserved `workspace:` qualifier is rejected by project-local include/planned/output paths after normalization (PR #64), so cross-root ad hoc path authority remains disabled.
+- enclosing Git worktree provenance does not widen selected-project authority;
+- verification evidence schema v2 records portable project scope, exact Git revision when available, and dirty state;
+- nested package verification, explicit `workspace:<path>` governing authority, freshness parity, unrelated root/sibling exclusion, and reserved project-local workspace boundary enforcement are covered;
+- realistic fresh-checkout monorepo conformance proves bounded context, nested path safety, restartability, package-local verification evidence, and root-aware Git review;
+- final merged Stage 5 source passed 34/34 focused tests and 223/223 full validation on exact clean heads before and after Task Pack finalization;
+- GitHub Actions repeatedly failed before runner/job steps on this account, so VCP deliberately adopted the proven fresh-clone Windows exact-head maintainer channel as the current long-term executable evidence policy under #15.
 
-Remaining before Stage 5 is Done:
-
-- prove bounded package context in a realistic monorepo/workspace flow using the explicit project/workspace authority contract;
-- retain nested path-safety and restartability under realistic shared-root/package rules;
-- restore hosted CI execution or deliberately adopt an equivalent long-term channel under #15, then prove local/CI evidence compatibility in both environments;
-- complete realistic monorepo/workspace conformance and final Stage 5 review evidence. The Issue #66 implementation candidate is represented by `examples/reference-workspace-monorepo/` plus `test/stage5-workspace-conformance.test.mjs`; Stage 5 remains in progress until the final combined gate and hosted-CI status are resolved accurately.
-
-Dependencies #23 and #24 are complete. Issue #15 remains an open infrastructure dependency for hosted-CI evidence; it does not block continued product-semantic work that can be proven through the accepted exact-head local channel.
+Linux/hosted cross-OS compatibility is **not claimed**. Existing local Docker images lacked the Node 22+ plus Git combination required by the VCP provenance contract and downloads/installations were intentionally disallowed. Linux/hosted execution is later compatibility work, not a Stage 5 blocker.
 
 ### Stage 6 — Security profiles
 
-**Status:** ⬜ Planned.
+**Status:** 🟡 In progress — Issue #68 implementation candidate on `stage6-security-profiles`.
 
-Move from generic security prose to project-sensitive checks/guidance for authorization, tenant isolation, secrets, PII, trust boundaries, abuse/rate limits, migration/data safety, and negative-path testing.
+Move from generic security prose to explicit project-sensitive review profiles for authorization, tenant isolation, secrets/PII, trust boundaries, abuse/rate/replay controls, migration/data safety, and negative-path testing.
 
-Do not create false compliance claims or infer human risk acceptance.
+The Stage 6 design keeps baseline protections mandatory, composes explicit repository-owned profiles deterministically, limits automatic profile context to security mode, preserves backward compatibility for pre-Stage-6 projects, and does not infer risk acceptance or claim compliance.
 
 ### Stage 7 — Prompt evaluation harness
 
