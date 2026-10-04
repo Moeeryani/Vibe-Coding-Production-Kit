@@ -262,13 +262,13 @@ Source-of-Truth freshness, decision lifecycle, negative decisions, task state, l
 
 Verification, Git-aware review, security profiles, prompt evaluation, architecture fitness, conformance.
 
-**Next:** release automation after completed Stage 8 architecture fitness functions; keep Linux/hosted compatibility as non-blocking conformance follow-up #69.
+**Next:** maintain completed Stage 9 release-candidate evidence mechanics; keep publication/tag creation human-controlled and Linux/hosted compatibility as non-blocking conformance follow-up #69.
 
 ### Track D — Repository Scale and Delivery
 
 CI evidence, monorepos, release automation, stack/mobile profiles, package/repo scale.
 
-**Next:** Linux/hosted compatibility proof when an authorized environment exists (#69), then release/mobile/repository-scale delivery work without reopening completed Stage 5.
+**Next:** Linux/hosted compatibility proof when an authorized environment exists (#69), then mobile/repository-scale delivery work without reopening completed Stages 5–9.
 
 ### Track E — Developer UX and Ecosystem
 
@@ -433,11 +433,24 @@ This Done state reaches `main` only through the standard exact-head Review → p
 
 ### Stage 9 — Release automation
 
-**Status:** ⬜ Planned.
+**Status:** ✅ Done — PR #77 / Issue #76.
 
-Automate repeatable mechanics without automating away human release approval.
+Stage 9 automates repeatable **release-candidate evidence** without automating away human approval:
 
-Require version/changelog consistency, pack inspection, publish dry-run, install/update smoke, migration checks, immutable tags, and retained release evidence.
+- candidate package/lockfile/changelog/release-note identity must agree;
+- `[Unreleased]` release bullets must be rolled into the dated candidate section;
+- lifecycle migration continuity from the retained previous release is executable;
+- immutable historical tag object + peeled commit identity is checked and never mutated;
+- missing candidate tag is a HUMAN DECISION, while an existing mismatched candidate tag fails;
+- `npm pack` surface, `npm publish --dry-run`, and local tarball install are repeatable mechanics;
+- local lifecycle smoke starts from the retained previous release source/tag and proves dry-run/apply/backup/Doctor/framework/idempotence against the candidate;
+- optional JSON release evidence is bound to the exact clean Git revision and omits command stdout/stderr.
+
+The command never executes actual `npm publish`, creates/moves/deletes tags, creates GitHub releases, or deploys. A green `vcp release-check` result proves the declared candidate mechanics only; **release approval and publication remain HUMAN DECISION actions**.
+
+The repository prepares `vibe-coding-production@0.9.3` as an unpublished candidate with an explicit `0.9.2 -> 0.9.3` migration. Stage 9 completion does not claim that `v0.9.3` exists or that npm publication occurred.
+
+This Done state reaches `main` only through the standard exact-head Review → pre-final gate → Task Pack-only finalization → final gate sequence.
 
 ### Stage 10 — Community profiles / plugin model
 
@@ -635,7 +648,7 @@ Add future `SYSTEM-CONTRACT.md` / `QUALITY-GATES.md` only if they reduce ambigui
 3. Maintain completed Stage 6 project-sensitive security profiles.
 4. Maintain completed Stage 7 prompt behavioral evaluation and expand canonical scenarios only when new workflow evidence justifies them.
 5. Maintain completed Stage 8 explicit architecture fitness functions without expanding them into inferred graph authority.
-6. Automate release mechanics without automating approval.
+6. Maintain completed Stage 9 release-candidate mechanics without automating approval or publication.
 7. Extend mobile/plugins/ecosystem only after core contracts stabilize.
 8. Revisit broader graph validation/eligibility only if later dogfood demonstrates a concrete problem that required metadata would solve.
 
