@@ -1,6 +1,6 @@
 # Task — Implement Stage 9 release automation evidence gate
 
-Status: Review
+Status: Done
 Slug: `stage9-release-automation`
 
 ## Outcome
@@ -23,22 +23,22 @@ Complete Stage 9 by automating release-candidate mechanics and retained evidence
 
 ## Acceptance criteria
 
-- [ ] AC-001 — versioned release-evidence schema and human/JSON reports exist.
-- [ ] AC-002 — package.json, package-lock, changelog, candidate notes, and candidate version must agree.
-- [ ] AC-003 — `[Unreleased]` contains no release bullets for a prepared candidate.
-- [ ] AC-004 — migration path from retained previous release to candidate is explicit and deterministic.
-- [ ] AC-005 — retained v0.9.2 annotated tag object and peeled commit are checked without mutation.
-- [ ] AC-006 — missing candidate tag is HUMAN_DECISION; existing mismatched candidate tag fails and is never moved.
-- [ ] AC-007 — package inspection validates candidate name/version and required runtime surface.
-- [ ] AC-008 — `npm publish --dry-run` executes only with explicit `--run`.
-- [ ] AC-009 — local candidate tarball install proves both CLI aliases and candidate version.
-- [ ] AC-010 — local lifecycle smoke starts from retained v0.9.2 source/tag, previews/applies 0.9.3 offline, creates a backup, stays conflict-free, passes Doctor/framework validation, and becomes idempotent.
-- [ ] AC-011 — optional evidence output is preflighted before commands, root-bounded, symlink-safe, and overwrite-protected.
-- [ ] AC-012 — evidence binds exact clean Git revision and does not retain command stdout/stderr.
-- [ ] AC-013 — actual npm publish/tag/release/deployment actions are absent and remain HUMAN DECISION.
-- [ ] AC-014 — negative tests independently turn version/changelog/migration/tag/package/install/update/dirty/output-preflight lanes red.
-- [ ] AC-015 — v0.9.3 candidate metadata and release documentation are coherent without claiming publication.
-- [ ] AC-016 — Roadmap/README/CLI documentation records Stage 9 completion and boundaries.
+- [x] AC-001 — versioned release-evidence schema and human/JSON reports exist.
+- [x] AC-002 — package.json, package-lock, changelog, candidate notes, and candidate version must agree.
+- [x] AC-003 — `[Unreleased]` contains no release bullets for a prepared candidate.
+- [x] AC-004 — migration path from retained previous release to candidate is explicit and deterministic.
+- [x] AC-005 — retained v0.9.2 annotated tag object and peeled commit are checked without mutation.
+- [x] AC-006 — missing candidate tag is HUMAN_DECISION; existing mismatched candidate tag fails and is never moved.
+- [x] AC-007 — package inspection validates candidate name/version and required runtime surface.
+- [x] AC-008 — `npm publish --dry-run` executes only with explicit `--run`.
+- [x] AC-009 — local candidate tarball install proves both CLI aliases and candidate version.
+- [x] AC-010 — local lifecycle smoke starts from retained v0.9.2 source/tag, previews/applies 0.9.3 offline, creates a backup, stays conflict-free, passes Doctor/framework validation, and becomes idempotent.
+- [x] AC-011 — optional evidence output is preflighted before commands, root-bounded, symlink-safe, and overwrite-protected.
+- [x] AC-012 — evidence binds exact clean Git revision and does not retain command stdout/stderr.
+- [x] AC-013 — actual npm publish/tag/release/deployment actions are absent and remain HUMAN DECISION.
+- [x] AC-014 — negative tests independently turn version/changelog/migration/tag/package/install/update/dirty/output-preflight lanes red.
+- [x] AC-015 — v0.9.3 candidate metadata and release documentation are coherent without claiming publication.
+- [x] AC-016 — Roadmap/README/CLI documentation records Stage 9 completion and boundaries.
 
 ## Scope
 
@@ -164,13 +164,32 @@ Human output shows each PASS/FAIL/PLANNED/HUMAN_DECISION item. JSON evidence sto
 | DEFECT | must fix before corrected gate | CodeRabbit review of `92ccb355…` found Windows `cmd.exe /s /c` quoting could break execution of installed CLI aliases when the temporary path contains spaces. | Build one quoted command string with an outer quote pair for `/s` stripping while preserving the quoted alias path; reject unsafe quote/newline input. | Windows fresh-clone gate must exercise the real install/lifecycle alias smoke. |
 | DEFECT | corrected after second red pre-final gate | Fresh-clone Windows gate on `a746b493080a5a5178278d56050e9ec3058b547b` passed focused 69/69, strict readiness 15/0/0, task verification UNIT 29/29, full validation 338/338, package check, immutable v0.9.2 identity, and cleanup; the real release-check dogfood alone failed install-smoke and lifecycle-smoke when TEMP contained spaces. Maintainer isolated the root cause: the generated `""<spaced alias>.cmd" --version"` command succeeds in raw CMD but normal Node `execFile(cmd.exe, argv)` re-quotes the /c payload and corrupts it. | Preserve the raw /c command only for this cmd.exe call via `windowsVerbatimArguments: true`, and add an executable Windows regression that creates a .cmd file under a spaced temp directory and runs it through the exact helper. | The `a746b493…` gate is superseded. Corrected fresh-clone gate must rerun with spaced TEMP/TMP. |
 | TEST DEFECT | must fix before corrected gate | CodeRabbit found the two public CLI preview tests used the live repository as `--dir`, making them dependent on live dirty/tag state rather than the CLI contract. | Run both output tests against isolated clean temporary Git fixtures with retained `v0.9.2` annotated tag identity and no candidate tag. | Prevents future `v0.9.3` tag creation or unrelated working-tree changes from changing test meaning. |
+| NO ACTION | accepted pre-final evidence | Fresh-clone Windows gate on exact head `f756afebdb0f4392bf911d6fdcb559378872779e` passed end to end: exact remote/local SHA before and after; clean tree before/after `npm ci`; diff check; immutable v0.9.2 tag object + peeled commit; expected missing v0.9.3 candidate tag; focused suite 70/70; repository check; strict readiness 15 pass / 0 warn / 0 fail; Doctor 9 pass / 7 warn / 0 fail; VCP verification bound to the exact clean revision with task UNIT 30/30; full validation 339/339; package check; real spaced-TEMP `release-check 0.9.3 --run` success; release evidence assertion pass; no leftover temporary worktree. | Accept as corrected pre-final executable evidence. The immediately preceding `a746b493…` gate failed the same real spaced-TEMP install/lifecycle lane, proving the final green is non-vacuous. | Same complete fresh-clone gate must rerun on the Task Pack-only finalization head before merge. |
+| NO ACTION | accepted review state | Fresh post-gate audit on `f756afeb…`: PR #77 open/unmerged/mergeable at the exact validated head; CodeRabbit status success; both prior inline findings remain resolved; no new inline thread or submitted actionable review appeared. A requested re-review of this new head was rate-limited, so no new full external review claim is made. | Accept current review state for finalization while preserving the rate-limit disclosure. | Final live audit is still required after the finalization-head gate and before merge. |
 | NO ACTION | n/a | Awaiting complete Stage 9 changed-surface review and exact-head executable validation. | Keep in Review. | Actual publication/tag creation remain intentionally outside automated evidence. |
 
 ## Finalization
 
-- [ ] Acceptance criteria complete.
-- [ ] Fresh submitted-review + inline-thread + top-level-comment audit complete.
-- [ ] Comprehensive exact-head pre-final gate passed.
-- [ ] Task Pack-only finalization edit made.
-- [ ] Same gate rerun on finalization head.
-- [ ] Status changed to Done.
+- [x] Acceptance criteria complete on corrected pre-final head `f756afebdb0f4392bf911d6fdcb559378872779e`.
+- [x] Fresh submitted-review + inline-thread + top-level-comment audit complete.
+- [x] Comprehensive exact-head fresh-clone pre-final gate passed on `f756afebdb0f4392bf911d6fdcb559378872779e`.
+- [x] Task Pack-only finalization edit made after the passing pre-final gate.
+- [ ] Same complete fresh-clone gate rerun on this finalization head.
+- [x] Status changed to Done.
+
+
+## Completion report
+
+- What changed: Stage 9 adds `vcp release-check <version>` with preview/run modes, repository-owned release policy, exact Git provenance, immutable historical tag checks, package/publish-dry-run/install/update mechanics, and optional machine-readable release evidence.
+- Candidate identity: this repository is prepared as `vibe-coding-production@0.9.3` with package/lockfile/changelog/release-note consistency and an explicit `0.9.2 -> 0.9.3` lifecycle migration.
+- Human boundary: a green candidate report does not approve publication. Actual `npm publish`, candidate tag creation/movement/deletion, GitHub release creation, and deployment remain HUMAN DECISION actions outside `release-check`.
+- Immutable history: retained `v0.9.2` tag object `5693eec39f8ba24c77b5634534bff094b369880a` and peeled release commit `3fba0ecc963ca896f091442bc250139c67b64ce8` are checked without mutation.
+- Package evidence: run mode validates `npm pack` identity/surface, performs `npm publish --dry-run`, installs the local candidate tarball, executes both CLI aliases, and records package artifact metadata without command stdout/stderr.
+- Lifecycle evidence: local smoke starts from retained `v0.9.2`, initializes a managed project, previews/applies the offline 0.9.3 update with zero conflicts and a backup, requires post-update Doctor/framework validation, and proves idempotence.
+- Windows hardening: the final implementation preserves a raw `cmd.exe /d /s /c` payload with `windowsVerbatimArguments: true` only for installed .cmd alias execution; an executable regression and the real dogfood both run under TEMP/TMP paths containing spaces.
+- Evidence retention: optional JSON evidence is exact-revision bound, root/symlink/overwrite protected, records declared mechanics/check summaries/HUMAN_DECISION items, and omits temporary paths plus command stdout/stderr.
+- Corrected pre-final evidence: maintainer reported the complete fresh-clone Windows gate passed on exact head `f756afebdb0f4392bf911d6fdcb559378872779e`: focused 70/70, strict readiness 15/0/0, task UNIT 30/30, full validation 339/339, package check pass, release-check run pass, release evidence assertion pass, exact clean SHA before/after, and no leaked worktree.
+- Non-vacuous history: `92ccb355…` failed diff hygiene/readiness; `a746b493…` then failed the real spaced-TEMP install/lifecycle smoke despite green unit/full lanes. Those reds directly exercised the conditions fixed before `f756afeb…`.
+- Review evidence: CodeRabbit's two actionable findings (Windows alias quoting and live-state CLI tests) were verified, fixed, acknowledged, and both threads resolved. The post-fix full re-review request was rate-limited; this is disclosed rather than treated as approval.
+- Publication status: `v0.9.3` remains missing/uncreated and npm publication has not occurred.
+- Finalization requirement: this Task Pack-only edit moves the branch head. Run the same complete fresh-clone Stage 9 gate, including spaced-TEMP dogfood, on that exact finalization SHA before merge. Do not edit this Task Pack merely to record the rerun.
