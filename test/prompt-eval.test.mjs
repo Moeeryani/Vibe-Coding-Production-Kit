@@ -136,6 +136,10 @@ test('scenario id and prompt identity mismatches fail visibly', async () => {
     () => evaluatePromptBehaviorRecord(scenario, { ...record, prompt: 'prompts/99-wrong.md' }),
     /prompt mismatch/
   );
+  assert.throws(
+    () => evaluatePromptBehaviorRecord(scenario, { ...record, promptBlobSha: '0000000000000000000000000000000000000000' }),
+    /promptBlobSha mismatch/
+  );
 });
 
 test('canonical scenario listing is deterministic and exposes property coverage', async () => {
