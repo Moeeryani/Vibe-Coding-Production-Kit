@@ -114,6 +114,13 @@ test('preview validates a clean candidate while retaining tag/publish HUMAN_DECI
   assert.equal(report.releaseApproved, false);
   assert.equal(report.published, false);
   assert.equal(report.revision.dirty, false);
+  assert.deepEqual(report.mechanics.map((item) => item.id), [
+    'package-inspection',
+    'publish-dry-run',
+    'install-smoke',
+    'lifecycle-smoke'
+  ]);
+  assert.match(report.mechanics.find((item) => item.id === 'publish-dry-run').command, /npm publish --dry-run --json/);
   assert.equal(checkById(report, 'candidate-tag').status, 'human-decision');
   assert.equal(checkById(report, 'npm-publish').status, 'human-decision');
   assert.equal(report.summary.planned, 4);
@@ -269,7 +276,9 @@ test('release evidence output is preflighted, overwrite-protected, and excludes 
   const evidence = await readFile(path.join(root, ...output.split('/')), 'utf8');
   assert.equal(report.output, output);
   assert.doesNotMatch(evidence, /"stdout"|"stderr"/);
-  assert.equal(JSON.parse(evidence).schemaVersion, 1);
+  const parsedEvidence = JSON.parse(evidence);
+  assert.equal(parsedEvidence.schemaVersion, 1);
+  assert.equal(parsedEvidence.mechanics.length, 4);
 
   await assert.rejects(
     runReleaseCheck({ targetDir: root, version: '0.9.3', output }),
