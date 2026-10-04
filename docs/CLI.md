@@ -227,6 +227,27 @@ vcp verify accept-invite --run --output .vcp/evidence/accept-invite.json
 
 See [`VERIFICATION-EVIDENCE.md`](VERIFICATION-EVIDENCE.md).
 
+## Evaluate prompt behavior without embedding a model
+
+Stage 7 adds deterministic evaluation of normalized external-agent behavior records.
+
+```bash
+vcp prompt-eval list
+vcp prompt-eval discovery-boundaries \
+  --response .vcp/prompt-eval/discovery-boundaries.json
+vcp prompt-eval all \
+  --responses .vcp/prompt-eval \
+  --json
+```
+
+The running VCP package owns the canonical scenarios. An external agent/adapter executes the relevant prompt and records observable events using the versioned behavior-record contract. VCP evaluates those events; it does not call a model provider or grade exact prose.
+
+The suite covers discover-before-ask, HUMAN DECISION boundaries, proposal-vs-approval, negative decisions, bounded vertical planning, blocker/readiness discipline, verification-report accuracy, follow-up scope, and restartability.
+
+Response paths are resolved inside the selected `--dir` project root and reject traversal/symlink escapes. Missing or invalid records fail rather than defaulting to pass.
+
+See [`PROMPT-EVALUATION.md`](PROMPT-EVALUATION.md).
+
 ## Safety behavior
 
 The CLI is intentionally conservative:
@@ -266,13 +287,15 @@ Before using bootstrap `--force`, inspect the reported conflicts. The CLI never 
 --timeout-ms <n>   verify: per-command timeout
 --title <text>     task title
 --stage <name>     readiness stage: plan | implement
---dir <path>       task/ready/context/verify/manage project root
+--dir <path>       task/ready/context/verify/manage/prompt-eval project root
 --mode <name>      context mode: plan | implement | review | security | release
                     security mode also loads baseline + explicit docs/security/SECURITY-PROFILE.md profiles
 --include <path>   add an existing explicit context file; repeatable
 --planned <path>   implement context: declare a future repository-local path; repeatable
 --output <path>    write context/evidence inside the selected project root
 --max-bytes <n>    maximum context pack bytes; 0 disables the limit
+--response <path>   prompt-eval: one behavior-record JSON inside the project
+--responses <dir>  prompt-eval all: directory containing <scenario-id>.json files
 --help, -h         show help
 --version, -v      show version
 ```
