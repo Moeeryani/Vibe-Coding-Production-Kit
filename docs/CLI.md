@@ -266,6 +266,40 @@ A passing report proves only the configured executable boundaries. Non-relative 
 
 See [`ARCHITECTURE-FITNESS.md`](ARCHITECTURE-FITNESS.md).
 
+## Build release-candidate evidence without publishing
+
+Stage 9 automates repeatable release mechanics while keeping release approval and irreversible actions human-controlled.
+
+Preview static release contracts:
+
+```bash
+vcp release-check 0.9.3 --dir .
+vcp release-check 0.9.3 --dir . --json
+```
+
+Execute candidate mechanics explicitly:
+
+```bash
+vcp release-check 0.9.3 --dir . --run --json
+```
+
+Run mode may perform local package inspection, `npm publish --dry-run`, local tarball install smoke, and local lifecycle update smoke from the retained previous release. It **never** performs actual `npm publish`, tag creation/movement/deletion, GitHub release creation, or deployment.
+
+A missing candidate tag is reported as `HUMAN_DECISION`; an existing candidate tag that does not resolve to the exact candidate revision is a failure and is never moved automatically.
+
+Retain machine-readable evidence if desired:
+
+```bash
+vcp release-check 0.9.3 \
+  --dir . \
+  --run \
+  --output .vcp/evidence/releases/0.9.3.json
+```
+
+Evidence output is preflighted before executable mechanics, stays inside the selected repository, refuses symlink traversal/overwrite by default, and does not persist command stdout/stderr.
+
+See [`RELEASE-AUTOMATION.md`](RELEASE-AUTOMATION.md).
+
 ## Safety behavior
 
 The CLI is intentionally conservative:
@@ -300,21 +334,22 @@ Before using bootstrap `--force`, inspect the reported conflicts. The CLI never 
 --backup <id>      rollback: name the newest/transaction recovery point
 --json             machine-readable output where supported
 --strict           doctor/ready: make warnings non-zero
---run              verify: explicitly execute repository-controlled commands
+--run              verify/release-check: explicitly execute configured local mechanics
 --only <key>       verify: select one configured verification command; repeatable
---timeout-ms <n>   verify: per-command timeout
+--timeout-ms <n>   verify/release-check: command timeout
 --title <text>     task title
 --stage <name>     readiness stage: plan | implement
---dir <path>       task/ready/context/verify/manage/prompt-eval/fitness project root
+--dir <path>       task/ready/context/verify/manage/prompt-eval/fitness/release-check project root
 --mode <name>      context mode: plan | implement | review | security | release
                     security mode also loads baseline + explicit docs/security/SECURITY-PROFILE.md profiles
 --include <path>   add an existing explicit context file; repeatable
 --planned <path>   implement context: declare a future repository-local path; repeatable
---output <path>    write context/evidence inside the selected project root
+--output <path>    write context/verification/release evidence inside the selected project root
 --max-bytes <n>    maximum context pack bytes; 0 disables the limit
 --response <path>   prompt-eval: one behavior-record JSON inside the project
 --responses <dir>  prompt-eval all: directory containing <scenario-id>.json files
 --config <path>    fitness: project-relative config (default: docs/architecture/FITNESS.json)
+--policy <path>    release-check: repository-relative release policy (default: .github/release-policy.json)
 --help, -h         show help
 --version, -v      show version
 ```
