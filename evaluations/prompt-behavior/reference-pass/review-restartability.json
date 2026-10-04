@@ -21,5 +21,6 @@
     ],
     "dependsOnChatHistory": false
   },
-  "promptBlobSha": "f09093eb4101a97ee426d2fad70edb73b5fd8738"
+  "promptBlobSha": "f09093eb4101a97ee426d2fad70edb73b5fd8738",
+  "suiteBlobSha": "268bb010ae7eb1fcfb82c7def1ac1935c2e4c871"
 }
