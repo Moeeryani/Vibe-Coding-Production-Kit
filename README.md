@@ -309,7 +309,7 @@ Idea
 - `AGENTS.md` — repository-wide rules and an AI-first VCP operating protocol for coding agents.
 - Product templates — product brief, PRD, user flows, acceptance criteria.
 - Architecture templates — domain model, system design, data model, ADRs.
-- Security template — threat modeling before implementation.
+- Security system — threat modeling plus explicit baseline/web/API/multi-tenant/sensitive-data/stateful-data review profiles.
 - Test strategy — unit/integration/contract/E2E decision framework.
 - Delivery system — Definition of Ready, Definition of Done, task/release checklists.
 - `vcp task` — bounded repository-native task contracts.
@@ -432,7 +432,7 @@ Do not duplicate conflicting rules across multiple agent configuration files. Pr
 - [x] Three-way merge, migrations, locking, backup, rollback, and manage ignore/track
 - [ ] Mobile stack profiles
 - [x] Monorepo-aware project/evidence semantics
-- [ ] Security profiles for common application classes — Stage 6 in progress
+- [x] Project-sensitive security profiles
 - [ ] Git-aware review/release automation
 - [ ] Prompt evaluation suite for coding agents
 - [ ] Architecture fitness-function examples
