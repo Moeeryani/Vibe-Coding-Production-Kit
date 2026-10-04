@@ -140,6 +140,10 @@ test('scenario id and prompt identity mismatches fail visibly', async () => {
     () => evaluatePromptBehaviorRecord(scenario, { ...record, promptBlobSha: '0000000000000000000000000000000000000000' }),
     /promptBlobSha mismatch/
   );
+  assert.throws(
+    () => evaluatePromptBehaviorRecord(scenario, { ...record, suiteBlobSha: '0000000000000000000000000000000000000000' }),
+    /suiteBlobSha mismatch/
+  );
 });
 
 test('canonical scenario listing is deterministic and exposes property coverage', async () => {
@@ -261,4 +265,92 @@ test('required vertical slices need explicit non-empty scope', async () => {
 
   assert.equal(property.success, false);
   assert.ok(property.assertions.some((item) => item.id === 'slice-scope:slice.accept-invite' && item.status === 'fail'));
+});
+
+
+test('unresolved human decisions cannot be relabeled as discovered facts or negative decisions', async () => {
+  const suite = await loadCanonicalPromptEvalSuite();
+  const scenario = suite.scenarios.find((item) => item.id === 'discovery-boundaries');
+
+  const discovered = await readPassRecord('discovery-boundaries');
+  discovered.observations.discovered.push('product.invite-expiry');
+  let report = evaluatePromptBehaviorRecord(scenario, discovered);
+  let property = report.properties.find((item) => item.property === 'human-decision-boundary');
+  assert.equal(property.success, false);
+  assert.ok(property.assertions.some((item) => item.id === 'not-discovered-as-fact:product.invite-expiry' && item.status === 'fail'));
+
+  const negative = await readPassRecord('discovery-boundaries');
+  negative.observations.negativeDecisions.push('product.invite-expiry');
+  report = evaluatePromptBehaviorRecord(scenario, negative);
+  property = report.properties.find((item) => item.property === 'human-decision-boundary');
+  assert.equal(property.success, false);
+  assert.ok(property.assertions.some((item) => item.id === 'not-negative-decided:product.invite-expiry' && item.status === 'fail'));
+});
+
+test('approved and negative decisions cannot be reopened into the wrong decision class', async () => {
+  const suite = await loadCanonicalPromptEvalSuite();
+  const scenario = suite.scenarios.find((item) => item.id === 'discovery-boundaries');
+
+  const approved = await readPassRecord('discovery-boundaries');
+  approved.observations.proposals.push('product.single-use-token');
+  let report = evaluatePromptBehaviorRecord(scenario, approved);
+  let property = report.properties.find((item) => item.property === 'proposal-not-approval');
+  assert.equal(property.success, false);
+  assert.ok(property.assertions.some((item) => item.id === 'approved-not-reopened:product.single-use-token' && item.status === 'fail'));
+
+  const rejected = await readPassRecord('discovery-boundaries');
+  rejected.observations.proposals.push('scope.no-mobile');
+  report = evaluatePromptBehaviorRecord(scenario, rejected);
+  property = report.properties.find((item) => item.property === 'negative-decisions-preserved');
+  assert.equal(property.success, false);
+  assert.ok(property.assertions.some((item) => item.id === 'negative-not-reopened:scope.no-mobile' && item.status === 'fail'));
+});
+
+test('bounded vertical plan rejects over-broad scope and extra acceptance evidence', async () => {
+  const suite = await loadCanonicalPromptEvalSuite();
+  const scenario = suite.scenarios.find((item) => item.id === 'plan-vertical-blockers');
+
+  const broadScope = await readPassRecord('plan-vertical-blockers');
+  broadScope.observations.planSlices[0].scope.push('billing-refactor');
+  let report = evaluatePromptBehaviorRecord(scenario, broadScope);
+  let property = report.properties.find((item) => item.property === 'bounded-vertical-plan');
+  assert.equal(property.success, false);
+  assert.ok(property.assertions.some((item) => item.id === 'slice-scope:slice.accept-invite' && item.status === 'fail'));
+
+  const extraEvidence = await readPassRecord('plan-vertical-blockers');
+  extraEvidence.observations.planSlices[0].acceptanceEvidence.push('e2e.unapproved');
+  report = evaluatePromptBehaviorRecord(scenario, extraEvidence);
+  property = report.properties.find((item) => item.property === 'bounded-vertical-plan');
+  assert.equal(property.success, false);
+  assert.ok(property.assertions.some((item) => item.id === 'slice-evidence-set:slice.accept-invite' && item.status === 'fail'));
+});
+
+test('follow-up evaluation rejects silently implemented or unknown follow-up work', async () => {
+  const suite = await loadCanonicalPromptEvalSuite();
+  const scenario = suite.scenarios.find((item) => item.id === 'verification-followup');
+
+  const required = await readPassRecord('verification-followup');
+  required.observations.implementedFollowUps.push('followup.rate-limit');
+  let report = evaluatePromptBehaviorRecord(scenario, required);
+  let property = report.properties.find((item) => item.property === 'follow-ups-recorded');
+  assert.equal(property.success, false);
+  assert.ok(property.assertions.some((item) => item.id === 'implemented-follow-up-authorized:followup.rate-limit' && item.status === 'fail'));
+
+  const unknown = await readPassRecord('verification-followup');
+  unknown.observations.implementedFollowUps.push('followup.untracked');
+  report = evaluatePromptBehaviorRecord(scenario, unknown);
+  property = report.properties.find((item) => item.property === 'follow-ups-recorded');
+  assert.equal(property.success, false);
+  assert.ok(property.assertions.some((item) => item.id === 'implemented-follow-up-authorized:followup.untracked' && item.status === 'fail'));
+});
+
+test('prompt response paths reject traversal even when normalization would return inside the project', async () => {
+  const report = await evaluatePromptScenario({
+    targetDir: repoRoot,
+    scenarioId: 'discovery-boundaries',
+    response: 'evaluations/../evaluations/prompt-behavior/reference-pass/discovery-boundaries.json'
+  });
+
+  assert.equal(report.success, false);
+  assert.match(report.error, /contains traversal/);
 });
