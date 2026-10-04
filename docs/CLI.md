@@ -262,7 +262,7 @@ The default configuration path is `docs/architecture/FITNESS.json`. A project mu
 
 The initial `javascript-static-imports` analyzer checks explicitly configured JavaScript-family source roots for module ownership, dependency direction, narrow public entrypoints, realized module cycles, unresolved/out-of-root local imports, unsupported dynamic dependency expressions, and durable architecture/ADR contract markers.
 
-A passing report proves only the configured executable boundaries. It does not claim universal architecture correctness or analyze external package/builtin dependencies.
+A passing report proves only the configured executable boundaries. Non-relative specifiers are outside the Stage 8 module graph, so package imports, Node builtins, and unresolved project aliases are not scored as module edges. It does not claim universal architecture correctness.
 
 See [`ARCHITECTURE-FITNESS.md`](ARCHITECTURE-FITNESS.md).
 
