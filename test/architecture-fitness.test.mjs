@@ -502,3 +502,27 @@ test('dynamic import inside a template expression remains visible to the analyze
   assert.equal(report.success, false);
   assert.ok(codes(report).includes('forbidden-dependency-direction'));
 });
+
+
+test('comment trivia cannot hide non-literal dynamic dependency expressions', async () => {
+  const target = await copyReference();
+  const file = path.join(target, 'src', 'application', 'invitation-service.mjs');
+  const content = await readFile(file, 'utf8');
+  await writeFile(
+    file,
+    [
+      "const selectedImport = '../domain/index.mjs';",
+      "const selectedRequire = '../domain/index.mjs';",
+      "const imported = import /* analyzer trivia */ (selectedImport);",
+      "const required = require /* analyzer trivia */ (selectedRequire);",
+      content
+    ].join('\n'),
+    'utf8'
+  );
+
+  const report = await runArchitectureFitness({ targetDir: target });
+
+  assert.equal(report.success, false);
+  assert.ok(codes(report).includes('unsupported-dynamic-import'));
+  assert.ok(codes(report).includes('unsupported-dynamic-require'));
+});
