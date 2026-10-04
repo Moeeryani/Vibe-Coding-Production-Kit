@@ -160,6 +160,8 @@ test('canonical scenario listing is deterministic and exposes property coverage'
     ['discovery-boundaries', 'plan-vertical-blockers', 'verification-followup', 'review-restartability']
   );
   for (const scenario of listing.scenarios) {
+    assert.equal(typeof scenario.promptContent, 'string');
+    assert.ok(scenario.promptContent.length > 0);
     assert.equal(typeof scenario.stimulus.developerIntent, 'string');
     assert.ok(scenario.stimulus.repositoryEvidence.length > 0);
     assert.equal(Object.hasOwn(scenario, 'expectations'), false);
