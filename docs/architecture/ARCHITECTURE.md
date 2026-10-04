@@ -74,5 +74,7 @@ Do not design for imaginary scale. State expected load and thresholds that would
 ## Architecture fitness checks
 List automated checks that protect architectural boundaries when possible.
 
+When module boundaries are stable enough to make executable, create a project-owned `docs/architecture/FITNESS.json` and use `vcp fitness --dir .`. Do not add a config merely to satisfy a template; the declared modules, dependency direction, public entrypoints, owners, and governing contract markers must reflect accepted project architecture. See `docs/ARCHITECTURE-FITNESS.md`.
+
 ## Accepted ADRs
 Link important decisions from `docs/architecture/adr/`.
