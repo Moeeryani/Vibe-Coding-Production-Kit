@@ -62,11 +62,17 @@ async function selectedProject({ initialized = false, grants } = {}) {
   return { target, digest };
 }
 
-async function mutateManifest(target, mutate) {
+async function mutateManifest(target, mutate, { repin = true } = {}) {
   const file = path.join(target, ...bundleRelative.split('/'), 'plugin.json');
   const value = JSON.parse(await readFile(file, 'utf8'));
   mutate(value);
   await writeJson(file, value);
+  if (repin) {
+    const configPath = path.join(target, ...COMMUNITY_PLUGIN_CONFIG.split('/'));
+    const config = JSON.parse(await readFile(configPath, 'utf8'));
+    config.plugins[0].sha256 = (await computeCommunityPluginDigest(target, bundleRelative)).digest;
+    await writeJson(configPath, config);
+  }
 }
 
 function pluginCheck(report) {
@@ -387,6 +393,18 @@ test('plugin declaration treats case-only path variants as duplicate selections'
   });
 
   await assert.rejects(loadCommunityPlugins(target), /Duplicate community plugin path/);
+});
+
+test('v1 rejects invalid UTF-8 even when a file uses an allowed text extension', async () => {
+  const { target } = await selectedProject();
+  await writeFile(
+    path.join(target, ...bundleRelative.split('/'), 'guidance', 'invalid.md'),
+    Buffer.from([0xc3, 0x28])
+  );
+  await assert.rejects(
+    computeCommunityPluginDigest(target, bundleRelative),
+    /is not valid UTF-8 text/
+  );
 });
 
 test('v1 rejects executable or binary-style files anywhere in a plugin bundle', async () => {
