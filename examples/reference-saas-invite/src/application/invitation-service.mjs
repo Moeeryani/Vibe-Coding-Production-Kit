@@ -1,5 +1,5 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
-import { acceptInvitationEntity, createInvitationEntity, normalizeEmail, revokeInvitation } from '../domain/invitation.mjs';
+import { acceptInvitationEntity, createInvitationEntity, normalizeEmail, revokeInvitation } from '../domain/index.mjs';
 
 export class AuthorizationError extends Error {
   constructor(message = 'Not authorized.') {
