@@ -250,7 +250,7 @@ Reference SaaS dogfood proves current accepted authority remains sufficient for 
 
 Intent, clarification, shared design, decisions, vertical tasks, dependencies, AFK/HITL, eligibility, implementation, verification, review, QA, follow-up.
 
-**Next:** prove realistic Stage 5 monorepo/workspace bounded context using the explicit project/workspace Source-of-Truth contract; keep #15 as separate hosted-CI infrastructure work; revisit graph validation only if later evidence justifies it.
+**Next:** maintain completed Stage 5 monorepo/workspace semantics and conformance; keep Linux/hosted compatibility as non-blocking follow-up #69; revisit graph validation only if later evidence justifies it.
 
 ### Track B — Knowledge and State
 
