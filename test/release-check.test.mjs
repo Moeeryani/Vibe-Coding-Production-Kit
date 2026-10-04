@@ -274,6 +274,55 @@ test('custom release policy symlinks are refused when the host supports symlinks
   );
 });
 
+test('release policy previous tag must exactly match the declared previous version', async () => {
+  const { root } = await makeReleaseFixture();
+  const policyPath = path.join(root, '.github', 'release-policy.json');
+  const policy = JSON.parse(await readFile(policyPath, 'utf8'));
+  policy.previousRelease.tag = 'v0.9.1';
+  await writeJson(policyPath, policy);
+  await commitAll(root, 'mismatched previous tag version');
+
+  await assert.rejects(
+    runReleaseCheck({ targetDir: root, version: '0.9.3' }),
+    /previousRelease\.tag must exactly match previousRelease\.version/
+  );
+});
+
+test('lockfile root package name must match the release package identity', async () => {
+  const { root } = await makeReleaseFixture();
+  const lockPath = path.join(root, 'package-lock.json');
+  const lock = JSON.parse(await readFile(lockPath, 'utf8'));
+  lock.packages[''].name = 'wrong-package-name';
+  await writeJson(lockPath, lock);
+  await commitAll(root, 'mismatched lock root name');
+
+  const report = await runReleaseCheck({ targetDir: root, version: '0.9.3' });
+  assert.equal(checkById(report, 'lockfile-version').status, 'fail');
+});
+
+test('release-authority file symlinks are refused when the host supports symlinks', async (t) => {
+  const { root } = await makeReleaseFixture();
+  const externalRoot = await mkdtemp(path.join(os.tmpdir(), 'vcp-release-external-'));
+  const external = path.join(externalRoot, 'CHANGELOG.md');
+  await writeFile(external, '# Changelog\n\n## [Unreleased]\n\n## [0.9.3] - 2026-10-04\n', 'utf8');
+  const changelog = path.join(root, 'CHANGELOG.md');
+  try {
+    await import('node:fs/promises').then(({ rm }) => rm(changelog));
+    await symlink(external, changelog, 'file');
+  } catch (error) {
+    if (['EPERM', 'EACCES', 'ENOTSUP'].includes(error?.code)) {
+      t.skip('Host does not permit file symlink creation.');
+      return;
+    }
+    throw error;
+  }
+
+  await assert.rejects(
+    runReleaseCheck({ targetDir: root, version: '0.9.3' }),
+    /Refusing to follow symlink in changelog path/
+  );
+});
+
 test('package-surface validator turns red when a required packed file is missing', () => {
   const policy = {
     packageName: 'vibe-coding-production',
