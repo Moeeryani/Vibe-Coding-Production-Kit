@@ -262,7 +262,7 @@ Source-of-Truth freshness, decision lifecycle, negative decisions, task state, l
 
 Verification, Git-aware review, security profiles, prompt evaluation, architecture fitness, conformance.
 
-**Next:** architecture fitness functions after completed Stage 7 prompt behavioral evaluation; keep Linux/hosted compatibility as non-blocking conformance follow-up #69.
+**Next:** release automation after completed Stage 8 architecture fitness functions; keep Linux/hosted compatibility as non-blocking conformance follow-up #69.
 
 ### Track D — Repository Scale and Delivery
 
@@ -413,17 +413,23 @@ This Done state reaches `main` only through the standard exact-head Review → p
 
 ### Stage 8 — Architecture fitness functions
 
-**Status:** ⬜ Planned.
+**Status:** ✅ Done — PR #75 / Issue #74.
 
-Potential executable boundaries:
+Stage 8 makes explicit project architecture boundaries executable without reviving a generic dependency-graph platform:
 
-- forbidden dependency direction;
-- circular dependencies;
-- module/package ownership;
-- public-contract access;
-- ADR/architecture regressions.
+- every analyzed source file can be required to belong to exactly one declared module owner;
+- cross-module dependencies follow explicit `mayImport` allow-lists;
+- cross-module access can be restricted to exact public entrypoints, encouraging deep modules with narrow interfaces;
+- realized module dependency cycles fail;
+- unresolved, outside-source-root, unsupported static, and non-literal dynamic local dependency behavior fails rather than disappearing;
+- governing architecture contract markers must remain present exactly once;
+- governing ADRs must retain their configured contract marker and exactly one `Accepted` status.
 
-Architecture should also compress context through deep modules, narrow interfaces, and explicit contracts.
+The initial analyzer is deliberately bounded to explicitly configured JavaScript-family source roots and local import forms. External package/builtin dependencies are not scored as module edges. VCP does not infer modules, persist a dependency graph, require graph metadata in Task Packs, or claim architectural correctness beyond the configured rules.
+
+The reference SaaS dogfoods a layered `application -> domain` dependency through the narrow `src/domain/index.mjs` public contract and binds the executable rules to durable architecture/ADR markers.
+
+This Done state reaches `main` only through the standard exact-head Review → pre-final gate → Task Pack-only finalization → final gate sequence.
 
 ### Stage 9 — Release automation
 
@@ -628,10 +634,10 @@ Add future `SYSTEM-CONTRACT.md` / `QUALITY-GATES.md` only if they reduce ambigui
 2. Maintain completed Stage 5 monorepo/workspace semantics and conformance.
 3. Maintain completed Stage 6 project-sensitive security profiles.
 4. Maintain completed Stage 7 prompt behavioral evaluation and expand canonical scenarios only when new workflow evidence justifies them.
-5. Add architecture fitness functions.
+5. Maintain completed Stage 8 explicit architecture fitness functions without expanding them into inferred graph authority.
 6. Automate release mechanics without automating approval.
 7. Extend mobile/plugins/ecosystem only after core contracts stabilize.
-8. Revisit graph validation/eligibility only if later dogfood demonstrates a concrete problem that required metadata would solve.
+8. Revisit broader graph validation/eligibility only if later dogfood demonstrates a concrete problem that required metadata would solve.
 
 ---
 
