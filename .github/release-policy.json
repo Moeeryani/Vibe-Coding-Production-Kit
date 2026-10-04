@@ -20,6 +20,8 @@
     "lib/release-check.mjs",
     "lib/migrations.mjs",
     "docs/RELEASE-AUTOMATION.md",
-    "prompts/07-release-review.md"
+    "prompts/07-release-review.md",
+    "lib/community-plugins.mjs",
+    "docs/COMMUNITY-PLUGINS.md"
   ]
 }
