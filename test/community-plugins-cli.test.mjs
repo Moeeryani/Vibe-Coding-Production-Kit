@@ -55,7 +55,7 @@ test('plugins --digest reproduces the canonical fixture pin without selecting or
     '--dir',
     example,
     '--digest',
-    'community-plugins/react-native-readiness',
+    'community-plugins\\react-native-readiness',
     '--json'
   ], { cwd: repoRoot });
 
