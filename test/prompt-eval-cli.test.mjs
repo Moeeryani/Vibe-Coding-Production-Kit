@@ -133,6 +133,8 @@ test('prompt-eval human failure output includes the failed property and assertio
     ]),
     (error) => {
       assert.equal(error.code, 1);
+      assert.match(error.stdout, /Suite blob: [0-9a-f]{40}/);
+      assert.match(error.stdout, /Prompt blob: [0-9a-f]{40}/);
       assert.match(error.stdout, /FAIL verification-reporting-accurate/);
       assert.match(error.stdout, /check-reported:check\.security/);
       assert.match(error.stdout, /expected fail/);
