@@ -1,6 +1,6 @@
 # Task — Implement Stage 7 prompt behavioral evaluation harness
 
-Status: Review
+Status: Done
 Slug: `stage7-prompt-evaluation`
 
 ## Outcome
@@ -22,20 +22,20 @@ Complete Stage 7 by adding provider-independent behavioral evaluation for the ni
 
 ## Acceptance criteria
 
-- [ ] AC-001 — canonical versioned scenario and behavior-record contracts exist.
-- [ ] AC-002 — all nine Stage 7 roadmap properties are covered by canonical scenarios.
-- [ ] AC-003 — one scenario and full-suite CLI evaluation produce deterministic human/JSON reports and non-zero failures.
-- [ ] AC-004 — exact wording/free-form notes are not part of pass/fail logic.
-- [ ] AC-005 — discover-before-ask and HUMAN DECISION boundaries are mechanically checked.
-- [ ] AC-006 — proposal vs approval and negative decisions are mechanically checked.
-- [ ] AC-007 — bounded vertical planning and blocker/readiness behavior are mechanically checked.
-- [ ] AC-008 — verification reporting accuracy treats truthful failure reporting as correct behavior and false success as failure.
-- [ ] AC-009 — out-of-scope follow-ups and restartability are mechanically checked.
-- [ ] AC-010 — missing/invalid/mismatched evidence fails visibly.
-- [ ] AC-011 — one deliberate mutation per property proves every evaluation lane can turn red.
-- [ ] AC-012 — canonical runtime assets are published and framework validation requires them.
-- [ ] AC-013 — documentation preserves VCP's no-embedded-LLM boundary and avoids provider/model-quality claims.
-- [ ] AC-014 — Roadmap/README/CLI documentation records Stage 7 behavior and usage.
+- [x] AC-001 — canonical versioned scenario and behavior-record contracts exist.
+- [x] AC-002 — all nine Stage 7 roadmap properties are covered by canonical scenarios.
+- [x] AC-003 — one scenario and full-suite CLI evaluation produce deterministic human/JSON reports and non-zero failures.
+- [x] AC-004 — exact wording/free-form notes are not part of pass/fail logic.
+- [x] AC-005 — discover-before-ask and HUMAN DECISION boundaries are mechanically checked.
+- [x] AC-006 — proposal vs approval and negative decisions are mechanically checked.
+- [x] AC-007 — bounded vertical planning and blocker/readiness behavior are mechanically checked.
+- [x] AC-008 — verification reporting accuracy treats truthful failure reporting as correct behavior and false success as failure.
+- [x] AC-009 — out-of-scope follow-ups and restartability are mechanically checked.
+- [x] AC-010 — missing/invalid/mismatched evidence fails visibly.
+- [x] AC-011 — one deliberate mutation per property proves every evaluation lane can turn red.
+- [x] AC-012 — canonical runtime assets are published and framework validation requires them in the provider/runtime surface without polluting managed consumer installs.
+- [x] AC-013 — documentation preserves VCP's no-embedded-LLM boundary and avoids provider/model-quality claims.
+- [x] AC-014 — Roadmap/README/CLI documentation records Stage 7 behavior and usage.
 
 ## Scope
 
@@ -162,12 +162,26 @@ Human output reports scenario/property/assertion pass/fail counts and failed ass
 | TEST DRIFT | corrected after failed gate | `test/task-root-semantics.test.mjs` still asserted the pre-Stage-7 `--dir` help surface ending at `manage`, while CLI help correctly includes `prompt-eval`. | Update the stale help assertion to include `manage/prompt-eval`; no CLI product change required. | Requires corrected exact-head rerun. |
 | NO ACTION | preserved evidence | On the failed `e4a3e669…` gate, diff hygiene, repository check, strict readiness (15 pass / 0 warn / 0 fail), canonical reference behavior evaluation, and package dry-run all passed; package output included all six Stage 7 evaluation assets. | Preserve as historical/superseded evidence only; it does not authorize finalization because the focused/VCP/full gates failed. | Corrected exact-head gate remains mandatory. |
 | RISK | accepted non-blocking follow-up | Late CodeRabbit submitted review on `e4a3e669…` identified a low-risk TOCTOU window between component `lstat` checks and pathname `readFile`: a concurrent local writer could replace a checked path component before the open. CodeRabbit classified it trivial / poor tradeoff and low merge risk. | Keep Stage 7's current static traversal/symlink rejection. Do not add a partial `realpath` or final-component-only fix that would imply stronger confinement than it provides. Track portable race-resistant root-anchored read semantics in Issue #73. | Concurrent hostile local filesystem mutation remains outside the Stage 7 static path-safety guarantee until #73 is resolved. |
+| NO ACTION | accepted pre-final evidence | Maintainer reported the full corrected Stage 7 gate passed on exact head `e9a1eb9a5af2291f04120bfb6a502ad685f3ce4e`: exact local/remote SHA before and after; clean tree before and after; diff check; focused suite 44/44; repository check over 31 modules; strict readiness 15 pass / 0 warn / 0 fail; canonical reference behavior suite pass; VCP verification bound to the exact clean revision with CHECK + UNIT 28/28; full validation 270/270; package check pass. | Accept as corrected pre-final executable evidence. Earlier red heads prove the same lanes were non-vacuous. | Same comprehensive gate must rerun on this Task Pack-only finalization head before merge. |
+| NO ACTION | accepted final review state | Fresh post-gate audit on `e9a1eb9a5af2291f04120bfb6a502ad685f3ce4e`: PR #72 open and mergeable; no inline review threads open; CodeRabbit status success; the only submitted CodeRabbit security concern is the explicitly accepted low-risk TOCTOU follow-up tracked in #73; no new blocking submitted-review or top-level finding remains. | Accept current review state for Task Pack finalization while preserving #73 as non-blocking debt. | Final merge still requires unchanged finalization head plus the same executable gate rerun. |
 
 ## Finalization
 
-- [ ] Acceptance criteria complete.
-- [ ] Fresh submitted-review + inline-thread + top-level-comment audit complete.
-- [ ] Comprehensive exact-head pre-final gate passed.
-- [ ] Task Pack-only finalization edit made.
-- [ ] Same gate rerun on finalization head.
-- [ ] Status changed to Done.
+- [x] Acceptance criteria complete on corrected pre-final head `e9a1eb9a5af2291f04120bfb6a502ad685f3ce4e`.
+- [x] Fresh submitted-review + inline-thread + top-level-comment audit complete.
+- [x] Comprehensive exact-head pre-final gate passed on `e9a1eb9a5af2291f04120bfb6a502ad685f3ce4e`.
+- [x] Task Pack-only finalization edit made after the passing pre-final gate.
+- [ ] Same comprehensive gate rerun on this finalization head.
+- [x] Status changed to Done.
+
+
+## Completion report
+
+- What changed: Stage 7 adds a deterministic provider-independent prompt behavioral evaluation harness covering all nine roadmap properties, with canonical scenarios, self-contained runner stimulus, exact suite/prompt provenance, human/JSON reporting, reference green records, and one red mutation per property.
+- Model boundary: VCP does not embed or call an LLM, use model-as-judge scoring, rank providers/models, or infer quality beyond the explicit recorded canonical scenarios.
+- Evidence semantics: a failed repository check reported truthfully as failed is correct behavioral evidence; missing, fabricated, stale, ambiguous, or misclassified observations fail visibly.
+- Consumer/runtime boundary: evaluation fixtures are published runtime/package assets and provider validation requires them, but initialized consumer projects do not receive or manage the benchmark fixtures.
+- Corrected pre-final executable evidence: maintainer reported the complete gate passed on exact head `e9a1eb9a5af2291f04120bfb6a502ad685f3ce4e`: focused 44/44, repository check 31 modules, readiness 15 pass / 0 warn / 0 fail, reference behavior suite pass, VCP verification with task unit suite 28/28, full validation 270/270, package check pass, exact clean SHA before/after.
+- Non-vacuous history: the prior exact head `e4a3e669fca3cb8949e3eec0e3ac89be39f24f07` failed 42/44 focused and 267/270 full validation, exposing a real consumer-validator distribution mismatch plus two stale test contracts. The corrected head passed the same lanes without weakening their behavioral subject.
+- Review evidence: CodeRabbit status is success at finalization time. Its low-risk concurrent-path-replacement TOCTOU concern is accepted as non-blocking technical debt and tracked separately in Issue #73; Stage 7 does not claim race-resistant confinement under hostile concurrent local filesystem mutation.
+- Finalization requirement: this Task Pack-only edit moves the branch head. Run the same comprehensive Stage 7 gate on that exact finalization SHA before merge. Do not edit this Task Pack merely to record the rerun.
