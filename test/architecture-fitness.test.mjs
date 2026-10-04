@@ -356,3 +356,68 @@ test('same-line second import cannot hide a forbidden dependency', async () => {
   assert.equal(report.success, false);
   assert.ok(codes(report).includes('forbidden-dependency-direction'));
 });
+
+
+test('dense cyclic module graph reports one bounded strongly connected component', async () => {
+  const target = await mkdtemp(path.join(os.tmpdir(), 'vcp-stage8-dense-cycle-'));
+  await mkdir(path.join(target, 'src'), { recursive: true });
+  await mkdir(path.join(target, 'docs', 'architecture', 'adr'), { recursive: true });
+
+  const moduleNames = ['a', 'b', 'c', 'd'];
+  for (const name of moduleNames) {
+    await mkdir(path.join(target, 'src', name), { recursive: true });
+    const imports = moduleNames
+      .filter((other) => other !== name)
+      .map((other) => `import '../${other}/index.mjs';`)
+      .join('\n');
+    await writeFile(path.join(target, 'src', name, 'index.mjs'), `${imports}\nexport const ${name} = true;\n`, 'utf8');
+  }
+
+  await writeFile(
+    path.join(target, 'docs', 'architecture', 'ARCHITECTURE.md'),
+    '# Architecture\n\nARCHITECTURE-CONTRACT: dense-cycle-v1\n',
+    'utf8'
+  );
+  await writeFile(
+    path.join(target, 'docs', 'architecture', 'adr', 'ADR-001.md'),
+    '# ADR\n\n- Status: Accepted\n\nADR-CONTRACT: dense-cycle-v1\n',
+    'utf8'
+  );
+
+  await writeConfig(target, {
+    schemaVersion: 1,
+    analyzer: 'javascript-static-imports',
+    sourceRoots: ['src'],
+    extensions: ['.mjs'],
+    modules: moduleNames.map((name) => ({
+      name,
+      owner: `${name}-owner`,
+      roots: [`src/${name}`],
+      mayImport: moduleNames.filter((other) => other !== name),
+      publicEntries: [`src/${name}/index.mjs`]
+    })),
+    rules: {
+      forbidCycles: true,
+      requireOwnership: true,
+      enforcePublicEntries: true
+    },
+    governingContracts: [
+      {
+        path: 'docs/architecture/ARCHITECTURE.md',
+        kind: 'architecture',
+        marker: 'ARCHITECTURE-CONTRACT: dense-cycle-v1'
+      },
+      {
+        path: 'docs/architecture/adr/ADR-001.md',
+        kind: 'adr',
+        marker: 'ADR-CONTRACT: dense-cycle-v1'
+      }
+    ]
+  });
+
+  const report = await runArchitectureFitness({ targetDir: target });
+
+  assert.equal(report.success, false);
+  assert.deepEqual(report.cycles, [['a', 'b', 'c', 'd']]);
+  assert.equal(report.violations.filter((item) => item.code === 'module-dependency-cycle').length, 1);
+});
