@@ -1,6 +1,6 @@
 # Task — Implement Stage 8 architecture fitness functions
 
-Status: Review
+Status: Done
 Slug: `stage8-architecture-fitness`
 
 ## Outcome
@@ -22,20 +22,20 @@ Complete Stage 8 with a bounded executable architecture checker driven only by e
 
 ## Acceptance criteria
 
-- [ ] AC-001 — versioned explicit architecture fitness config contract exists.
-- [ ] AC-002 — every analyzed source file can be required to belong to exactly one declared module owner.
-- [ ] AC-003 — forbidden cross-module dependency direction fails.
-- [ ] AC-004 — cross-module access can be restricted to exact public entrypoints.
-- [ ] AC-005 — realized module dependency cycles fail.
-- [ ] AC-006 — unresolved/outside/unsupported local imports fail rather than disappearing.
-- [ ] AC-007 — governing architecture markers and Accepted ADR state are executable checks.
-- [ ] AC-008 — unsupported non-literal dynamic dependency expressions fail visibly.
-- [ ] AC-009 — CLI produces deterministic human/JSON output and non-zero failure status.
-- [ ] AC-010 — missing config fails; VCP does not infer architecture.
-- [ ] AC-011 — reference SaaS dogfoods layered direction and a narrow domain public contract.
-- [ ] AC-012 — negative/mutation tests prove every material Stage 8 lane can turn red.
-- [ ] AC-013 — package/framework/docs integration is complete without forcing a generic fitness config into every initialized project.
-- [ ] AC-014 — roadmap records Stage 8 completion evidence.
+- [x] AC-001 — versioned explicit architecture fitness config contract exists.
+- [x] AC-002 — every analyzed source file can be required to belong to exactly one declared module owner.
+- [x] AC-003 — forbidden cross-module dependency direction fails.
+- [x] AC-004 — cross-module access can be restricted to exact public entrypoints.
+- [x] AC-005 — realized module dependency cycles fail.
+- [x] AC-006 — unresolved/outside/unsupported local imports fail rather than disappearing.
+- [x] AC-007 — governing architecture markers and Accepted ADR state are executable checks.
+- [x] AC-008 — unsupported non-literal dynamic dependency expressions fail visibly.
+- [x] AC-009 — CLI produces deterministic human/JSON output and non-zero failure status.
+- [x] AC-010 — missing config fails; VCP does not infer architecture.
+- [x] AC-011 — reference SaaS dogfoods layered direction and a narrow domain public contract.
+- [x] AC-012 — negative/mutation tests prove every material Stage 8 lane can turn red.
+- [x] AC-013 — package/framework/docs integration is complete without forcing a generic fitness config into every initialized project.
+- [x] AC-014 — roadmap records Stage 8 completion evidence.
 
 ## Scope
 
@@ -167,12 +167,27 @@ Human output lists modules, owners, realized dependency edges, governing-contrac
 | MUST FIX | corrected after passing gate | CodeRabbit's top-level security review identified a second false-green path: an escaped module literal such as `\\u002e/../...` is runtime-relative but the raw analyzer spelling did not start with `.`, so it could be counted as external and skip architecture rules. | Reject any module specifier containing JavaScript backslash escapes before external/local classification; add a regression proving the escaped runtime-relative path fails and is not counted external. | The bounded analyzer intentionally rejects escaped specifiers rather than implementing a JavaScript string decoder. |
 | NO ACTION | corrected review disposition | CodeRabbit's complete review of the previously passing `5f120c26…` head produced one Major inline regex-literal false-green finding plus a top-level Medium escaped-specifier security concern. Both were verified as valid, corrected in source/tests/docs, and the inline thread was replied to and resolved. | Treat the `5f120c26…` executable pass as superseded. Freeze the corrected functional source and rerun the same comprehensive gate on the new exact head; re-audit review surfaces again before finalization. | No external review result on the corrected head is assumed merely from resolution of the old-head findings. |
 | TEST DEFECT | corrected after failed gate | Exact-head gate on `32f154b1704a6176c912cdeba5f4323cf7828448` failed only in the new escaped-specifier regression: focused 56/57, task UNIT 38/39, full validation 308/309. The product correctly emitted `unsupported-local-import`, but the test incorrectly expected `externalImports === 0`. The reference SaaS baseline already has one genuine external import, `node:crypto`; the rejected escaped specifier was not double-counted by the engine. | Keep product accounting unchanged. Update the regression to compare the mutated report's external count with a green baseline report, proving the rejected escaped specifier adds no external count while preserving legitimate baseline externals. Document this summary semantics explicitly. | Requires corrected exact-head gate rerun; all other lanes on `32f154b…` were green. |
+| NO ACTION | accepted pre-final evidence | Maintainer reported the complete corrected Stage 8 gate passed on exact head `8df5136358af1a83bf5ad345a25177a58e577b12`: exact local/remote SHA before and after; clean tree before and after; diff check; focused suite 57/57; repository check pass; strict readiness 15 pass / 0 warn / 0 fail; reference SaaS fitness pass; reference SaaS tests 26/26; reference check pass; VCP verification bound to the exact clean revision with task UNIT 39/39; full validation 309/309; package check pass. | Accept as corrected pre-final executable evidence. The immediately preceding `32f154b…` red gate proves the same new escaped-specifier lane was non-vacuous. | Same comprehensive gate must rerun on this Task Pack-only finalization head before merge. |
+| NO ACTION | accepted final review state | Fresh post-gate audit on `8df5136358af1a83bf5ad345a25177a58e577b12`: PR #75 open and mergeable; CodeRabbit status success; the only inline review thread is resolved; its regex false-green finding and top-level escaped-specifier concern are both fixed and acknowledged; no new blocking submitted-review or top-level finding remains. | Accept current review state for Task Pack finalization. | CodeRabbit full incremental re-review of the corrected source was rate-limited, so no broader fresh external approval beyond the resolved/acknowledged findings is claimed. |
 
 ## Finalization
 
-- [ ] Acceptance criteria complete.
-- [ ] Fresh submitted-review + inline-thread + top-level-comment audit complete.
-- [ ] Comprehensive exact-head pre-final gate passed.
-- [ ] Task Pack-only finalization edit made.
-- [ ] Same gate rerun on finalization head.
-- [ ] Status changed to Done.
+- [x] Acceptance criteria complete on corrected pre-final head `8df5136358af1a83bf5ad345a25177a58e577b12`.
+- [x] Fresh submitted-review + inline-thread + top-level-comment audit complete.
+- [x] Comprehensive exact-head pre-final gate passed on `8df5136358af1a83bf5ad345a25177a58e577b12`.
+- [x] Task Pack-only finalization edit made after the passing pre-final gate.
+- [ ] Same comprehensive gate rerun on this finalization head.
+- [x] Status changed to Done.
+
+
+## Completion report
+
+- What changed: Stage 8 adds explicit opt-in architecture fitness checks driven by project-owned configuration for ownership, allowed dependency direction, exact public entrypoints, realized module cycles, unresolved/outside/unsupported local imports, and durable architecture/ADR contracts.
+- Authority boundary: VCP does not infer modules, ownership, dependency direction, public contracts, or ADR decisions. No `FITNESS.json` means the explicit fitness command fails rather than inventing architecture.
+- Analyzer boundary: Stage 8 intentionally targets configured JavaScript-family local dependencies with conservative fail-closed handling for unsupported/ambiguous syntax. Packages, Node builtins, and other proven non-relative specifiers are counted as external evidence but remain outside module-direction scoring.
+- False-green hardening: regex-literal quote/backtick ambiguity now produces `unsupported-lexer-state` while keeping later dependency syntax visible; JavaScript backslash escapes in module specifiers are rejected before local/external classification; Markdown fenced examples cannot satisfy governing marker/ADR authority.
+- Reference dogfood: the SaaS example owns an explicit fitness config, routes application → domain through `src/domain/index.mjs`, and binds executable checks to architecture/ADR markers.
+- Corrected pre-final executable evidence: maintainer reported the complete gate passed on exact head `8df5136358af1a83bf5ad345a25177a58e577b12`: focused 57/57, readiness 15 pass / 0 warn / 0 fail, reference fitness pass, reference tests 26/26, VCP task unit 39/39, full validation 309/309, package check pass, exact clean SHA before/after.
+- Non-vacuous history: earlier heads failed on real and test-contract regressions, including the immediately preceding escaped-specifier regression at `32f154b…` (56/57 focused, 38/39 task unit, 308/309 full) before the baseline-accounting test was corrected.
+- Review evidence: CodeRabbit's one Major regex false-green finding and related escaped-specifier security concern were both verified, fixed, acknowledged, and the inline thread resolved. Fresh finalization-time audit found no new blocking finding; CodeRabbit status was success.
+- Finalization requirement: this Task Pack-only edit moves the branch head. Run the same comprehensive Stage 8 gate on that exact finalization SHA before merge. Do not edit this Task Pack merely to record the rerun.
