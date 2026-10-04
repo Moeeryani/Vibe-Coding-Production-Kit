@@ -15,7 +15,7 @@ Security review context becomes deterministic and project-sensitive through expl
 | Security profile contract | `docs/SECURITY-PROFILES.md` |
 | Threat model | `docs/security/THREAT-MODEL.md` |
 | Context Packs | `docs/CONTEXT-PACKS.md` |
-| Issue | `#68` |
+| Issue | https://github.com/Moeeryani/Vibe-Coding-Production-Kit/issues/68 |
 
 ## Requirement restatement
 
