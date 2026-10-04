@@ -585,3 +585,41 @@ test('Accepted text inside a fenced ADR example does not create governing status
   const violation = report.violations.find((item) => item.code === 'adr-not-accepted');
   assert.equal(violation.statusSectionCount, 0);
 });
+
+
+test('regex-literal quote cannot mask a later forbidden dependency', async () => {
+  const target = await copyReference();
+  const file = path.join(target, 'src', 'application', 'invitation-service.mjs');
+  const content = await readFile(file, 'utf8');
+  await writeFile(
+    file,
+    "const quotePattern = /'/;\nimport '../infrastructure/memory-invitation-repository.mjs';\n" + content,
+    'utf8'
+  );
+
+  const report = await runArchitectureFitness({ targetDir: target });
+
+  assert.equal(report.success, false);
+  assert.ok(codes(report).includes('unsupported-lexer-state'));
+  assert.ok(codes(report).includes('forbidden-dependency-direction'));
+});
+
+test('escaped runtime-relative module specifier cannot bypass architecture boundaries', async () => {
+  const target = await copyReference();
+  const file = path.join(target, 'src', 'application', 'invitation-service.mjs');
+  const content = await readFile(file, 'utf8');
+  await writeFile(
+    file,
+    content.replace(
+      "../domain/index.mjs",
+      "\\u002e/../infrastructure/memory-invitation-repository.mjs"
+    ),
+    'utf8'
+  );
+
+  const report = await runArchitectureFitness({ targetDir: target });
+
+  assert.equal(report.success, false);
+  assert.ok(codes(report).includes('unsupported-local-import'));
+  assert.equal(report.summary.externalImports, 0);
+});
