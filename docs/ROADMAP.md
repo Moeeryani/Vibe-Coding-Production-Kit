@@ -2,7 +2,7 @@
 
 **Status:** Living execution roadmap and system-completion contract  
 **Released baseline:** VCP `v0.9.2`  
-**Current main:** unreleased post-v0.9.2 workflow + lifecycle work  
+**Current candidate:** VCP `v0.9.3` prepared but unpublished; tag creation/publication remain HUMAN DECISION  
 
 This is the current execution roadmap. Historical handoffs and design documents remain evidence, but this file owns current status, sequencing, dependencies, and completion criteria.
 
