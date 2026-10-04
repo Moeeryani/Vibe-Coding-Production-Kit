@@ -109,3 +109,37 @@ test('fitness requires project root through --dir instead of ambiguous positiona
     }
   );
 });
+
+
+test('fitness CLI help advertises the Stage 8 command and config option', async () => {
+  const { stdout, stderr } = await run(['--help']);
+
+  assert.equal(stderr, '');
+  assert.match(stdout, /vcp fitness \[--dir <directory>\] \[--config <path>\] \[--json\]/);
+  assert.match(stdout, /--config <path>\s+Fitness: project-relative config/);
+  assert.match(stdout, /Task\/ready\/context\/verify\/manage\/prompt-eval\/fitness/);
+});
+
+test('fitness CLI rejects config traversal outside the selected project', async () => {
+  const target = await copyReference();
+
+  await assert.rejects(
+    run(['fitness', '--dir', target, '--config', '../outside.json', '--json']),
+    (error) => {
+      assert.equal(error.code, 1);
+      assert.match(error.stderr, /Unsafe managed path/);
+      return true;
+    }
+  );
+});
+
+test('fitness --config cannot leak onto unrelated commands', async () => {
+  await assert.rejects(
+    run(['doctor', '.', '--config', 'docs/architecture/FITNESS.json']),
+    (error) => {
+      assert.equal(error.code, 1);
+      assert.match(error.stderr, /--config is only supported by the fitness command/);
+      return true;
+    }
+  );
+});
