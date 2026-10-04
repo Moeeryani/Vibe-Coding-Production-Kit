@@ -1,6 +1,6 @@
 # Task — Implement Stage 10 deterministic community plugin model
 
-Status: Review
+Status: Done
 Slug: `stage10-community-plugins`
 
 ## Outcome
@@ -22,23 +22,23 @@ Complete Stage 10 with a deterministic/versioned plugin model that is explicit i
 
 ## Acceptance criteria
 
-- [ ] AC-001 — project declaration and plugin manifest schemaVersion 1 are strict and versioned.
-- [ ] AC-002 — plugin selection is explicit; absence of declaration performs no discovery and remains backward compatible.
-- [ ] AC-003 — selected id/version/path/digest/grants must exactly match validated local bundle state.
-- [ ] AC-004 — bundle paths are confined to project-owned `community-plugins/`, portable across Windows/Linux, and drive/URL/traversal/symlink safe.
-- [ ] AC-005 — canonical digest covers all LF-normalized text files deterministically and detects add/remove/edit tampering.
-- [ ] AC-006 — v1 rejects executable/binary bundle files and executable-style/unknown manifest contribution keys.
-- [ ] AC-007 — VCP compatibility range, known capabilities, duplicates, and concrete verification slots are validated exactly.
-- [ ] AC-008 — guidance contributions compose additively into only declared context modes and appear in the context manifest/budget.
-- [ ] AC-009 — verification command contributions require explicit project grant and remain labeled proposals that VCP neither writes nor executes.
-- [ ] AC-010 — Doctor uses the same loader and reports absent/valid state as pass and invalid/tampered state as fail.
-- [ ] AC-011 — `vcp plugins` provides read-only human/JSON inspection.
-- [ ] AC-012 — `vcp plugins --digest` computes the canonical pin without changing selection/trust.
-- [ ] AC-013 — init/update lifecycle never invents or rewrites plugin selections/bundles, and update planning fails closed when explicitly selected plugin state is invalid or incompatible with the running target CLI.
-- [ ] AC-014 — realistic React Native-readiness community fixture dogfoods guidance + verification-proposal capabilities without claiming mobile support.
-- [ ] AC-015 — negative tests independently prove traversal, URL/drive path, symlink, digest mismatch, duplicate id/path/grant, unsupported schema/kind/capability/file type, id/version/compatibility mismatch, forbidden manifest key, and ungranted command paths fail.
-- [ ] AC-016 — docs/README/CLI/Roadmap/package/release validation explain trust, authoring, compatibility, and non-goals and guard the Stage 10 reference fixture in the candidate tarball.
-- [ ] AC-017 — Stage 10 does not change stack auto-detection or implement the separate Mobile profiles roadmap commitment.
+- [x] AC-001 — project declaration and plugin manifest schemaVersion 1 are strict and versioned.
+- [x] AC-002 — plugin selection is explicit; absence of declaration performs no discovery and remains backward compatible.
+- [x] AC-003 — selected id/version/path/digest/grants must exactly match validated local bundle state.
+- [x] AC-004 — bundle paths are confined to project-owned `community-plugins/`, portable across Windows/Linux, and drive/URL/traversal/symlink safe.
+- [x] AC-005 — canonical digest covers all LF-normalized text files deterministically and detects add/remove/edit tampering.
+- [x] AC-006 — v1 rejects executable/binary bundle files and executable-style/unknown manifest contribution keys.
+- [x] AC-007 — VCP compatibility range, known capabilities, duplicates, and concrete verification slots are validated exactly.
+- [x] AC-008 — guidance contributions compose additively into only declared context modes and appear in the context manifest/budget.
+- [x] AC-009 — verification command contributions require explicit project grant and remain labeled proposals that VCP neither writes nor executes.
+- [x] AC-010 — Doctor uses the same loader and reports absent/valid state as pass and invalid/tampered state as fail.
+- [x] AC-011 — `vcp plugins` provides read-only human/JSON inspection.
+- [x] AC-012 — `vcp plugins --digest` computes the canonical pin without changing selection/trust.
+- [x] AC-013 — init/update lifecycle never invents or rewrites plugin selections/bundles, and update planning fails closed when explicitly selected plugin state is invalid or incompatible with the running target CLI.
+- [x] AC-014 — realistic React Native-readiness community fixture dogfoods guidance + verification-proposal capabilities without claiming mobile support.
+- [x] AC-015 — negative tests independently prove traversal, URL/drive path, symlink, digest mismatch, duplicate id/path/grant, unsupported schema/kind/capability/file type, id/version/compatibility mismatch, forbidden manifest key, and ungranted command paths fail.
+- [x] AC-016 — docs/README/CLI/Roadmap/package/release validation explain trust, authoring, compatibility, and non-goals and guard the Stage 10 reference fixture in the candidate tarball.
+- [x] AC-017 — Stage 10 does not change stack auto-detection or implement the separate Mobile profiles roadmap commitment.
 
 ## Scope
 
@@ -190,13 +190,14 @@ Human and JSON plugin inspection show selected id/version/path/digest/grants/cap
 | RISK | follow-up candidate / non-blocking | Like the existing prompt-eval reader, Stage 10 performs portable path/symlink checks and later filesystem reads by pathname; a concurrently privileged/local writer could replace a checked component between operations. Node does not currently provide the required portable root-anchored no-follow traversal/open primitive across Windows/Linux. | Reuse Issue #73 as the portable concurrent-filesystem-confinement follow-up; document the actual guarantee and do not claim an atomic filesystem snapshot. | Static traversal/symlink/digest-snapshot contracts remain in-scope and gated; concurrent local mutation remains outside the current atomic guarantee. |
 | DEFECT | corrected before executable gate | CodeRabbit's complete-surface review found the Roadmap marked Stage 10 Done while the Task Pack remained Review. | Keep the Roadmap Stage 10 status at Review until the Task Pack-only finalization step. | The roadmap must change to Done only in/after the finalization protocol, never before exact-head executable evidence. |
 | DEFECT | corrected before executable gate | CodeRabbit found exact plugin id/version pins accepted surrounding Unicode/ASCII whitespace because shared string validation trimmed before identifier/version validation. | Add exact-string validation for ids/versions and regression cases for padded id/version values. | Other human-readable strings may still use deliberate trim semantics; only exact identity/version pins reject padding. |
+| APPROVED | finalization evidence | Pre-final gate green on exact head 9ad620d94be11a8d9281d8d25f784b20ef55a6ca via fresh independent clone (focused 68/68, task unit 68/68, validate 381/381, readiness 15/0/0, plugin+package+dogfood+release asserts all PASS; CANDIDATE_TAG_EXIT=1 expected). PR #79 audit: 2/2 review threads resolved, no unresolved findings; hosted `validate` checks are 0-step runner failures tracked non-blocking under #69. | Rerun the same gate on this finalization head; v0.9.3 tag/publish remain separate HUMAN DECISIONs. | Hosted-CI execution remains unproven (#69); TOCTOU remains #73. |
 | NO ACTION | external review received | CodeRabbit reviewed the complete `bdc7f78…` surface and posted exactly the two actionable findings above. | Fix both and rerun/re-audit on the corrected exact head; the interrupted `bdc7f78…` local gate is superseded. | Any later finding on the corrected head supersedes executable evidence until fixed and rerun. |
 
 ## Finalization
 
-- [ ] Acceptance criteria complete.
-- [ ] Fresh submitted-review + inline-thread + top-level-comment audit complete.
-- [ ] Comprehensive exact-head pre-final gate passed.
-- [ ] Task Pack-only finalization edit made.
+- [x] Acceptance criteria complete.
+- [x] Fresh submitted-review + inline-thread + top-level-comment audit complete.
+- [x] Comprehensive exact-head pre-final gate passed.
+- [x] Task Pack-only finalization edit made.
 - [ ] Same gate rerun on finalization head.
-- [ ] Status changed to Done.
+- [x] Status changed to Done.

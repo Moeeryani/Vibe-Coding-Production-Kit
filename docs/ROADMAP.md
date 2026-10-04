@@ -454,7 +454,7 @@ This Done state reaches `main` only through the standard exact-head Review → p
 
 ### Stage 10 — Community profiles / plugin model
 
-**Status:** Review — PR #79 / Issue #78.
+**Status:** ✅ Done — PR #79 / Issue #78.
 
 Stage 10 adds a deliberately narrow declarative extension model:
 
