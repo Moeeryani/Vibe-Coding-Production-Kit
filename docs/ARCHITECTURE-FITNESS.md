@@ -159,7 +159,7 @@ The analyzer recognizes:
 
 Local imports must resolve to an explicit configured extension. Non-literal dynamic local dependency behavior is not silently accepted.
 
-This is intentionally not a universal AST/dependency engine. If a project needs a richer language/framework analyzer, that is a future explicit extension rather than hidden Stage 8 inference.
+This is intentionally not a universal AST/dependency engine. The conservative lexer can reject dependency-looking text inside JavaScript regular-expression literals rather than risk silently accepting an unproven dependency form; that is a possible false red, not a false green. If a project needs a richer language/framework analyzer, path-alias resolver, or full JavaScript parser, that is a future explicit extension rather than hidden Stage 8 inference.
 
 ## What a pass proves
 
