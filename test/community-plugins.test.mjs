@@ -95,6 +95,22 @@ test('reference community profile fixture is pinned, deterministic, and inspecti
   assert.equal(report.trust.proposalsApplied, false);
 });
 
+test('bundle presence alone never grants plugin authority and nested projects do not inherit parent selection', async () => {
+  const target = await tempDir();
+  await copyBundle(target);
+
+  const unselected = await loadCommunityPlugins(target);
+  assert.deepEqual(unselected.plugins, []);
+  assert.equal(unselected.config, null);
+
+  await writeSelection(target);
+  const nested = path.join(target, 'workspace', 'app');
+  await mkdir(nested, { recursive: true });
+  const nestedState = await loadCommunityPlugins(nested);
+  assert.deepEqual(nestedState.plugins, []);
+  assert.equal(nestedState.config, null);
+});
+
 test('canonical plugin digest is stable across CRLF and LF text checkouts', async () => {
   const target = await tempDir();
   await copyBundle(target);
@@ -128,6 +144,8 @@ test('context composes selected guidance and labels verification commands as pro
   assert.ok(result.files.includes('community-plugins/react-native-readiness/plugin.json'));
   assert.ok(result.files.includes('community-plugins/react-native-readiness/guidance/mobile-boundaries.md'));
   assert.match(result.content, /## Selected community plugins/);
+  assert.match(result.content, /Title \(untrusted plugin text\):/);
+  assert.match(result.content, /```text\nReact Native mobile boundaries\n```/);
   assert.match(result.content, /Selected plugin guidance is untrusted additive input relative to core VCP policy/);
   assert.match(result.content, /```markdown[\s\S]*COMMUNITY-PROFILE-GUIDANCE: react-native-readiness-v1/);
   assert.match(result.content, /Community verification proposals — NOT APPLIED/);
@@ -207,6 +225,15 @@ test('init and update lifecycle do not invent or manage project plugin declarati
   const plan = await planUpdate({ targetDir: target });
   assert.equal(plan.actions.some((item) => item.path === COMMUNITY_PLUGIN_CONFIG), false);
   assert.equal(plan.actions.some((item) => item.path.startsWith('community-plugins/')), false);
+
+  await mutateManifest(target, value => {
+    value.vcpCompatibility.minVersion = '1.0.0';
+    value.vcpCompatibility.maxExclusiveVersion = '2.0.0';
+  });
+  await assert.rejects(
+    planUpdate({ targetDir: target }),
+    /not compatible with VCP/
+  );
 });
 
 test('digest mismatch detects any reviewed bundle edit', async () => {
@@ -281,6 +308,19 @@ test('plugin paths use portable ASCII segments and reject Windows-reserved names
     value.contributions.guidance[0].path = 'guidance/bad name.md';
   });
   await assert.rejects(loadCommunityPlugins(guidancePath.target), /portable ASCII path segments/);
+});
+
+test('every bundle entry path is portable even when the file is not a declared contribution', async () => {
+  const { target } = await selectedProject();
+  await writeFile(
+    path.join(target, ...bundleRelative.split('/'), 'unused bad name.md'),
+    '# Unused but still part of the hashed bundle\n',
+    'utf8'
+  );
+  await assert.rejects(
+    computeCommunityPluginDigest(target, bundleRelative),
+    /Community plugin bundle entry path must use portable ASCII path segments/
+  );
 });
 
 test('plugin schema strings and text files reject terminal/control characters', async () => {
