@@ -1,6 +1,6 @@
 # Task — Implement Stage 6 project-sensitive security profiles
 
-Status: Review
+Status: Done
 Slug: `stage6-security-profiles`
 
 ## Outcome
@@ -22,18 +22,18 @@ Complete Stage 6 without introducing remote scanners, compliance claims, hidden 
 
 ## Acceptance criteria
 
-- [ ] AC-001 — baseline applies when no declaration exists.
-- [ ] AC-002 — explicit profiles compose deterministically after baseline.
-- [ ] AC-003 — unknown, duplicate, and malformed entries fail visibly.
-- [ ] AC-004 — security mode automatically includes profile declaration/guidance.
-- [ ] AC-005 — non-security modes do not auto-include security profile guidance.
-- [ ] AC-006 — context manifest records exact profile identities.
-- [ ] AC-007 — profiles cover authorization, tenant isolation, secrets/PII, trust boundaries, abuse/replay/rate concerns, stateful migration/data safety, and negative tests.
-- [ ] AC-008 — profile guidance never infers risk acceptance or claims compliance.
-- [ ] AC-009 — projects without Stage 6 declaration remain backward compatible through baseline fallback.
-- [ ] AC-010 — init/update lifecycle owns the declaration safely and manages canonical profile guidance.
-- [ ] AC-011 — framework validation requires the canonical Stage 6 contract.
-- [ ] AC-012 — Stage 5 roadmap is finalized under the adopted Windows exact-head evidence policy.
+- [x] AC-001 — baseline applies when no declaration exists.
+- [x] AC-002 — explicit profiles compose deterministically after baseline.
+- [x] AC-003 — unknown, duplicate, and malformed entries fail visibly.
+- [x] AC-004 — security mode automatically includes profile declaration/guidance.
+- [x] AC-005 — non-security modes do not auto-include security profile guidance.
+- [x] AC-006 — context manifest records exact profile identities.
+- [x] AC-007 — profiles cover authorization, tenant isolation, secrets/PII, trust boundaries, abuse/replay/rate concerns, stateful migration/data safety, and negative tests.
+- [x] AC-008 — profile guidance never infers risk acceptance or claims compliance.
+- [x] AC-009 — projects without Stage 6 declaration remain backward compatible through baseline fallback.
+- [x] AC-010 — init/update lifecycle owns the declaration safely and manages canonical profile guidance.
+- [x] AC-011 — framework validation requires the canonical Stage 6 contract.
+- [x] AC-012 — Stage 5 roadmap is finalized under the adopted Windows exact-head evidence policy.
 
 ## Scope
 
@@ -144,14 +144,28 @@ Context result and manifest expose active profile names/files. Errors identify i
 | DEFECT | must fix in this task | The same gate reported implementation readiness 10 pass / 1 warn / 4 fail because Stage 6 Task Pack used unlabeled boundary/security/rollout prose and non-canonical test subsection headings; verification correctly refused to run. | Re-author the Task Pack with the canonical readiness labels/headings and concrete or reasoned n/a answers. | Corrected exact-head readiness + verification required. |
 | DEFECT | must fix in this task | The remaining readiness warning came from treating starter-template `docs/security/THREAT-MODEL.md` as governing Source of Truth for Stage 6. No accepted project-specific threat inventory governs this workflow change. | Remove the starter threat model from this Task Pack's governing Source-of-Truth table and explicitly record `Relevant threat IDs: n/a` with the reason; do not fabricate threat IDs or rewrite the unrelated template. | Corrected strict readiness required. |
 | DEFECT | must fix in this task | Corrected gate on exact head `0db7998441403eb5ebea400e41645b2c155ea906` proved readiness fully green at 15 pass / 0 warn / 0 fail, but focused/full validation remained 45/46 and 241/242 because the canonical sensitive-data profile used `redaction/logging` while the Stage 6 coverage contract requires the exact `logging/redaction` phrase. VCP verification correctly failed only because the task's unit-test command inherited that single test failure. | Correct the canonical sensitive-data wording without weakening the contract assertion. Maintainer prechecked all 18 coverage-contract phrases and reported this as the only remaining phrase mismatch. | New exact-head focused/full/verification gate required. |
+| NO ACTION | n/a | Maintainer reported the complete Stage 6 pre-final gate passed on exact head `302f16a252f83923eb52105aa62f1d5863d7ca5e`: exact local/remote SHA before and after; clean tree before and after; diff check; focused suite 46/46; repository check over 30 modules; strict implementation readiness 15 pass / 0 warn / 0 fail; Doctor exit 0 with no failures; VCP verification 2 pass / 0 fail bound to the exact clean revision, including task unit suite 19/19; full validation 242/242; package check over 142 files. | Accepted as the corrected pre-final exact-head executable evidence. The prior red heads proved the contract lane could fail non-vacuously. | Same comprehensive gate must rerun on this Task Pack-only finalization head before merge. |
+| NO ACTION | n/a | Final live review audit on `302f16a252f83923eb52105aa62f1d5863d7ca5e`: PR #70 open and mergeable; CodeRabbit status success; the one actionable Roadmap finding is fixed, replied to, resolved, and acknowledged addressed; no unresolved inline threads or new actionable submitted review findings remain. | Accepted as current review evidence for Task Pack finalization. | Final merge still depends on unchanged finalization head plus executable rerun. |
 | NO ACTION | n/a | Pre-final static changed-surface review on `605e1bf4352955f4d304410db418e5b4106452c4` found no other source-level must-fix issue before executable validation; CodeRabbit had not yet published submitted-review findings/threads for that exact candidate. | Superseded as the latest review state by the later CodeRabbit finding below; the source-level audit remains historical evidence. | Late review did identify one roadmap consistency defect. |
 | DEFECT | must fix in this task | Late CodeRabbit review found Track A still directed contributors to prove completed Stage 5 work and treat closed Issue #15 as unfinished hosted-CI work, contradicting the same roadmap's completed Stage 5 / Windows-policy state. | Update Track A to maintain completed Stage 5 semantics and track remaining Linux/hosted compatibility only under non-blocking follow-up #69; preserve conditional graph-validation guidance. | Corrected-head review/gate required. |
 
 ## Finalization
 
-- [ ] Acceptance criteria complete.
-- [ ] Fresh submitted-review + inline-thread audit complete.
-- [ ] Comprehensive exact-head pre-final gate passed.
-- [ ] Task Pack-only finalization edit made.
-- [ ] Same gate rerun on finalization head.
-- [ ] Status changed to Done.
+- [x] Acceptance criteria complete on exact pre-final head `302f16a252f83923eb52105aa62f1d5863d7ca5e`.
+- [x] Fresh submitted-review + inline-thread + top-level-comment audit complete.
+- [x] Comprehensive exact-head pre-final gate passed on `302f16a252f83923eb52105aa62f1d5863d7ca5e`.
+- [x] Task Pack-only finalization edit made after the passing pre-final gate.
+- [ ] Same comprehensive gate rerun on this finalization head.
+- [x] Status changed to Done.
+
+
+## Completion report
+
+- What changed: Stage 6 adds mandatory baseline security-review guidance plus explicit composable `web-api`, `multi-tenant`, `sensitive-data`, and `stateful-data` profiles; security-mode-only Context Pack loading; manifest/result identity; freshness/identity/path-safety checks; Doctor inspection; lifecycle/update ownership; canonical coverage assertions; and reference SaaS dogfood.
+- Human-decision boundary: profiles guide review only. They do not authorize implementation, infer accepted risk, invent threat IDs, or claim compliance.
+- Backward compatibility: projects with no Stage 6 declaration receive packaged baseline fallback; explicit invalid state fails visibly instead of silently degrading.
+- Pre-final executable evidence: maintainer reported the full requested gate passed on exact head `302f16a252f83923eb52105aa62f1d5863d7ca5e`: 46/46 focused tests, 30-module repository check, readiness 15 pass / 0 warn / 0 fail, Doctor with 0 fail, VCP verification 2 pass / 0 fail including 19/19 task unit tests, full validation 242/242, package check over 142 files, clean tree and unchanged remote/local SHA.
+- Non-vacuous correction history: earlier exact heads failed first on multi-tenant coverage wording and then on sensitive-data coverage wording; those failures were preserved and corrected in canonical content without weakening assertions.
+- Review evidence: the only CodeRabbit actionable finding was Roadmap Track A inconsistency after Stage 5/#15 completion. It was fixed, replied to, resolved, acknowledged addressed, and the final pre-final audit found no unresolved/new actionable review content; CodeRabbit status was success.
+- Stage 5 evidence policy: fresh-clone Windows exact-head validation is the adopted current executable channel; Linux/hosted compatibility remains non-blocking follow-up #69 and is not claimed proven.
+- Finalization requirement: this Task Pack-only commit moves the branch head. Run the same comprehensive Stage 6 gate on that exact finalization SHA before merge. Do not edit the Task Pack merely to record the rerun.
