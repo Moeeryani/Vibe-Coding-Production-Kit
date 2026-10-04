@@ -268,6 +268,7 @@ Before using bootstrap `--force`, inspect the reported conflicts. The CLI never 
 --stage <name>     readiness stage: plan | implement
 --dir <path>       task/ready/context/verify/manage project root
 --mode <name>      context mode: plan | implement | review | security | release
+                    security mode also loads baseline + explicit docs/security/SECURITY-PROFILE.md profiles
 --include <path>   add an existing explicit context file; repeatable
 --planned <path>   implement context: declare a future repository-local path; repeatable
 --output <path>    write context/evidence inside the selected project root
