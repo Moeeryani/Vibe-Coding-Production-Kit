@@ -2,9 +2,11 @@
   "name": "vcp-reference-saas-invite",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "test": "node --test",
-    "check": "node --check src/domain/invitation.mjs && node --check src/application/invitation-service.mjs && node --check src/infrastructure/memory-invitation-repository.mjs"
+    "check": "node --check src/domain/invitation.mjs && node --check src/domain/index.mjs && node --check src/application/invitation-service.mjs && node --check src/infrastructure/memory-invitation-repository.mjs"
   }
 }
