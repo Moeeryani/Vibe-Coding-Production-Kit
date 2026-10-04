@@ -319,6 +319,7 @@ Idea
 - `vcp doctor` — repository/system health audit without a misleading magic score.
 - `vcp prompt-eval` — deterministic behavioral evaluation of external-agent prompt runs without an embedded LLM.
 - `vcp fitness` — explicit architecture ownership/dependency/public-contract/cycle checks without inferred graph authority.
+- `vcp release-check` — exact-revision release-candidate evidence for pack/publish-dry-run/install/update mechanics without publishing or creating tags.
 - `vcp update` — lifecycle-aware safe updates with merge/migrations/recovery.
 - Agent prompts — discovery, planning, implementation, review, security, refactoring, release review.
 - GitHub hygiene — issue templates, PR template, contributing guide, security policy, validation workflow.
@@ -436,7 +437,7 @@ Do not duplicate conflicting rules across multiple agent configuration files. Pr
 - [ ] Mobile stack profiles
 - [x] Monorepo-aware project/evidence semantics
 - [x] Project-sensitive security profiles
-- [ ] Git-aware review/release automation
+- [x] Git-aware review/release automation
 - [x] Prompt behavioral evaluation harness for coding agents
 - [x] Architecture fitness functions
 - [ ] Extensible community profile/plugin system
