@@ -606,6 +606,7 @@ test('regex-literal quote cannot mask a later forbidden dependency', async () =>
 
 test('escaped runtime-relative module specifier cannot bypass architecture boundaries', async () => {
   const target = await copyReference();
+  const baseline = await runArchitectureFitness({ targetDir: target });
   const file = path.join(target, 'src', 'application', 'invitation-service.mjs');
   const content = await readFile(file, 'utf8');
   await writeFile(
@@ -619,7 +620,8 @@ test('escaped runtime-relative module specifier cannot bypass architecture bound
 
   const report = await runArchitectureFitness({ targetDir: target });
 
+  assert.equal(baseline.success, true);
   assert.equal(report.success, false);
   assert.ok(codes(report).includes('unsupported-local-import'));
-  assert.equal(report.summary.externalImports, 0);
+  assert.equal(report.summary.externalImports, baseline.summary.externalImports);
 });
