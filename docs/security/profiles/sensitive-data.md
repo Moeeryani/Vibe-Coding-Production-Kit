@@ -17,6 +17,6 @@ Use for PII, credentials, tokens, private content, financial/regulated-like data
 
 ## Negative tests
 
-Exercise unauthorized sensitive-data reads/exports, redaction/logging behavior, deletion/retention boundaries, secret exposure in errors, and stale-copy/access paths where applicable.
+Exercise unauthorized sensitive-data reads/exports, logging/redaction behavior, deletion/retention boundaries, secret exposure in errors, and stale-copy/access paths where applicable.
 
 Do not claim legal/regulatory compliance from this profile.
