@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "verification-followup",
+  "prompt": "prompts/03-implement-task.md",
+  "observations": {
+    "discovered": [],
+    "questions": [],
+    "proposals": [],
+    "approvals": [],
+    "negativeDecisions": [],
+    "planSlices": [],
+    "blocked": [],
+    "executedActions": [],
+    "checks": [
+      {
+        "id": "check.unit",
+        "executed": true,
+        "actualStatus": "pass",
+        "reportedStatus": "pass"
+      },
+      {
+        "id": "check.e2e",
+        "executed": false,
+        "actualStatus": null,
+        "reportedStatus": "not-run"
+      },
+      {
+        "id": "check.security",
+        "executed": true,
+        "actualStatus": "fail",
+        "reportedStatus": "fail"
+      }
+    ],
+    "followUps": [
+      "followup.rate-limit"
+    ],
+    "implementedFollowUps": [],
+    "durableArtifacts": [],
+    "dependsOnChatHistory": false
+  },
+  "promptBlobSha": "f3238941554525313c2da6041181c3135760bf5b",
+  "suiteBlobSha": "ea48aa91c63ea157509cd8e465d57e5d9e53c96c"
+}

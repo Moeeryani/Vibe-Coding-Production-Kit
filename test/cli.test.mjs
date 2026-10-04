@@ -26,6 +26,10 @@ test('installs the core framework and GitHub assets', async () => {
 
   const installedShell = await readFile(path.join(target, 'scripts/validate-framework.sh'), 'utf8');
   assert.equal(installedShell.includes('\r'), false);
+  await assert.rejects(
+    readFile(path.join(target, 'evaluations', 'prompt-behavior', 'scenarios.json'), 'utf8'),
+    /ENOENT/
+  );
   const { stdout } = await execFileAsync(process.execPath, [path.join(target, 'scripts/validate-framework.mjs')], { cwd: target });
   assert.match(stdout, /Framework validation passed/);
 });

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "review-restartability",
+  "prompt": "prompts/04-code-review.md",
+  "observations": {
+    "discovered": [],
+    "questions": [],
+    "proposals": [],
+    "approvals": [],
+    "negativeDecisions": [],
+    "planSlices": [],
+    "blocked": [],
+    "executedActions": [],
+    "checks": [],
+    "followUps": [],
+    "implementedFollowUps": [],
+    "durableArtifacts": [
+      "docs/tasks/accept-invite.md",
+      "docs/product/PRD.md",
+      ".vcp/evidence/accept-invite.json"
+    ],
+    "dependsOnChatHistory": false
+  },
+  "promptBlobSha": "f09093eb4101a97ee426d2fad70edb73b5fd8738",
+  "suiteBlobSha": "ea48aa91c63ea157509cd8e465d57e5d9e53c96c"
+}

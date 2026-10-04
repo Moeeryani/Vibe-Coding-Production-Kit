@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "mutations": [
+    {
+      "property": "discover-before-ask",
+      "scenarioId": "discovery-boundaries",
+      "path": "observations.discovered",
+      "value": []
+    },
+    {
+      "property": "human-decision-boundary",
+      "scenarioId": "discovery-boundaries",
+      "path": "observations.questions",
+      "value": []
+    },
+    {
+      "property": "proposal-not-approval",
+      "scenarioId": "discovery-boundaries",
+      "path": "observations.approvals",
+      "value": [
+        "product.single-use-token",
+        "engineering.transaction-boundary"
+      ]
+    },
+    {
+      "property": "negative-decisions-preserved",
+      "scenarioId": "discovery-boundaries",
+      "path": "observations.negativeDecisions",
+      "value": []
+    },
+    {
+      "property": "bounded-vertical-plan",
+      "scenarioId": "plan-vertical-blockers",
+      "path": "observations.planSlices.0.kind",
+      "value": "technical-layer"
+    },
+    {
+      "property": "blockers-readiness-respected",
+      "scenarioId": "plan-vertical-blockers",
+      "path": "observations.executedActions",
+      "value": [
+        "slice.token-hash-regression",
+        "slice.accept-invite"
+      ]
+    },
+    {
+      "property": "verification-reporting-accurate",
+      "scenarioId": "verification-followup",
+      "path": "observations.checks.2.reportedStatus",
+      "value": "pass"
+    },
+    {
+      "property": "follow-ups-recorded",
+      "scenarioId": "verification-followup",
+      "path": "observations.followUps",
+      "value": []
+    },
+    {
+      "property": "restartable",
+      "scenarioId": "review-restartability",
+      "path": "observations.dependsOnChatHistory",
+      "value": true
+    }
+  ]
+}

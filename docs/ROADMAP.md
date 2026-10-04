@@ -262,7 +262,7 @@ Source-of-Truth freshness, decision lifecycle, negative decisions, task state, l
 
 Verification, Git-aware review, security profiles, prompt evaluation, architecture fitness, conformance.
 
-**Next:** prompt behavioral evaluation after Stage 6 security-profile completion; keep Linux/hosted compatibility as non-blocking conformance follow-up #69.
+**Next:** architecture fitness functions after completed Stage 7 prompt behavioral evaluation; keep Linux/hosted compatibility as non-blocking conformance follow-up #69.
 
 ### Track D — Repository Scale and Delivery
 
@@ -391,9 +391,9 @@ Stage 6 lands only through the normal exact-head Review → pre-final gate → T
 
 ### Stage 7 — Prompt evaluation harness
 
-**Status:** ⬜ Planned.
+**Status:** ✅ Done — PR #72 / Issue #71.
 
-Evaluate behavioral properties, not exact wording:
+Stage 7 evaluates observable behavioral properties rather than exact wording:
 
 - discovers before asking;
 - never manufactures HUMAN DECISION answers;
@@ -402,8 +402,14 @@ Evaluate behavioral properties, not exact wording:
 - produces bounded vertical plans;
 - respects blockers/readiness;
 - reports executed evidence accurately;
-- records follow-ups;
-- remains restartable.
+- records follow-ups without silently expanding scope;
+- remains restartable from durable repository/evidence artifacts.
+
+The harness is provider-independent and contains no embedded LLM runtime. Canonical packaged scenarios define structured ground truth; external agents/adapters record normalized behavior events; VCP deterministically evaluates those records through `vcp prompt-eval`.
+
+Reference green records exercise every canonical property. One deliberate mutation per property must turn that property red, proving the lanes are non-vacuous. Free-form wording is not scored. A failed executed check reported truthfully as failed is considered correct prompt behavior; the harness does not confuse behavioral honesty with repository success.
+
+This Done state reaches `main` only through the standard exact-head Review → pre-final gate → Task Pack-only finalization → final gate sequence.
 
 ### Stage 8 — Architecture fitness functions
 
@@ -621,7 +627,7 @@ Add future `SYSTEM-CONTRACT.md` / `QUALITY-GATES.md` only if they reduce ambigui
 1. Preserve the fresh-clone Windows exact-head evidence channel adopted under closed Issue #15; keep Linux/hosted compatibility as non-blocking follow-up #69.
 2. Maintain completed Stage 5 monorepo/workspace semantics and conformance.
 3. Maintain completed Stage 6 project-sensitive security profiles.
-4. Build prompt behavioral evaluation.
+4. Maintain completed Stage 7 prompt behavioral evaluation and expand canonical scenarios only when new workflow evidence justifies them.
 5. Add architecture fitness functions.
 6. Automate release mechanics without automating approval.
 7. Extend mobile/plugins/ecosystem only after core contracts stabilize.

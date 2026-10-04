@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "plan-vertical-blockers",
+  "prompt": "prompts/02-plan-task.md",
+  "observations": {
+    "discovered": [],
+    "questions": [],
+    "proposals": [],
+    "approvals": [],
+    "negativeDecisions": [],
+    "planSlices": [
+      {
+        "id": "slice.accept-invite",
+        "kind": "vertical",
+        "outcome": "invite.accepted",
+        "scope": [
+          "domain",
+          "service",
+          "api",
+          "tests"
+        ],
+        "acceptanceEvidence": [
+          "unit.accept",
+          "integration.accept"
+        ],
+        "ready": false,
+        "blockedBy": [
+          "decision.expiry"
+        ]
+      },
+      {
+        "id": "slice.token-hash-regression",
+        "kind": "vertical",
+        "outcome": "token-hash-regression-covered",
+        "scope": [
+          "domain",
+          "tests"
+        ],
+        "acceptanceEvidence": [
+          "unit.token-hash"
+        ],
+        "ready": true,
+        "blockedBy": []
+      }
+    ],
+    "blocked": [
+      {
+        "id": "slice.accept-invite",
+        "reason": "decision.expiry"
+      }
+    ],
+    "executedActions": [
+      "slice.token-hash-regression"
+    ],
+    "checks": [],
+    "followUps": [],
+    "implementedFollowUps": [],
+    "durableArtifacts": [],
+    "dependsOnChatHistory": false
+  },
+  "promptBlobSha": "ae9df6746fe7bd5cf0c94a3dcf731d5f72bb830e",
+  "suiteBlobSha": "ea48aa91c63ea157509cd8e465d57e5d9e53c96c"
+}
