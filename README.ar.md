@@ -397,6 +397,7 @@ npm run check
 - `vcp verify` لإثبات التحقق.
 - `vcp doctor` لفحص النظام.
 - `vcp prompt-eval` لتقييم سلوك تشغيل الـPrompts بشكل deterministic بدون تضمين LLM runtime.
+- `vcp fitness` لتشغيل حدود architecture المعلنة مثل ownership واتجاه dependencies والـpublic contracts والcycles بدون inference خفي.
 - `vcp update` للترقيات الآمنة.
 - Prompts مستقلة للتخطيط والتنفيذ والمراجعة والأمن والإطلاق.
 - GitHub Issue/PR templates وvalidation workflow.
@@ -449,7 +450,7 @@ npm run check
 - [x] Project-sensitive security profiles
 - [ ] Git-aware review/release automation
 - [x] Prompt behavioral evaluation harness
-- [ ] Architecture fitness functions
+- [x] Architecture fitness functions
 - [ ] Community profile/plugin system
 
 ## الترخيص
