@@ -43,6 +43,7 @@ The doctor currently inspects:
 - unresolved verification-command slots in `AGENTS.md`;
 - presence of core product, architecture, security, testing, and delivery documents;
 - active security profiles, including baseline fallback for pre-Stage-6 projects and invalid declaration/profile failures;
+- community plugin selection/digest/version/capability validity without mutating trust;
 - known starter-template markers for Product Brief, PRD, Architecture, Threat Model, and Test Strategy;
 - presence of Definition of Ready and Definition of Done;
 - framework validation CI;

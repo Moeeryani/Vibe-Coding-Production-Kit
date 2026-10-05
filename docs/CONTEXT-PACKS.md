@@ -261,6 +261,18 @@ When a pack is too large, prefer:
 
 Good architecture compresses context. A context-budget failure may reveal that task boundaries or module boundaries are too broad, not merely that the byte limit is inconvenient.
 
+## Community plugin context
+
+When a project explicitly owns `docs/plugins/PLUGINS.json`, every context mode validates the selected local bundles before rendering.
+
+Active plugin guidance is included only for the modes declared by the plugin manifest. The declaration, plugin manifest, and active guidance files participate in the context manifest and byte budget.
+
+Verification contributions are rendered only as **NOT APPLIED proposals**. Context transport does not write them into `AGENTS.md`, make a blocked task executable, or grant permission to run them.
+
+Invalid, tampered, incompatible, or ungranted plugin state fails context creation instead of silently omitting the plugin.
+
+See [`COMMUNITY-PLUGINS.md`](COMMUNITY-PLUGINS.md).
+
 ## Security and path safety
 
 The command rejects:

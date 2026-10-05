@@ -399,6 +399,7 @@ npm run check
 - `vcp prompt-eval` لتقييم سلوك تشغيل الـPrompts بشكل deterministic بدون تضمين LLM runtime.
 - `vcp fitness` لتشغيل حدود architecture المعلنة مثل ownership واتجاه dependencies والـpublic contracts والcycles بدون inference خفي.
 - `vcp release-check` لجمع أدلة release candidate على revision محدد وفحص pack/publish-dry-run/install/update بدون نشر الحزمة أو إنشاء/تحريك tags.
+- `vcp plugins` لفحص community profiles محلية مختارة صراحة ومثبتة بـdigest، وحساب pin deterministic بدون تشغيل أي plugin code.
 - `vcp update` للترقيات الآمنة.
 - Prompts مستقلة للتخطيط والتنفيذ والمراجعة والأمن والإطلاق.
 - GitHub Issue/PR templates وvalidation workflow.
@@ -452,7 +453,7 @@ npm run check
 - [x] Git-aware review/release automation
 - [x] Prompt behavioral evaluation harness
 - [x] Architecture fitness functions
-- [ ] Community profile/plugin system
+- [x] Community profile/plugin system
 
 ## الترخيص
 

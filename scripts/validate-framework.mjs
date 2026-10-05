@@ -12,6 +12,7 @@ const requiredFiles = [
   'docs/PROMPT-EVALUATION.md',
   'docs/ARCHITECTURE-FITNESS.md',
   'docs/RELEASE-AUTOMATION.md',
+  'docs/COMMUNITY-PLUGINS.md',
   'docs/DOCTOR.md',
   'docs/STACK-PROFILES.md',
   'docs/SECURITY-PROFILES.md',
@@ -62,6 +63,14 @@ const providerRuntimeRequiredFiles = [
 
 const providerReleaseRequiredFiles = [
   '.github/release-policy.json'
+];
+
+const providerPluginRequiredFiles = [
+  'examples/community-profile-react-native/README.md',
+  'examples/community-profile-react-native/package.json',
+  'examples/community-profile-react-native/docs/plugins/PLUGINS.json',
+  'examples/community-profile-react-native/community-plugins/react-native-readiness/plugin.json',
+  'examples/community-profile-react-native/community-plugins/react-native-readiness/guidance/mobile-boundaries.md'
 ];
 
 const excludedDirs = new Set(['.git', 'node_modules', '.vcp']);
@@ -142,10 +151,12 @@ async function validateExecutableLineEndings() {
 let failed = false;
 const providerRuntimePresent = await existsNonEmpty('lib/prompt-eval.mjs');
 const providerReleasePresent = await existsNonEmpty('lib/release-check.mjs');
+const providerPluginPresent = await existsNonEmpty('lib/community-plugins.mjs');
 const effectiveRequiredFiles = [
   ...requiredFiles,
   ...(providerRuntimePresent ? providerRuntimeRequiredFiles : []),
-  ...(providerReleasePresent ? providerReleaseRequiredFiles : [])
+  ...(providerReleasePresent ? providerReleaseRequiredFiles : []),
+  ...(providerPluginPresent ? providerPluginRequiredFiles : [])
 ];
 
 for (const relative of effectiveRequiredFiles) {

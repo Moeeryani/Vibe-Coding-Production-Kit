@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "plugins": [
+    {
+      "id": "community.react-native-readiness",
+      "version": "1.0.0",
+      "path": "community-plugins/react-native-readiness",
+      "sha256": "sha256:718bd7da8f7a124e946b359cc9f57140d292f708154c215cbc7af36285985a0e",
+      "grants": [
+        "guidance",
+        "verification-proposals"
+      ]
+    }
+  ]
+}
