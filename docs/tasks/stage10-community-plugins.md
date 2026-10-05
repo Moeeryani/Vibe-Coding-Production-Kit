@@ -1,6 +1,6 @@
 # Task — Implement Stage 10 deterministic community plugin model
 
-Status: Review
+Status: Done
 Slug: `stage10-community-plugins`
 
 ## Outcome
@@ -24,8 +24,8 @@ Complete Stage 10 with a deterministic/versioned plugin model that is explicit i
 
 - [x] AC-001 — project declaration and plugin manifest schemaVersion 1 are strict and versioned.
 - [x] AC-002 — plugin selection is explicit; absence of declaration performs no discovery and remains backward compatible.
-- [ ] AC-003 — selected id/version/path/digest/grants must exactly match validated local bundle state.
-- [ ] AC-004 — bundle paths are confined to project-owned `community-plugins/`, portable across Windows/Linux, and drive/URL/traversal/symlink safe.
+- [x] AC-003 — selected id/version/path/digest/grants must exactly match validated local bundle state.
+- [x] AC-004 — bundle paths are confined to project-owned `community-plugins/`, portable across Windows/Linux, and drive/URL/traversal/symlink safe.
 - [x] AC-005 — canonical digest covers all LF-normalized text files deterministically and detects add/remove/edit tampering.
 - [x] AC-006 — v1 rejects executable/binary bundle files and executable-style/unknown manifest contribution keys.
 - [x] AC-007 — VCP compatibility range, known capabilities, duplicates, and concrete verification slots are validated exactly.
@@ -191,14 +191,16 @@ Human and JSON plugin inspection show selected id/version/path/digest/grants/cap
 | DEFECT | corrected before executable gate | CodeRabbit's complete-surface review found the Roadmap marked Stage 10 Done while the Task Pack remained Review. | Keep the Roadmap Stage 10 status at Review until the Task Pack-only finalization step. | The roadmap must change to Done only in/after the finalization protocol, never before exact-head executable evidence. |
 | DEFECT | corrected before executable gate | CodeRabbit found exact plugin id/version pins accepted surrounding Unicode/ASCII whitespace because shared string validation trimmed before identifier/version validation. | Add exact-string validation for ids/versions and regression cases for padded id/version values. | Other human-readable strings may still use deliberate trim semantics; only exact identity/version pins reject padding. |
 | NO ACTION | n/a | Superseded finalization evidence: pre-final gate was green on exact head 9ad620d94be11a8d9281d8d25f784b20ef55a6ca and the finalization-head gate was green on bedb3b6f15414b375c9d44c230dd51f1de5d1e31. | A later CodeRabbit review on bedb3b6… found a still-valid root-casing defect, so those gates no longer authorize merge. | Hosted-CI execution remains unproven (#69); TOCTOU remains #73. |
-| DEFECT | must fix in this task | Post-finalization review found that `safePluginBundlePath` canonicalized a mismatched bundle-root case such as `Community-Plugins/`, allowing a single declaration to be accepted even though exact authoritative path casing is required. | Preserve case-folded duplicate detection before exact-root validation, reject mismatched root casing for non-duplicate selections, add a regression, then rerun the exact-head gate before finalizing again. | Merge is blocked until the corrected head passes and finalization is repeated. |
+| DEFECT | corrected before finalization | Post-finalization review found that `safePluginBundlePath` canonicalized a mismatched bundle-root case such as `Community-Plugins/`, allowing a single declaration to be accepted even though exact authoritative path casing is required. | Fixed in `87b141234ecc52aacf94f66c1d11f90d114df5d3`: preserve case-folded duplicate detection, reject mismatched root casing for non-duplicate selections, and add a singleton regression. Fresh exact-head gates on `87b1412…` and documentation-only follow-up `2fcb4c6…` are green. | Concurrent filesystem replacement remains the separate #73 class; no merge blocker remains from this finding. |
+| DEFECT | corrected before finalization | CodeRabbit's review of `87b1412…` found a literal `\\n` joining two Task Pack evidence rows, causing Markdown to render an invalid 11-column row and potentially hide the defect disposition. | Fixed in `2fcb4c6f005cb2bdf28a6190a490a21ff9af74ec` by replacing the literal escape with a real line break; CodeRabbit confirmed the fix and the thread is resolved. | Documentation-only; no runtime behavior changed. |
+| APPROVED | finalization evidence | Fresh exact-head Windows gate passed on `2fcb4c6f005cb2bdf28a6190a490a21ff9af74ec`: focused 69/69, task unit 69/69, validate 382/382, readiness 15/0/0, Doctor 10 pass / 7 warn / 0 fail, plugin/package/dogfood/release assertions PASS, release-check 15 pass / 0 fail / 2 humanDecision, immutable `v0.9.2` identity matched, and `v0.9.3` remained absent. CodeRabbit status is success with 0 unresolved review threads. | Finalize metadata only, then rerun the same fresh exact-head gate on the finalization head before merge. | Hosted-CI execution remains non-blocking under #69; TOCTOU remains #73; `v0.9.3` tag/publish remain separate HUMAN DECISIONs. |
 | NO ACTION | external review received | CodeRabbit reviewed the complete `bdc7f78…` surface and posted exactly the two actionable findings above. | Fix both and rerun/re-audit on the corrected exact head; the interrupted `bdc7f78…` local gate is superseded. | Any later finding on the corrected head supersedes executable evidence until fixed and rerun. |
 
 ## Finalization
 
-- [ ] Acceptance criteria complete.
-- [ ] Fresh submitted-review + inline-thread + top-level-comment audit complete.
-- [ ] Comprehensive exact-head pre-final gate passed.
-- [ ] Task Pack-only finalization edit made.
+- [x] Acceptance criteria complete.
+- [x] Fresh submitted-review + inline-thread + top-level-comment audit complete.
+- [x] Comprehensive exact-head pre-final gate passed.
+- [x] Finalization metadata edit made (Task Pack + Roadmap status only).
 - [ ] Same gate rerun on finalization head.
-- [ ] Status changed to Done.
+- [x] Status changed to Done.
