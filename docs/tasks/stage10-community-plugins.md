@@ -1,6 +1,6 @@
 # Task — Implement Stage 10 deterministic community plugin model
 
-Status: Done
+Status: Review
 Slug: `stage10-community-plugins`
 
 ## Outcome
@@ -24,8 +24,8 @@ Complete Stage 10 with a deterministic/versioned plugin model that is explicit i
 
 - [x] AC-001 — project declaration and plugin manifest schemaVersion 1 are strict and versioned.
 - [x] AC-002 — plugin selection is explicit; absence of declaration performs no discovery and remains backward compatible.
-- [x] AC-003 — selected id/version/path/digest/grants must exactly match validated local bundle state.
-- [x] AC-004 — bundle paths are confined to project-owned `community-plugins/`, portable across Windows/Linux, and drive/URL/traversal/symlink safe.
+- [ ] AC-003 — selected id/version/path/digest/grants must exactly match validated local bundle state.
+- [ ] AC-004 — bundle paths are confined to project-owned `community-plugins/`, portable across Windows/Linux, and drive/URL/traversal/symlink safe.
 - [x] AC-005 — canonical digest covers all LF-normalized text files deterministically and detects add/remove/edit tampering.
 - [x] AC-006 — v1 rejects executable/binary bundle files and executable-style/unknown manifest contribution keys.
 - [x] AC-007 — VCP compatibility range, known capabilities, duplicates, and concrete verification slots are validated exactly.
@@ -190,14 +190,14 @@ Human and JSON plugin inspection show selected id/version/path/digest/grants/cap
 | RISK | follow-up candidate / non-blocking | Like the existing prompt-eval reader, Stage 10 performs portable path/symlink checks and later filesystem reads by pathname; a concurrently privileged/local writer could replace a checked component between operations. Node does not currently provide the required portable root-anchored no-follow traversal/open primitive across Windows/Linux. | Reuse Issue #73 as the portable concurrent-filesystem-confinement follow-up; document the actual guarantee and do not claim an atomic filesystem snapshot. | Static traversal/symlink/digest-snapshot contracts remain in-scope and gated; concurrent local mutation remains outside the current atomic guarantee. |
 | DEFECT | corrected before executable gate | CodeRabbit's complete-surface review found the Roadmap marked Stage 10 Done while the Task Pack remained Review. | Keep the Roadmap Stage 10 status at Review until the Task Pack-only finalization step. | The roadmap must change to Done only in/after the finalization protocol, never before exact-head executable evidence. |
 | DEFECT | corrected before executable gate | CodeRabbit found exact plugin id/version pins accepted surrounding Unicode/ASCII whitespace because shared string validation trimmed before identifier/version validation. | Add exact-string validation for ids/versions and regression cases for padded id/version values. | Other human-readable strings may still use deliberate trim semantics; only exact identity/version pins reject padding. |
-| APPROVED | finalization evidence | Pre-final gate green on exact head 9ad620d94be11a8d9281d8d25f784b20ef55a6ca via fresh independent clone (focused 68/68, task unit 68/68, validate 381/381, readiness 15/0/0, plugin+package+dogfood+release asserts all PASS; CANDIDATE_TAG_EXIT=1 expected). PR #79 audit: 2/2 review threads resolved, no unresolved findings; hosted `validate` checks are 0-step runner failures tracked non-blocking under #69. | Rerun the same gate on this finalization head; v0.9.3 tag/publish remain separate HUMAN DECISIONs. | Hosted-CI execution remains unproven (#69); TOCTOU remains #73. |
+| NO ACTION | n/a | Superseded finalization evidence: pre-final gate was green on exact head 9ad620d94be11a8d9281d8d25f784b20ef55a6ca and the finalization-head gate was green on bedb3b6f15414b375c9d44c230dd51f1de5d1e31. | A later CodeRabbit review on bedb3b6… found a still-valid root-casing defect, so those gates no longer authorize merge. | Hosted-CI execution remains unproven (#69); TOCTOU remains #73. |\n| DEFECT | must fix in this task | Post-finalization review found that `safePluginBundlePath` canonicalized a mismatched bundle-root case such as `Community-Plugins/`, allowing a single declaration to be accepted even though exact authoritative path casing is required. | Preserve case-folded duplicate detection before exact-root validation, reject mismatched root casing for non-duplicate selections, add a regression, then rerun the exact-head gate before finalizing again. | Merge is blocked until the corrected head passes and finalization is repeated. |
 | NO ACTION | external review received | CodeRabbit reviewed the complete `bdc7f78…` surface and posted exactly the two actionable findings above. | Fix both and rerun/re-audit on the corrected exact head; the interrupted `bdc7f78…` local gate is superseded. | Any later finding on the corrected head supersedes executable evidence until fixed and rerun. |
 
 ## Finalization
 
-- [x] Acceptance criteria complete.
-- [x] Fresh submitted-review + inline-thread + top-level-comment audit complete.
-- [x] Comprehensive exact-head pre-final gate passed.
-- [x] Task Pack-only finalization edit made.
+- [ ] Acceptance criteria complete.
+- [ ] Fresh submitted-review + inline-thread + top-level-comment audit complete.
+- [ ] Comprehensive exact-head pre-final gate passed.
+- [ ] Task Pack-only finalization edit made.
 - [ ] Same gate rerun on finalization head.
-- [x] Status changed to Done.
+- [ ] Status changed to Done.

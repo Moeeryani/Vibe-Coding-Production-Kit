@@ -612,6 +612,21 @@ test('plugin declaration treats case-only path variants as duplicate selections'
   await assert.rejects(loadCommunityPlugins(target), /Duplicate community plugin path/);
 });
 
+test('plugin declaration rejects mismatched bundle-root casing for a single selection', async () => {
+  const target = await tempDir();
+  await copyBundle(target);
+  const digest = (await computeCommunityPluginDigest(target, bundleRelative)).digest;
+  await writeSelection(target, {
+    pluginPath: 'Community-Plugins/react-native-readiness',
+    sha256: digest
+  });
+
+  await assert.rejects(
+    loadCommunityPlugins(target),
+    /must use exact community-plugins\/ root casing/
+  );
+});
+
 test('plugin bundles reject excessive file count and normalized text size before context rendering', async () => {
   const fileCount = await selectedProject();
   const extraDir = path.join(fileCount.target, ...bundleRelative.split('/'), 'extra');
