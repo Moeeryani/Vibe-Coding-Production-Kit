@@ -3569,9 +3569,56 @@ Instead, gate needs durable review Git provenance and must allow reviewHead != c
 - finalization structure is valid;
 - the final --run verification executes on the current finalization head.
 
-If any non-finalization surface changed after the recorded review head, review is stale and gate blocks until a fresh review is persisted.
+The exception is semantic, not merely path-based.
 
-This is the minimum deterministic state needed to make the existing finalization rule enforceable.
+Between the recorded reviewed implementation head and the final gate head, the task record may change only in parser-recognized evidence/finalization regions such as:
+
+- independent-review findings/dispositions/resolution/follow-up/residual risk;
+- Status transition;
+- Finalization checklist;
+- Completion report / accepted verification summary.
+
+Changing requirements, Source-of-Truth references, acceptance criteria, scope, boundaries/invariants, security/data/API/migration requirements, verification command declarations, or the approved implementation plan invalidates the old review even if the only changed file is the Task Pack.
+
+Gate should:
+
+1. require the reviewed head to be an ancestor of current HEAD;
+2. compute the exact reviewed-head → current-head diff;
+3. reject any non-task-record path;
+4. parse the task-record diff/section ranges and reject changes outside the allowed evidence/finalization regions;
+5. require a fresh review if that semantic check fails.
+
+This is the minimum deterministic state needed to make the existing finalization rule enforceable without creating a path-only bypass.
+
+## 14.8A Git-bound gate authority
+
+The first merge-authoritative gate requires local Git provenance even though it does not require GitHub.
+
+Gate-eligible review flow:
+
+~~~text
+clean committed implementation head
+→ vcp context <task> --mode review --base <base-ref> --head <implementation-head>
+→ context resolves exact base/head SHAs
+→ fresh reviewer evaluates that surface
+→ durable review record stores the resolved reviewed head/base
+~~~
+
+Legacy review context without --base remains backward compatible for advisory review, but it is not sufficient gate evidence.
+
+For final L1/L2/L3 --run authority:
+
+- worktree must be clean before execution;
+- current HEAD must equal the committed finalization head being gated;
+- verification commands execute;
+- post-run HEAD must be unchanged;
+- post-run relevant worktree must remain clean before optional gate-report persistence.
+
+If Git is unavailable or dirty state prevents exact provenance, return blocked/non-authoritative rather than pass.
+
+L0 likewise requires explicit Git base/head and clean merge-authoritative state.
+
+---
 
 ## 14.8 Verification evidence freshness
 
@@ -3640,7 +3687,9 @@ No magic score.
 - L3 security/high-risk checks remain relevant and mode-correct;
 - verify engine is reused;
 - review provenance makes stale review mechanically detectable;
-- Task-Pack-only finalization is the only permitted reviewed-head/current-head exception;
+- reviewed-head/current-head difference is permitted only for parser-allowlisted review/finalization task-record changes;
+- changing protected task contract sections after review invalidates that review even when the path is unchanged;
+- merge-authoritative pass requires local Git, exact committed heads, and clean pre/post verification state;
 - current HEAD/dirty state is inspected after executable work;
 - gate never claims to perform AI review or HUMAN DECISION;
 - JSON/human result contracts are stable;
