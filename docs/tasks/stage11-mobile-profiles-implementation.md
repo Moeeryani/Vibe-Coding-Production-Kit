@@ -133,13 +133,15 @@ Planned final gate:
 - [x] Task Pack-only finalization was performed before merge.
 - Pre-final gate evidence: exact head `c7af26129f5612b30e3f35eebf3b832c8fc6e9ce` on fresh Windows clone — focused suite 126/126 pass, consumer init regression passed (installed validator green, no provider runtime leak), first-party mobile fixture 3/3, `npm run validate` 409/409, package surface `PACKAGE_FILES=182` vs `RELEASE_POLICY_REQUIRED=27` PASS, diff/clean-tree guards green, immutable `v0.9.3` identity intact (tag object `2dba09f0375574d880ace812f9f7aae6ce5f222e`, peels to `dc3c6a6572e1b86994de5a46cfb8fc815ed45378`).
 - [ ] Same complete exact-head gate rerun on unchanged finalization head — **not durably recorded before merge**.
-- [x] PR #85 merged on 2026-10-06 despite the unchecked rerun item above; this is a closeout-process inconsistency, not evidence that the run occurred.
+- [x] Finalization-head scope is bounded: `c7af261… -> bcc79c1…` is one commit and changes only this Task Pack (57 changed lines); no implementation/config surface moved after the recorded pre-final gate/review.
+- [x] Hosted signal is not green on the finalization head: both GitHub Actions `Framework Validation` runs for `bcc79c1…` (push run 37417253596 and PR run 37417257480) concluded `failure` before any job steps were reported. This is not the required accepted Windows exact-head gate and does not establish a Stage 11 implementation defect; hosted/Linux compatibility remains the separately tracked #69 boundary.
+- [x] PR #85 merged on 2026-10-06 despite the unchecked required rerun item above; this is a closeout-process inconsistency, not evidence that the Windows rerun occurred.
 
 ## Completion report
 
 - What changed and why: complete Stage 11 React Native-first implementation merged on PR #85; runtime behavior is present on main.
 - Verification truth: pre-final gate evidence is durably recorded at `c7af261…`; the required post-finalization exact-head rerun is **not** durably recorded in this Task Pack or the PR evidence inspected by the consistency audit. Do not infer that it happened.
-- Reconciliation: run/record an appropriate current-main re-baseline gate before Stage 12 code work, while clearly labeling that run as new evidence rather than the missing historical rerun.
+- Reconciliation: run/record an appropriate current-main re-baseline gate before Stage 12 code work, while clearly labeling that run as new evidence rather than the missing historical rerun. The current-main run should also state the hosted/Linux #69 boundary explicitly rather than using failed hosted runs as a substitute for the accepted Windows gate.
 - Superseded failed evidence: `258c2de…` gate superseded by review-cleanup head; `npm run pack:check` ENOSPC attempt on `c7af261…` was environmental and superseded by the full fresh-clone rerun recorded above.
 - Independent review evidence updated: yes, current findings retained above.
 - Migration/operational impact: additive profile/lifecycle specialization; no manifest schema migration.
