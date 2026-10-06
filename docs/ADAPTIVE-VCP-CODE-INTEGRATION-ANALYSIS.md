@@ -2312,6 +2312,38 @@ Tests must prove local override precedence survives removal of managed canonical
 
 ---
 
+## 7.1B Community-plugin selection and bundles are project-owned external state
+
+Stage 10 already establishes a distinct ownership boundary:
+
+~~~text
+docs/plugins/PLUGINS.json
+→ explicit project-owned opt-in selection/grant state
+→ init does not create it
+
+community-plugins/**
+→ local project/vendor bundle content
+→ selected/digest-pinned by project state
+~~~
+
+These are **not** consumer-install catalog entries.
+
+Phase-2 asset cleanup rules:
+
+- do not classify either path family as runtime-required, greenfield-starter, optional-hygiene, or package-only desired files;
+- do not start managing them merely because the old installer previously copied the broad `docs/` directory;
+- do not delete/rename/relocate them as part of framework-doc removal;
+- Context and Doctor continue read-only validation when a declaration exists;
+- plugin schema v2 evolves validation/contribution semantics in project-owned state; it does not transfer file ownership to VCP lifecycle management.
+
+Migration regression:
+
+~~~text
+legacy managed framework docs + project-owned selected plugin state
+→ remove/detach only declared VCP framework paths
+→ PLUGINS.json and selected community-plugins bundle bytes unchanged
+~~~
+
 ## 7.2 Prompt resolution must change first
 
 Before prompts are removed from consumer assets, lib/context.mjs must support package fallback.
@@ -2454,7 +2486,8 @@ When removing previously managed files:
 - unmodified managed files may be deleted;
 - locally modified files must be detached/preserved according to current update semantics;
 - preserve files remain project-owned;
-- do not manipulate project task history that was created by the user.
+- do not manipulate project task history that was created by the user;
+- never sweep project-owned `docs/plugins/PLUGINS.json` or `community-plugins/**` into framework removal.
 
 For old framework docs that share the same directory as project docs, removal must be path-specific.
 
@@ -2476,6 +2509,7 @@ Never remove the entire docs directory.
 - release-check consumer lifecycle smoke no longer depends on copied validate-framework;
 - explicit migration removals prevent disappeared-file conflicts;
 - security profile declaration vs packaged guidance ownership remains distinct;
+- project community-plugin selection and bundle bytes remain outside VCP consumer-asset ownership;
 - package-level validation still checks the VCP source/package itself.
 
 ---
