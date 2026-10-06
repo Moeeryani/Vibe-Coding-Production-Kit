@@ -1846,7 +1846,27 @@ lifecycle state
 
 Do not use a broad docs directory root in the consumer builder.
 
-Use an explicit list.
+Use one explicit **classified catalog**, not one identical install list.
+
+Recommended classes:
+
+~~~text
+runtime-required
+greenfield-starter
+optional-hygiene
+package-only
+~~~
+
+Examples:
+
+- AGENTS/VCP lifecycle integration → runtime-required;
+- Product Brief / PRD / Architecture starter templates → greenfield-starter;
+- issue/PR templates → optional-hygiene;
+- Roadmap/CLI/release history/framework validation → package-only.
+
+For brownfield-minimal installs, absence of a greenfield starter is intentional unless the developer explicitly adopts/creates it.
+
+Existing project docs may be referenced directly by Task Packs; Smart Init must not silently re-label arbitrary docs as accepted Source of Truth.
 
 ---
 
@@ -1920,11 +1940,20 @@ PASS Plan prompt: packaged VCP prompt
 PASS Review prompt: project override
 ~~~
 
+Doctor must also make asset-set-aware distinctions for starter project truth.
+
+For brownfield-minimal:
+
+- missing VCP Product/PRD/Architecture/Threat-Model/Test-Strategy starter paths are not installation failures if those assets were never installed/owned;
+- existing arbitrary docs are not silently promoted to authoritative equivalents;
+- project-governance coverage may be reported as configured / absent / unknown separately from install health;
+- Task Pack Source-of-Truth references remain the execution-time authority.
+
 Similarly, Doctor should stop requiring scripts/validate-framework.sh inside every consumer.
 
 The source repository's validate-framework script is not a universal application validation command.
 
-Project validation is already represented by accepted verification commands plus Doctor/readiness/gate.
+Project validation is represented by accepted verification commands plus Doctor/readiness/gate.
 
 ---
 
@@ -3757,7 +3786,14 @@ Current responsibilities are too mixed:
 
 Stage 12 needs an adoption-aware surface so brownfield planning does not blindly use all current CORE/GITHUB roots.
 
-Desired-state construction must also accept the persisted install.assetSet (or equivalent) so the next update reproduces the surface that was actually adopted.
+Desired-state construction must use the classified catalog plus persisted install.assetSet (or equivalent) so the next update reproduces the surface that was actually adopted.
+
+"Unified catalog" must not mean "same installed paths":
+
+- greenfield may receive starter truth templates;
+- brownfield-minimal must not receive those templates automatically;
+- optional hygiene remains preference-driven;
+- package-only assets never become consumer desired state.
 
 Possible implementation:
 
@@ -3943,7 +3979,8 @@ Do not lose explicit-vs-auto historical intent.
 Needs several changes:
 
 - Stage 12 shared prompt resolver so packaged prompts count as available;
-- Stage 12 install assetSet awareness so intentionally absent source-framework assets are not misdiagnosed;
+- Stage 12 install assetSet awareness so intentionally absent source-framework assets, greenfield starter docs, and optional hygiene are not misdiagnosed;
+- separation of VCP install health from project-governance coverage;
 - shared verification-command authority resolver;
 - capability reporting;
 - workflow mode;
