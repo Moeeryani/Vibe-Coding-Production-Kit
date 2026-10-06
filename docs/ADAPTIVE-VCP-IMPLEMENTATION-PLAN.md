@@ -2069,23 +2069,32 @@ This couples VCP's source-repository npm workflow to arbitrary consumer projects
 
 Before generating any new VCP CI:
 
-1. stop installing the hard-coded npm validation workflow into arbitrary fresh consumers;
-2. split GitHub issue/PR scaffolding from CI integration;
-3. inspect and preserve existing CI;
-4. make Doctor report CI provider/configuration evidence rather than one filename;
-5. migrate old managed `validate.yml` deliberately.
+1. stop installing the hard-coded npm validation workflow into arbitrary **fresh** consumers;
+2. split GitHub issue/PR scaffolding from CI integration on new Adaptive install surfaces;
+3. inspect and preserve existing project CI;
+4. make the Stage-12/13 planner treat CI as preserved project state, not a template target;
+5. keep existing legacy-managed `validate.yml` stable until the explicit Phase-3 migration path evaluates it.
 
-Do not wait for full Auto mode to stop the harmful behavior.
+Do not wait for full Auto mode to stop the harmful fresh-install behavior. Do not create surprise deletion in the same schema-migration step used merely to introduce Adaptive lifecycle state.
 
 ## 7.3 Preserve `includeGitHub` compatibility
 
 Existing manifests and lifecycle code already store `install.includeGitHub`.
 
-During the transition, keep that field readable and narrow its meaning to GitHub repository hygiene/scaffolding such as issue and PR templates.
+Its transition semantics are install-surface-aware:
 
-CI integration becomes separate state/policy.
+~~~text
+legacy-full-v1
+→ preserve the historical meaning until the old managed validate.yml migration runs
 
-A future major version may rename the historical field after migration compatibility is no longer needed.
+greenfield-safe-v1 / brownfield-minimal-v1
+→ includeGitHub means optional GitHub hygiene/scaffolding such as issue/PR templates
+→ it does not imply VCP CI
+~~~
+
+Future CI integration becomes separate state/policy.
+
+After legacy workflow migration compatibility is no longer needed, a future major version may rename or retire the historical field.
 
 ## 7.4 CI inspection
 
@@ -3240,7 +3249,7 @@ Implement:
 7. reserved `.vcp` collision/recovery inspection;
 8. brownfield stack-ambiguity safety while retaining the Stage-11-compatible stack API;
 9. minimal brownfield adoption-surface selection;
-10. persisted install-surface identity for legacy-full vs brownfield-minimal lifecycle behavior;
+10. persisted install-surface identity for legacy-full, greenfield-safe, and brownfield-minimal lifecycle behavior;
 11. preserved agent request provenance plus persisted explicit adapter intent plus VCP-managed adapter surface;
 12. tri-state GitHub request provenance for brownfield planning;
 13. verification-command authority inspection shared by Task/Doctor;
@@ -3260,7 +3269,9 @@ Transitional behavior:
 
 ```text
 NEW
-→ existing greenfield initialization remains available
+→ greenfield initialization remains available
+→ uses the greenfield-safe asset surface
+→ never installs the VCP source npm validation workflow
 
 EXISTING
 → dry-run plan available
