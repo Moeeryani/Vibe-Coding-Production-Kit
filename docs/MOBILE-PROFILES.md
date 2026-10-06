@@ -1,6 +1,6 @@
 # Mobile Profiles
 
-Authority: DRAFT
+Authority: ACCEPTED
 
 Stage 11 defines deterministic first-party mobile profiles. The first built-in profile is **React Native**.
 

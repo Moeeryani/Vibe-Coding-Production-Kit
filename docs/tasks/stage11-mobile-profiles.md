@@ -1,6 +1,6 @@
 # Task — Design Stage 11 deterministic Mobile Profiles
 
-Status: Review
+Status: Done
 Slug: `stage11-mobile-profiles`
 
 ## Outcome
@@ -121,7 +121,7 @@ The existing Stage 10 React Native-readiness community plugin fixture remains pl
 
 ## Approved detailed design
 
-The executable design contract is `docs/MOBILE-PROFILES.md`. It is intentionally `Authority: DRAFT` during review and will become `ACCEPTED` only after the design review is clean. It defines exact detection markers/precedence, explicit stack choice, verification mapping, lifecycle specialization rules, Doctor inspection semantics, plugin precedence, security boundaries, fixtures, and implementation slices.
+The executable design contract is `docs/MOBILE-PROFILES.md` with `Authority: ACCEPTED`. It defines exact detection markers/precedence, explicit stack choice, verification mapping, lifecycle specialization rules, Doctor inspection semantics, plugin precedence, security boundaries, fixtures, and implementation slices.
 
 ## Observability
 
@@ -210,12 +210,15 @@ Implementation verification will be finalized after AC-001 and the detailed desi
 | DEFECT | corrected during design review | The first draft mapped absent React Native `build` and E2E scripts directly to `n/a`, silently deciding applicability for a mobile project. | Use `<define or n/a>` when those scripts are absent so the project must explicitly configure or reason them non-applicable. | Repository-configured scripts remain the only executable command evidence. |
 | DEFECT | corrected during design review | The React Native draft mapped missing `typecheck` directly to `n/a` even when `tsconfig.json` proves TypeScript is part of the selected mobile project. | Use configured `typecheck` when present; otherwise keep `<define or n/a>` for React Native projects with `tsconfig.json`, and only use `n/a` when no TypeScript marker exists. | VCP still never invents a `tsc` command. |
 | SECURITY / AUTHORIZATION | corrected during external design review | CodeRabbit verified that current `vcp verify --run` executes configured Task Pack commands after readiness/general run consent without a separate effect-aware approval gate; a sensitive build/E2E script could therefore sign, publish, deploy, invoke a device farm, or perform destructive native actions if configured and credentials are present. | Stage 11 now states configuration/discovery is not authorization; sensitive-effect commands stay out of general verification and must be represented as separate HUMAN DECISION/manual actions requiring explicit authorization at execution time. | Existing generic verifier behavior is unchanged by this docs-only PR; Stage 11 must not widen its executable surface with sensitive native actions. |
+| NO ACTION | accepted final design review | CodeRabbit reviewed exact head `1a74ddde6faa40edd388257d56ac8b41d5646b23` and posted two actionable comments. Both were corrected on `5eea384fb9676eceaaa53b6ae91cfc30d526129f`; CodeRabbit status is success, PR remains mergeable, and unresolved review threads are zero. | Accept the corrected design as implementation authority and flip `docs/MOBILE-PROFILES.md` from DRAFT to ACCEPTED in this final design-only commit. | Product implementation still requires its own Task Pack/readiness gate after merge. |
 | NO ACTION | deliberate scope boundary | Dependency Graph Engine / Slice D remains deferred. | Do not couple Stage 11 to graph/scheduler implementation. | Revisit only with new dogfood evidence. |
 
 ## Finalization
 
 - [x] First built-in ecosystem HUMAN DECISION approved — React Native first.
 - [x] Design acceptance criteria complete.
-- [ ] Fresh design review complete.
-- [ ] Implementation Task Pack/readiness approved — created only after this design PR merges.
-- [ ] Product-code implementation started only after the above gates.
+- [x] Fresh design review complete — CodeRabbit reviewed exact head `1a74ddde6faa40edd388257d56ac8b41d5646b23`; two actionable findings were fixed on `5eea384fb9676eceaaa53b6ae91cfc30d526129f`, CodeRabbit returned success, and unresolved review threads are zero.
+### Implementation handoff (post-merge)
+
+- [ ] Create and approve the separate Stage 11 implementation Task Pack/readiness gate after this design PR merges.
+- [ ] Start product-code implementation only from that approved implementation branch/task.
