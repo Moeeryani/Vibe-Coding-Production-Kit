@@ -305,7 +305,7 @@ test('first-party React Native fixture dogfoods init, task verification, and bou
 
   const agents = await readFile(path.join(target, 'AGENTS.md'), 'utf8');
   assert.match(agents, /## 16\. React Native stack profile/);
-  assert.match(agents, /TYPECHECK_COMMAND=<define or n\\/a>/);
+  assert.match(agents, /TYPECHECK_COMMAND=<define or n\/a>/);
   assert.match(agents, /CHECK_COMMAND=npm run check/);
   assert.match(agents, /E2E_COMMAND=npm run test:e2e/);
 
