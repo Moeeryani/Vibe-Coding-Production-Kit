@@ -814,25 +814,38 @@ But allowing arbitrary executable plugins would weaken:
 - security;
 - reproducibility.
 
+
 ## 6.3 Target
 
-Expand the declarative profile model without adding arbitrary plugin execution.
+Expand the declarative profile model without weakening the existing strict v1 community-plugin contract.
 
-A profile may eventually declare:
+Do **not** make the current v1 manifest permissive.
+
+Use explicit schema dispatch:
+
+```text
+schemaVersion 1
+→ current guidance + verification-proposal contract unchanged
+
+schemaVersion 2
+→ may add bounded declarative detection/capability contributions
+```
+
+A v2 profile may eventually declare:
 
 - deterministic evidence markers;
-- capability IDs contributed when all required evidence matches;
+- capability IDs contributed when required evidence matches;
 - bounded guidance files;
 - verification proposals;
-- optional config schema hints;
 - compatibility range.
 
-Example conceptual manifest:
+Example conceptual v2 contribution:
 
 ```json
 {
+  "schemaVersion": 2,
   "id": "profile.rust",
-  "version": "1.0.0",
+  "capabilities": ["guidance", "verification-proposals", "capability-detection"],
   "detect": {
     "all": [
       { "fileExists": "Cargo.toml" }
@@ -841,35 +854,32 @@ Example conceptual manifest:
   "contributes": [
     "language.rust",
     "build.cargo"
-  ],
-  "verificationProposals": [
-    {
-      "key": "FORMAT_CHECK_COMMAND",
-      "command": "cargo fmt --check"
-    },
-    {
-      "key": "UNIT_TEST_COMMAND",
-      "command": "cargo test"
-    }
   ]
 }
 ```
 
-Important: proposed commands are not automatically approved merely because the profile exists.
+Important:
+
+- proposed commands are not automatically approved merely because the profile exists;
+- a detector contribution from a **community** profile requires explicit project selection and an explicit capability grant;
+- the plugin can contribute evidence to the normalized capability model, but cannot make itself authoritative.
 
 ## 6.4 Trust model
 
 Preserve current invariants:
 
+- schema v1 behavior remains exactly backward-compatible;
 - plugin cannot grant itself capabilities;
-- unknown fields fail;
+- community capability detection requires an explicit project grant such as `capability-detection`;
+- unknown fields fail within each schema version;
 - bundle is digest-pinned;
 - no executable hook;
 - no network fetch during normal operation;
 - no arbitrary filesystem access;
 - profile cannot override core readiness/security/lifecycle rules;
 - project explicitly selects community profiles;
-- first-party profiles are versioned with VCP itself.
+- first-party profiles are versioned with VCP itself;
+- invalid/tampered/incompatible selected profile state blocks lifecycle mutation rather than silently disappearing.
 
 ## 6.5 Detection DSL constraints
 
@@ -892,17 +902,18 @@ Avoid:
 - network checks;
 - probabilistic LLM classification.
 
+
 ## 6.6 Definition of done
 
-- a new ecosystem profile can be added without modifying core detection source code for every case;
-- profile behavior remains deterministic and inspectable;
-- profiles cannot execute code during loading/detection;
+- existing schema-v1 community plugins continue to load unchanged;
+- schema v2 is strict rather than a permissive extension of v1;
+- a new ecosystem profile can be added without arbitrary executable plugin code;
+- detector DSL evaluation remains deterministic and selected-project-root bounded;
+- community detection contributions require explicit selection/digest/grant;
+- first-party and community profile data normalize into the same deterministic capability-composition layer while retaining different trust provenance;
 - profile-proposed commands remain proposals until project adoption;
-- tampered/incompatible profile state fails visibly;
+- tampered/incompatible profile state fails before lifecycle mutation;
 - community profile support cannot weaken core VCP invariants.
-
----
-
 
 # 7. Workstream E — Project-aware CI integration
 
