@@ -138,7 +138,9 @@ store upload / publish commands
 signing commands
 ```
 
-Those commands may enter project verification only when the repository itself explicitly configures them in a reviewed script/Task Pack or a human adopts a proposal through normal project-owned verification state.
+Configuring or discovering a command does **not** authorize its execution. The current `vcp verify --run` runner executes configured Task Pack commands after readiness checks and general `--run` consent; it does not add a separate effect-aware approval gate for signing, publication, deployment, device-farm, credential-bearing, or destructive native actions.
+
+Therefore Stage 11 must keep those sensitive actions **out of general verification commands**. If a project requires one of them, the Task Pack must label it as a separate HUMAN DECISION/manual action and require explicit human authorization at execution time rather than allowing ordinary `vcp verify --run` to invoke it. Repository configuration or plugin proposal state alone is not sufficient authorization.
 
 ## 6. First-party React Native guidance
 
