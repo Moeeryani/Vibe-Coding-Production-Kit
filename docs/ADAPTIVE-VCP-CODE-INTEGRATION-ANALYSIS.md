@@ -4812,22 +4812,23 @@ Before Stage 12 product-code work:
 Implement the minimum foundations for trustworthy **read-only brownfield init planning**:
 
 1. centralized install/manifest metadata construction;
-2. canonical project-override/package-fallback prompt resolver;
+2. canonical project-override/package-fallback prompt resolver with typed source/package provenance;
 3. lifecycle manifest schema-v2 file-vs-section ownership and schema-v1 migration;
 4. minimumReaderVersion fail-closed semantics using the shared low-level semver comparator;
 5. managed-section parsing/composition/baseline primitives;
 6. VCP-state readability inspection plus NEW / EXISTING / MANAGED maturity classification;
-7. reserved .vcp collision/recovery inspection;
-8. brownfield stack-ambiguity inspection while retaining current Stage 11 stack API;
+7. reserved `.vcp` collision/recovery inspection;
+8. brownfield stack-ambiguity inspection while retaining the current Stage-11-compatible stack API;
 9. minimal brownfield adoption-surface planner;
 10. persisted assetSet design: legacy-full vs brownfield-minimal;
-11. tri-state GitHub request provenance;
-12. shared verification-command authority inspection;
-13. Doctor prompt-source / install-surface awareness required for the new valid brownfield shape;
-14. deterministic content-free init action plan;
-15. public vcp init --dry-run [--json];
-16. init-specific destructive force removal;
-17. previous-release → schema-v2 lifecycle/release smoke, including old-reader fail-closed coverage.
+11. agent request provenance plus persisted actual adapter surface;
+12. tri-state GitHub request provenance;
+13. shared verification-command authority inspection;
+14. Doctor prompt-source / install-surface awareness required for the new valid brownfield shape;
+15. deterministic content-free init action plan;
+16. public `vcp init --dry-run [--json]`;
+17. init-specific destructive force removal;
+18. previous-release → schema-v2 lifecycle/release smoke, including old-reader fail-closed coverage.
 
 The read-only boundary applies specifically to **unmanaged EXISTING repositories through vcp init**.
 
@@ -4866,11 +4867,13 @@ Mutation uses the same planner but always re-runs it under the lifecycle lock.
 Sequence:
 
 ~~~text
-lock
-→ inspect again
+first-adoption-aware lock
+→ record whether lock bootstrap created temporary .vcp state
+→ inspect VCP/repository state again
 → fresh plan
 → conflict/precondition check
-→ recovery point
+→ pre-backup cleanup if blocked
+→ complete recovery point
 → stage/apply
 → ownership-aware baselines + manifest
 → verify
@@ -4880,13 +4883,15 @@ lock
 Required details:
 
 - apply never trusts a stale preview object;
+- if lock bootstrap created `.vcp` and planning blocks before backup, release the lock and remove only the empty operation-created directory;
+- unexpected content in that directory is preserved/reported, never recursively deleted;
 - backup metadata records prior absence/presence of manifest, baselines, and VCP state;
 - rollback restores prior absence as well as prior content;
 - section composition preserves surrounding bytes;
-- brownfield install persists brownfield-minimal assetSet;
-- update/manage/Doctor reproduce that asset set;
+- brownfield install persists brownfield-minimal assetSet **and the actual adapter surface**;
+- update/manage/Doctor reproduce that adopted surface;
 - repeated init reports MANAGED and does not rewrite;
-- immediate subsequent vcp update is safe/idempotent.
+- immediate subsequent `vcp update` is safe/idempotent.
 
 ### Checkpoint A — adoption safety and usability
 
@@ -5311,7 +5316,7 @@ Result:
 
 - L0 context excludes unrelated security/profile/deep reference material;
 - L3 plan/implement context remains bounded and does not silently inherit security profiles;
-- the authentication change receives a separate security-mode Context Pack/review when active profiles are relevant;
+- the authentication change receives a separate Git-bound security-mode Context Pack/review when the deterministic L3 risk policy requires it;
 - only relevant recovery/high-risk material enters the appropriate workflow surface;
 - Context Pack manifests make the inclusion difference inspectable.
 
