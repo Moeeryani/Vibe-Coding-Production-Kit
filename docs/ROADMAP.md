@@ -535,10 +535,10 @@ It establishes:
 - lifecycle manifest schema v2 for whole-file vs section ownership plus a minimum-reader compatibility guard;
 - schema-v1 → schema-v2 managed-update migration and previous-release lifecycle smoke;
 - section-composition/baseline/update primitives;
-- brownfield-minimal classified install-surface planning and Doctor awareness of intentionally absent starter/framework assets;
-- preserved agent-selector provenance, explicit adapter intent, and VCP-managed adapter ownership without claiming merely observed-compatible project files;
+- classified install-surface planning for migrated legacy-full, fresh greenfield-safe, and brownfield-minimal projects; fresh Adaptive installs no longer receive the source-repository npm validation workflow; Doctor understands intentionally absent assets;
+- inspect-before-prompt option resolution; preserved agent-selector provenance, explicit adapter intent, and VCP-managed adapter ownership without claiming merely observed-compatible project files;
 - verification-command authority inspection;
-- safe tri-state GitHub-option provenance;
+- safe tri-state GitHub-option provenance with new Adaptive surfaces treating GitHub hygiene separately from CI;
 - reserved `.vcp` / mixed-stack ambiguity checks;
 - content-free `vcp init --dry-run` planning;
 - removal of destructive init `--force` behavior.
