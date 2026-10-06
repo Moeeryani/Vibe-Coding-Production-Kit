@@ -1915,8 +1915,6 @@ Prompt-source correctness does not wait for that broader cleanup.
 
 Report examples:
 
-Report examples:
-
 ~~~text
 PASS Plan prompt: packaged VCP prompt
 PASS Review prompt: project override
@@ -2688,17 +2686,19 @@ Do not append it ad hoc after manifest construction.
 
 ---
 
-## 11.3 Backward compatibility
+## 11.3 Default and backward compatibility
 
-For manifests without workflowMode, treat current historical behavior as Auto for compatibility, because existing managed AGENTS.md already describes agent-first routing.
+workflowMode is a user preference, not an inferred repository capability.
 
-However:
+When this feature ships:
 
-- merely interpreting old state as Auto must not instantly impose new CI merge enforcement;
-- mechanical gate enforcement is a separate opt-in/integration step;
+- new installs default to auto unless the developer explicitly selects manual;
+- Manual is an explicit user choice, for example --workflow-mode manual;
+- manifests without workflowMode normalize to Auto-compatible behavior because current managed instructions already describe agent-first routing;
+- normalization/defaulting affects routing instructions only;
+- it must not instantly impose CI merge enforcement or mandatory gate integration;
+- mechanical enforcement remains a separate explicit integration step;
 - update dry-run must show any changed managed instruction content.
-
-Manual mode should be an explicit user choice.
 
 ---
 
