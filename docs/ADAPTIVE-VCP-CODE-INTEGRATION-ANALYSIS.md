@@ -3090,6 +3090,75 @@ When active security profiles are relevant, L3 requires a dedicated security Con
 
 Other L3 additions may include migration/recovery evidence, destructive-effect authorization, sensitive deployment/release boundaries, or stronger exact-head gates.
 
+## 12.3A Task template/readiness compatibility
+
+Current `renderTaskPack()` emits one full template and `readiness.mjs` directly checks those full-template headings.
+
+Phase 7 must make both level-aware instead of adding a parallel L1 file type.
+
+Canonical normalization:
+
+~~~text
+Task Pack has Workflow-Level: L1/L2/L3
+→ use that contract
+
+Task Pack has no Workflow-Level
+→ legacy L2
+
+L0
+→ no Task Pack
+~~~
+
+Creation compatibility:
+
+- keep the existing full renderer as the L2 template;
+- add a compact L1 renderer using the same top-level identity/status conventions;
+- model L3 as L2 plus bounded relevant-risk extensions rather than a wholly separate template;
+- new manual `vcp task <slug>` with no level remains L2-compatible;
+- Auto/router may pass an explicit classified level.
+
+Suggested compact L1 durable shape:
+
+~~~text
+Status
+Slug
+Workflow-Level: L1
+
+Outcome / defect
+Governing references (when applicable)
+Scope
+Acceptance criteria/evidence
+Risk / escalation flags
+Implementation approach
+Verification commands
+Independent review evidence
+Finalization
+Completion report
+~~~
+
+Readiness branches on normalized level while sharing helpers for Source-of-Truth authority, HUMAN DECISION detection, command authority, duplicate headings, acceptance state, review evidence, and finalization.
+
+Do not make absent L2-only headings fail L1 readiness.
+
+## 12.3B Promotion mechanics
+
+Add one deterministic Task Pack level-expansion primitive rather than asking agents to copy/paste templates manually.
+
+Required behavior:
+
+- L0 → material lane: create one Task Pack at the promoted level before continuing;
+- L1 → L2: preserve compact evidence, insert missing full-contract sections exactly once, set Workflow-Level=L2, then require full readiness;
+- L1/L2 → L3: preserve task body and add only the specific required high-risk evidence sections/flags;
+- promotion never deletes lower-level evidence;
+- lower-level review/finalization evidence is not automatically sufficient after promotion;
+- Core never auto-downgrades;
+- explicit downgrade, if supported, is permitted only before material implementation/review/finalization state and only when deterministic minimum allows it;
+- no promotion path uses task `--force` overwrite.
+
+Parser/state tests must prove legacy no-level Task Packs remain L2 and promotion is idempotent/non-destructive.
+
+---
+
 ## 12.4 Classification architecture
 
 Use:
@@ -3150,6 +3219,13 @@ L0 has no Task Pack and therefore bypasses this parser by design.
 ## 12.6 lib/task.mjs
 
 Needs:
+
+- explicit `Workflow-Level` metadata for new level-aware tasks;
+- L1 compact renderer;
+- current full renderer retained as L2;
+- L3 extension composition;
+- deterministic same-file promotion/expansion helper;
+- omitted level remains L2-compatible;
 
 - explicit workflowLevel support;
 - compact L1 renderer;
@@ -3470,7 +3546,7 @@ Parse at least:
 
 - status;
 - slug;
-- workflowLevel;
+- workflowLevel, normalized so absent legacy metadata = L2;
 - governing references where applicable;
 - acceptance state;
 - verification command declarations;
