@@ -5045,14 +5045,19 @@ Add fixtures for:
 - custom Copilot instructions;
 - all together;
 - `--yes` with no explicit `--agent` and only one existing vendor adapter, proving omission remains unspecified;
-- ignored/re-tracked brownfield marked integration.
+- ignored/re-tracked brownfield marked integration;
+- root VCP AGENTS plus nested/path-specific AGENTS whose local precedence differs, proving no recursive ownership/rewrite.
 
 ### existing CI
 
 - GitHub Actions with unrelated workflow name;
 - several workflows;
 - GitLab/custom CI marker;
-- no CI.
+- no CI;
+- GitHub gate check detected as required / detected-not-required / unverified;
+- merge queue requiring merge_group;
+- explicit single task selector / missing selector / invalid selector / multiple selectors;
+- required gate job configuration that would be skipped by path filters (must be rejected/not generated).
 
 ### ecosystem
 
@@ -5075,7 +5080,12 @@ Add fixtures for:
 - readable managed install requiring recovery/health repair;
 - nested selected project;
 - dirty Git worktree;
-- brownfield-minimal install with intentionally absent greenfield starter docs.
+- brownfield-minimal install with intentionally absent greenfield starter docs;
+- schema-v2 migrated fixture exercised by the actual previous released CLI's update/manage/rollback commands;
+- corrupt/missing active manifest with a compatible validated backup target;
+- valid and stale decisions-only answers records;
+- duplicate-equivalent command definitions across project-owned locations;
+- auto-core applied capability whose current detector evidence disappears.
 
 ---
 
@@ -5116,6 +5126,12 @@ Required failure cases:
 - capability profile with invalid, path-escaping, symlinked, content-leaking, or over-budget detector;
 - symlinked evidence/config;
 - conflicting duplicate verification-command authority;
+- duplicate-equivalent command values incorrectly forcing a HUMAN DECISION or losing provenance;
+- old released lifecycle mutator bypassing the schema-v2 legacy compatibility fence;
+- corrupt active manifest recovery using an incompatible/newer backup/transaction;
+- stale/incompatible answers record replayed without fresh decision validation;
+- auto-core evidence disappearance causing silent capability removal;
+- nested/path-specific instruction surface being silently rewritten/claimed by VCP;
 - unsupported destructive verification proposal;
 - stale verification at old HEAD;
 - L0 with no explicit project trivial-surface policy;
@@ -5141,16 +5157,21 @@ The matrix is complete when release gates prove properties, not merely framework
 - no command invention;
 - selected-root isolation;
 - safe unsupported fallback;
-- lifecycle reader compatibility fails closed;
+- lifecycle reader compatibility fails closed for new readers, while actual previous-release lifecycle mutators are mechanically fenced from schema-v2 state;
+- compatible backup/transaction recovery remains possible even if the active manifest itself is damaged;
 - brownfield explicit adapter intent and VCP-managed adapter provenance are reproducible without claiming observed-compatible project files;
-- capability add/remove/sticky provenance is preserved;
+- capability ADD/removal/sticky provenance is preserved and detector disappearance cannot auto-remove applied state;
 - init plan/apply consistency;
 - update after adoption remains safe;
 - L0 cannot become globally permissive by extension/name heuristics;
 - gate rejects stale/bypassed work and protected post-review task-contract mutation;
 - required ordinary/security review provenance is exact and coherent;
 - late workflow escalation remains historically truthful;
-- rollback/recovery remains valid.
+- rollback/recovery remains valid;
+- preview answers are reused only when the fresh decision contract still matches;
+- nested instruction precedence is visible without recursive VCP ownership;
+- Phase-8 provider mapping is fail-closed for missing/invalid/multiple material task selectors and supports merge-queue/ref requirements;
+- CI evidence is not reported as merge enforcement unless platform required-check state is actually verified.
 
 ---
 
