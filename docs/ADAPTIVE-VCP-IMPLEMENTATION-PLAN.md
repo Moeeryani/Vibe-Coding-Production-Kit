@@ -1072,7 +1072,7 @@ Without this state, Smart Init would be non-destructive on day one and the next 
 
 ## 3.8A Brownfield agent-selector provenance
 
-Current CLI behavior also collapses an important distinction:
+Current CLI behavior collapses an important distinction:
 
 ~~~text
 no --agent supplied
@@ -1091,105 +1091,73 @@ agentPreference:
 
 For EXISTING repositories:
 
-- unspecified → always establish the bounded AGENTS integration, inspect existing vendor instruction files, and compose VCP routing only into supported vendor files that already exist;
-- unspecified → do **not** create absent CLAUDE/Copilot/vendor adapter files merely because VCP supports them;
-- explicit generic → AGENTS integration only; preserve vendor files without adding VCP routing to them unless separately requested;
-- explicit claude/copilot/etc. → ensure the requested supported adapter exists/integrates safely;
-- explicit all → ensure all supported adapters requested by the user, subject to normal collision/section-ownership rules.
+- unspecified → always establish the bounded AGENTS integration, inspect existing supported vendor instruction files, and compose VCP routing only where needed;
+- unspecified → do **not** create absent CLAUDE/Copilot adapter files merely because VCP supports them;
+- explicit generic/codex/cursor → AGENTS integration only; preserve vendor files without adding VCP ownership unless separately requested;
+- explicit claude/copilot → ensure that requested compatibility exists through safe NOOP/COMPOSE/ADD behavior;
+- explicit all → ensure all currently supported adapter compatibilities requested by the user, subject to collision/section rules.
 
-For NEW repositories, the historical default may remain `generic` during the compatibility transition.
+For NEW repositories, historical default generic may remain during the compatibility transition.
 
-Do not collapse three different facts into one "adapter surface":
+Do not collapse three different facts into one adapter list:
 
 ~~~text
-adapter intent
-  → explicit developer request, if any
-  → generic | claude | copilot | ... | all
+requested adapter intent
+  → explicit durable developer preference
 
 managed adapter surface
-  → files/sections VCP actually owns after ADD/COMPOSE
-  → lifecycle state
+  → VCP-owned file/section + why it became managed
 
 observed compatible adapters
-  → existing project-owned files that already route correctly
-  → derived inspection fact only
+  → current derived repository fact
+  → never ownership by itself
 ~~~
-
-Lifecycle state must preserve explicit adapter intent **and** the VCP-managed adapter surface where needed for reproducible updates. Observed compatibility is not ownership and should normally be recomputed rather than persisted as desired content.
 
 Examples:
 
 ~~~text
 existing CLAUDE.md already contains @AGENTS.md
 + agentPreference=unspecified
-→ AGENTS integration is added/composed
-→ CLAUDE.md = NOOP, project-owned
-→ Claude compatibility is observed, not managed
-→ next update does not start owning or rewriting CLAUDE.md
+→ CLAUDE.md = NOOP
+→ project-owned
+→ compatibility observed, not persisted as desired ownership
 
 existing CLAUDE.md lacks AGENTS routing
 + agentPreference=unspecified
-→ compose one marked VCP section into CLAUDE.md
-→ that section becomes managed with provenance "observed-existing" (or equivalent)
+→ COMPOSE one marked VCP section
+→ section becomes managed
+→ managed entry records origin/adoption reason = observed-existing (or equivalent)
 → absent Copilot file is not created
 
-agentPreference=explicit claude
+explicit claude
 + existing compatible project-owned CLAUDE.md
-→ explicit Claude intent is persisted
-→ CLAUDE.md may remain NOOP/project-owned while compatible
-→ if compatibility later disappears, update may propose safe composition because explicit intent remains
+→ persist explicit Claude intent
+→ file may remain NOOP/project-owned while compatible
+→ if compatibility later disappears, update can safely propose/perform the explicit requested integration
 ~~~
 
-For managed adapter sections introduced only because an existing vendor file was observed, later deletion of the whole vendor file must not silently recreate it as though the developer had explicitly requested that adapter. Surface the lifecycle change/conflict or detach it deliberately.
+Lifecycle representation should therefore use:
 
-Exact representation is an implementation choice: explicit requested-adapter metadata plus managed-file/assetSet provenance is sufficient; do not add a second hidden adapter database.
+- explicit requested-adapter intent in install metadata only when durable user intent exists;
+- normal managed-file/section entries for what VCP actually owns;
+- per-managed-adapter provenance sufficient to distinguish explicit-request ownership from observed-existing composition;
+- derived inspection for compatible unowned vendor files.
 
-Do not treat detected agent files as proof of the developer's preferred coding agent; they are safe composition evidence only.
+Schema-v1 migration:
 
-## 3.8A Agent-selection provenance and adapter targets
+- legacy `install.agent=claude|copilot|all` preserves the corresponding historical requested compatibility intent;
+- generic/codex/cursor require no dedicated adapter intent;
+- existing managed CLAUDE/Copilot entries remain managed according to migrated ownership metadata.
 
-Current CLI non-interactive defaults collapse an omitted agent choice into `generic`, while current lifecycle desired-state generation uses one persisted `install.agent` value to decide whether CLAUDE.md / Copilot adapters exist.
+Deletion semantics matter:
 
-That is unsafe for brownfield adoption.
+- an adapter section managed only because an existing vendor file was observed must not cause VCP to silently recreate the whole vendor file after the project deletes it;
+- an explicitly requested adapter may remain a durable desired compatibility condition and can be re-established through normal safe planning;
+- project-owned compatible adapters are never rewritten merely because they were observed.
 
-Separate two concepts:
+All behavior-bearing adapter intent/origin semantics participate in minimumReaderVersion compatibility.
 
-~~~text
-agentPreference
-  unspecified
-  explicit:<generic|codex|cursor|claude|copilot|all>
-
-adapterTargets
-  []
-  [claude]
-  [copilot]
-  [claude, copilot]
-~~~
-
-`agentPreference` is planner input/provenance. `adapterTargets` (or an equivalent persisted normalized set) is lifecycle desired-state identity.
-
-For EXISTING repositories:
-
-- omitted `--agent` remains unspecified through CLI parsing; `-y` must not convert it to explicit generic before inspection;
-- inspect dedicated existing integration surfaces deterministically: CLAUDE.md and .github/copilot-instructions.md;
-- AGENTS.md is the shared/direct instruction surface and does **not** prove whether the human uses Generic, Codex, or Cursor; do not pretend it does;
-- if agent preference is unspecified, preserve/compose the dedicated adapter surfaces that actually exist and persist those adapterTargets;
-- if neither dedicated surface exists, adapterTargets may be empty and the thin AGENTS integration is sufficient for Generic/Codex/Cursor-compatible use;
-- if both exist, persist both targets; do not rely on a lossy single `agent=all` inference as the only lifecycle truth;
-- an explicit agent selection controls which VCP adapter targets may be added, but unrelated pre-existing adapter files are still preserved even when not VCP-managed;
-- explicit `generic`, `codex`, or `cursor` does not authorize deletion/rewrite of an existing Claude/Copilot file; it simply does not add VCP ownership there unless separately selected.
-
-For NEW repositories, historical default `generic` may remain temporarily for CLI compatibility.
-
-Lifecycle compatibility:
-
-- keep legacy `install.agent` as a compatibility/display summary during transition;
-- derive/update adapter desired state from persisted normalized adapterTargets once the field exists;
-- schema-v1 migration derives adapterTargets from the legacy selector (`claude`→[claude], `copilot`→[copilot], `all`→both, other→[]);
-- behavior-bearing adapterTargets requires minimumReaderVersion protection;
-- update/manage/Doctor must use the normalized target set so a brownfield-discovered adapter does not vanish on the next lifecycle operation.
-
-Do not attempt filesystem heuristics for agents that have no dedicated adapter surface in the current product. Unknown/unsupported vendor-specific files are project-owned and preserved.
+Do not infer Codex vs Cursor from AGENTS.md; the current product has no dedicated adapter surface proving that choice.
 
 ## 3.9 Brownfield GitHub-option provenance
 
@@ -1355,7 +1323,7 @@ Smart adoption is complete only when:
 - unchanged repository snapshot produces semantically equivalent planned actions;
 - changed repository state causes fresh re-plan/difference/block rather than stale-plan execution;
 - existing agent/CI/project docs are never silently replaced;
-- omitted brownfield agent choice is not collapsed to explicit generic, and adopted adapter targets survive update/manage;
+- omitted brownfield agent choice is not collapsed to explicit generic; observed compatibility remains distinct from VCP ownership; managed/explicit adapter intent survives lifecycle updates correctly;
 - section-owned content survives subsequent updates while surrounding text is preserved;
 - ignore/track cannot convert a brownfield section-owned integration file into whole-file ownership;
 - verification command authority cannot be made ambiguous by duplicate inserted slots;
