@@ -2335,7 +2335,7 @@ install.requestedStack
 
 Do not make old lifecycle code unreadable in one release.
 
-Add an installed capability snapshot/provenance field.
+Add an installed applied-capability snapshot with per-capability application provenance; current detected evidence stays derived.
 
 Conceptually:
 
@@ -2357,9 +2357,76 @@ The exact schema can differ; do not introduce another generic `capabilityMode=au
 
 - current repository detection;
 - capabilities currently applied to VCP-managed content;
-- user selection/provenance.
+- per-capability application provenance (auto-core / explicit-project / community-adopted or equivalent);
+- user/profile selection provenance.
 
 Doctor must report these separately just as it currently distinguishes detected stack vs installed stack.
+
+---
+
+## 8.5A Applied-capability lifecycle state
+
+A flat `appliedCapabilities: [id...]` example is not sufficient for safe updates because removal/re-detection semantics depend on why the capability was applied.
+
+Persist an applied record/snapshot with provenance, conceptually:
+
+~~~json
+{
+  "id": "framework.react-native",
+  "applicationProvenance": "auto-core",
+  "sourceKind": "core",
+  "detector": "core.react-native.v1"
+}
+~~~
+
+or:
+
+~~~json
+{
+  "id": "language.rust",
+  "applicationProvenance": "community-adopted",
+  "sourceKind": "community-profile:rust-profile",
+  "profileDigest": "sha256:..."
+}
+~~~
+
+Derived current detection and persisted applied state remain separate.
+
+Update transition rules:
+
+~~~text
+auto-core + evidence appears
+→ eligible ADD transition
+
+auto-core + evidence disappears
+→ eligible REMOVE transition
+→ visible in dry-run
+→ desired-content merge/conflict semantics still apply
+
+explicit-project + evidence disappears
+→ keep applied
+→ Doctor mismatch/warn
+→ explicit project change required to remove
+
+community-adopted + profile/evidence becomes invalid unexpectedly
+→ block dependent lifecycle mutation
+→ never silently remove capability-driven behavior
+
+detected community evidence without project adoption
+→ report/propose only
+~~~
+
+Do not use lexical capability priority to resolve incompatible applied states. Emit conflict/decision with the conflicting evidence/provenance.
+
+Legacy migration:
+
+- requestedStack=auto may map stack-derived applied capability provenance to auto-core;
+- explicit requestedStack maps corresponding intent to explicit-project;
+- missing requestedStack provenance remains conservative/unknown and cannot be promoted to auto-core merely to simplify migration.
+
+Every capability add/remove/reconfigure transition must appear in update/status/Doctor JSON and human reports before apply.
+
+Capability transitions that change desired managed content must raise/retain the manifest minimumReaderVersion appropriate to the capability-era semantics.
 
 ---
 
@@ -4408,7 +4475,7 @@ Needs several changes:
 - Stage 12 install assetSet awareness so intentionally absent source-framework assets, greenfield starter docs, and optional hygiene are not misdiagnosed;
 - separation of VCP install health from project-governance coverage;
 - shared verification-command authority resolver;
-- capability reporting;
+- capability reporting including detected/applied/provenance/mismatch/pending-transition state;
 - workflow mode;
 - provider-neutral CI inspection;
 - removal of local framework validator requirement;
