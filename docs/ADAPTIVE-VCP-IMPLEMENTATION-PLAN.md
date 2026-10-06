@@ -2329,7 +2329,35 @@ Risk/escalation flags
 Completion/evidence summary
 ~~~
 
-L1 does not require empty security/observability/rollout sections, but it also does not bypass Source-of-Truth or fresh-review invariants. If a material product/API/data/security/architecture decision is discovered, promote to L2/L3.
+L1 does not require empty security/observability/rollout sections, but it also does not bypass authority or fresh-review invariants.
+
+### L1 governing-authority rule
+
+`Governing reference(s), when applicable` is not permission to omit authority casually.
+
+For L1, use this order:
+
+~~~text
+existing governing repository/workspace document applies
+→ reference it
+
+no separate governing document applies
++ task is a bounded defect/internal-maintenance request
++ intended result is fully captured by explicit task outcome/acceptance
++ no unresolved HUMAN DECISION exists
+→ the durable L1 Task Pack may itself preserve the accepted task-local intent
+
+material product/API/data/security/architecture/compatibility/migration/rollout decision appears
+or expected behavior cannot be established safely
+→ L1 is insufficient
+→ promote to L2/L3 and resolve/reference governing authority
+~~~
+
+Do not create a fake PRD merely to satisfy L1. Do not mark authority 'not applicable' when a real governing document or unresolved human choice exists.
+
+This is consistent with the current Task Pack rule that an approved bounded decision may be recorded in the task itself while material durable policy belongs in governing Source of Truth.
+
+If a material product/API/data/security/architecture decision is discovered, promote to L2/L3.
 
 Do not require empty security/observability/rollout sections merely to prove they were considered.
 
