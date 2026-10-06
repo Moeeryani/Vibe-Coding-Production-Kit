@@ -3328,6 +3328,41 @@ Required behavior:
 - explicit downgrade, if supported, is permitted only before material implementation/review/finalization state and only when deterministic minimum allows it;
 - no promotion path uses task `--force` overwrite.
 
+Promotion timing matters.
+
+### Pre-implementation promotion
+
+Expand the task, recompute readiness, and continue under the stronger level.
+
+### Late promotion after implementation has begun
+
+Do not manufacture historical compliance.
+
+The promotion helper/state should make the escalation visible, for example with bounded task evidence such as:
+
+~~~text
+Workflow escalation:
+  from: L1
+  to: L2
+  discovered: post-implementation | final-diff
+  reason: public contract surface detected
+~~~
+
+Exact syntax may differ.
+
+Required recovery:
+
+1. move the task out of any final state;
+2. expand to the stronger contract;
+3. reconstruct requirements/scope/risks from current repository evidence without claiming that reconstruction predated the code;
+4. resolve newly exposed HUMAN DECISION items;
+5. run stronger readiness on the current task/state;
+6. make corrective implementation changes if needed;
+7. perform fresh stronger-level Git-bound review;
+8. finalize and gate at the stronger level.
+
+The gate may accept a correctly recovered current state, but reports the late escalation when material. It must never emit evidence implying the original implementation had a pre-code L2/L3 plan when it did not.
+
 Parser/state tests must prove legacy no-level Task Packs remain L2 and promotion is idempotent/non-destructive.
 
 ---
