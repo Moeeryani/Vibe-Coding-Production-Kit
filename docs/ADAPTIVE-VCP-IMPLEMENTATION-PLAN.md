@@ -886,7 +886,7 @@ For an adopted existing file:
 - lifecycle update compares only the owned section;
 - malformed, missing, duplicate, nested, or reversed markers fail safely.
 
-When a brownfield repository has no AGENTS.md, Smart Init should still create the **thin brownfield routing/invariant form**, not today's full always-on manual. Greenfield legacy/full-file behavior may remain temporarily until the later consumer/standing-context migration.
+When a brownfield repository has no AGENTS.md, Smart Init should still create the **thin brownfield routing/invariant form**, not today's full always-on manual. Brownfield integration files use the marked section-ownership form even when VCP creates the file from scratch; the file may contain only the managed block initially. This keeps later user-added surrounding text outside VCP ownership and makes detach/re-track ownership recoverable. Greenfield legacy/full-file behavior may remain temporarily until the later consumer/standing-context migration.
 
 ### Ownership is separate from update policy
 
@@ -901,6 +901,22 @@ policy
 ~~~
 
 Do not invent policy=section.
+
+### Manage ignore/track for section-owned integration
+
+Section ownership must remain safe through `vcp manage ignore/track`.
+
+Initial contract:
+
+- `manage ignore <integration-path>` detaches VCP management and removes its baseline/managed entry, but leaves the complete project file and marked VCP block untouched;
+- ignored content becomes project-owned until explicitly tracked again;
+- for brownfield-minimal section-capable integration paths, `manage track` reattaches **section ownership only**;
+- if the file exists, track requires exactly one valid recognized VCP marker pair; malformed/missing/duplicate markers block rather than causing whole-file takeover;
+- if the ignored file was deleted, track may recreate the thin marked integration block and track that section;
+- track uses the current package's desired VCP section as the baseline target while preserving current local section text as a local customization under the declared update policy;
+- legacy-full whole-file installs keep their existing whole-file track semantics until an explicit migration changes their ownership.
+
+Never let an ignored brownfield agent file re-enter lifecycle state as whole-file ownership merely because its previous managed entry was removed.
 
 ### Manifest schema safety
 
@@ -1216,6 +1232,7 @@ Smart adoption is complete only when:
 - changed repository state causes fresh re-plan/difference/block rather than stale-plan execution;
 - existing agent/CI/project docs are never silently replaced;
 - section-owned content survives subsequent updates while surrounding text is preserved;
+- ignore/track cannot convert a brownfield section-owned integration file into whole-file ownership;
 - verification command authority cannot be made ambiguous by duplicate inserted slots;
 - brownfield auto-stack ambiguity is surfaced conservatively;
 - the persisted asset surface prevents the next update from expanding adoption accidentally;
