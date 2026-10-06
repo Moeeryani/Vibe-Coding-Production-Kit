@@ -2268,25 +2268,25 @@ Conceptually:
 }
 ~~~
 
-Use deterministic states, not probabilistic confidence scores, but do not overload one field with both evidence and authority.
+Use deterministic states, not probabilistic confidence scores, and do not overload one field with both evidence and authority.
 
 The internal model must preserve at least:
 
 ~~~text
-evidence/application state:
-  proven
-  configured
-  proposed
-  unknown
+evidenceState:
+  proven | unknown
 
-source kind:
-  core
-  first-party-profile
-  community-profile:<id>
-  project-config
+applicationState:
+  applied | proposed | unapplied
+
+applicationProvenance when applied:
+  auto-core | explicit-project | community-adopted | ...
+
+sourceKind:
+  core | first-party-profile | community-profile:<id> | project-config
 ~~~
 
-A proven capability is not necessarily applied.
+A proven capability is not necessarily applied, and an explicitly applied capability can remain applied while current detector evidence is absent.
 
 Initial automatic composition may use:
 
@@ -2345,9 +2345,18 @@ Conceptually:
     "stack": "typescript",
     "requestedStack": "auto",
     "appliedCapabilities": [
-      "language.typescript",
-      "runtime.node",
-      "package-manager.pnpm"
+      {
+        "id": "language.typescript",
+        "applicationProvenance": "auto-core"
+      },
+      {
+        "id": "runtime.node",
+        "applicationProvenance": "auto-core"
+      },
+      {
+        "id": "package-manager.pnpm",
+        "applicationProvenance": "auto-core"
+      }
     ]
   }
 }
@@ -2366,7 +2375,7 @@ Doctor must report these separately just as it currently distinguishes detected 
 
 ## 8.5A Applied-capability lifecycle state
 
-A flat `appliedCapabilities: [id...]` example is not sufficient for safe updates because removal/re-detection semantics depend on why the capability was applied.
+`appliedCapabilities` must contain provenance-bearing records (or an equivalent map), not bare IDs, because removal/re-detection semantics depend on why each capability was applied.
 
 Persist an applied record/snapshot with provenance, conceptually:
 
