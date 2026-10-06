@@ -188,7 +188,7 @@ AFK does **not** mean easy and HITL does **not** mean hard. The key question is 
 Execution mode and dependency state are separate concepts.
 
 ```text
-mode: AFK | HITL
+executionMode: AFK | HITL
 blockedBy: [...]
 ```
 
