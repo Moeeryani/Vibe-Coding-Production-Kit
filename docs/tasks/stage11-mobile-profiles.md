@@ -46,7 +46,7 @@ The existing Stage 10 React Native-readiness community plugin fixture remains pl
 - [x] AC-007 — mobile signing credentials, certificates, provisioning, keystores, tokens, device identifiers, and store deployment remain sensitive/HUMAN DECISION boundaries.
 - [x] AC-008 — realistic positive, negative, and ambiguous mobile fixtures are defined before implementation.
 - [x] AC-009 — implementation is decomposed into bounded vertical slices with deterministic executable evidence.
-- [ ] AC-010 — Stage 11 preserves immutable `v0.9.3` release identity and does not silently expand #69, #73, or Slice D scope.
+- [x] AC-010 — Stage 11 preserves immutable `v0.9.3` release identity and does not silently expand #69, #73, or Slice D scope.
 
 ## Scope
 
@@ -121,7 +121,7 @@ The existing Stage 10 React Native-readiness community plugin fixture remains pl
 
 ## Approved detailed design
 
-The executable design contract is `docs/MOBILE-PROFILES.md` (`Authority: ACCEPTED`). It defines exact detection markers/precedence, explicit stack choice, verification mapping, lifecycle specialization rules, Doctor inspection semantics, plugin precedence, security boundaries, fixtures, and implementation slices.
+The executable design contract is `docs/MOBILE-PROFILES.md`. It is intentionally `Authority: DRAFT` during review and will become `ACCEPTED` only after the design review is clean. It defines exact detection markers/precedence, explicit stack choice, verification mapping, lifecycle specialization rules, Doctor inspection semantics, plugin precedence, security boundaries, fixtures, and implementation slices.
 
 ## Observability
 
@@ -206,6 +206,8 @@ Implementation verification will be finalized after AC-001 and the detailed desi
 | HUMAN DECISION | blocks implementation, not design | First built-in mobile ecosystem is not yet approved. | Issue #82 proposes React Native-first, generic-framework-only, or multi-ecosystem alternatives. | No product implementation until approved. |
 | RISK | non-blocking design input | #69 Linux/hosted conformance remains open. | Preserve accepted Windows exact-head evidence; prove hosted/Linux separately when environment is available. | Cross-OS execution remains unproven. |
 | RISK | non-blocking design input | #73 concurrent local filesystem replacement remains unresolved. | Do not widen filesystem trust guarantees or claim atomic snapshots. | Concurrent privileged/local mutation remains outside current guarantee. |
+| DEFECT | corrected during design review | The new mobile contract was initially marked `Authority: ACCEPTED` before the design review gate completed, which would let unreviewed design govern implementation. | Keep it `DRAFT` through review; flip to `ACCEPTED` only in the final design-only commit after review evidence is clean. | Implementation remains blocked until accepted authority is merged. |
+| DEFECT | corrected during design review | The first draft mapped absent React Native `build` and E2E scripts directly to `n/a`, silently deciding applicability for a mobile project. | Use `<define or n/a>` when those scripts are absent so the project must explicitly configure or reason them non-applicable. | Repository-configured scripts remain the only executable command evidence. |
 | NO ACTION | deliberate scope boundary | Dependency Graph Engine / Slice D remains deferred. | Do not couple Stage 11 to graph/scheduler implementation. | Revisit only with new dogfood evidence. |
 
 ## Finalization

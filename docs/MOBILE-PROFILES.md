@@ -1,6 +1,6 @@
 # Mobile Profiles
 
-Authority: ACCEPTED
+Authority: DRAFT
 
 Stage 11 defines deterministic first-party mobile profiles. The first built-in profile is **React Native**.
 
@@ -120,8 +120,8 @@ The React Native profile maps only existing `package.json` scripts:
 | `CHECK_COMMAND` | `check` if present, otherwise `n/a` |
 | `UNIT_TEST_COMMAND` | `test:unit`, then `test`; otherwise unresolved `<define>` |
 | `INTEGRATION_TEST_COMMAND` | `test:integration` if present, otherwise `n/a` |
-| `BUILD_COMMAND` | `build` if present, otherwise `n/a` |
-| `E2E_COMMAND` | `test:e2e`, then `e2e`; otherwise `n/a` |
+| `BUILD_COMMAND` | `build` if present, otherwise `<define or n/a>` so applicability remains explicit |
+| `E2E_COMMAND` | `test:e2e`, then `e2e`; otherwise `<define or n/a>` so device/journey coverage is not silently declared irrelevant |
 
 VCP must not synthesize commands such as:
 
