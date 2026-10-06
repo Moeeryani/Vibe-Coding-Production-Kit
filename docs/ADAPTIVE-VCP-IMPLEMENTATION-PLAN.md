@@ -2397,7 +2397,7 @@ Readiness remains one command family but becomes level-aware:
 
 ~~~text
 L1 plan readiness
-→ compact outcome / governing authority when applicable / scope / acceptance / human-decision checks
+→ compact outcome / explicit governing-authority state / scope / acceptance / human-decision checks
 
 L1 implement readiness
 → above + compact implementation approach + approved verification contract
@@ -2410,6 +2410,24 @@ L3
 ~~~
 
 L1 keeps a compact durable implementation approach so VCP preserves plan-before-code and restartability without forcing the full L2 template.
+
+L1 also requires an **explicit authority state** rather than optional omission:
+
+~~~text
+governing references
+→ one or more actual project/workspace Source-of-Truth references
+
+or
+
+explicit no-governing-reference declaration
+→ "none identified for this bounded change" (exact syntax TBD)
+~~~
+
+The parser/readiness engine must distinguish `missing` from explicit `none`. Missing authority state blocks readiness.
+
+An explicit `none` is not deterministic proof that no governing contract exists. It is a durable, reviewable claim. Core protected-surface/risk evidence or fresh review can invalidate it and force reference resolution or promotion to L2/L3.
+
+Do not allow a blank section or absent field to silently mean "not applicable."
 
 `Lightweight review` in L1 means less review surface/ceremony, **not weaker provenance**:
 
@@ -2723,7 +2741,7 @@ vcp gate <task> --run
 
 L1 gate requires the compact durable record and checks:
 
-- applicable governing authority/reference is present;
+- governing-authority state is explicit: valid reference(s), or an allowed explicit no-governing-reference declaration that has not been contradicted by Core risk/protected-surface evidence;
 - outcome/scope/acceptance evidence is complete;
 - unresolved HUMAN DECISION/blockers are absent;
 - required configured verification runs successfully in --run mode;
