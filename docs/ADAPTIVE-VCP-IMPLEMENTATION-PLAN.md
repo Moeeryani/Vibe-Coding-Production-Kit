@@ -802,7 +802,9 @@ Inspection classifies the selected root:
 
 Classification affects planning/UX, not trust. Every path still receives normal confinement/collision checks.
 
-### Stage 12 — Safe Adoption Planning
+These subsections summarize public behavior only. The canonical Stage 12/13 implementation scope, dependency ordering, and exit criteria are defined in the execution-order section later in this document.
+
+### Stage-12 public behavior summary
 
 For EXISTING repositories:
 
@@ -815,7 +817,7 @@ For NEW repositories, the existing greenfield path may remain temporarily while 
 
 For MANAGED repositories, init performs no re-initialization and reports lifecycle/update status.
 
-### Stage 13 — Smart Init Apply
+### Stage-13 mutation behavior summary
 
 Brownfield mutation is added only after Stage 12 proves the planner.
 
