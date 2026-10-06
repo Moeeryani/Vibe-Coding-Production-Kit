@@ -2113,6 +2113,13 @@ L3
 
 L1 keeps a compact durable implementation approach so VCP preserves plan-before-code and restartability without forcing the full L2 template.
 
+`Lightweight review` in L1 means less review surface/ceremony, **not weaker provenance**:
+
+- use the same finding classes/dispositions as the current review model;
+- gate-authoritative L1 review is fresh and bound to an exact Git review surface/head just like L2/L3;
+- persist only the material findings/current disposition and resolved reviewed-head provenance needed for restartability/gate;
+- do not create a separate low-trust "quick review" state that gate accepts.
+
 Context construction becomes level-aware as well: L1 plan/implement contexts stay compact; L2/L3 retain current bounded context behavior plus only relevant L3 dedicated review/security/release evidence.
 
 ## 8.5B Promotion and downgrade semantics
