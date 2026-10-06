@@ -198,7 +198,7 @@ includeGitHub
 requestedStack     added by init after buildManifest
 ~~~
 
-The update apply path spreads existing install metadata when rebuilding the manifest. That is useful: additive install fields such as workflowMode can survive updates if all writers preserve them.
+The update apply path spreads existing install metadata when rebuilding the manifest. That is useful for data preservation, but it is not semantic forward compatibility: a CLI can preserve an unknown field and still be unsafe to mutate state governed by that field. The Adaptive manifest therefore also needs the minimum-reader guard defined in Workstream A.
 
 However, buildManifest itself does not currently own all install fields consistently; requestedStack is added afterward by init.
 
@@ -1262,6 +1262,37 @@ schema v1 entry
 
 Older CLIs then fail closed on schema v2 instead of silently using the wrong baseline semantics.
 
+### Same-schema forward compatibility
+
+Stage 12 schema v2 will not be the last lifecycle feature. Later phases may add behavior-bearing state such as capabilities, workflowMode, or explicit CI/gate integration. A Stage-12 schema-v2 CLI must still fail closed when it encounters semantics introduced by a newer release.
+
+Add a top-level semantic reader guard, conceptually:
+
+~~~json
+{
+  "schemaVersion": 2,
+  "minimumReaderVersion": "X.Y.Z"
+}
+~~~
+
+Manifest loading validates this before lifecycle plan/apply/manage/rollback:
+
+~~~text
+running CLI version < minimumReaderVersion
+→ readable incompatibility report
+→ no lifecycle mutation
+~~~
+
+Rules:
+
+- schema-v1 migration sets the Stage-12 minimum reader version;
+- later behavior-bearing persisted fields raise the guard;
+- writers preserve max(existing guard, version required by semantics being written);
+- rollback restores the previous guard exactly;
+- unknown descriptive fields may be forward-preserved only when they cannot affect desired state, safety, authorization, or lifecycle behavior;
+- spreading unknown install fields is data preservation, not proof the older CLI understands them;
+- structurally incompatible changes still require a schema bump.
+
 Stage 12 may land schema-v2 support and migration primitives; section-owned entries are only persisted when an operation actually needs them.
 
 ---
@@ -2192,7 +2223,7 @@ Audit all manifest writers:
 - manage ignore/track;
 - rollback/backup restore paths.
 
-Current buildNextManifest spreads migrated install metadata, which is favorable.
+Current buildNextManifest spreads migrated install metadata, which is favorable for preservation but insufficient for compatibility. Capability-era writes must also raise minimumReaderVersion to the first CLI version that understands the applied capability semantics.
 
 Current buildManifest should be changed to accept requestedStack/workflowMode/capability state directly so init no longer appends important lifecycle fields ad hoc.
 
@@ -2714,7 +2745,8 @@ For the initial mode implementation, store workflowMode in manifest install meta
 Reasons:
 
 - mode is an operational VCP setting;
-- update apply already preserves unknown install fields through spread;
+- update apply can preserve the field through install-metadata spread;
+- the release that makes workflowMode behavior-bearing must also raise minimumReaderVersion so an older same-schema CLI cannot silently rewrite mode-governed managed instructions;
 - it belongs to the selected project lifecycle;
 - no new user-edited config parser is required immediately.
 
@@ -3863,6 +3895,7 @@ Keep the implementation narrow: one explicitly named VCP section per managed int
 Needs:
 
 - manifest schema v2 support;
+- top-level minimumReaderVersion validation before lifecycle mutation;
 - migration/normalization of v1 managed entries to ownership.kind=file;
 - install assetSet validation/preservation;
 - per-entry ownership validation;
@@ -4545,6 +4578,12 @@ Context and Doctor must share the prompt resolver when fallback ships.
 Current detectStack precedence is a compatibility mechanism, not proof that a mixed established root has one intended stack.
 
 Surface material ambiguity until the capability model exists.
+
+## 20.25 "Schema v2 means every future field is safe"
+
+False. A Stage-12 schema-v2 reader can still be too old to understand later behavior-bearing fields.
+
+Use minimumReaderVersion (or the equivalent final contract) so same-schema older CLIs fail closed before mutation. Preserving unknown JSON is not the same as understanding its semantics.
 
 # 21. Acceptance evidence for the overall redesign
 
