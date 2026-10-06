@@ -18,4 +18,4 @@ Even though the project grants the `verification-proposals` capability, VCP does
 
 The digest covers every text file in the bundle after LF normalization. Editing either `plugin.json` or the guidance file invalidates the declared pin until a human deliberately reviews the change and updates the digest.
 
-This fixture intentionally does not make `--stack auto` detect React Native. Mobile profiles remain a separate roadmap commitment.
+This fixture intentionally does not make `--stack auto` detect React Native because it contains no built-in React Native runtime/application evidence. Stage 11 now provides first-party React Native support separately in `examples/mobile-react-native/`; this directory remains Stage 10 plugin dogfood only.

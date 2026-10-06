@@ -23,14 +23,16 @@ vcp init . --stack react-native
 vcp init . --stack generic
 ```
 
-## React Native — Stage 11 detection/inspection slice
+## React Native
 
-Detection is more specific than the TypeScript/JavaScript fallback and requires **both**:
+React Native is the first built-in Stage 11 mobile profile.
 
-1. valid `package.json` with a non-empty string `dependencies["react-native"]`;
+Detection requires both:
+
+1. valid selected-root `package.json` with a non-empty string `dependencies["react-native"]`;
 2. at least one selected-root application marker: `android/`, `ios/`, `app.json`, or `app.config.{js,cjs,mjs,ts}`.
 
-A peer dependency, dev dependency, transitive lockfile entry, `node_modules`, repository name/README text, an application marker without the runtime dependency, or the runtime dependency without an application marker is not enough.
+Symlinks do not satisfy the React Native application-marker contract. Peer/dev dependency references, lockfile entries, `node_modules`, repository names, README text, or only one side of the evidence conjunction do not activate the profile.
 
 Detection precedence is:
 
@@ -38,7 +40,24 @@ Detection precedence is:
 go -> python -> react-native -> typescript -> javascript -> generic
 ```
 
-This first Stage 11 slice intentionally implements detection and Doctor/lifecycle inspection only. A detected or explicitly selected `react-native` profile preserves the generic `AGENTS.md` content in this slice; it does **not** fall through to another stack and does not synthesize React Native, Expo, Gradle, Xcode, simulator/device, signing, deployment, or publication commands. First-party React Native guidance and repository-script verification mapping are added in later bounded Stage 11 slices.
+The profile reuses the selected-root Node package manager and maps only configured project scripts into VCP verification:
+
+- `format:check` -> `FORMAT_CHECK_COMMAND`;
+- `lint` -> `LINT_COMMAND`;
+- `typecheck` -> `TYPECHECK_COMMAND`;
+- `check` -> `CHECK_COMMAND`;
+- `test:unit`, then `test` -> `UNIT_TEST_COMMAND`;
+- `test:integration` -> `INTEGRATION_TEST_COMMAND`;
+- `build` -> `BUILD_COMMAND`;
+- `test:e2e`, then `e2e` -> `E2E_COMMAND`.
+
+Missing build/E2E decisions remain `<define or n/a>`. A TypeScript React Native project with `tsconfig.json` but no `typecheck` script also remains `<define or n/a>`; VCP never invents `tsc`.
+
+Configuration is not authorization. Scripts whose visible command text clearly indicates signing, publication, deployment, store submission, release upload, external device-farm distribution, or similar sensitive mobile effects are deliberately **not auto-imported** into general verification. Nested script behavior can still hide effects, so project review remains responsible for command semantics before `vcp verify --run`.
+
+The generated React Native profile guidance covers platform parity, native-module boundaries, lifecycle/offline/permissions/deep links, secret/signing material, and the separate HUMAN DECISION boundary for signing/deploy/store/device-farm actions.
+
+Auto-selected managed projects may specialize from `generic`, `javascript`, or `typescript` to `react-native` when the exact current evidence contract becomes true. Explicit selectors and legacy manifests without `requestedStack` are preserved. The transition uses the normal update conflict, backup, rollback, and idempotence contract.
 
 ## JavaScript / Node.js
 

@@ -120,8 +120,8 @@ The React Native profile maps only existing `package.json` scripts:
 | `CHECK_COMMAND` | `check` if present, otherwise `n/a` |
 | `UNIT_TEST_COMMAND` | `test:unit`, then `test`; otherwise unresolved `<define>` |
 | `INTEGRATION_TEST_COMMAND` | `test:integration` if present, otherwise `n/a` |
-| `BUILD_COMMAND` | `build` if present, otherwise `<define or n/a>` so applicability remains explicit |
-| `E2E_COMMAND` | `test:e2e`, then `e2e`; otherwise `<define or n/a>` so device/journey coverage is not silently declared irrelevant |
+| `BUILD_COMMAND` | `build` if present and its visible script text is not classified as a sensitive mobile effect; otherwise `<define or n/a>` so applicability/authorization remains explicit |
+| `E2E_COMMAND` | `test:e2e`, then `e2e` when its visible script text is not classified as a sensitive mobile effect; otherwise `<define or n/a>` so device/journey coverage or authorization is not silently decided |
 
 VCP must not synthesize commands such as:
 
@@ -140,7 +140,7 @@ signing commands
 
 Configuring or discovering a command does **not** authorize its execution. The current `vcp verify --run` runner executes configured Task Pack commands after readiness checks and general `--run` consent; it does not add a separate effect-aware approval gate for signing, publication, deployment, device-farm, credential-bearing, or destructive native actions.
 
-Therefore Stage 11 must keep those sensitive actions **out of general verification commands**. If a project requires one of them, the Task Pack must label it as a separate HUMAN DECISION/manual action and require explicit human authorization at execution time rather than allowing ordinary `vcp verify --run` to invoke it. Repository configuration or plugin proposal state alone is not sufficient authorization.
+Therefore Stage 11 keeps obvious sensitive-effect scripts **out of general verification commands** using a conservative visible-script classifier. This classifier is a guardrail, not a proof of safety: nested scripts may hide effects, so project review remains responsible for command semantics before execution. If a project requires one of them, the Task Pack must label it as a separate HUMAN DECISION/manual action and require explicit human authorization at execution time rather than allowing ordinary `vcp verify --run` to invoke it. Repository configuration or plugin proposal state alone is not sufficient authorization.
 
 ## 6. First-party React Native guidance
 
