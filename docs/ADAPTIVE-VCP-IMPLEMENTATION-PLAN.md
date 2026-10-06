@@ -1932,13 +1932,15 @@ Exact field names may differ.
 Lifecycle rules:
 
 - current detected evidence is recomputed from the selected project root; it is not authoritative merely because an old snapshot said it once existed;
-- `auto-core` applied capabilities may be added or removed when deterministic evidence changes, but every transition is visible in status/update dry-run before mutation;
-- an automatic transition may alter managed guidance/discovery only through the bounded capability composition rules; it still cannot invent verification commands;
+- an `auto-core` capability may become **eligible for automatic ADD** only when its core/first-party detector reaches the deterministic proven state required by that capability contract; the transition is visible in status/update dry-run and still cannot invent verification commands;
+- disappearance of evidence for an already-applied `auto-core` capability is **never an automatic REMOVE**. Report a pending removal/mismatch and require explicit project approval or an explicit VCP capability action before changing applied state;
+- after an approved removal, normal desired-state merge/conflict rules protect local managed-section edits;
+- temporary detector wobble, migrations, or intermediate repository states must not silently delete capability-driven guidance;
 - `explicit-project` capabilities are sticky until explicitly changed; missing detector evidence becomes a Doctor/status mismatch, not silent removal;
 - `community-adopted` capabilities are also sticky project decisions; disappearance/tampering/incompatibility of their required selected profile blocks dependent lifecycle mutation rather than silently dropping behavior;
 - conflicting capability evidence or an application change that crosses a human policy boundary becomes CONFLICT/HUMAN DECISION rather than precedence guessing;
 - detected-but-unapplied community evidence remains proposed/reportable only;
-- removal of auto-applied capability effects goes through normal desired-state merge/conflict semantics so local managed-section edits are not silently destroyed.
+- removal of auto-applied capability effects requires explicit project approval first, then goes through normal desired-state merge/conflict semantics so local managed-section edits are not silently destroyed.
 
 Migration from the legacy stack model must translate historical intent:
 
@@ -2022,7 +2024,7 @@ Repository-owned scripts/configuration remain stronger evidence than profile def
 - unsupported technologies do not cause false configuration;
 - generic fallback still works;
 - existing simple JS/TS/Python/Go behavior remains compatible;
-- Doctor reports detected capability evidence separately from applied/project-approved capability state, application provenance, mismatches, and pending transitions;
+- Doctor reports detected capability evidence separately from applied/project-approved capability state, application provenance, mismatches, pending ADD transitions, and approval-required REMOVE transitions;
 - no capability detector silently broadens the selected project root.
 
 ---
