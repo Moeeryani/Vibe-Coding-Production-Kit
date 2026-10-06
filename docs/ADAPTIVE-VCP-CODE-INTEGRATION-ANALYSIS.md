@@ -1893,6 +1893,64 @@ Do not duplicate conflicting repository rules.
 ---
 
 
+## 5.6A Task Pack Source-of-Truth scaffold must be install-profile aware
+
+`lib/task.mjs` currently hardcodes VCP greenfield starter paths into every generated full Task Pack.
+
+That conflicts with brownfield-minimal adoption, which intentionally preserves project docs and may install none of those paths.
+
+Stage 13 must update task creation before brownfield Smart Init is considered usable.
+
+Implementation direction:
+
+~~~text
+createTaskPack(root)
+  ↓
+read supported manifest/lifecycle state when present
+  ↓
+resolve install.assetSet
+  ↓
+choose Source-of-Truth scaffold
+~~~
+
+### legacy-full / current greenfield
+
+Retain current starter-oriented table for compatibility until the later consumer-template migration.
+
+### brownfield-minimal
+
+Render neutral reference placeholders only:
+
+~~~text
+| Authority / decision | Reference |
+|---|---|
+| Governing requirement | <project-relative path#section or workspace:path#section> |
+| Architecture/domain decision (if applicable) | <path#section> |
+| Security/testing/operational authority (if applicable) | <path#section> |
+~~~
+
+Do not inspect filenames and auto-declare a random README/design/security document authoritative. Discovery may report candidates to the agent, but Task Pack authority is established by explicit accepted references.
+
+Readiness already rejects placeholder/missing/non-authoritative references; preserve that behavior.
+
+Fallback compatibility:
+
+- if no VCP manifest exists, keep current legacy task behavior unless a separately designed unmanaged-task mode is introduced;
+- if manifest is unreadable/too new, fail closed rather than rendering from guessed lifecycle semantics;
+- use the same manifest reader/minimumReaderVersion contract as other lifecycle-aware commands.
+
+Later Phase 7 L1/L2/L3 renderers all call one Source-of-Truth scaffold helper so assetSet logic is not duplicated per workflow level.
+
+Tests:
+
+- brownfield-minimal task contains no canonical absent starter paths;
+- legacy-full task remains backward compatible;
+- brownfield task placeholders fail readiness until replaced by real accepted references;
+- explicit workspace:<path> remains supported;
+- unreadable/newer manifest blocks lifecycle-aware rendering safely.
+
+---
+
 ## 5.7 Parsing verification commands
 
 Today parseAgentVerificationCommands reads command slots directly from the whole AGENTS.md and returns the first matching line per key. Doctor has parallel first-match logic.
@@ -4794,6 +4852,13 @@ Do not add VCP framework-development Core-ROI questions to the generic consumer 
 
 Do not remove durable review/finalization evidence from L2/L3.
 
+
+Stage 13 prerequisite:
+
+- read supported lifecycle/install.assetSet when the project is managed;
+- use one assetSet-aware Source-of-Truth scaffold helper;
+- brownfield-minimal renderer must not hardcode absent VCP starter paths;
+- preserve current legacy/full behavior for compatibility until later migration.
 ---
 
 ## lib/git-review.mjs
@@ -4927,7 +4992,8 @@ Implement the minimum foundations for trustworthy **read-only brownfield init pl
 15. deterministic content-free init action plan;
 16. public `vcp init --dry-run [--json]`;
 17. init-specific destructive force removal;
-18. previous-release → schema-v2 lifecycle/release smoke, including old-reader fail-closed coverage.
+18. assetSet-aware Task Pack Source-of-Truth scaffold design for immediate post-adoption usability;
+19. previous-release → schema-v2 lifecycle/release smoke, including old-reader fail-closed coverage.
 
 The read-only boundary applies specifically to **unmanaged EXISTING repositories through vcp init**.
 
@@ -4990,7 +5056,8 @@ Required details:
 - brownfield install persists brownfield-minimal assetSet, explicit adapter intent, and VCP-managed adapter ownership/provenance;
 - update/manage/Doctor reproduce that adopted surface;
 - repeated init reports MANAGED and does not rewrite;
-- immediate subsequent `vcp update` is safe/idempotent.
+- immediate subsequent `vcp update` is safe/idempotent;
+- immediate `vcp task` on brownfield-minimal renders neutral real-project authority placeholders rather than absent canonical VCP starter paths.
 
 ### Checkpoint A — adoption safety and usability
 
