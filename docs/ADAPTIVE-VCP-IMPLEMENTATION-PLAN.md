@@ -181,6 +181,330 @@ This boundary is implemented correctly when:
 
 ---
 
+
+# 2A. Product experience invariants
+
+These are cross-cutting product constraints. They are not optional polish and they apply to every workstream below.
+
+The redesign succeeds only if VCP becomes **safer internally while feeling simpler externally**.
+
+## 2A.1 Invisible-by-default UX
+
+### Current risk
+
+VCP exposes many useful primitives:
+
+- task creation;
+- readiness;
+- Context Packs;
+- verification;
+- Doctor;
+- lifecycle updates;
+- profiles;
+- future gate behavior.
+
+If normal developers must learn and manually sequence those primitives, VCP becomes a framework they operate rather than infrastructure that helps them.
+
+That would put VCP at a disadvantage against lightweight Skills even if the underlying guarantees are stronger.
+
+### Principle
+
+> **A developer should not need to learn VCP in order to benefit from VCP.**
+
+In Auto mode, the normal developer experience should be:
+
+~~~text
+vcp init .
+
+then:
+
+"Build feature X."
+~~~
+
+The agent/Skill layer should invoke VCP Core operations internally.
+
+Commands such as:
+
+~~~text
+vcp task
+vcp ready
+vcp context
+vcp verify
+vcp gate
+~~~
+
+remain important for:
+
+- agents;
+- advanced users;
+- debugging;
+- CI;
+- Manual mode;
+- explicit inspection.
+
+They should not be required knowledge for normal Auto-mode product work.
+
+### Required behavior
+
+- Auto mode routes meaningful work through VCP without requiring command memorization.
+- Human-facing responses emphasize decisions, evidence, blockers, and outcomes rather than internal VCP mechanics.
+- Internal VCP state remains inspectable for users who want it.
+- Error states explain what is blocked and why without forcing users to understand lifecycle internals first.
+
+### What to avoid
+
+Do not make VCP usage resemble:
+
+~~~text
+learn VCP
+→ understand Task Packs
+→ understand Context Packs
+→ understand readiness
+→ understand Doctor
+→ understand profiles
+→ then start building
+~~~
+
+The safe path should also be the easiest path.
+
+### Definition of done
+
+- a new Auto-mode user can complete a representative L2 feature without manually sequencing VCP CLI commands;
+- the same workflow remains inspectable through CLI/JSON for advanced users and CI;
+- onboarding documentation can explain the normal experience before explaining internals;
+- usability testing shows users can benefit from VCP without first understanding its internal vocabulary.
+
+---
+
+## 2A.2 Human-attention budget
+
+### Current risk
+
+Structured frameworks can save implementation mistakes while still becoming expensive in human interruptions.
+
+VCP already distinguishes:
+
+~~~text
+DISCOVERABLE
+PROPOSABLE
+HUMAN DECISION
+~~~
+
+That distinction should become a product contract, not merely prompt advice.
+
+### Principle
+
+> **Human attention is a constrained resource. VCP should interrupt the developer only when the answer materially requires human intent, policy, risk acceptance, or another non-discoverable decision.**
+
+### Required behavior
+
+For every uncertainty:
+
+~~~text
+DISCOVERABLE
+→ inspect repository / durable project state
+→ resolve without interrupting the developer
+
+PROPOSABLE
+→ propose a bounded default/recommendation where policy allows
+→ explain relevant tradeoff
+→ do not silently convert proposal into approval
+
+HUMAN DECISION
+→ ask the developer
+~~~
+
+Questions should be grouped by decision boundary instead of drip-fed one at a time.
+
+Do not ask the developer to manually provide information already available in:
+
+- repository files;
+- package/build configuration;
+- Source of Truth;
+- accepted Task Packs;
+- existing VCP state;
+- Git/CI evidence.
+
+### Human-decision examples
+
+Human input is appropriate for:
+
+- intended product behavior;
+- risk acceptance;
+- destructive migration policy;
+- security posture;
+- compatibility policy;
+- architecture direction when multiple valid choices remain;
+- data ownership;
+- rollout decisions with business impact.
+
+### Measurement
+
+Dogfood/release validation should track, where practical:
+
+- number of human interruptions per representative workflow;
+- number of questions later found to have been discoverable;
+- repeated questions that should have become project truth or deterministic discovery;
+- developer overrides of agent proposals.
+
+### Definition of done
+
+- prompt/Skill evaluation contains explicit checks that discoverable questions are not asked;
+- human decisions are grouped where possible;
+- Auto mode does not request confirmation for deterministic actions already authorized by project policy;
+- repeated unnecessary questions are treated as system defects and drive Context/Source-of-Truth improvements.
+
+---
+
+## 2A.3 Progressive disclosure and context discipline
+
+### Current risk
+
+Installing more profiles, Skills, prompts, architecture guidance, or project documentation can make every agent turn larger and less focused if VCP loads information merely because it exists.
+
+That increases token cost and can reduce model performance.
+
+### Principle
+
+> **Nothing should be loaded merely because it exists. Load information because the current workflow requires it.**
+
+### Required loading model
+
+~~~text
+minimal always-on project integration
+        ↓
+workflow-level guidance
+        ↓
+task-specific Context Pack
+        ↓
+risk/profile-specific material
+        ↓
+deeper references only when demanded by the task
+~~~
+
+Workflow levels should influence context:
+
+~~~text
+L0
+→ minimal relevant project rules
+
+L2
+→ normal task + Source of Truth + architecture + affected files
+
+L3
+→ L2 plus relevant security / migration / recovery / high-risk guidance
+~~~
+
+Skills should follow the same principle:
+
+- small discoverable metadata;
+- load the Skill only when relevant;
+- load deep references only when needed;
+- do not duplicate all VCP policy in every Skill.
+
+### Definition of done
+
+- Context Pack manifests prove why each included source is present;
+- irrelevant security/profile/framework guidance is absent from low-risk contexts;
+- installed but unused Skills/profiles do not automatically inflate every context;
+- token/context budgets remain bounded and testable;
+- prompt/package fallback does not become an excuse to inject all packaged references.
+
+---
+
+## 2A.4 Validation checkpoints between implementation phases
+
+### Current risk
+
+A long roadmap can become self-justifying: Phase N gets built because Phase N exists, even if dogfood shows the earlier design is too heavy or modern coding agents already solve the problem adequately.
+
+### Principle
+
+> **Do not continue the roadmap merely because the next phase is planned. Each major layer must prove value before deeper machinery is added.**
+
+Each checkpoint can result in:
+
+~~~text
+GO
+→ evidence supports continuing
+
+SIMPLIFY
+→ reduce/alter the design before continuing
+
+STOP / DEFER
+→ do not build the next machinery yet
+~~~
+
+Required checkpoints are defined in the sequencing section below.
+
+### Definition of done
+
+- each checkpoint has explicit evidence requirements;
+- a failed checkpoint can change or halt later phases without being treated as schedule failure;
+- dogfood results are recorded durably rather than left in chat;
+- roadmap decisions cite observed friction/benefit, not only architectural preference.
+
+---
+
+## 2A.5 Complexity ROI rule
+
+### Current risk
+
+VCP already contains substantial deterministic machinery.
+
+That machinery is justified only when it provides stronger guarantees or removes more user complexity than it adds.
+
+### Principle
+
+> **A VCP Core feature must justify its deterministic complexity. If the agent, a Skill, or an existing project tool can solve the problem reliably enough, Core should not own it.**
+
+Before adding a meaningful new Core command/module/state field, answer:
+
+~~~text
+What failure does this prevent?
+
+How often and how severely does that failure matter?
+
+Can a modern coding agent already solve it reliably?
+
+Can a Skill solve it?
+
+Can existing project tooling solve it?
+
+Why does this require deterministic VCP machinery?
+
+What complexity does it add:
+- files?
+- CLI?
+- persistent state?
+- lifecycle migrations?
+- context?
+- maintenance?
+- human attention?
+
+What complexity does it remove from the user?
+~~~
+
+Decision rule:
+
+~~~text
+deterministic value clearly exceeds framework tax
+→ Core candidate
+
+primarily conversational/orchestration value
+→ Skill
+
+already solved adequately elsewhere
+→ integrate / document / do not build
+~~~
+
+### Definition of done
+
+- significant Core Task Packs include an explicit Core-justification section;
+- code review can reject Core expansion whose deterministic value is unclear;
+- features that become unnecessary as models improve can move out of Core;
+- VCP's user-facing complexity does not grow automatically with internal capability count.
+
 # 3. Workstream A — Smart `vcp init` for new, existing, and managed repositories
 
 ## 3.1 Current situation
@@ -1484,7 +1808,8 @@ actionable remediation
 
 ---
 
-# 12. Workstream J — Reduce framework tax
+
+# 12. Workstream J — Reduce framework tax and enforce Complexity ROI
 
 ## 12.1 Current concern
 
@@ -1503,22 +1828,50 @@ VCP has accumulated sophisticated machinery:
 - plugins;
 - release checks.
 
-This is justified only if the machinery gives users stronger guarantees than a good portable Skill.
+This is justified only if the machinery gives users stronger guarantees than a good portable Skill, modern coding agent, or existing project tooling.
 
-## 12.2 Action
+## 12.2 Required Core-justification record
 
-Audit existing features using the Core-vs-Skill decision test.
+For any substantial new VCP Core feature, its Task Pack/design must include:
 
-For every feature, record:
+~~~text
+## Why this belongs in VCP Core
 
-- what user problem it solves;
-- whether deterministic enforcement is required;
-- whether the same value could be delivered more simply through a Skill;
-- runtime/lifecycle complexity it introduces;
-- whether real dogfood has demonstrated the need.
+Failure prevented:
+...
 
-Do not delete proven core capabilities merely to become “simpler.”  
-Do stop adding deterministic infrastructure for problems that are primarily conversational.
+Observed frequency / severity:
+...
+
+Why the coding agent alone is insufficient:
+...
+
+Why a Skill alone is insufficient:
+...
+
+Why existing project tooling is insufficient:
+...
+
+Deterministic requirement:
+...
+
+New persistent state:
+...
+
+Migration/lifecycle burden:
+...
+
+User-visible complexity added:
+...
+
+User-visible complexity removed:
+...
+
+Evidence we will collect after dogfood:
+...
+~~~
+
+This is not required for tiny refactors that do not expand product behavior.
 
 ## 12.3 Candidate responsibilities to move toward Skills
 
@@ -1528,7 +1881,8 @@ Likely Skill-owned over time:
 - explanation-heavy planning UX;
 - PR description generation;
 - retro conversation;
-- implementation narration.
+- implementation narration;
+- routing/explanation around VCP commands.
 
 Likely VCP-owned:
 
@@ -1539,21 +1893,34 @@ Likely VCP-owned:
 - lifecycle;
 - path safety;
 - merge/update behavior;
-- architecture/security gates.
+- architecture/security gates;
+- current-revision enforcement.
 
-## 12.4 Definition of done
+## 12.4 Removal/deprecation is allowed
 
-- architecture docs describe the boundary clearly;
-- no duplicated “second VCP” lives inside Skills;
-- new feature reviews explicitly state why the feature belongs in Core or Skill;
-- install surface becomes smaller, not larger, as UX moves to Skills.
+Framework tax is not one-way.
 
----
+If future models make a Core behavior reliably unnecessary, VCP should be willing to:
+
+- stop managing it;
+- migrate it into Skills;
+- integrate with existing ecosystem tooling;
+- deprecate commands/state that no longer earn their cost.
+
+Backward-compatible migration still applies.
+
+## 12.5 Definition of done
+
+- architecture docs describe the Core-vs-Skill boundary clearly;
+- no duplicated "second VCP" lives inside Skills;
+- new Core expansions include Complexity ROI justification;
+- install/context/user surfaces become smaller or remain bounded as VCP grows internally;
+- validation checkpoints can defer or remove planned Core features when evidence does not support them.
 
 
-# 13. Sequencing
+# 13. Sequencing and validation checkpoints
 
-The code-level dependency review changed the safest order. Do not implement the workstreams only in the conceptual order above.
+The code-level dependency review determines the safest implementation order. The product-experience invariants above determine whether VCP is allowed to continue to the next layer.
 
 ## Phase 0 — enabling refactors
 
@@ -1574,8 +1941,6 @@ The code-level dependency review changed the safest order. Do not implement the 
 6. managed-project init redirect/status;
 7. prove a subsequent update preserves user-owned text.
 
-**Exit criterion:** an established repository can be initialized and then upgraded without destructive replacement.
-
 ## Phase 2 — consumer asset separation
 
 1. packaged canonical prompt fallback;
@@ -1586,7 +1951,26 @@ The code-level dependency review changed the safest order. Do not implement the 
 6. explicit lifecycle removals/detaches;
 7. preserve customized legacy prompts as overrides.
 
-**Exit criterion:** consumer projects contain only project-relevant VCP assets while context/Doctor/update/release smoke remain valid.
+### Validation Checkpoint A — Is adoption actually easier?
+
+Run the new adoption flow against a deliberately varied set of real or representative repositories.
+
+Collect at least:
+
+- files added/changed/removed;
+- collisions/conflicts;
+- existing instruction/CI preservation;
+- developer questions asked;
+- questions later classified as discoverable;
+- manual remediation required;
+- repository noise added;
+- steps from install to first productive feature.
+
+**GO:** adoption is safe and materially simpler than the current experience.
+
+**SIMPLIFY:** users need to understand too much VCP, too many files are added, or avoidable questions remain.
+
+**STOP/DEFER:** do not proceed into broader adaptation machinery while first-use trust is poor.
 
 ## Phase 3 — CI safety/detection only
 
@@ -1594,9 +1978,7 @@ The code-level dependency review changed the safest order. Do not implement the 
 2. split CI from GitHub issue/PR hygiene;
 3. provider-neutral CI inspection;
 4. Doctor reporting;
-5. migrate old managed `validate.yml`.
-
-**Exit criterion:** VCP preserves existing CI and installs no inappropriate npm workflow.
+5. migrate old managed \`validate.yml\`.
 
 ## Phase 4 — capability foundation
 
@@ -1608,7 +1990,23 @@ The code-level dependency review changed the safest order. Do not implement the 
 6. Doctor/update/manage integration;
 7. polyglot regression fixtures.
 
-**Exit criterion:** multiple proven capabilities coexist without breaking simple legacy stack behavior.
+### Validation Checkpoint B — Is adaptation accurate and low-friction?
+
+Measure:
+
+- correct capability detections;
+- false positive detections;
+- unresolved unknowns;
+- commands proposed vs commands actually accepted;
+- human corrections required;
+- unsupported-project fallback quality;
+- context size changes caused by adaptation.
+
+**GO:** VCP improves project understanding without pretending certainty or increasing setup burden materially.
+
+**SIMPLIFY:** reduce detectors/profiles/context if false positives or context inflation are significant.
+
+**STOP/DEFER:** do not add broader profile machinery if the capability foundation itself is not trustworthy.
 
 ## Phase 5 — declarative profiles
 
@@ -1619,18 +2017,14 @@ The code-level dependency review changed the safest order. Do not implement the 
 5. explicit community grants;
 6. reconcile React Native Stage 11 with capabilities.
 
-**Exit criterion:** new ecosystems extend VCP without executable plugin code.
-
 ## Phase 6 — workflow mode
 
-1. persist `workflowMode`;
-2. add `--workflow-mode`;
+1. persist \`workflowMode\`;
+2. add \`--workflow-mode\`;
 3. add post-install mode change;
 4. mode-aware VCP sections/adapters;
 5. Doctor visibility;
 6. behavior/prompt-eval regressions.
-
-**Exit criterion:** Auto/Manual changes routing without rewriting project-owned instructions.
 
 ## Phase 7 — mechanical gate and first workflow levels
 
@@ -1642,15 +2036,33 @@ The code-level dependency review changed the safest order. Do not implement the 
 6. existing L2 gate;
 7. L3 high-risk additions.
 
-**Exit criterion:** agent narration alone cannot make material work green.
+### Validation Checkpoint C — Does Auto/gate help more than it interrupts?
+
+Dogfood representative L0/L2/L3 changes.
+
+Measure:
+
+- workflow-level routing accuracy;
+- false high-risk classification;
+- unsafe false-trivial classification;
+- human interruptions per task;
+- redundant/discoverable questions;
+- gate false positives;
+- real defects/stale evidence/bypasses caught;
+- manual overrides/bypasses attempted;
+- average context size by level.
+
+**GO:** users receive stronger guarantees with low ceremony and low false-positive friction.
+
+**SIMPLIFY:** relax classification/gate requirements that do not prevent meaningful failures.
+
+**STOP/DEFER:** do not wire mandatory CI enforcement if the local gate is noisy or frequently bypassed.
 
 ## Phase 8 — CI gate integration
 
 1. optional thin provider-specific VCP gate workflow;
 2. detection of existing equivalent integration;
 3. keep project verification authority in VCP/task state.
-
-**Exit criterion:** CI is an enforcement surface, not a duplicated command/policy system.
 
 ## Phase 9 — Skills UX
 
@@ -1659,9 +2071,27 @@ Skills may prototype earlier, but release against stable Core contracts.
 1. package canonical Skills;
 2. route to deterministic VCP commands;
 3. reuse prompt-eval observable behavior;
-4. keep Skills thin and replaceable.
+4. keep Skills thin and replaceable;
+5. enforce progressive disclosure in Skill/reference loading.
 
-**Exit criterion:** Manual users do not need CLI memorization and Auto users reuse the same workflow logic.
+### Validation Checkpoint D — Is VCP complexity actually hidden?
+
+Test Auto and Manual workflows with users who have not studied VCP internals.
+
+Measure:
+
+- CLI commands users needed to know;
+- VCP-specific vocabulary required before productive work;
+- manual recovery frequency;
+- questions asked;
+- time/steps to complete representative work;
+- whether users can explain blockers from the human-facing response without reading framework docs.
+
+**GO:** the normal experience feels like "build X" / explicit "/vcp X", while Core remains inspectable underneath.
+
+**SIMPLIFY:** reduce exposed terminology/commands and move explanation into Skills.
+
+**STOP/DEFER:** do not add more public Core surface merely to expose internal sophistication.
 
 ## Phase 10 — conformance/release hardening
 
@@ -1669,9 +2099,10 @@ Skills may prototype earlier, but release against stable Core contracts.
 2. negative/golden failure cases;
 3. migration/update/rollback fixtures;
 4. package/release surface checks;
-5. documentation claim audit.
+5. documentation claim audit;
+6. preserve checkpoint metrics as release/dogfood evidence where practical.
 
-**Exit criterion:** public claims match tested adoption and lifecycle behavior.
+**Exit criterion:** public claims match tested adoption, lifecycle behavior, and usability evidence.
 
 # 14. Non-goals
 
@@ -1745,6 +2176,25 @@ An agent cannot obtain a green material-work gate merely by narrating that tests
 Skills provide excellent cross-agent UX without becoming the repository's durable source of truth.
 
 ---
+
+
+### Low-friction usability
+
+The redesign is not successful merely because every VCP command is correct.
+
+Representative workflows must also prove:
+
+- Auto users can work without memorizing VCP CLI;
+- human interruptions are limited to real decisions;
+- relevant context is loaded progressively rather than globally;
+- trivial changes stay trivial;
+- high-risk changes receive stronger controls;
+- the safe path requires less manual engineering discipline from the developer, not more VCP bookkeeping;
+- users can inspect the deterministic machinery when they need to without operating it continuously.
+
+The product-level test is:
+
+> **Does VCP make the safe engineering path easier than doing it without VCP?**
 
 # 16. Final architecture target
 
