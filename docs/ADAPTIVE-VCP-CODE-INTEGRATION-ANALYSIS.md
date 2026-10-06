@@ -4373,6 +4373,31 @@ Current restore semantics do not remove a manifest/baselines that did not exist 
 
 Initial-adoption rollback must restore **absence** as well as content.
 
+
+## 20.21 "Do not persist the brownfield asset surface"
+
+If Smart Init skips legacy framework assets but lifecycle state does not remember that choice, the next update will try to add them.
+
+Persist install-surface identity; do not fake it with ignoredFiles.
+
+## 20.22 "Insert VCP verification slots even when AGENTS already has them"
+
+This can create duplicate/conflicting first-match command authority.
+
+Inspect all occurrences and block ambiguity before composition.
+
+## 20.23 "Package prompt fallback can wait until Doctor cleanup"
+
+A brownfield project using valid packaged prompts would immediately receive a misleading Doctor warning.
+
+Context and Doctor must share the prompt resolver when fallback ships.
+
+## 20.24 "Single-stack precedence is enough evidence for brownfield project intent"
+
+Current detectStack precedence is a compatibility mechanism, not proof that a mixed established root has one intended stack.
+
+Surface material ambiguity until the capability model exists.
+
 # 21. Acceptance evidence for the overall redesign
 
 The adaptive redesign should not be considered complete because all new unit tests are green.
@@ -4516,7 +4541,9 @@ An L0 documentation correction and an L3 authentication change are run in the sa
 Result:
 
 - L0 context excludes unrelated security/profile/deep reference material;
-- L3 loads only the additional security/recovery material relevant to the change;
+- L3 plan/implement context remains bounded and does not silently inherit security profiles;
+- the authentication change receives a separate security-mode Context Pack/review when active profiles are relevant;
+- only relevant recovery/high-risk material enters the appropriate workflow surface;
 - Context Pack manifests make the inclusion difference inspectable.
 
 ---
