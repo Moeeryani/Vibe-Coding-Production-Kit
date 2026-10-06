@@ -2369,7 +2369,7 @@ The Adaptive VCP plan is the umbrella roadmap. The numbered implementation stage
 
 Stage 11 React Native implementation is already merged on PR #85 and present on current main.
 
-The canonical Stage 11 Task Pack is marked Done, but its required post-finalization exact-head rerun remains unchecked. This audit found no durable record proving that rerun before merge.
+The canonical Stage 11 Task Pack was marked Done at merge, but its required post-finalization exact-head rerun remained unchecked. This consistency audit corrected the Task Pack to Review and found no durable record proving that rerun before merge.
 
 Do not invent historical evidence.
 
