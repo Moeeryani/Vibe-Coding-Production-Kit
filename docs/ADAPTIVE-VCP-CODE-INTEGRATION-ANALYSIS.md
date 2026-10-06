@@ -5513,16 +5513,17 @@ Do not continue if capability detection creates false certainty, command inventi
 6. re-express already-merged React Native through capability/profile provenance;
 7. extend the Phase-2 validation/transport separation to v2 detector/capability contributions.
 
-## Phase 6 — Workflow mode + minimal router UX
+## Phase 6 — Workflow mode + minimal packaged router UX
 
 1. persist workflowMode;
 2. explicit --workflow-mode and post-install change;
 3. mode-aware thin standing sections/adapters;
-4. one thin primary router Skill shared by Auto/Manual;
-5. Doctor visibility;
-6. prompt-eval changes only where new observable behavior requires them.
+4. package one primary `vcp` router Skill shared by Auto/Manual;
+5. add its package.json/release-policy/source-validation inclusion;
+6. Doctor visibility;
+7. prompt-eval coverage only where new observable routing behavior requires it.
 
-The router is best-effort UX. It is not deterministic enforcement.
+This router is the real minimum installed UX surface, not a disposable prototype. It remains best-effort UX and is not deterministic enforcement.
 
 ## Phase 7 — Workflow levels + gate
 
@@ -5552,13 +5553,14 @@ Do not repurpose workflowMode, invent project environment setup, guess task owne
 
 ## Phase 9 — Skill UX expansion
 
-After the router/Core contracts stabilize:
+After the Phase-6 router plus workflow-level/gate Core contracts stabilize:
 
-1. discovery/grill;
-2. review/retro;
+1. discovery/grill specialized Skill/reference surface;
+2. review/retro specialized Skill/reference surface;
 3. progressive references;
-4. cross-agent packaging;
-5. behavior-eval coverage.
+4. broader cross-agent installer/package conformance;
+5. behavior-eval coverage;
+6. keep the Phase-6 primary router as the default UX entry rather than creating parallel top-level workflows.
 
 ### Checkpoint D — invisible UX
 
