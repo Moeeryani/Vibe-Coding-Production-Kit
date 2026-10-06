@@ -116,7 +116,7 @@ The React Native profile maps only existing `package.json` scripts:
 | `INSTALL_COMMAND` | existing npm/pnpm/Yarn/Bun lock/package evidence using the existing Node install rules |
 | `FORMAT_CHECK_COMMAND` | `format:check` if present, otherwise `n/a` |
 | `LINT_COMMAND` | `lint` if present; if only `check` exists, lint remains `n/a` |
-| `TYPECHECK_COMMAND` | `typecheck` if present, otherwise `n/a` |
+| `TYPECHECK_COMMAND` | `typecheck` if present; otherwise `<define or n/a>` when `tsconfig.json` exists, else `n/a` |
 | `CHECK_COMMAND` | `check` if present, otherwise `n/a` |
 | `UNIT_TEST_COMMAND` | `test:unit`, then `test`; otherwise unresolved `<define>` |
 | `INTEGRATION_TEST_COMMAND` | `test:integration` if present, otherwise `n/a` |
