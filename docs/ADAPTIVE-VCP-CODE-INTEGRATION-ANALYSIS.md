@@ -4159,7 +4159,12 @@ Do not build a second Skill-specific model grader.
 
 Add a package-owned Skills area rather than copying Skills into each consumer repo by default.
 
-Conceptually:
+Staging is explicit:
+
+- Phase 6 packages only the primary `vcp` router plus the minimum release/eval support needed to test real Auto/Manual UX;
+- Phase 9 expands that package-owned area with specialized discovery/review/retro Skills or references after Core contracts stabilize.
+
+Conceptually, the eventual surface may be:
 
 ~~~text
 skills/
