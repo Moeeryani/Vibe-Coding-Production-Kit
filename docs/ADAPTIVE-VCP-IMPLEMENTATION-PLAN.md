@@ -1181,6 +1181,19 @@ and adoption of a command matching destructive patterns (shell-pipe,
 recursive delete, fetch-and-execute) requires an explicit HUMAN DECISION at
 adoption time even when unique. The boundary is enforced in the CLI resolver,
 never in prompt prose.
+
+Approval is bound to the **exact normalized command value**, not merely to the
+command key or source file. Persist a stable fingerprint/digest plus command key
+and source provenance for every approval-required command. If the effective
+command later changes, disappears, moves to a conflicting authority source, or
+its normalized fingerprint no longer matches, the prior approval becomes stale
+and the resolver must return HUMAN DECISION / blocked state before any future
+Task Pack/gate can execute it.
+
+Safe non-destructive commands do not need permanent approval records merely
+because they are project-owned, but their effective value/provenance is still
+snapshotted into the Task Pack so verification executes the reviewed command,
+not a later first-match re-read from AGENTS.md.
 ~~~
 
 Task creation and Doctor must resolve commands through the same authority helper so they cannot disagree.
@@ -1373,6 +1386,15 @@ githubPreference:
   exclude
 ~~~
 
+The public CLI must be able to express all three states. Keep `--no-github` for explicit exclusion and add an explicit positive flag such as `--github` (final spelling may be `--include-github`, but one positive form is required). Parser defaults alone cannot represent "explicit include" once omission becomes `unspecified`.
+
+Compatibility:
+
+- no flag → unspecified for EXISTING; historical/default behavior may still resolve later for NEW;
+- `--github` → explicit include;
+- `--no-github` → explicit exclude;
+- passing both → CLI error before repository mutation.
+
 For EXISTING repositories:
 
 - unspecified → preserve/skip optional GitHub hygiene;
@@ -1466,6 +1488,15 @@ By default it should:
 Because packaged prompt fallback becomes a valid source, Doctor's plan/review availability check must use the same resolver in Stage 12/13. A correctly adopted project must not immediately warn that valid packaged prompts are "missing."
 
 Doctor must also understand the stored install surface well enough not to call intentionally absent assets a broken install.
+
+The init/apply success message and onboarding handoff must be asset-set-aware as well. Current `printInitResult()` tells every project to "draft Source of Truth", which is appropriate for the legacy greenfield flow but can contradict brownfield-minimal preservation. Required messaging:
+
+- greenfield-safe may invite the agent to draft/fill the installed starter truth;
+- brownfield-minimal must tell the agent to inspect existing project authority, preserve it, and link the real accepted references in Task Packs rather than creating canonical starter docs automatically;
+- MANAGED/status paths must never print first-install setup instructions;
+- human and JSON result surfaces expose repository class, assetSet, next required action, blockers/decisions, and whether mutation actually occurred.
+
+Invisible UX cannot instruct the agent to undo the adoption policy VCP just applied.
 
 For `brownfield-minimal`, Doctor must separate:
 
@@ -1580,7 +1611,7 @@ this recovery with semantics it cannot understand.
 Smart adoption is complete only when:
 
 - destructive init --force is gone while unrelated force controls remain;
-- raw init preferences remain explicit/unspecified through read-only inspection; NEW/EXISTING/MANAGED classification occurs before interactive/default resolution;
+- raw init preferences remain explicit/unspecified through read-only inspection; NEW/EXISTING/MANAGED classification occurs before interactive/default resolution; explicit GitHub include/exclude is representable from the public CLI;
 - NEW / EXISTING / MANAGED classification is deterministic only after VCP-state readability checks;
 - malformed/newer/minimum-reader-incompatible manifests and unknown reserved .vcp state fail safely without being reclassified as ordinary EXISTING;
 - recognized-but-unhealthy MANAGED lifecycle state blocks re-init and reports recovery/health status;
@@ -1592,11 +1623,11 @@ Smart adoption is complete only when:
 - omitted brownfield agent choice is not collapsed to explicit generic; observed compatibility remains distinct from VCP ownership; managed/explicit adapter intent survives lifecycle updates correctly;
 - section-owned content survives subsequent updates while surrounding text is preserved;
 - ignore/track cannot convert a brownfield section-owned integration file into whole-file ownership;
-- verification command authority cannot be made ambiguous by duplicate inserted slots;
+- verification command authority cannot be made ambiguous by duplicate inserted slots; approval-required commands are bound to exact command fingerprints and stale on change;
 - brownfield auto-stack ambiguity is surfaced conservatively;
 - the persisted asset surface, including actual adapter selection, prevents the next update from expanding adoption accidentally;
 - packaged prompt fallback, Context, and Doctor agree without widening project authority;
-- brownfield standing instructions and generated Task Packs never require/fabricate starter paths absent from the adopted assetSet;
+- brownfield standing instructions, init success messaging, and generated Task Packs never require/fabricate starter paths absent from the adopted assetSet;
 - schema migration makes legacy entries explicit whole-file ownership;
 - schema-v2 migration establishes a real old-CLI mutation fence, and previous-release update/manage/rollback fail before mutation;
 - lock bootstrap leaves no stray VCP state when Stage 13 blocks before backup;
