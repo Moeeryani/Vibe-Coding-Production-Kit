@@ -4938,6 +4938,49 @@ No magic score.
 
 # 15. Workstream E2 dependency — CI should call gate, not recreate it
 
+## 15.1 Initial PR/task selection contract
+
+Core gate accepts an explicit task slug; it does not discover PR ownership.
+
+Initial CI/provider integration uses:
+
+~~~text
+material PR with explicit provider-mapped task slug
+→ vcp gate <task> --run
+
+no task slug
+→ vcp gate --level l0 --base <base> --head <head>
+→ pass if truly L0
+→ otherwise block: material change requires one task slug
+
+more than one task slug
+→ block in first release
+→ split PR or use one bounded primary task covering the PR
+~~~
+
+Provider mapping is outside Core semantics.
+
+For the first GitHub integration, a strict PR-body trailer such as
+`VCP-Task: <slug>` is a reasonable provider contract; exact spelling belongs in
+Phase-8 CLI/docs. Other providers can supply an explicit CI input/environment value.
+
+Generated/integration requirements:
+
+- checkout exposes complete required history/base/head; do not guess missing refs;
+- use one stable unique check/job name suitable for required-status configuration;
+- do not path-filter the required VCP gate job such that it may silently skip;
+- support `pull_request`; add `merge_group` when the repository uses GitHub merge
+  queues;
+- material missing/invalid/multiple task selection is a configuration/block result,
+  not an inferred task;
+- Core never scans PR prose or branch names to guess task ownership.
+
+This resolves the Phase-8 cardinality/selection dependency without adding a task
+database or provider-specific logic to Core.
+
+---
+
+
 Once gate exists, generated CI becomes thin.
 
 Preferred first implementation:
@@ -6402,7 +6445,9 @@ sequencing decisions; this appendix registers the technical amendments.
 - Brownfield first-task readiness cliff → acknowledged; L1 `task-local` gaming
   risk noted — the protected-surface detector calibration is shared with L0 and
   must be reviewed as one unit in Phase 7.
-- Manual+required task-PR cardinality → Phase-8 entry criterion (plan §7).
+- Manual+required task/PR mapping → resolved first-release contract: one primary
+  Task Pack per material PR; absent selector may pass only if deterministic L0 gate
+  succeeds; provider adapter supplies explicit task slug (plan §7 / technical §15.1).
 
 ## Z.3 Conscious deferrals (not oversights)
 
