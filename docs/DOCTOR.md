@@ -67,7 +67,7 @@ For example, a legacy project may have an installed `generic` profile while curr
 - missing `install.requestedStack` on a legacy generic install → historical intent is unknown, so re-profiling is intentionally withheld rather than inferred;
 - already-concrete installed profiles are not automatically re-profiled by this generic-to-concrete rule.
 
-Stage 11 adds a separate **React Native specialization inspection**. In the detection/inspection slice, Doctor may report an auto-selected `generic`, `javascript`, or `typescript` installation as specialization-eligible when current evidence resolves to `react-native`. That field is informational only in this slice: React Native lifecycle application is deferred for all prior profiles, including `generic`; Doctor uses `reprofileState: deferred-specialization` instead of exposing the old generic update path as executable for React Native.
+Stage 11 adds a separate **React Native specialization inspection**. Doctor reports auto-selected `generic`, `javascript`, or `typescript` installations as specialization-eligible when current evidence resolves to `react-native`. The same transition is exposed through `vcp update --check`; apply remains transactional, conflict-aware, backup/rollback protected, and idempotent. Explicit selectors and legacy unknown provenance remain withheld.
 
 Human-readable Doctor output therefore labels the detected stack, installed profile, requested selector, and re-profile state separately.
 

@@ -481,7 +481,7 @@ Stage 10 adds a deliberately narrow declarative extension model:
 - invalid/tampered/incompatible/ungranted/symlinked bundles fail rather than silently weakening core behavior;
 - no npm/network plugin discovery, marketplace, remote signature system, Source-of-Truth override, or core-policy override is introduced.
 
-A React Native-readiness fixture dogfoods the plugin model only. It does **not** implement native mobile detection or make the separate Mobile profiles commitment complete.
+A React Native-readiness fixture dogfoods the Stage 10 plugin model only and does not itself confer built-in mobile authority. Stage 11 implements first-party React Native support separately in `examples/mobile-react-native/`.
 
 ### Stage 11 — Mobile Profiles
 
@@ -489,7 +489,7 @@ A React Native-readiness fixture dogfoods the plugin model only. It does **not**
 
 Stage 11 is the next bounded product stage after the published `v0.9.3` baseline. The React Native-first implementation now spans all five accepted slices on PR #85; completion still requires one full exact-head Windows gate, fresh review, Task Pack finalization, and the required unchanged-head rerun before merge.
 
-The stage must define:
+The implemented Stage 11 contract covers:
 
 - deterministic mobile project/profile detection and ambiguity behavior;
 - first-party generated mobile guidance;
