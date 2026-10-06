@@ -1,6 +1,6 @@
 # Task — Design Stage 11 deterministic Mobile Profiles
 
-Status: In progress
+Status: Review
 Slug: `stage11-mobile-profiles`
 
 ## Outcome
@@ -15,6 +15,7 @@ VCP has an approved, bounded design for deterministic first-party mobile profile
 | Stage 11 design issue | https://github.com/Moeeryani/Vibe-Coding-Production-Kit/issues/82 |
 | Roadmap re-baseline issue | https://github.com/Moeeryani/Vibe-Coding-Production-Kit/issues/81 |
 | Released baseline | `v0.9.3` / `dc3c6a6572e1b86994de5a46cfb8fc815ed45378` |
+| Mobile profile contract | `docs/MOBILE-PROFILES.md` |
 | Community plugin contract | `docs/COMMUNITY-PLUGINS.md` |
 | Update/lifecycle contract | `docs/UPDATES.md` |
 
@@ -37,14 +38,14 @@ The existing Stage 10 React Native-readiness community plugin fixture remains pl
 ## Acceptance criteria
 
 - [x] AC-001 — first built-in ecosystem boundary is explicitly approved.
-- [ ] AC-002 — deterministic mobile detection evidence, precedence, ambiguity, and negative markers are documented.
-- [ ] AC-003 — built-in mobile profile authority is explicitly separated from Stage 10 community plugin guidance.
-- [ ] AC-004 — verification discovery uses concrete repository/tool evidence and never invents simulator/device/signing/deploy commands.
-- [ ] AC-005 — nested-project/monorepo behavior preserves Stage 5 project/workspace authority and sibling isolation.
-- [ ] AC-006 — lifecycle/re-profile/update semantics preserve explicit stack/profile choices, migration continuity, backup/rollback safety, and idempotence.
-- [ ] AC-007 — mobile signing credentials, certificates, provisioning, keystores, tokens, device identifiers, and store deployment remain sensitive/HUMAN DECISION boundaries.
-- [ ] AC-008 — realistic positive, negative, and ambiguous mobile fixtures are defined before implementation.
-- [ ] AC-009 — implementation is decomposed into bounded vertical slices with deterministic executable evidence.
+- [x] AC-002 — deterministic mobile detection evidence, precedence, ambiguity, and negative markers are documented.
+- [x] AC-003 — built-in mobile profile authority is explicitly separated from Stage 10 community plugin guidance.
+- [x] AC-004 — verification discovery uses concrete repository/tool evidence and never invents simulator/device/signing/deploy commands.
+- [x] AC-005 — nested-project/monorepo behavior preserves Stage 5 project/workspace authority and sibling isolation.
+- [x] AC-006 — lifecycle/re-profile/update semantics preserve explicit stack/profile choices, migration continuity, backup/rollback safety, and idempotence.
+- [x] AC-007 — mobile signing credentials, certificates, provisioning, keystores, tokens, device identifiers, and store deployment remain sensitive/HUMAN DECISION boundaries.
+- [x] AC-008 — realistic positive, negative, and ambiguous mobile fixtures are defined before implementation.
+- [x] AC-009 — implementation is decomposed into bounded vertical slices with deterministic executable evidence.
 - [ ] AC-010 — Stage 11 preserves immutable `v0.9.3` release identity and does not silently expand #69, #73, or Slice D scope.
 
 ## Scope
@@ -118,9 +119,13 @@ The existing Stage 10 React Native-readiness community plugin fixture remains pl
 - lifecycle update discovering a new mobile profile but explicit prior choice forbids re-profile;
 - package/fixture drift between source and published surface.
 
+## Approved detailed design
+
+The executable design contract is `docs/MOBILE-PROFILES.md` (`Authority: ACCEPTED`). It defines exact detection markers/precedence, explicit stack choice, verification mapping, lifecycle specialization rules, Doctor inspection semantics, plugin precedence, security boundaries, fixtures, and implementation slices.
+
 ## Observability
 
-Design must define human/JSON inspection that explains:
+Human/JSON inspection must explain:
 
 - detected evidence;
 - selected built-in profile;
@@ -206,7 +211,7 @@ Implementation verification will be finalized after AC-001 and the detailed desi
 ## Finalization
 
 - [x] First built-in ecosystem HUMAN DECISION approved — React Native first.
-- [ ] Design acceptance criteria complete.
+- [x] Design acceptance criteria complete.
 - [ ] Fresh design review complete.
-- [ ] Implementation Task Pack/readiness approved.
+- [ ] Implementation Task Pack/readiness approved — created only after this design PR merges.
 - [ ] Product-code implementation started only after the above gates.
