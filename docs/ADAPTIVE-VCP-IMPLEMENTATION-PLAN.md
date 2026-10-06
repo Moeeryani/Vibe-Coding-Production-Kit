@@ -556,7 +556,17 @@ and, where useful, why that class applies.
 
 ### Skills
 
-Skills should follow the same principle:
+Skills should follow the same principle, but VCP must not assume every agent runtime loads Skills the same way.
+
+Current ecosystems differ:
+
+- some runtimes expose only Skill metadata initially and load the full Skill when selected;
+- some custom-agent/session configurations can eagerly preload selected Skills;
+- subagent inheritance/loading rules also vary by platform.
+
+Therefore progressive disclosure must be **inside VCP's packaging design**, not a correctness assumption about the host.
+
+Skills should follow these rules:
 
 - short discovery metadata;
 - minimal router body;
@@ -3044,7 +3054,7 @@ The two artifacts have different ownership and lifecycle:
 ~~~text
 Skill
 → reusable procedure / interaction capability
-→ loaded when relevant
+→ may be discovered/lazy-loaded **or eagerly preloaded**, depending on the agent runtime
 → portable UX/instructions/scripts/resources
 → may invoke VCP Core
 
