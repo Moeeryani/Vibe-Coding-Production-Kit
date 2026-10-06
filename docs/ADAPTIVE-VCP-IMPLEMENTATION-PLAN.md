@@ -838,6 +838,39 @@ A Stage 12 preview is speculative evidence, not an executable saved plan.
 
 If the repository changes after preview, the Stage 13 plan is allowed—and required—to differ or block.
 
+## 3.3A Inspect before prompting or applying defaults
+
+Current CLI flow resolves interactive/default init options before `initProject()` sees the repository.
+
+Smart Init must invert that order.
+
+Use a two-phase request model:
+
+~~~text
+phase 1 — parse raw request
+  target path
+  explicit --agent / --stack / GitHub preference
+  --yes / --dry-run / --json
+  whether each preference was actually supplied
+        ↓
+read-only repository + VCP-state inspection
+        ↓
+phase 2 — resolve only the choices that remain
+~~~
+
+Rules:
+
+- MANAGED or VCP_STATE_CONFLICT/recovery state returns the appropriate lifecycle result **before** asking greenfield/adoption questions;
+- NEW may keep historical defaults temporarily (generic agent, auto stack, legacy GitHub preference) where compatibility requires it;
+- EXISTING uses repository evidence/conservative brownfield defaults first and asks only real unresolved choices;
+- omitted agent/GitHub options stay unspecified until this phase;
+- mixed-stack ambiguity is surfaced rather than silently resolved by precedence;
+- `--yes` means non-interactive acceptance of safe documented defaults, not permission to fabricate missing human intent;
+- `--dry-run --json` is non-interactive: unresolved choices appear in the machine-readable plan as decisions/blockers rather than causing prompts;
+- human interactive dry-run may ask a focused real choice when needed, but the plan remains read-only.
+
+This sequencing is required for the existing VCP principle: **discover before asking**.
+
 ## 3.4 Remove destructive --force from init only
 
 The shared CLI currently uses --force for other explicit output-overwrite cases.
@@ -1349,6 +1382,7 @@ This same rule later applies to L1/L3 renderers: workflow level changes ceremony
 Smart adoption is complete only when:
 
 - destructive init --force is gone while unrelated force controls remain;
+- raw init preferences remain explicit/unspecified through read-only inspection; NEW/EXISTING/MANAGED classification occurs before interactive/default resolution;
 - NEW / EXISTING / MANAGED classification is deterministic only after VCP-state readability checks;
 - malformed/newer/minimum-reader-incompatible manifests and unknown reserved .vcp state fail safely without being reclassified as ordinary EXISTING;
 - recognized-but-unhealthy MANAGED lifecycle state blocks re-init and reports recovery/health status;
