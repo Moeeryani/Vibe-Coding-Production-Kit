@@ -13,6 +13,7 @@ const requiredFiles = [
   'docs/ARCHITECTURE-FITNESS.md',
   'docs/RELEASE-AUTOMATION.md',
   'docs/COMMUNITY-PLUGINS.md',
+  'docs/MOBILE-PROFILES.md',
   'docs/DOCTOR.md',
   'docs/STACK-PROFILES.md',
   'docs/SECURITY-PROFILES.md',
@@ -71,6 +72,20 @@ const providerPluginRequiredFiles = [
   'examples/community-profile-react-native/docs/plugins/PLUGINS.json',
   'examples/community-profile-react-native/community-plugins/react-native-readiness/plugin.json',
   'examples/community-profile-react-native/community-plugins/react-native-readiness/guidance/mobile-boundaries.md'
+];
+
+const providerMobileRequiredFiles = [
+  'examples/mobile-react-native/README.md',
+  'examples/mobile-react-native/package.json',
+  'examples/mobile-react-native/app.json',
+  'examples/mobile-react-native/tsconfig.json',
+  'examples/mobile-react-native/src/app.js',
+  'examples/mobile-react-native/scripts/format-check.mjs',
+  'examples/mobile-react-native/scripts/typecheck.mjs',
+  'examples/mobile-react-native/scripts/build.mjs',
+  'examples/mobile-react-native/test/unit.test.mjs',
+  'examples/mobile-react-native/test/integration.test.mjs',
+  'examples/mobile-react-native/test/e2e.test.mjs'
 ];
 
 const excludedDirs = new Set(['.git', 'node_modules', '.vcp']);
@@ -152,11 +167,13 @@ let failed = false;
 const providerRuntimePresent = await existsNonEmpty('lib/prompt-eval.mjs');
 const providerReleasePresent = await existsNonEmpty('lib/release-check.mjs');
 const providerPluginPresent = await existsNonEmpty('lib/community-plugins.mjs');
+const providerMobilePresent = await existsNonEmpty('docs/MOBILE-PROFILES.md');
 const effectiveRequiredFiles = [
   ...requiredFiles,
   ...(providerRuntimePresent ? providerRuntimeRequiredFiles : []),
   ...(providerReleasePresent ? providerReleaseRequiredFiles : []),
-  ...(providerPluginPresent ? providerPluginRequiredFiles : [])
+  ...(providerPluginPresent ? providerPluginRequiredFiles : []),
+  ...(providerMobilePresent ? providerMobileRequiredFiles : [])
 ];
 
 for (const relative of effectiveRequiredFiles) {

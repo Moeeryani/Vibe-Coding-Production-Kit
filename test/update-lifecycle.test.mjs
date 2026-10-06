@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -137,6 +137,128 @@ test('legacy generic install with unknown stack provenance stays generic', async
   assert.equal(plan.stack, 'generic');
   assert.equal(plan.stackProfileChange, null);
   assert.equal(plan.migratedManifest.install.requestedStack, undefined);
+});
+
+
+async function addReactNativeEvidence(root, {
+  scripts = { test: 'node --test', build: 'node scripts/build.mjs' },
+  typeScript = false
+} = {}) {
+  await writeFile(path.join(root, 'package.json'), `${JSON.stringify({
+    name: 'lifecycle-react-native',
+    dependencies: { 'react-native': '0.76.0' },
+    scripts
+  }, null, 2)}\n`, 'utf8');
+  await writeFile(path.join(root, 'app.json'), '{}\n', 'utf8');
+  if (typeScript) await writeFile(path.join(root, 'tsconfig.json'), '{}\n', 'utf8');
+}
+
+test('auto-selected generic specializes transactionally to React Native and is idempotent', async () => {
+  const root = await tempDir();
+  await initProject({ targetDir: root, agent: 'generic', stack: 'auto', includeGitHub: false });
+  await addReactNativeEvidence(root);
+
+  const check = await checkForUpdate({ targetDir: root, fetchLatest: false });
+  assert.equal(check.updateAvailable, true);
+  assert.deepEqual(
+    { from: check.stackProfileChange.from, to: check.stackProfileChange.to },
+    { from: 'generic', to: 'react-native' }
+  );
+
+  const plan = await planUpdate({ targetDir: root });
+  assert.equal(plan.stack, 'react-native');
+  assert.equal(plan.stackProfileChange.from, 'generic');
+  assert.equal(plan.stackProfileChange.to, 'react-native');
+  assert.equal(plan.conflicts, 0);
+
+  const applied = await applyUpdate({ targetDir: root });
+  assert.equal(applied.applied, true);
+  assert.ok(applied.backupId);
+  const updated = await manifest(root);
+  assert.equal(updated.install.stack, 'react-native');
+  assert.equal(updated.install.requestedStack, 'auto');
+  assert.match(await readFile(path.join(root, 'AGENTS.md'), 'utf8'), /## 16\. React Native stack profile/);
+
+  const after = await planUpdate({ targetDir: root });
+  assert.equal(after.stackProfileChange, null);
+  assert.equal(after.upToDate, true);
+
+  const rolledBack = await rollbackProject({ targetDir: root, backupId: applied.backupId });
+  assert.equal(rolledBack.restoredVersion, updated.installedVersion);
+  assert.equal((await manifest(root)).install.stack, 'generic');
+  assert.doesNotMatch(await readFile(path.join(root, 'AGENTS.md'), 'utf8'), /## 16\. React Native stack profile/);
+});
+
+test('auto-selected JavaScript and TypeScript specialize to React Native while retaining auto provenance', async () => {
+  for (const prior of ['javascript', 'typescript']) {
+    const root = await tempDir();
+    await writeFile(path.join(root, 'package.json'), `${JSON.stringify({ name: `prior-${prior}` }, null, 2)}\n`, 'utf8');
+    if (prior === 'typescript') await writeFile(path.join(root, 'tsconfig.json'), '{}\n', 'utf8');
+    await initProject({ targetDir: root, agent: 'generic', stack: 'auto', includeGitHub: false });
+    assert.equal((await manifest(root)).install.stack, prior);
+
+    await mkdir(path.join(root, 'scripts'), { recursive: true });
+    await writeFile(path.join(root, 'scripts', 'build.mjs'), 'process.exit(0);\n', 'utf8');
+    await addReactNativeEvidence(root, { typeScript: prior === 'typescript' });
+
+    const plan = await planUpdate({ targetDir: root });
+    assert.equal(plan.stackProfileChange.from, prior);
+    assert.equal(plan.stackProfileChange.to, 'react-native');
+    assert.equal(plan.conflicts, 0);
+
+    const applied = await applyUpdate({ targetDir: root });
+    assert.equal(applied.applied, true);
+    const updated = await manifest(root);
+    assert.equal(updated.install.stack, 'react-native');
+    assert.equal(updated.install.requestedStack, 'auto');
+    assert.match(await readFile(path.join(root, 'AGENTS.md'), 'utf8'), /## 16\. React Native stack profile/);
+
+    const again = await planUpdate({ targetDir: root });
+    assert.equal(again.stackProfileChange, null);
+    assert.equal(again.upToDate, true);
+  }
+});
+
+test('explicit and legacy-unknown concrete selections do not specialize to React Native', async () => {
+  const explicit = await tempDir();
+  await writeFile(path.join(explicit, 'package.json'), `${JSON.stringify({ name: 'explicit-js' }, null, 2)}\n`, 'utf8');
+  await initProject({ targetDir: explicit, agent: 'generic', stack: 'javascript', includeGitHub: false });
+  await addReactNativeEvidence(explicit);
+  assert.equal((await planUpdate({ targetDir: explicit })).stackProfileChange, null);
+  assert.equal((await checkForUpdate({ targetDir: explicit, fetchLatest: false })).updateAvailable, false);
+
+  const legacy = await tempDir();
+  await writeFile(path.join(legacy, 'package.json'), `${JSON.stringify({ name: 'legacy-ts' }, null, 2)}\n`, 'utf8');
+  await writeFile(path.join(legacy, 'tsconfig.json'), '{}\n', 'utf8');
+  await initProject({ targetDir: legacy, agent: 'generic', stack: 'typescript', includeGitHub: false });
+  const old = await manifest(legacy);
+  delete old.install.requestedStack;
+  await writeManifest(legacy, old);
+  await addReactNativeEvidence(legacy, { typeScript: true });
+  assert.equal((await planUpdate({ targetDir: legacy })).stackProfileChange, null);
+});
+
+test('React Native specialization respects local AGENTS verification decisions and blocks on conflict', async () => {
+  const root = await tempDir();
+  await writeFile(path.join(root, 'package.json'), `${JSON.stringify({ name: 'conflict-js' }, null, 2)}\n`, 'utf8');
+  await initProject({ targetDir: root, agent: 'generic', stack: 'auto', includeGitHub: false });
+
+  const agentsPath = path.join(root, 'AGENTS.md');
+  const before = await readFile(agentsPath, 'utf8');
+  const customized = before.replace('UNIT_TEST_COMMAND=<define>', 'UNIT_TEST_COMMAND=node custom-mobile-tests.mjs');
+  await writeFile(agentsPath, customized, 'utf8');
+
+  await addReactNativeEvidence(root, { scripts: { test: 'node --test' } });
+  const plan = await planUpdate({ targetDir: root });
+  assert.equal(plan.stackProfileChange.to, 'react-native');
+  const agentsAction = plan.actions.find((item) => item.path === 'AGENTS.md');
+  assert.equal(agentsAction.type, 'CONFLICT');
+
+  const applied = await applyUpdate({ targetDir: root });
+  assert.equal(applied.blocked, true);
+  assert.equal(applied.applied, false);
+  assert.equal((await manifest(root)).install.stack, 'javascript');
+  assert.equal(await readFile(agentsPath, 'utf8'), customized);
 });
 
 test('local AGENTS edits are preserved on same-version planning', async () => {

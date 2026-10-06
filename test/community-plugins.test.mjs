@@ -19,6 +19,7 @@ import { initProject } from '../lib/init.mjs';
 import { planUpdate } from '../lib/update-plan.mjs';
 import { readManifest } from '../lib/state.mjs';
 import { createTaskPack } from '../lib/task.mjs';
+import { detectStack } from '../lib/stacks.mjs';
 
 const repoRoot = path.resolve('.');
 const exampleRoot = path.join(repoRoot, 'examples', 'community-profile-react-native');
@@ -94,6 +95,7 @@ test('reference community profile fixture is pinned, deterministic, and inspecti
   assert.deepEqual(report.plugins[0].grants, ['guidance', 'verification-proposals']);
   assert.equal(report.plugins[0].verificationProposals[0].status, 'proposal-not-applied');
   assert.equal(report.trust.proposalsApplied, false);
+  assert.equal(await detectStack(exampleRoot), 'javascript');
 });
 
 test('bundle presence alone never grants plugin authority and nested projects do not inherit parent selection', async () => {
@@ -153,6 +155,58 @@ test('context composes selected guidance and labels verification commands as pro
   assert.match(result.content, /```text\nE2E_COMMAND=npm run test:e2e\n```/);
   assert.match(result.content, /Rationale \(untrusted plugin text\)/);
   assert.equal(afterAgents.includes('npm run test:e2e'), false);
+});
+
+
+test('built-in React Native profile and Stage 10 community plugin remain separate additive authorities', async () => {
+  const target = await tempDir();
+  await copyBundle(target);
+  await writeSelection(target);
+  await writeJson(path.join(target, 'package.json'), {
+    name: 'built-in-plus-plugin',
+    private: true,
+    dependencies: { 'react-native': '0.76.0' },
+    scripts: {
+      test: 'node --test',
+      'test:e2e': 'node --test'
+    }
+  });
+  await writeFile(path.join(target, 'app.json'), '{}\n', 'utf8');
+
+  const initialized = await initProject({
+    targetDir: target,
+    agent: 'generic',
+    stack: 'auto',
+    includeGitHub: false
+  });
+  assert.equal(initialized.stack, 'react-native');
+
+  const agentsBefore = await readFile(path.join(target, 'AGENTS.md'), 'utf8');
+  assert.match(agentsBefore, /## 16\. React Native stack profile/);
+  assert.doesNotMatch(agentsBefore, /COMMUNITY-PROFILE-GUIDANCE/);
+
+  await createTaskPack({ targetDir: target, slug: 'mobile-plugin-coexistence', title: 'Mobile plugin coexistence' });
+  const context = await createContextPack({
+    targetDir: target,
+    task: 'mobile-plugin-coexistence',
+    mode: 'plan'
+  });
+
+  assert.deepEqual(context.communityPlugins, ['community.react-native-readiness']);
+  assert.match(context.content, /## 16\. React Native stack profile/);
+  assert.match(context.content, /## Selected community plugins/);
+  assert.match(context.content, /Community verification proposals — NOT APPLIED/);
+  assert.match(context.content, /E2E_COMMAND=npm run test:e2e/);
+
+  const agentsAfter = await readFile(path.join(target, 'AGENTS.md'), 'utf8');
+  assert.equal(agentsAfter, agentsBefore);
+  const manifest = await readManifest(target);
+  assert.equal(manifest.install.stack, 'react-native');
+
+  const plan = await planUpdate({ targetDir: target });
+  assert.equal(plan.stackProfileChange, null);
+  assert.equal(plan.upToDate, true);
+  assert.ok(await readFile(path.join(target, ...COMMUNITY_PLUGIN_CONFIG.split('/')), 'utf8'));
 });
 
 test('guidance is mode-bounded while plugin identity and proposals remain visible', async () => {
