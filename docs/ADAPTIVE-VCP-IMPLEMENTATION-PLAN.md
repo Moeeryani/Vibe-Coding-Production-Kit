@@ -1411,6 +1411,8 @@ Prompt trust/path rules:
 - packaged fallback is resolved only from VCP's fixed canonical mode-prompt allowlist, not from an arbitrary user-supplied `vcp:` path;
 - packaged prompt content is **execution guidance**, not project Source of Truth, and cannot satisfy a Task Pack Source-of-Truth reference;
 - packaged prompt bytes still count against the Context Pack budget and their `vcp:` identity remains inspectable;
+- the resolver exposes prompt provenance (`project-override` vs `packaged`) and packaged fallback reports the VCP package/CLI version that supplied it;
+- the rendered Context Pack remains self-contained by embedding the actual prompt bytes, so version metadata supplements rather than replaces the content;
 - package fallback does not widen project/workspace filesystem authority.
 
 This should follow the same general pattern already used by packaged security-profile fallback.
