@@ -2500,31 +2500,54 @@ Project validation is represented by accepted verification commands plus Doctor/
 
 This is a hard dependency.
 
-Current release-check lifecycle smoke runs the copied framework validator inside the temporary consumer.
+Current `runLifecycleSmoke()` proves previous-release init → candidate preview/apply → Doctor → copied `validate-framework.mjs` → idempotence. It does **not** currently exercise rollback or an older reader against upgraded state.
 
-Once that asset is no longer installed, lifecycle smoke must validate the consumer using public consumer contracts instead.
-
-Recommended replacement:
+Once Adaptive manifest/schema behavior lands, lifecycle smoke must validate the consumer through public lifecycle contracts:
 
 ~~~text
 previous CLI init temporary consumer
+      ↓
+snapshot/hash previous manifest + baselines + relevant managed bytes
       ↓
 candidate update --dry-run
       ↓
 candidate update apply
       ↓
-vcp doctor --json
+candidate doctor --json
       ↓
-vcp update --dry-run / idempotence check
+candidate update --dry-run  (idempotent)
       ↓
-inspect expected consumer asset surface
+inspect schemaVersion / minimumReaderVersion / assetSet / ownership surface
+      ↓
+run previous CLI against upgraded project
+      ↓
+expect explicit incompatibility + non-zero
+      ↓
+prove no filesystem/lifecycle mutation from the failed old-reader attempt
+      ↓
+candidate rollback --backup <apply backup>
+      ↓
+compare restored v1 manifest/baselines/relevant project bytes with pre-update snapshot
+      ↓
+previous CLI can read/doctor the restored project
+      ↓
+candidate preview/apply succeeds again
 ~~~
 
-If a canonical consumer verification/gate fixture is available, it may also run that.
+Implementation consequences:
 
-Do not call the source repository's framework validator from the consumer.
+- extend release lifecycle evidence with rollback/reader-compatibility fields rather than treating `validateLifecycleEvidence()`'s current four inputs as sufficient;
+- do not execute the consumer's copied `scripts/validate-framework.mjs` after that asset leaves the consumer surface;
+- use the candidate CLI to perform rollback, because the old CLI is intentionally not allowed to understand the upgraded manifest;
+- verify old-reader failure itself is read-only by snapshot comparison, not merely by exit code;
+- verify rollback restores the prior schema/version and baseline semantics, not just visible project files;
+- after rollback, old-reader success proves the prior lifecycle really became readable again.
 
-The source package itself still runs npm run validate and package/release checks separately.
+Stage-12 also needs an independent public-CLI fixture that constructs a **supported schema v2 with a future `minimumReaderVersion`** and proves the current candidate fails closed. The previous v0.9 CLI only proves the schema-version boundary because it cannot read schema v2 at all.
+
+If a canonical consumer verification/gate fixture is available later, it may also run that. Gate does not replace migration/rollback proof.
+
+The VCP source package still runs npm validation/package/release checks separately.
 
 ---
 
@@ -5196,9 +5219,16 @@ Avoid:
 
 ## lib/release-check.mjs
 
-Must change when consumer framework assets are removed.
+Must change for Adaptive lifecycle migration, not only asset removal.
 
-Replace copied consumer validator execution with consumer-facing VCP checks.
+Replace copied consumer-validator execution with consumer-facing lifecycle checks and add:
+
+- pre-update lifecycle snapshot/hash;
+- old-reader fail-closed + no-mutation smoke;
+- candidate rollback of the applied migration;
+- exact prior schema/baseline restoration checks;
+- old-reader readability after rollback;
+- candidate re-apply/idempotence proof.
 
 Later include conformance of new Skills/package surfaces as release policy requires.
 
