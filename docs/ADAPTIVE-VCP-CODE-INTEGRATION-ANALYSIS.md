@@ -1080,7 +1080,7 @@ Inputs include:
 
 - selected root;
 - repository inspection result;
-- agent selector;
+- agent request provenance plus resolved actual adapter surface;
 - current stack selector/result;
 - adoption-surface policy.
 
@@ -1444,6 +1444,46 @@ Required propagation:
 Do not abuse ignoredFiles for this. Ignored paths represent project-owner lifecycle choices, not which VCP product surface was installed.
 
 Phase 2 may deliberately migrate both legacy install profiles onto a later classified catalog version, but it must preserve greenfield/brownfield asset-selection semantics instead of converging them to one identical installed file set.
+
+---
+
+## 4.10A Agent request provenance
+
+Current CLI parsing keeps `agent=null` initially, but `promptForOptions()` and especially `--yes` convert omission to `generic` before init sees repository maturity.
+
+That is acceptable for historical greenfield behavior and unsafe as brownfield intent provenance.
+
+Stage 12 CLI/planner input must preserve:
+
+~~~text
+agentPreference = unspecified
+or
+agentPreference = explicit(<supported selector>)
+~~~
+
+Brownfield planning rules:
+
+~~~text
+unspecified
+→ AGENTS integration required
+→ detect existing supported vendor instruction files
+→ compose only those existing adapter surfaces
+→ do not create absent vendor adapter files
+
+explicit generic
+→ AGENTS only
+
+explicit vendor/all
+→ ensure explicitly requested adapter surface
+~~~
+
+Existing vendor files that are not selected remain project-owned/preserved.
+
+Persist the actual adapter surface as part of reproducible desired state. Do not rely only on `install.agent` when one selector cannot faithfully encode a brownfield combination. Options include an explicit `install.adapters` list or adapter entries inside the classified `assetSet`.
+
+Desired-file construction, update, manage, Doctor, rollback, and migration must consume the persisted actual surface so a later update never materializes adapters that Smart Init intentionally skipped.
+
+Public CLI tests must include `--yes` on an established repo with existing CLAUDE.md/Copilot instructions and no `--agent`, proving omission is not reinterpreted as explicit generic before planning.
 
 ---
 
