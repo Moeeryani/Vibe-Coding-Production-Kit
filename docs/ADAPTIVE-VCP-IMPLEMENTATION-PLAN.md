@@ -502,9 +502,38 @@ L3
 
 Validation and context transport are different responsibilities.
 
-A selected plugin/profile may need to be validated every time for trust integrity, but its manifest, guidance, or verification proposals should enter the rendered Context Pack only when relevant to the current mode/change.
+A selected plugin/profile may need to be validated every time for trust integrity. That does **not** mean the bytes used for validation belong in the model's Context Pack.
 
-Do not include selected-plugin metadata in every pack merely because the plugin is installed.
+Use three concepts:
+
+~~~text
+validated inputs
+  selection config + manifests + digests + compatibility/grants
+  → Core trust decision
+  → not automatically rendered
+
+transported context
+  only guidance/proposal material relevant to this contextMode/workflow
+  → counts against Context Pack bytes
+  → appears in rendered context manifest
+
+structured validation summary
+  plugin IDs / trust success / relevant contribution IDs as needed
+  → inspectable machine/human metadata
+  → not disguised as model context
+~~~
+
+For current schema-v1 plugins:
+
+- validate the whole selected set on every context build;
+- transport only guidance whose declared modes include the current contextMode;
+- verification proposals have no v1 mode field, so the initial progressive-disclosure rule is **plan-mode only**; other modes can inspect proposals through `vcp plugins` when deliberately requested;
+- render a plugin identity/trust note only for plugins that actually contribute transported material to that pack;
+- do not insert `PLUGINS.json` or `plugin.json` bytes merely to prove validation occurred.
+
+A future strict plugin schema may add more explicit contribution relevance, but it must not restore eager transport.
+
+The Context Pack byte budget applies to transported bytes, not internal validation reads.
 
 ### Context manifest
 
