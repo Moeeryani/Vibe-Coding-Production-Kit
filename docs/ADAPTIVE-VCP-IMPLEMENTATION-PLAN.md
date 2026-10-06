@@ -3150,6 +3150,27 @@ Modern agent environments can install portable Skills across multiple coding age
 
 Therefore portability alone is not a reason to prefer VCP over Skills.
 
+## 9.1A Problem and affected surfaces
+
+Without a Skill/UX layer, VCP risks exposing deterministic machinery as the product experience: developers must remember commands, phases, and bookkeeping even when the underlying Core already knows the state.
+
+The opposite failure is equally dangerous: putting durable policy/state into Skills creates a second source of truth whose behavior varies by host loading semantics.
+
+This Workstream therefore affects:
+
+- Auto/Manual routing UX;
+- standing AGENTS/CLAUDE/Copilot instruction size;
+- packaged prompt/Skill distribution;
+- prompt-eval behavior coverage;
+- human-attention budget;
+- Context Pack invocation;
+- cross-agent portability;
+- gate/readiness result presentation.
+
+It does **not** migrate repository truth out of VCP Core. Task Packs, manifest state, readiness, verification, review provenance, and gate remain Core-owned.
+
+There is no data migration in the normal sense. Existing prompts remain canonical behavioral inputs until a Skill references/routes through them; Skill rollout is package/UX migration with behavior-eval compatibility, not lifecycle-state migration.
+
 ## 9.2 Target and staged surface
 
 Ship thin Skills that make VCP pleasant to use, but stage them deliberately.
