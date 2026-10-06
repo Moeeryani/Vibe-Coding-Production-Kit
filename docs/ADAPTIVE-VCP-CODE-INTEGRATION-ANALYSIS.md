@@ -4140,7 +4140,9 @@ Add fixtures for:
 - custom AGENTS.md;
 - custom CLAUDE.md;
 - custom Copilot instructions;
-- all together.
+- all together;
+- `--yes` with no explicit `--agent` and only one existing vendor adapter, proving omission remains unspecified;
+- ignored/re-tracked brownfield marked integration.
 
 ### existing CI
 
@@ -4163,8 +4165,12 @@ Add fixtures for:
 - empty;
 - established;
 - already VCP-managed;
+- pre-Adaptive/schema-v1 managed install;
+- schema-v2 manifest whose minimumReaderVersion is newer than the running CLI;
+- readable managed install requiring recovery/health repair;
 - nested selected project;
-- dirty Git worktree.
+- dirty Git worktree;
+- brownfield-minimal install with intentionally absent greenfield starter docs.
 
 ---
 
@@ -4181,6 +4187,13 @@ Adaptive adoption must also have public CLI tests because important behavior liv
 
 For every important init behavior, include at least one real bin/vibe-coding-production.mjs test.
 
+Mandatory public-CLI regressions include:
+
+- brownfield `--yes` with omitted `--agent` preserves unspecified provenance;
+- omitted GitHub preference remains distinct from explicit include/exclude;
+- init `--force` is rejected while unrelated force flags retain their own contracts;
+- unsupported/newer lifecycle reader state fails closed before mutation.
+
 ---
 
 ## 16.4 Golden negative fixtures
@@ -4190,14 +4203,24 @@ Required failure cases:
 - malformed VCP section markers;
 - duplicate marker blocks;
 - conflicting agent-file integration;
+- malformed/unreadable reserved `.vcp` lifecycle state;
+- lifecycle schema/minimumReaderVersion newer than the running CLI;
 - selected plugin with bad digest;
-- capability profile with invalid detector;
+- capability profile with invalid, path-escaping, symlinked, content-leaking, or over-budget detector;
 - symlinked evidence/config;
+- conflicting duplicate verification-command authority;
 - unsupported destructive verification proposal;
 - stale verification at old HEAD;
-- L0 requested for source/security/build changes.
+- L0 with no explicit project trivial-surface policy;
+- L0 against source/security/build state or a custom governing Markdown document;
+- legacy Task Pack without Workflow-Level failing to normalize to L2;
+- lower-level review/finalization evidence incorrectly surviving a required promotion;
+- late promotion represented as though the stronger plan existed before implementation;
+- ordinary review or required L3 security review bound to a stale/different implementation head;
+- reviewed-head → final-head Task Pack-only diff that modifies protected requirement/acceptance/scope/verification sections;
+- manual + required gate policy incorrectly auto-routing work or incorrectly bypassing the required gate.
 
-Each failure must prove no unsafe mutation.
+Each failure must prove the relevant operation fails closed and, where mutation is in scope, performs no unsafe mutation.
 
 ---
 
@@ -4211,10 +4234,15 @@ The matrix is complete when release gates prove properties, not merely framework
 - no command invention;
 - selected-root isolation;
 - safe unsupported fallback;
-- capability provenance;
+- lifecycle reader compatibility fails closed;
+- brownfield adapter/install-surface provenance is reproducible;
+- capability add/remove/sticky provenance is preserved;
 - init plan/apply consistency;
 - update after adoption remains safe;
-- gate rejects stale/bypassed work;
+- L0 cannot become globally permissive by extension/name heuristics;
+- gate rejects stale/bypassed work and protected post-review task-contract mutation;
+- required ordinary/security review provenance is exact and coherent;
+- late workflow escalation remains historically truthful;
 - rollback/recovery remains valid.
 
 ---
