@@ -5121,6 +5121,44 @@ This is not just cosmetic cleanup.
 
 ---
 
+## 17.5 Definition of done
+
+Framework-tax reduction is successful only when the implemented Adaptive release can
+show all of the following:
+
+- every new persistent Core field/command/gate has a documented deterministic
+  failure it prevents and a migration/lifecycle owner;
+- no user-facing conversational behavior is implemented twice in Core and Skills;
+- Skills do not duplicate authoritative readiness/verification/security/gate rules;
+- package-only/reference assets are not copied into consumers merely because VCP
+  itself uses them;
+- always-on instruction/context footprint is measured before/after and does not grow
+  without checkpoint evidence;
+- model/tool capability audit records at least the responsibilities considered for
+  deletion/delegation and the decision for each;
+- removal/deprecation is allowed to be the outcome of a checkpoint;
+- no feature is kept solely because prior roadmap text mentioned it;
+- the final conformance report lists **new Core complexity added**, **Core complexity
+  removed**, and **user-visible concepts added/removed**, not only test counts.
+
+For a proposed new Core subsystem after this redesign, the default review question is:
+
+~~~text
+Can an existing deterministic project/platform tool or thin Skill safely own this?
+YES
+→ integrate/delegate
+
+NO
++ repeated failure evidence exists
++ deterministic enforcement is required
+→ Core candidate
+~~~
+
+A green test suite is necessary but not sufficient evidence that framework tax is
+acceptable.
+
+---
+
 # 18. File-by-file change map
 
 This section summarizes likely ownership of implementation work.
