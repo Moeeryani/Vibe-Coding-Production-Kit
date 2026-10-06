@@ -4,6 +4,8 @@
 **Purpose:** Make VCP safe, adaptive, low-friction, and useful across new and existing repositories without weakening its deterministic control-plane philosophy.  
 **Scope:** Smart initialization, project adaptation, capability detection, profile extensibility, CI integration, operating modes, Skills UX, mechanical enforcement, and conformance testing.
 
+**Technical companion:** `docs/ADAPTIVE-VCP-CODE-INTEGRATION-ANALYSIS.md` is the code-level dependency and integration authority for this plan. When implementation sequencing or a concrete integration detail is more specific there, this strategic plan follows that analysis.
+
 ---
 
 ## 1. Executive decision summary
@@ -286,79 +288,85 @@ If `.vcp/manifest.json` exists:
 - direct lifecycle work to `vcp update`;
 - optionally provide a concise status summary.
 
-## 3.4 Remove `--force` from init
 
-Destructive initialization `--force` should be removed.
+## 3.4 Remove destructive `--force` from init
 
-Preferred behavior for collisions:
+Destructive initialization `--force` should be removed **from the init contract only**.
+
+The current CLI parser also uses force-style overwrite semantics for other commands such as generated task/context/evidence outputs. Those command-specific overwrite controls remain valid and must not be removed globally.
+
+Preferred init behavior for collisions:
 
 ```text
-Can VCP safely compose or merge?
-├─ yes → compose/merge
+Can VCP safely compose or adopt?
+├─ yes → COMPOSE / ADOPT / NOOP
 └─ no  → CONFLICT
          explain exact path/reason
          make no destructive change
 ```
 
-If a user truly wants to replace a file, that should be an explicit manual file operation outside `vcp init`, followed by a new init preview.
+If a user truly wants to replace a project-owned file, that should be an explicit manual repository change followed by a new init preview.
 
-Do not retain a generic “I know what I'm doing” overwrite flag.
+Do not retain a generic init escape hatch that turns adoption into overwrite.
 
-## 3.5 Existing agent-file integration
+
+## 3.5 Existing agent-file integration requires section-aware ownership
 
 ### Existing `AGENTS.md`
 
 Do not replace it.
 
-The init planner should distinguish:
+A simple "append VCP and baseline the whole resulting file" design is **not safe across later updates**. If VCP snapshots the combined user+VCP file as a whole-file baseline, a future desired VCP-only `AGENTS.md` can cause the update engine to replace user-owned text.
 
-1. no `AGENTS.md`;
-2. existing VCP-compatible `AGENTS.md`;
-3. existing non-VCP `AGENTS.md`.
+Therefore existing instruction files must use **managed-section ownership**.
 
-For case 3, preferred strategies in order:
-
-- add a bounded clearly delimited VCP section if safe;
-- preserve all existing text;
-- avoid changing project-specific instructions;
-- record the adopted baseline after composition;
-- if automatic composition is ambiguous, produce a conflict requiring review.
-
-Recommended managed markers:
+Recommended form:
 
 ```markdown
+existing project-owned instructions
+
 <!-- VCP:BEGIN -->
 ... VCP-owned integration block ...
 <!-- VCP:END -->
+
+more project-owned instructions
 ```
 
-Do not require this marker for legacy files, but use it for new additive integration where possible.
+For an adopted existing file:
+
+- VCP owns only the marked section;
+- surrounding user content remains project-owned;
+- the lifecycle baseline represents the VCP-owned section, not the whole file;
+- updates may replace/merge only the VCP section;
+- missing, duplicate, nested, or malformed markers fail safely.
+
+For a new repository where `AGENTS.md` does not exist, VCP may continue to own the complete file.
+
+This means ownership is not determined by path alone. The manifest/update planner must be able to distinguish whole-file ownership from section ownership.
 
 ### Existing `CLAUDE.md`
 
-The ideal change is additive:
+Preserve all existing content.
 
-```text
-existing project instructions
-+
-@AGENTS.md
-```
+Add only the smallest required VCP integration, normally a marked block containing `@AGENTS.md` or equivalent thin routing guidance.
 
-Do not replace existing Claude instructions.
-
-If `@AGENTS.md` already exists, do nothing.
+If the reference already exists, return `NOOP`.
 
 ### Existing Copilot instructions
 
-Likewise:
+Use the same additive managed-section strategy.
 
-- preserve existing instructions;
-- add a concise VCP reference only if missing;
-- do not create contradictory duplicate policy.
+Do not replace existing organization/project guidance and do not duplicate conflicting repository rules.
 
 ### Codex / Cursor
 
 Continue using repository `AGENTS.md` directly where supported.
+
+### Verification-command compatibility
+
+Current verification command parsing reads configured slots from `AGENTS.md`.
+
+Initial smart-adoption work should preserve that contract inside the VCP-owned integration content. Moving verification configuration to a new structured source would be a separate migration and should not be bundled into safe init.
 
 ## 3.6 Smart init planning model
 
@@ -396,22 +404,23 @@ The exact heuristic must be tested cross-platform.
 
 Classification should affect UX, not trust. Even a repository classified “new” still uses collision/path safety rules.
 
+
 ## 3.8 Definition of done
 
 Smart init is complete when all of these are true:
 
 - `vcp init .` works for both empty and established repositories;
-- `--force` is no longer accepted for initialization;
+- destructive init `--force` is no longer accepted, while unrelated command-specific overwrite controls still work;
 - existing `AGENTS.md`, `CLAUDE.md`, Copilot instructions, and CI are never silently replaced;
+- adopted instruction files use explicit section ownership rather than whole-file ownership;
 - dry-run accurately predicts all init mutations;
 - init conflicts result in zero destructive project changes;
-- a successful init produces lifecycle baselines representing the actual post-integration files;
-- rerunning `vcp init` on a managed project performs no lifecycle rewrite and directs the user to update;
-- tests prove adoption with pre-existing user modifications;
+- a successful init creates lifecycle state describing what VCP actually owns;
+- a **subsequent VCP update** changes only VCP-owned sections and preserves surrounding user text;
+- malformed/missing managed markers fail safely;
+- rerunning `vcp init` on a managed project performs no lifecycle rewrite and directs the user to update/status;
 - rollback/recovery is available if init becomes transactional;
-- documentation contains no path telling users to “use --force after review.”
-
----
+- documentation contains no path telling users to "use --force after review."
 
 # 4. Workstream B — Separate framework assets from project assets
 
@@ -481,55 +490,93 @@ target project
 
 Project-facing docs should exist only when they are part of durable project truth or project workflow.
 
+
 ## 4.4 Implementation approach
 
-Replace broad template roots such as `docs` with an explicit asset manifest.
+Replace broad template roots such as `docs` and `prompts` with an explicit consumer asset manifest.
 
-For example:
+Before removing project-local prompt copies, first add a **canonical prompt resolver**.
 
-```js
-PROJECT_ASSETS = [
-  'AGENTS.md',
-  'docs/product/PRODUCT-BRIEF.md',
-  'docs/product/PRD.md',
-  'docs/product/USER-FLOWS.md',
-  'docs/architecture/ARCHITECTURE.md',
-  'docs/architecture/DOMAIN.md',
-  'docs/architecture/DATA-MODEL.md',
-  'docs/security/THREAT-MODEL.md',
-  'docs/security/SECURITY-PROFILE.md',
-  'docs/testing/TEST-STRATEGY.md',
-  'docs/delivery/DEFINITION-OF-READY.md',
-  'docs/delivery/DEFINITION-OF-DONE.md',
-  'prompts/... only if project-local prompts remain intentional'
-]
+Required precedence:
+
+```text
+project prompt override exists
+        ↓
+use project override
+
+otherwise
+        ↓
+use packaged canonical VCP prompt
 ```
 
-Then decide which prompts should remain copied versus loaded from the package.
+Packaged identity should be explicit in context/evidence, for example `vcp:prompts/02-plan-task.md`.
 
-Long term, prefer package-owned canonical prompts plus project override points rather than duplicating every prompt into every repository, unless offline/restartability requirements justify project-local copies.
+This should follow the same general pattern already used by packaged security-profile fallback.
+
+After prompt fallback exists, the consumer asset set can become explicit and small:
+
+```text
+AGENTS integration
+project product truth
+project architecture truth
+project security declaration/threat model
+project testing strategy
+Definition of Ready / Done
+project task support
+optional issue / PR hygiene
+VCP lifecycle state
+```
+
+VCP's own roadmap, release history, source-validation scripts, framework task history, evaluations, and canonical reference documentation remain package/source assets rather than consumer project assets.
+
+Do not copy `scripts/validate-framework.*` into arbitrary projects. Those scripts validate the VCP source/package, not a universal application.
+
 
 ## 4.5 Migration for existing VCP projects
 
-Do not simply delete old framework docs from user repositories.
+Do not simply make old managed assets disappear from the desired set.
 
-Use explicit lifecycle migration rules:
+The current update planner intentionally treats an unexpectedly disappeared managed file as a conflict. Use explicit lifecycle migrations.
 
-- unmodified VCP-only framework docs may be removed;
-- locally modified docs are detached/preserved;
+Migration rules:
+
+- unmodified VCP-only framework docs/scripts may be removed;
+- locally modified former framework files are detached/preserved;
 - project-owned docs remain tracked according to policy;
-- release/task history created by the project must never be confused with VCP framework history.
+- release/task history created by the project is never confused with VCP framework history;
+- unmodified old prompt copies may be removed so packaged fallback becomes active;
+- locally modified old prompts remain as project overrides.
+
+There is also a release-automation dependency:
+
+Current `release-check` lifecycle smoke validates an updated consumer by executing that consumer's copied `scripts/validate-framework.mjs`.
+
+When consumer installs stop receiving that file, release-check must switch to public consumer contracts such as:
+
+```text
+previous CLI init
+→ candidate update preview/apply
+→ Doctor
+→ idempotent update preview
+→ expected consumer surface checks
+→ later, canonical vcp gate where appropriate
+```
+
+Source/package validation still runs separately inside the VCP repository.
+
 
 ## 4.6 Definition of done
 
 - fresh init no longer installs the full VCP framework docs tree;
-- target repository contains only project-relevant VCP artifacts;
-- package/reference docs remain accessible to agents/tools without being copied unnecessarily;
-- update migration preserves locally modified former framework docs instead of deleting them;
-- context packs do not accidentally include framework roadmap/release history;
-- package tests explicitly assert the target install file surface.
-
----
+- target repositories contain only project-relevant VCP artifacts;
+- `vcp context` works even when no project-local canonical prompt copy exists;
+- explicit project prompt overrides still work and are identifiable;
+- customized legacy prompts survive upgrade as overrides;
+- consumer projects no longer receive VCP's source-framework validator;
+- Doctor no longer requires copied framework scripts/prompts when packaged equivalents are valid;
+- release-check consumer lifecycle smoke no longer depends on copied `validate-framework`;
+- explicit migrations prevent unexplained disappeared-file conflicts;
+- package tests explicitly assert both package surface and consumer-install surface.
 
 # 5. Workstream C — Replace single-stack identity with composable capabilities
 
@@ -648,31 +695,64 @@ For monorepos:
 - explicit workspace references may govern shared authority;
 - sibling packages must not silently affect a selected package's capability set.
 
-## 5.6 Backward compatibility
 
-Do not break current manifests immediately.
+## 5.6 Backward compatibility and migration bridge
 
-Possible migration:
+Do not replace the current stack contract in one step.
 
-```json
-{
-  "install": {
-    "stack": "typescript",
-    "requestedStack": "auto",
-    "capabilities": [...]
-  }
-}
+Introduce capabilities alongside the existing stack summary.
+
+During the transition preserve:
+
+```text
+install.stack
+install.requestedStack
 ```
 
-Treat `stack` as a compatibility summary for a transition period.
+and add explicit capability detection/applied-state provenance.
 
-Eventually, `stack` may become:
+The direction is:
 
-- a legacy compatibility field;
-- a primary profile label computed from capabilities;
-- or removable in a future major version.
+```text
+bounded deterministic detectors
+        ↓
+composable capability set
+        ↓
+legacy compatibility stack summary
+        ↓
+existing lifecycle/reporting contracts remain readable
+```
 
-Do not remove it until downstream code no longer depends on it.
+All manifest writers must preserve the new fields:
+
+- init/buildManifest;
+- update apply;
+- migration transforms;
+- manage ignore/track;
+- rollback/restore paths.
+
+Prefer centralizing install metadata construction rather than continuing to append lifecycle fields after `buildManifest`.
+
+Simple JS/TS/Python/Go projects should retain equivalent current behavior during the transition.
+
+Polyglot repositories should no longer lose evidence merely because old detector precedence finds one language first.
+
+### React Native / Stage 11
+
+Do not first implement React Native as another exclusive concrete stack and then immediately migrate it to capabilities.
+
+Reconcile the pending Stage 11 work with the capability model first.
+
+A React Native project is better represented compositionally, for example:
+
+```text
+runtime.node
+language.typescript
+framework.react-native
+mobile.react-native-app
+```
+
+while preserving the existing selected-project-root and explicit-evidence constraints.
 
 ## 5.7 Verification discovery from capabilities
 
@@ -823,94 +903,105 @@ Avoid:
 
 ---
 
+
 # 7. Workstream E — Project-aware CI integration
 
 ## 7.1 Current situation
 
-Current VCP GitHub assets can include a `.github/workflows/validate.yml` that runs VCP repository-specific Node/npm commands.
+Current GitHub asset installation groups issue/PR hygiene together with `.github/workflows/validate.yml`.
 
-That workflow is appropriate for VCP itself, not for arbitrary Python, Go, Rust, Java, mixed, or custom repositories.
+Doctor also treats that exact workflow path as the CI-validation signal.
 
-## 7.2 Problem
+This couples VCP's source-repository npm workflow to arbitrary consumer projects.
 
-Default installation can create CI that is technically valid YAML but semantically wrong for the target project.
+## 7.2 Phase E1 — remove the unsafe assumption first
 
-That damages trust in “automatic” setup.
+Before generating any new VCP CI:
 
-It also risks colliding with mature repositories that already have CI.
+1. stop installing the hard-coded npm validation workflow into arbitrary fresh consumers;
+2. split GitHub issue/PR scaffolding from CI integration;
+3. inspect and preserve existing CI;
+4. make Doctor report CI provider/configuration evidence rather than one filename;
+5. migrate old managed `validate.yml` deliberately.
 
-## 7.3 Target behavior
+Do not wait for full Auto mode to stop the harmful behavior.
 
-Smart init must inspect CI before deciding anything.
+## 7.3 Preserve `includeGitHub` compatibility
 
-### Existing CI present
+Existing manifests and lifecycle code already store `install.includeGitHub`.
 
-VCP should:
+During the transition, keep that field readable and narrow its meaning to GitHub repository hygiene/scaffolding such as issue and PR templates.
 
-- preserve existing workflows;
-- detect known verification commands where possible;
-- report whether accepted VCP verification is represented in CI;
-- optionally propose a VCP gate workflow if needed;
-- never replace an existing workflow automatically.
+CI integration becomes separate state/policy.
 
-### No CI present
+A future major version may rename the historical field after migration compatibility is no longer needed.
 
-VCP may generate project-specific CI only from approved/repository-backed commands.
+## 7.4 CI inspection
 
-Example:
+Add one provider-neutral CI inspection layer.
 
-```text
-Accepted project verification:
-  ruff check .
-  mypy .
-  python -m pytest
+Initial evidence can identify:
 
-          ↓
+- GitHub Actions;
+- GitLab CI;
+- CircleCI;
+- Azure Pipelines;
+- unknown/custom CI indicators;
+- no known CI.
 
-Generated GitHub workflow
-runs those commands
-```
+Presence is not proof of semantic coverage.
 
-Do not generate npm commands unless npm/Node evidence supports them.
-
-## 7.4 Prefer a VCP gate over duplicating project build logic
-
-Where practical, generated CI can call VCP itself:
+Doctor should distinguish:
 
 ```text
-vcp doctor --strict
-vcp gate ...
+CI provider/config detected
+VCP gate integration detected/not detected/unknown
+project verification coverage unassessed unless deterministically proven
 ```
 
-while the actual project commands remain defined in project-owned VCP verification state.
+Unknown custom CI is not automatically an error.
 
-This avoids maintaining two independent definitions of required checks.
+## 7.5 Migration of the old VCP workflow
 
-## 7.5 CI provider scope
+When the old managed `.github/workflows/validate.yml` leaves the desired consumer set, remove it only through an explicit lifecycle migration.
 
-Initial implementation may support GitHub Actions first, but VCP must not equate “CI” with GitHub Actions.
+Existing update semantics should decide:
 
-Model capability as:
+- unmodified VCP workflow → removable;
+- locally modified workflow → detach/preserve;
+- unrelated workflows → untouched.
+
+The update dry-run must make this visible.
+
+## 7.6 Phase E2 — generate CI only after `vcp gate` exists
+
+Once the mechanical gate exists, VCP may optionally create a thin provider-specific integration:
 
 ```text
-ci.github-actions
-ci.gitlab
-ci.circle
-ci.azure
-ci.custom
+CI
+ ↓
+install/use VCP
+ ↓
+vcp gate ... --run
+ ↓
+exit code
 ```
 
-Unsupported CI should degrade to inspection/reporting rather than deletion/replacement.
+Do not maintain one command list in Task Packs and another independently in generated YAML.
 
-## 7.6 Definition of done
+The gate should remain the deterministic enforcement contract; CI is only an execution surface.
 
-- Python/Go/non-Node init never receives npm-specific CI without Node evidence;
-- existing workflows survive init byte-for-byte unless explicit additive integration is accepted;
-- generated CI commands trace back to accepted project verification state;
-- Doctor distinguishes “CI unknown/unassessed” from “CI missing/broken”;
-- fixtures cover no-CI, GitHub Actions, and unknown/custom CI cases.
+Branch protection remains platform/repository policy. VCP may report a check but must not claim control of merge policy it does not own.
 
----
+## 7.7 Definition of done
+
+- fresh Python/Go/unsupported projects never receive npm-specific VCP CI;
+- existing CI is untouched by init;
+- Doctor detects CI through a provider-neutral inspector;
+- `includeGitHub` no longer implies npm CI;
+- old managed `validate.yml` has an explicit migration path;
+- no generated VCP CI is introduced before the gate contract exists;
+- later generated CI delegates to deterministic VCP gate rather than duplicating project verification logic.
 
 # 8. Workstream F — Auto mode and Manual mode
 
@@ -940,26 +1031,35 @@ Examples:
 
 Exact syntax depends on agent capability; VCP should not hard-code one vendor's command syntax.
 
+
 ## 8.2 Store operating mode as project state
 
-Add a project-owned setting, likely in VCP lifecycle/config state.
+Persist the operating mode in VCP lifecycle state.
 
-Example:
+For the initial implementation, manifest install metadata is sufficient:
 
 ```json
 {
-  "workflowMode": "auto"
+  "install": {
+    "workflowMode": "auto"
+  }
 }
 ```
 
-Supported initial values:
+Use an explicit CLI name such as:
 
-- `auto`
-- `manual`
+```text
+--workflow-mode auto
+--workflow-mode manual
+```
 
-Do not infer mode from which agent is installed.
+Do **not** reuse `--mode`; that flag already means Context Pack mode (`plan`, `implement`, `review`, etc.).
 
-Mode should survive changing Claude/Codex/Cursor/etc.
+Also provide a post-install command so changing mode does not require rerunning init.
+
+Mode changes must update only VCP-owned instruction sections/files and preserve project-owned surrounding content.
+
+For old manifests without `workflowMode`, preserve historical behavior deterministically—currently closest to Auto routing—without automatically enabling new merge/CI enforcement until that enforcement is explicitly configured.
 
 ## 8.3 Auto-mode agent instruction
 
@@ -975,97 +1075,62 @@ Manual mode should be lightweight:
 
 > VCP is available in this repository. Use the VCP workflow when the developer explicitly requests it or invokes the installed VCP Skill/command.
 
+
 ## 8.5 Auto mode must not mean maximum ceremony
 
-Introduce workflow levels.
+Workflow levels require VCP Core support, not prompt labels alone.
 
-A conceptual model:
+Current Task Pack/readiness behavior is closest to a full L2 workflow, so the first implementation should be staged.
 
 ### L0 — trivial
 
-Examples:
+Use only for mechanically eligible surfaces such as bounded non-governing documentation/comment/format-only changes.
 
-- spelling fix;
-- comment;
-- formatting-only;
-- low-risk docs correction.
+Eligibility must come from changed-surface policy, not merely an agent assertion.
 
-Requirements:
-
-- no full Task Pack;
-- run directly relevant deterministic checks if needed;
-- preserve authority rules;
-- no fake evidence.
-
-### L1 — bounded engineering
-
-Examples:
-
-- small internal bug fix;
-- narrow refactor;
-- regression test;
-- non-user-visible implementation correction.
-
-Possible requirements:
-
-- lightweight task record or compact task metadata;
-- focused context;
-- implementation verification;
-- review depending on risk.
+Protected paths automatically reject L0, including source/application logic, migrations, security policy, lifecycle/configuration, CI/build/release files, dependency manifests/lockfiles, and agent instructions.
 
 ### L2 — material product/behavior change
 
-Examples:
+Keep the existing Task Pack + readiness + bounded context + verification + review path as the main material-work workflow.
 
-- new product behavior;
-- API change;
-- data behavior;
-- meaningful UX flow.
-
-Use normal full VCP lifecycle:
-
-- discovery as needed;
-- Source of Truth;
-- Task Pack;
-- readiness;
-- implementation;
-- verification;
-- fresh review.
+Avoid rewriting a proven system unnecessarily.
 
 ### L3 — high-risk change
 
-Examples:
+Extend L2 with stronger required controls based on deterministic/project-declared evidence such as:
 
-- auth;
-- billing;
-- destructive migrations;
-- permissions;
-- sensitive data;
-- release/deployment policy.
+- active security profiles;
+- migration/data impact;
+- protected surfaces;
+- explicit workflow policy;
+- human-selected risk requirements.
 
-Add enhanced controls:
+Potential requirements include security review context, rollback/recovery evidence, and stricter exact-head gating.
 
-- explicit HUMAN DECISION boundaries;
-- security profile/review;
-- migration/recovery evidence;
-- stronger review/approval requirements.
+### L1 — bounded engineering
+
+Do not rush a separate compact task schema before dogfood proves what minimal durable state is actually required.
+
+Introduce L1 after L0/L2/L3 behavior demonstrates the missing middle and its enforceable contract is clear.
+
 
 ## 8.6 Classification
 
-Do not rely entirely on free-form LLM judgment.
+Classification should be a hybrid of deterministic facts and explicit human/project policy.
 
-Use a combination of:
+Deterministic inputs may include:
 
-- path/config rules;
+- changed paths;
+- project capability/profile state;
+- migration/data markers;
 - task declarations;
-- active security profiles;
-- changed-surface signals;
-- explicit user override;
-- agent recommendation.
+- protected-path policy;
+- Git diff characteristics.
 
-Initial version may allow the agent to recommend a level, but VCP should mechanically enforce the requirements of whichever level is selected.
+Human intent remains necessary for decisions such as accepted risk, architecture direction, compatibility policy, destructive migration approval, and product behavior.
 
-Never allow an agent to silently downgrade a configured minimum-risk class for protected areas.
+An agent may recommend a level, but VCP must independently reject a level whose mechanical eligibility rules are not satisfied.
 
 ## 8.7 Definition of done
 
@@ -1198,103 +1263,102 @@ The Skill proposes improvements; deterministic VCP Core changes remain normal co
 
 ---
 
+
 # 10. Workstream H — Mechanical enforcement for Auto mode
 
 ## 10.1 Problem
 
-An instruction such as:
+An instruction such as "the agent must use VCP" is still only prose.
 
-> “The agent must use VCP.”
+The repository already has much of the deterministic machinery needed for a real gate, but those facts are not yet joined into one completion decision.
 
-is still only an instruction.
+## 10.2 Reuse existing deterministic components
 
-LLMs can:
+`vcp gate` should aggregate rather than replace:
 
-- forget;
-- misunderstand;
-- skip steps;
-- claim completion prematurely.
+- `readiness.mjs` for Task Pack structural readiness;
+- `verify.mjs` for approved command execution/results;
+- verification Git provenance for selected-project/current revision facts;
+- `git-review.mjs` for bounded changed-surface/base/head review;
+- Task Pack finalization/review evidence.
 
-If Auto mode uses the word “must,” the important gates should be independently checkable.
+Do not create a second verification engine.
 
-## 10.2 Target
+## 10.3 Add a canonical Task Pack state parser
 
-Introduce a deterministic gate surface.
+Current finalization/review requirements are mostly prose contracts.
 
-Conceptual command:
+Before gate grows, add one shared canonical parser for at least:
 
-```bash
-vcp gate
-```
+- top-level task status;
+- workflow level if present;
+- acceptance-criteria check state;
+- independent review rows/dispositions;
+- finalization checklist;
+- completion-report presence;
+- verification-command declarations.
 
-or a set of phase-specific gates.
+Readiness and gate should progressively share that parser so they cannot disagree about the same Task Pack.
 
-For a material change it may check:
+## 10.4 Gate requirements
+
+For a material L2/L3 task, gate may require:
 
 - project is VCP-managed;
 - required Task Pack exists;
-- task authority is current;
-- task was implementation-ready;
-- required verification exists;
-- verification evidence corresponds to the current relevant revision;
-- no unresolved must-fix review findings remain;
-- required security/release gates were run;
-- completion metadata is finalized.
+- plan/implementation readiness is satisfied;
+- acceptance criteria are complete;
+- no unresolved current-task must-fix review finding remains;
+- required verification actually ran successfully;
+- finalization state is structurally complete;
+- current Git revision still corresponds to the accepted executable/review state;
+- any L3-specific security/recovery requirements are satisfied.
 
-## 10.3 Git-aware enforcement
+Gate output should enumerate explicit pass/fail/block reasons rather than emit a magic score.
 
-Where Git is available, evidence should be tied to exact commit/revision semantics.
+## 10.5 Evidence freshness must be current-state aware
 
-Avoid a false green caused by:
+Do not trust an old JSON evidence file solely because it once passed.
 
-```text
-tests passed
-↓
-code changed afterward
-↓
-merge anyway
-```
+Verification provenance is captured before command execution, and writing retained evidence can itself affect worktree state.
 
-VCP already has exact-head ideas in its lifecycle. Reuse them.
+Therefore final gate must re-inspect current Git state after executable work.
 
-## 10.4 CI enforcement
-
-Auto mode should optionally install/configure a VCP gate in CI.
-
-Example:
+The preferred first implementation is:
 
 ```text
-PR opened
+vcp gate --run
    ↓
-vcp gate --ci
+reuse verification engine
    ↓
-required state/evidence missing?
-   ├─ yes → fail
-   └─ no  → pass
+perform required review/finalization checks
+   ↓
+reinspect current HEAD + dirty state
+   ↓
+return final gate result
 ```
 
-Branch protection remains repository/platform policy; VCP should not claim it can enforce merge policy when it only reports a check.
+Saved verification evidence remains useful for audit/handoff, but it is not by itself merge authorization.
 
-## 10.5 Local enforcement
+## 10.6 Local and CI enforcement
 
-Do not require GitHub/hosted CI.
+The same deterministic gate must work locally and in CI.
 
-Provide a local deterministic command that can be run by:
+Later CI integration should call the gate rather than recreate its logic.
 
-- agents;
-- developers;
-- pre-commit/pre-push integrations if explicitly chosen;
-- other CI providers.
+Branch protection/pre-push integrations remain explicit repository policy.
 
-## 10.6 Definition of done
+## 10.7 Definition of done
 
-- Auto mode has at least one deterministic command that detects bypass of required workflow state;
-- evidence freshness is revision-aware;
-- a material change cannot receive a green gate merely because an agent says it passed;
-- the gate is useful locally and in CI;
-- protected/high-risk workflow levels have stronger requirements than trivial levels.
-
----
+- gate reuses readiness and verification machinery;
+- stale old-head evidence cannot pass;
+- post-run current Git state is inspected;
+- unresolved must-fix review evidence cannot pass material work;
+- incomplete finalization cannot pass L2/L3;
+- L0 cannot be used for mechanically protected surfaces;
+- human and JSON output expose exact failed requirements;
+- the gate works without GitHub;
+- CI can invoke the same gate contract.
 
 # 11. Workstream I — Compatibility and conformance matrix
 
@@ -1475,70 +1539,128 @@ Likely VCP-owned:
 
 ---
 
+
 # 13. Sequencing
 
-Do not attempt every workstream simultaneously.
+The code-level dependency review changed the safest order. Do not implement the workstreams only in the conceptual order above.
 
-Recommended order:
+## Phase 0 — enabling refactors
 
-## Phase 1 — Adoption safety
+1. centralize manifest install-field construction;
+2. introduce prompt resolution while preserving current behavior;
+3. add section-ownership primitives and lifecycle tests;
+4. begin shared Task Pack parsing where required.
 
-1. smart `vcp init`;
-2. remove init `--force`;
-3. additive agent-file integration;
-4. project-vs-framework asset separation;
-5. preserve existing CI instead of installing generic VCP CI.
+**Exit criterion:** later adoption/asset/gate work can reuse lifecycle-safe primitives instead of temporary hacks.
 
-**Exit criterion:** VCP can be installed into an established repository without fear of destructive replacement or obvious repository pollution.
+## Phase 1 — smart adoption safety
 
-## Phase 2 — Adaptation model
+1. repository inspection;
+2. init planning;
+3. remove destructive init force behavior;
+4. section-aware AGENTS/CLAUDE/Copilot adoption;
+5. conflict-safe/transactional apply;
+6. managed-project init redirect/status;
+7. prove a subsequent update preserves user-owned text.
 
-1. capability schema;
-2. capability detectors;
-3. stack compatibility bridge;
-4. Doctor capability reporting;
-5. composable verification discovery.
+**Exit criterion:** an established repository can be initialized and then upgraded without destructive replacement.
 
-**Exit criterion:** polyglot and unsupported projects degrade coherently instead of being forced into one stack label.
+## Phase 2 — consumer asset separation
 
-## Phase 3 — Declarative extensibility
+1. packaged canonical prompt fallback;
+2. Doctor prompt-source changes;
+3. explicit consumer asset manifest;
+4. remove copied framework validator/source docs;
+5. rewrite release-check consumer lifecycle validation;
+6. explicit lifecycle removals/detaches;
+7. preserve customized legacy prompts as overrides.
 
-1. profile detection DSL;
-2. first-party profile migration;
-3. community profile capability contributions;
-4. trust/digest tests.
+**Exit criterion:** consumer projects contain only project-relevant VCP assets while context/Doctor/update/release smoke remain valid.
 
-**Exit criterion:** new ecosystems can be integrated without arbitrary executable plugin code.
+## Phase 3 — CI safety/detection only
 
-## Phase 4 — UX modes + Skills
+1. stop hard-coded npm workflow installation;
+2. split CI from GitHub issue/PR hygiene;
+3. provider-neutral CI inspection;
+4. Doctor reporting;
+5. migrate old managed `validate.yml`.
 
-1. persist `auto|manual`;
-2. generate mode-aware adapters;
-3. implement cross-agent `/vcp` Skills;
-4. expose discovery/grill UX;
-5. add workflow-level classification.
+**Exit criterion:** VCP preserves existing CI and installs no inappropriate npm workflow.
 
-**Exit criterion:** a developer can use VCP without knowing the CLI in Auto mode, or invoke it intentionally in Manual mode.
+## Phase 4 — capability foundation
 
-## Phase 5 — Mechanical workflow enforcement
+1. deterministic capability records;
+2. independent built-in detectors;
+3. legacy stack compatibility summary;
+4. capability-aware guidance/command discovery;
+5. manifest applied-capability provenance;
+6. Doctor/update/manage integration;
+7. polyglot regression fixtures.
 
-1. `vcp gate`;
-2. revision-aware evidence freshness;
-3. workflow-level requirements;
-4. CI integration.
+**Exit criterion:** multiple proven capabilities coexist without breaking simple legacy stack behavior.
 
-**Exit criterion:** important Auto-mode requirements are mechanically checkable rather than only requested in prompt text.
+## Phase 5 — declarative profiles
 
-## Phase 6 — Conformance hardening
+1. normalized profile model;
+2. strict schema-versioned community profile extension;
+3. bounded detector DSL;
+4. first-party definitions;
+5. explicit community grants;
+6. reconcile React Native Stage 11 with capabilities.
+
+**Exit criterion:** new ecosystems extend VCP without executable plugin code.
+
+## Phase 6 — workflow mode
+
+1. persist `workflowMode`;
+2. add `--workflow-mode`;
+3. add post-install mode change;
+4. mode-aware VCP sections/adapters;
+5. Doctor visibility;
+6. behavior/prompt-eval regressions.
+
+**Exit criterion:** Auto/Manual changes routing without rewriting project-owned instructions.
+
+## Phase 7 — mechanical gate and first workflow levels
+
+1. shared Task Pack state parser;
+2. gate preview;
+3. gate run using verification engine;
+4. post-run Git freshness check;
+5. mechanically bounded L0;
+6. existing L2 gate;
+7. L3 high-risk additions.
+
+**Exit criterion:** agent narration alone cannot make material work green.
+
+## Phase 8 — CI gate integration
+
+1. optional thin provider-specific VCP gate workflow;
+2. detection of existing equivalent integration;
+3. keep project verification authority in VCP/task state.
+
+**Exit criterion:** CI is an enforcement surface, not a duplicated command/policy system.
+
+## Phase 9 — Skills UX
+
+Skills may prototype earlier, but release against stable Core contracts.
+
+1. package canonical Skills;
+2. route to deterministic VCP commands;
+3. reuse prompt-eval observable behavior;
+4. keep Skills thin and replaceable.
+
+**Exit criterion:** Manual users do not need CLI memorization and Auto users reuse the same workflow logic.
+
+## Phase 10 — conformance/release hardening
 
 1. full compatibility matrix;
 2. negative/golden failure cases;
-3. update/rollback migration fixtures;
-4. documentation claim audit.
+3. migration/update/rollback fixtures;
+4. package/release surface checks;
+5. documentation claim audit.
 
-**Exit criterion:** VCP can credibly claim safe adoption across the tested project classes.
-
----
+**Exit criterion:** public claims match tested adoption and lifecycle behavior.
 
 # 14. Non-goals
 
