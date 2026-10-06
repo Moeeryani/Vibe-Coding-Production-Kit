@@ -2565,7 +2565,7 @@ L3
 
 L1 keeps a compact durable implementation approach so VCP preserves plan-before-code and restartability without forcing the full L2 template.
 
-L1 also requires an **explicit authority state** rather than optional omission:
+L1 also requires an **explicit governing-authority state** rather than optional omission:
 
 ~~~text
 governing references
@@ -2573,15 +2573,33 @@ governing references
 
 or
 
-explicit no-governing-reference declaration
-→ "none identified for this bounded change" (exact syntax TBD)
+task-local authority
+→ this accepted bounded L1 task outcome + acceptance criteria are the applicable lower-tier requirement authority
 ~~~
 
-The parser/readiness engine must distinguish `missing` from explicit `none`. Missing authority state blocks readiness.
+There is no passing "no authority" state.
 
-An explicit `none` is not deterministic proof that no governing contract exists. It is a durable, reviewable claim. Core protected-surface/risk evidence or fresh review can invalidate it and force reference resolution or promotion to L2/L3.
+The parser/readiness engine distinguishes:
 
-Do not allow a blank section or absent field to silently mean "not applicable."
+~~~text
+references
+task-local
+missing
+invalid
+~~~
+
+`missing` and `invalid` block readiness.
+
+`task-local` is allowed only for bounded defect/internal-maintenance work where:
+
+- no higher governing repository/workspace document applies;
+- intended behavior is fully established by the developer request + repository evidence + accepted task outcome/acceptance;
+- no material HUMAN DECISION remains;
+- Core protected-surface/risk evidence does not require stronger governing authority.
+
+This follows the existing Source-of-Truth hierarchy, where approved task scope/decisions are already durable authority below product/security/architecture/API/data contracts.
+
+Do not allow a blank section or "not applicable" to mean authority is absent. If Core/review later discovers a governing contract or material product/security/data/architecture/compatibility/migration decision, require references and/or promote to L2/L3.
 
 `Lightweight review` in L1 means less review surface/ceremony, **not weaker provenance**:
 
@@ -2895,7 +2913,7 @@ vcp gate <task> --run
 
 L1 gate requires the compact durable record and checks:
 
-- governing-authority state is explicit: valid reference(s), or an allowed explicit no-governing-reference declaration that has not been contradicted by Core risk/protected-surface evidence;
+- governing-authority state is explicit: valid reference(s) or allowed task-local authority; missing/invalid authority never passes, and Core risk/protected-surface evidence can invalidate task-local authority and require references/promotion;
 - outcome/scope/acceptance evidence is complete;
 - unresolved HUMAN DECISION/blockers are absent;
 - required configured verification runs successfully in --run mode;
