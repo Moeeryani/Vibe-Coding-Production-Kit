@@ -1561,6 +1561,19 @@ Migration behavior:
 
 A schema-v2-capable reader distinguishes the sentinel from its real active lock.
 
+Compatibility scope:
+
+- this mechanically fences old **lock-participating lifecycle mutators**;
+- it cannot retroactively change an old command that never reads manifest/lock state;
+- every new command whose correctness depends on schema-v2 semantics must therefore
+  call the shared lifecycle reader before it mutates or emits authoritative lifecycle
+  artifacts;
+- release claims/tests must say "previous-release lifecycle mutators are fenced",
+  not "every historical VCP command is impossible to run";
+- when the active manifest is unreadable but the schema-v2 sentinel is present,
+  the new recovery path chooses the schema-v2 lifecycle lock before attempting
+  validated backup recovery.
+
 #### Keep recovery possible when the active manifest is damaged
 
 Do **not** make successful `readManifest(current)` mandatory for all recovery. A
@@ -1930,9 +1943,12 @@ Two gaps in the above rules:
 
 1. **Duplicate-equivalent must not become fake ambiguity.** Do not normalize by
    rewriting project-owned text, but also do not interrupt the user merely to choose
-   between identical commands. If every normalized configured value for a command key
-   is identical, treat the effective execution value as unambiguous, record all source
-   locations/provenance, and report the duplicate as informational/cleanup debt.
+   between identical commands. If every extracted configured value for a command key is identical after
+   only the parser's ordinary outer-whitespace/line-ending normalization, treat the
+   effective execution value as unambiguous, record all source locations/provenance,
+   and report the duplicate as informational/cleanup debt. Do not attempt shell
+   semantic normalization (`npm test` vs aliases/quoting/pipelines are not assumed
+   equivalent).
    Different effective values remain CONFLICT/HUMAN DECISION. Destructive-pattern
    approval below still applies to the effective command even when duplicates are
    equivalent.
@@ -5720,6 +5736,10 @@ Stage 13 prerequisite:
 - use one assetSet-aware Source-of-Truth scaffold helper;
 - brownfield-minimal renderer must not hardcode absent VCP starter paths;
 - preserve current legacy/full behavior for compatibility until later migration.
+
+- once brownfield-minimal task scaffolding exists, call the shared lifecycle reader
+  before rendering; unsupported minimumReaderVersion blocks rather than falling back
+  to the legacy full template;
 ---
 
 ## lib/git-review.mjs
