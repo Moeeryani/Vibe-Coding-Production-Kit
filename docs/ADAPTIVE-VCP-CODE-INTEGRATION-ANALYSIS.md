@@ -1188,6 +1188,8 @@ For EXISTING repositories, default planning should:
 
 - VCP lifecycle/internal state;
 - bounded VCP agent integration;
+- an assetSet-aware integration block that references explicit Task Pack/Context authority rather than assuming canonical starter docs exist;
+- only verification-command slots whose effective authority is unambiguous;
 - essential project-operational artifacts only when their authority is clear;
 - existing project prompt overrides when present.
 
@@ -1958,7 +1960,17 @@ packaged:
 vcp:prompts/02-plan-task.md
 ~~~
 
-This mirrors security-profile behavior and keeps Context Pack manifests inspectable.
+Resolver safety contract:
+
+- a project override is still a selected-root project file; resolve it through the same confinement and symlink-safety rules used for trusted project context;
+- package fallback is chosen only from the fixed MODE_PROMPTS/canonical prompt allowlist for the requested contextMode;
+- do not expose a generic "read any vcp:<path>" escape hatch;
+- the packaged prompt is typed as execution-prompt context, never Source of Truth;
+- a Task Pack cannot cite a packaged prompt to satisfy product/architecture/security authority;
+- package prompt bytes count toward the existing context budget;
+- vcp: identity is rendered in the Context Pack/manifest so a reviewer can distinguish package guidance from project-owned truth.
+
+This mirrors security-profile behavior without widening repository authority.
 
 ---
 
@@ -2068,7 +2080,9 @@ Never remove the entire docs directory.
 - fresh consumer install no longer receives VCP source roadmap/release/task history;
 - fresh consumer install no longer receives source-framework validation scripts;
 - context works with no project-local prompts;
-- project prompt overrides still work;
+- packaged prompt resolution cannot escape its fixed package allowlist or widen project path authority;
+- packaged prompts are never mistaken for project Source of Truth;
+- project prompt overrides still work and remain selected-root confined;
 - old modified prompts survive upgrade as overrides;
 - Doctor is green/accurate without copied framework scripts;
 - release-check consumer lifecycle smoke no longer depends on copied validate-framework;
@@ -3873,6 +3887,8 @@ Needs:
 
 - audit every rule as always-on vs task/phase-specific;
 - keep only routing, authority, human-decision boundary, truthfulness, verification configuration, and genuinely universal invariants always-on;
+- render brownfield-minimal standing instructions without hard-coded requirements to read VCP starter Product/Architecture/Security/Testing paths that were never installed;
+- point the agent to explicit Task Pack Source-of-Truth references and the current bounded Context Pack instead;
 - move detailed planning/security/testing/review guidance behind Skills/prompts/Context Packs;
 - preserve project-owned surrounding content under section ownership for brownfield adoption;
 - measure instruction footprint and agent behavior before/after.
