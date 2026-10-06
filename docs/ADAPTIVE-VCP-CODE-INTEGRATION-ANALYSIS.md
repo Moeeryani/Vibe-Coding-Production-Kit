@@ -4536,6 +4536,29 @@ Update:
 
 ---
 
+
+### Host loading semantics are not uniform
+
+Do not encode token/correctness assumptions around one platform's Skill loader.
+
+Observed ecosystem patterns include:
+
+- metadata-first discovery followed by model-selected Skill reads;
+- explicit Skill invocation;
+- custom-agent/session configurations that eagerly preload the full selected Skill;
+- platform-specific subagent inheritance behavior.
+
+Packaging consequence:
+
+- the primary router `SKILL.md` must remain small and safe even if injected eagerly;
+- deeper references/resources are separate files rather than copied into the router;
+- when a host supports on-demand reference reads, the Skill uses them progressively;
+- when a host eagerly preloads the Skill, VCP still remains correct because Core state/gates—not lazy loading—carry authority;
+- cross-agent conformance tests check behavior/authority, not identical loading mechanics.
+
+Do not advertise a guaranteed token saving from Skills alone. Measure context footprint per supported host configuration.
+
+---
 ## 13.5 Avoid policy duplication
 
 A Skill should not contain a second 800-line version of AGENTS.md.
@@ -5846,7 +5869,7 @@ Needs:
 Risks:
 
 - Skills growing into a second copy of VCP;
-- all references loading eagerly;
+- packaging so much content in the top-level Skill that eager-loading hosts recreate the standing-context problem;
 - Auto and Manual developing separate workflows.
 
 ---
