@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -236,6 +236,42 @@ test('explicit and legacy-unknown concrete selections do not specialize to React
   await writeManifest(legacy, old);
   await addReactNativeEvidence(legacy, { typeScript: true });
   assert.equal((await planUpdate({ targetDir: legacy })).stackProfileChange, null);
+});
+
+
+test('auto-selected Go and Python profiles are not generalized into React Native specialization', async () => {
+  const cases = [
+    {
+      stack: 'go',
+      marker: 'go.mod',
+      content: 'module example.com/mobile\n\ngo 1.24\n'
+    },
+    {
+      stack: 'python',
+      marker: 'pyproject.toml',
+      content: '[project]\nname = "mobile"\n'
+    }
+  ];
+
+  for (const item of cases) {
+    const root = await tempDir();
+    await addReactNativeEvidence(root);
+    await writeFile(path.join(root, item.marker), item.content, 'utf8');
+    await initProject({ targetDir: root, agent: 'generic', stack: 'auto', includeGitHub: false });
+
+    const installed = await manifest(root);
+    assert.equal(installed.install.stack, item.stack);
+    assert.equal(installed.install.requestedStack, 'auto');
+
+    await rm(path.join(root, item.marker));
+    const plan = await planUpdate({ targetDir: root });
+    assert.equal(plan.stackProfileChange, null);
+    assert.equal(plan.stack, item.stack);
+
+    const check = await checkForUpdate({ targetDir: root, fetchLatest: false });
+    assert.equal(check.stackProfileChange, null);
+    assert.equal(check.updateAvailable, false);
+  }
 });
 
 test('React Native specialization respects local AGENTS verification decisions and blocks on conflict', async () => {

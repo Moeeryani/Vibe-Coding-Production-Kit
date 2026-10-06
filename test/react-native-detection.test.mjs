@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, readFile, symlink, writeFile } from 'node:fs/promises';
+import { cp, mkdtemp, mkdir, readFile, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import { createContextPack } from '../lib/context.mjs';
 import { formatDoctorReport, runDoctor } from '../lib/doctor.mjs';
 import { initProject } from '../lib/init.mjs';
+import { createTaskPack } from '../lib/task.mjs';
 import {
   applyStackProfileToContent,
   detectStack,
@@ -81,6 +83,24 @@ test('react-native is an explicit supported stack and generates its first-party 
   assert.match(agents, /separate HUMAN DECISION/);
   assert.doesNotMatch(agents, /## 16\. Go stack profile/);
   assert.doesNotMatch(agents, /LINT_COMMAND=go vet/);
+});
+
+
+test('explicit JavaScript selection is preserved even when React Native evidence is present', async () => {
+  const target = await tempDir();
+  await addReactNativeEvidence(target, { typeScript: true });
+
+  const result = await initProject({
+    targetDir: target,
+    agent: 'generic',
+    stack: 'javascript',
+    includeGitHub: false
+  });
+  const agents = await readFile(path.join(target, 'AGENTS.md'), 'utf8');
+
+  assert.equal(result.stack, 'javascript');
+  assert.match(agents, /## 16\. JavaScript \/ Node\.js stack profile/);
+  assert.doesNotMatch(agents, /## 16\. React Native stack profile/);
 });
 
 test('React Native detection accepts every canonical application marker', async () => {
@@ -233,6 +253,46 @@ test('obvious sensitive-effect mobile scripts are not imported into general veri
   assert.match(result.content, /E2E_COMMAND=<define or n\/a>/);
   assert.doesNotMatch(result.content, /fastlane/);
   assert.doesNotMatch(result.content, /devicefarm/);
+});
+
+
+test('first-party React Native fixture dogfoods init, task verification, and bounded context without plugins', async () => {
+  const parent = await tempDir();
+  const target = path.join(parent, 'mobile-app');
+  await cp(firstPartyFixture, target, { recursive: true });
+
+  const initialized = await initProject({
+    targetDir: target,
+    agent: 'generic',
+    stack: 'auto',
+    includeGitHub: false
+  });
+  assert.equal(initialized.stack, 'react-native');
+
+  const agents = await readFile(path.join(target, 'AGENTS.md'), 'utf8');
+  assert.match(agents, /## 16\. React Native stack profile/);
+  assert.match(agents, /TYPECHECK_COMMAND=npm run typecheck/);
+  assert.match(agents, /E2E_COMMAND=npm run test:e2e/);
+
+  const task = await createTaskPack({
+    targetDir: target,
+    slug: 'mobile-dogfood',
+    title: 'Mobile dogfood'
+  });
+  const taskContent = await readFile(path.join(target, task.relative), 'utf8');
+  assert.match(taskContent, /UNIT_TEST_COMMAND.*npm run test:unit/);
+  assert.match(taskContent, /BUILD_COMMAND.*npm run build/);
+  assert.match(taskContent, /E2E_COMMAND.*npm run test:e2e/);
+
+  const context = await createContextPack({
+    targetDir: target,
+    task: 'mobile-dogfood',
+    mode: 'plan'
+  });
+  assert.deepEqual(context.communityPlugins, []);
+  assert.match(context.content, /## 16\. React Native stack profile/);
+  assert.doesNotMatch(context.content, /## Selected community plugins/);
+  assert.equal(context.files.includes('docs/plugins/PLUGINS.json'), false);
 });
 
 test('Doctor reports auto-selected JavaScript as React Native specialization and lifecycle-transition eligible', async () => {
