@@ -821,7 +821,7 @@ Brownfield mutation is added only after Stage 12 proves the planner.
 
 Apply must:
 
-1. acquire the lifecycle lock;
+1. acquire the lifecycle lock using first-adoption-aware lock bootstrap;
 2. inspect the repository again;
 3. recompute a **fresh** plan under the lock;
 4. block conflicts/unsafe preconditions;
@@ -1179,6 +1179,29 @@ Doctor may report governance coverage as informational/unknown when no explicit 
 
 Broader provider-neutral CI cleanup remains Phase 3.
 
+### First-adoption lock bootstrap must be reversible before backup
+
+Current update locking creates `.vcp/update.lock` and may create `.vcp/` itself. That is harmless for an already-managed update but is observable mutation in a previously unmanaged repository.
+
+Stage 13 must make lock acquisition lifecycle-aware:
+
+- lock acquisition records whether `.vcp/` existed before this operation, or returns equivalent ownership metadata;
+- if VCP creates `.vcp/` solely to hold the lock, that directory is temporary lifecycle scaffolding until the adoption transaction/recovery point exists;
+- after the lock is acquired, Smart Init re-inspects the namespace and blocks if any unknown/incompatible VCP state appeared;
+- if planning blocks/fails **before** a backup/transaction is created, release the lock and remove only the empty `.vcp/` directory that this operation created;
+- never recursively delete the directory during this cleanup; if any unexpected content exists, preserve it and report the conflict;
+- once backup/transaction state exists, the normal generalized recovery metadata owns rollback.
+
+The invariant is:
+
+~~~text
+unmanaged before apply
++ conflict/failure before project mutation
+→ unmanaged afterward
+~~~
+
+Acquiring the lock is allowed to create temporary internal state, but that state must not leak after an aborted first-adoption attempt.
+
 ## 3.12 Definition of done
 
 Smart adoption is complete only when:
@@ -1199,6 +1222,7 @@ Smart adoption is complete only when:
 - packaged prompt fallback, Context, and Doctor agree without widening project authority;
 - brownfield standing instructions never require starter paths absent from the adopted assetSet;
 - schema migration makes legacy entries explicit whole-file ownership;
+- lock bootstrap leaves no stray VCP state when Stage 13 blocks before backup;
 - rollback restores both prior content **and prior absence of lifecycle state**;
 - rerunning init after successful adoption reports MANAGED and does not rewrite lifecycle state;
 - documentation contains no instruction to use init --force after review.
