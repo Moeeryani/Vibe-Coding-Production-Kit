@@ -1,7 +1,7 @@
 # Adaptive VCP — Final Pre-Implementation Audit
 
 **Audit date:** 2026-10-06  
-**Adaptive document blobs re-audited in the final consistency pass:** strategic `97cf860821e26c517f439fe6f68a65ce281bd325`; technical `3032f5f48904376f98b02890cb1718d4d3639784`. This audit-record update itself is documentation-only.  
+**Adaptive document blobs re-audited in the final consistency pass:** strategic `768d6be97f257106cda8f5d5c99399c78b27cef6`; technical `3032f5f48904376f98b02890cb1718d4d3639784`. This audit-record update itself is documentation-only.  
 **Scope:** architecture, real-code integration, lifecycle compatibility, external ecosystem research, cross-document consistency, and implementation-readiness review for the Adaptive VCP roadmap.  
 **Product code changed by this audit:** none. Documentation and status/evidence records only.
 
@@ -1165,6 +1165,49 @@ The contracts include:
 All **41/41** contracts were present and mutually compatible after correcting search-term false positives and the additional amendments in this final pass. No architectural contradiction remained among these contracts.
 
 This does **not** mean implementation bugs are impossible. It means the intended contracts no longer prescribe mutually incompatible behavior.
+
+---
+
+## 5A. Per-workstream analysis coverage audit
+
+The consistency pass also checked **analysis completeness**, not only absence of contradictions.
+
+The two Adaptive documents have intentionally different jobs:
+
+~~~text
+strategic plan
+→ current situation / product problem / target rules / sequencing / success
+
+technical analysis
+→ real code surfaces / downstream coupling / migration / failure modes / tests
+~~~
+
+Requiring both files to repeat the same file map would add framework tax, so completeness is judged across the pair while each document remains sufficient for its role.
+
+| Architectural point | Strategic current/problem/target/DoD | Technical code/coupling/migration/tests | Result |
+|---|---|---|---|
+| A — Smart Init/lifecycle | Yes | Yes, including CLI/init/state/update/manage/Doctor/task/command authority | Complete |
+| B — consumer vs package assets | Yes | Yes, including Context/Doctor/release/migration downstreams | Complete |
+| C — composable capabilities | Yes | Yes, including stack compatibility, provenance, Doctor/update/manage | Complete |
+| D — declarative profiles/plugins | Yes | Yes, including trust, grants, detector DSL, path/resource safety | Complete |
+| E — CI integration | Yes | Yes, including fresh-install safety, inspection, migration, gate delegation, platform enforcement | Complete |
+| F — Auto/Manual + workflow levels | Yes | Yes, including manifest state, adapters, L0–L3 task/readiness/context/review effects | Complete |
+| G — Skills UX | Yes; problem/affected surfaces now explicit | Yes, including packaging, prompt-eval, host loading semantics | Complete; no lifecycle data migration invented |
+| H — deterministic gate | Yes | Yes, including parser/readiness/verify/Git/review/finalization/receipt interactions | Complete |
+| I — compatibility/conformance | Yes | Yes, including fixtures, public CLI, negative cases, platform evidence separation | Complete |
+| J — Complexity ROI | Yes | Yes, including Core-vs-Skill ownership and explicit dependency-graph deferral | Complete; migration not applicable as a generic requirement |
+| Product invariants 2A / code contracts 3A | Yes | Yes | Complete |
+
+Additional completeness checks passed:
+
+- every behavior-bearing persisted field has a writer/reader/migration/rollback/reader-compatibility story;
+- every brownfield-owned text surface has ownership + update + ignore/track semantics;
+- every future executable boundary has provenance/freshness/fail-closed behavior;
+- every staged feature that changes public behavior has negative tests/DoD and a sequencing owner;
+- current-vs-target differences are explicitly labeled rather than silently mixing released and future behavior;
+- conscious deferrals are named rather than left as implicit holes.
+
+**Coverage verdict:** no load-bearing point is missing its current-state analysis, impact/coupling analysis, target fix, and validation path at the level appropriate to the two-document authority split.
 
 ---
 
