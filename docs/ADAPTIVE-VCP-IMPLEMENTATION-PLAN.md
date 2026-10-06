@@ -3471,18 +3471,22 @@ After Checkpoint A:
 1. unify one classified consumer asset catalog across greenfield and managed lifecycle paths without forcing identical installed files;
 2. migrate old framework/reference assets explicitly;
 3. complete AGENTS standing-context reduction beyond the brownfield section;
-4. update Doctor prompt/reference expectations;
+4. finish Doctor source-validator/asset expectations beyond the Stage-12 prompt/install-health minimum;
 5. remove copied framework validators/source docs;
 6. rewrite release-check consumer lifecycle validation;
 7. preserve customized legacy prompts as overrides.
 
 ## Phase 3 — provider-neutral CI detection + legacy workflow migration
 
-1. stop hard-coded npm workflow installation;
-2. split CI from GitHub issue/PR hygiene;
-3. provider-neutral CI inspection;
-4. Doctor reporting;
-5. migrate old managed \`validate.yml\`.
+Stage 12 has already stopped the harmful workflow on fresh safe install surfaces and separated its desired-state meaning from GitHub hygiene.
+
+Phase 3 now owns:
+
+1. provider-neutral CI inspection;
+2. Doctor CI/gate reporting with explicit coverage limits;
+3. explicit lifecycle migration/detach of old `legacy-full-v1` managed `.github/workflows/validate.yml`;
+4. preservation of GitHub issue/PR hygiene as a separate optional surface;
+5. keeping newly generated CI deferred until Phase 8 after gate stabilization.
 
 ## Phase 4 — capability foundation
 
