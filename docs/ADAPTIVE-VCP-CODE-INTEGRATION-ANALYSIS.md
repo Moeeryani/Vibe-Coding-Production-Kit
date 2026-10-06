@@ -2233,36 +2233,53 @@ Differentiate:
 
 ---
 
-## 8.11 Stage 11 React Native impact
 
-Current main contains a detailed React Native Stage 11 design, while runtime stacks.mjs still does not implement react-native.
+## 8.11 Stage 11 React Native migration impact
 
-Do not implement the old single-stack React Native design immediately before capabilities.
+Stage 11 React Native is already merged on main.
 
-That would create:
+Current runtime facts include:
+
+- react-native is an explicit STACK_CHOICES value;
+- auto detection resolves go → python → react-native → typescript → javascript → generic;
+- exact selected-root dependency + application-marker evidence is required;
+- auto-selected generic/javascript/typescript may specialize to react-native under existing provenance rules;
+- explicit selectors and legacy unknown provenance remain conservative;
+- mobile sensitive-effect commands remain outside ordinary verification discovery.
+
+The capability architecture must therefore **migrate/re-express**, not pre-empt, Stage 11.
+
+Required bridge:
 
 ~~~text
-javascript → react-native concrete re-profile
+existing install.stack / requestedStack
+        +
+existing React Native specialization provenance
+        ↓
+normalized capabilities
+        +
+legacy stack summary retained for compatibility
 ~~~
 
-and then require another redesign into composable capabilities.
-
-Instead, reconcile Stage 11 into the capability architecture.
-
-React Native can become the first real test of a more-specific composed capability:
+React Native should map into capabilities such as:
 
 ~~~text
 runtime.node
-language.typescript
+language.javascript | language.typescript
 framework.react-native
 mobile.react-native-app
 ~~~
 
-with existing explicit project-root detection constraints preserved.
+while preserving:
 
-This avoids throwaway lifecycle work.
+- explicit requestedStack=react-native as human configuration provenance;
+- auto-selected React Native as detector/lifecycle provenance;
+- selected-root confinement;
+- existing verification command semantics;
+- security/HUMAN DECISION boundaries;
+- Stage 10 plugin coexistence.
 
----
+Do not remove the current specialization transition until the capability-era lifecycle has an explicitly tested equivalent migration path.
 
 ## 8.12 Definition of done
 
