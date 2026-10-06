@@ -503,7 +503,7 @@ The stage must define:
 
 The existing React Native-readiness community fixture remains **Stage 10 plugin dogfood only** and does not become built-in authority by implication.
 
-**HUMAN DECISION before implementation:** select the first built-in ecosystem boundary. Issue #82 proposes React Native as the first built-in profile, while Flutter/native iOS/native Android remain follow-ups; this proposal is not implementation authority until explicitly approved.
+**Approved ecosystem boundary:** React Native is the first built-in Stage 11 mobile profile. Flutter, native iOS, and native Android remain explicit follow-ups and are not Stage 11 implementation scope. The Stage 10 React Native-readiness community fixture remains plugin dogfood and does not become first-party authority.
 
 Dependency Graph Engine / Slice D remains deferred and is not a Stage 11 dependency.
 

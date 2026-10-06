@@ -1,6 +1,6 @@
 # Task — Design Stage 11 deterministic Mobile Profiles
 
-Status: Draft
+Status: In progress
 Slug: `stage11-mobile-profiles`
 
 ## Outcome
@@ -22,27 +22,21 @@ VCP has an approved, bounded design for deterministic first-party mobile profile
 
 Define built-in mobile support as a deterministic first-party VCP capability without treating the Stage 10 React Native-readiness plugin fixture as built-in authority, inventing verification commands, weakening explicit project/workspace boundaries, or automating mobile signing/deployment decisions.
 
-## HUMAN DECISION before implementation
+## Approved ecosystem decision
 
-Select the first built-in ecosystem boundary.
+**APPROVED:** Stage 11 ships the mobile-profile framework plus **React Native as the first built-in supported profile**.
 
-### Proposal A — recommended
+Preserved negative decisions for Stage 11:
 
-Ship the Stage 11 framework plus **React Native as the first built-in supported profile**. Flutter, native iOS, and native Android remain explicit follow-ups until independently designed and evidenced.
+- **Rejected for this stage:** generic framework with no built-in supported ecosystem, because it would not prove a real first-party mobile profile end to end.
+- **Rejected for this stage:** multiple ecosystems in one stage, because it would materially expand detection, tooling, lifecycle, security, fixture, and conformance scope.
+- Flutter, native iOS, and native Android remain explicit follow-ups and require independent design/evidence before becoming built-in profiles.
 
-### Alternative B
-
-Ship only a generic mobile-profile framework with no built-in supported ecosystem.
-
-### Alternative C
-
-Ship multiple ecosystems in Stage 11. This materially expands detection, tooling, lifecycle, security, fixture, and conformance scope and is not recommended for the first bounded stage.
-
-**State:** PROPOSED — NOT APPROVED. No implementation may encode A/B/C until the human decision is explicit.
+The existing Stage 10 React Native-readiness community plugin fixture remains plugin dogfood only; approval of React Native-first does not grant that fixture first-party authority.
 
 ## Acceptance criteria
 
-- [ ] AC-001 — first built-in ecosystem boundary is explicitly approved.
+- [x] AC-001 — first built-in ecosystem boundary is explicitly approved.
 - [ ] AC-002 — deterministic mobile detection evidence, precedence, ambiguity, and negative markers are documented.
 - [ ] AC-003 — built-in mobile profile authority is explicitly separated from Stage 10 community plugin guidance.
 - [ ] AC-004 — verification discovery uses concrete repository/tool evidence and never invents simulator/device/signing/deploy commands.
@@ -211,7 +205,7 @@ Implementation verification will be finalized after AC-001 and the detailed desi
 
 ## Finalization
 
-- [ ] First built-in ecosystem HUMAN DECISION approved.
+- [x] First built-in ecosystem HUMAN DECISION approved — React Native first.
 - [ ] Design acceptance criteria complete.
 - [ ] Fresh design review complete.
 - [ ] Implementation Task Pack/readiness approved.
