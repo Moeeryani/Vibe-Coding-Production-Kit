@@ -97,7 +97,7 @@ The following decisions are considered accepted for this plan:
 
 
 12. **Split safe adoption into a read-only planning stage and a mutating apply stage.**  
-    After Stage 11 is completed and the roadmap is re-baselined, Stage 12 is the first Adaptive VCP execution slice: it proves repository inspection, section-ownership foundations, prompt fallback, and a trustworthy `vcp init --dry-run` plan without performing brownfield adoption writes. Stage 13 consumes the same planning model to perform transactional Smart Init apply.
+    After the merged Stage 11 closeout gap is reconciled and current main is re-baselined, Stage 12 is the first Adaptive VCP execution slice: it proves repository inspection, section-ownership foundations, prompt fallback, and a trustworthy `vcp init --dry-run` plan without performing brownfield adoption writes. Stage 13 consumes the same planning model to perform transactional Smart Init apply.
 
 13. **Treat init previews as speculative, not executable authority.**  
     A Stage 12 dry-run is evidence of what VCP would do at that moment. Stage 13 must acquire the lifecycle lock and recompute a fresh plan from the current repository before mutation. Do not persist or blindly apply a stale preview.
@@ -940,10 +940,17 @@ ADD
 → create content; establish declared file/section ownership
 
 ADOPT
-→ current content already matches/contains the accepted VCP-owned unit; establish ownership without unnecessary rewrite
+→ establish ownership only when the ownership boundary is already explicit and safe:
+   - an exact whole-file canonical artifact that VCP is allowed to own, or
+   - an already well-formed marked VCP section
+→ never claim arbitrary unmarked project prose as a VCP-owned section
 
 COMPOSE
-→ add/reconcile a VCP-owned section while preserving surrounding content
+→ create/reconcile the marked VCP-owned section while preserving surrounding project content
+
+Equivalent unmarked routing/instructions
+→ NOOP if no VCP-owned section is needed
+→ or COMPOSE if VCP requires a durable managed section
 
 PRESERVE
 → leave project-owned content untouched; ownershipAfter = none
@@ -1179,6 +1186,8 @@ Project-facing docs should exist only when they are part of durable project trut
 Replace broad template roots such as `docs` and `prompts` with an explicit consumer asset manifest.
 
 Before removing project-local prompt copies, first add a **canonical prompt resolver**.
+
+Sequencing note: the resolver itself, project-override precedence, and the minimum Doctor prompt-source compatibility land in Stage 12 because brownfield adoption already relies on packaged fallback. The broader consumer-asset removal, framework-validator cleanup, and remaining Doctor asset/CI cleanup stay in Phase 2/3.
 
 Required precedence:
 
