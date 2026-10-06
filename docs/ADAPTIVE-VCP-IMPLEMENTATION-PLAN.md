@@ -8,6 +8,16 @@
 
 ---
 
+## Interpretation rule — current behavior vs target behavior
+
+This is a **future execution/design authority**, not documentation of already released CLI behavior.
+
+- README/CLI/OPERATING-MODEL/TASK/CONTEXT/UPDATES docs remain authoritative for behavior that exists on current main/released versions until the corresponding Adaptive stage lands.
+- A deliberate current-vs-target difference (for example current init --force versus planned Stage-12 removal) is not itself a contradiction.
+- When an Adaptive stage is implemented, its Task Pack/PR must update affected current-behavior docs in the same accepted change so the repository does not retain two active contracts.
+- The Roadmap owns stage/status sequencing; this document owns the intended strategic target; the technical companion owns more-specific integration mechanics.
+
+
 ## 1. Executive decision summary
 
 This document records the agreed direction for the next major VCP evolution.
@@ -701,6 +711,14 @@ dependency / readiness state
 ~~~
 
 These dimensions are orthogonal.
+
+Also keep similarly named `auto` concepts distinct:
+
+- workflowMode=auto → agent routing preference;
+- requestedStack=auto → legacy stack selector provenance;
+- automatic capability application → a lifecycle decision derived from trusted capability evidence/provenance, not workflowMode.
+
+Changing one must not silently change the others.
 
 In particular:
 
@@ -1651,7 +1669,8 @@ Expand the declarative profile model without weakening the existing strict v1 co
 
 Do **not** make the current v1 manifest permissive.
 
-Use explicit schema dispatch:
+Use explicit schema dispatch for the **community profile/plugin manifest** (this is separate from the `.vcp/manifest.json` lifecycle schema):
+
 
 ```text
 schemaVersion 1
@@ -1701,7 +1720,7 @@ Important:
 
 Preserve current invariants:
 
-- schema v1 behavior remains exactly backward-compatible;
+- community profile/plugin schema v1 behavior remains exactly backward-compatible;
 - plugin cannot grant itself capabilities;
 - community capability detection requires an explicit project grant such as `capability-detection`;
 - unknown fields fail within each schema version;
@@ -1739,7 +1758,7 @@ Avoid:
 ## 6.6 Definition of done
 
 - existing schema-v1 community plugins continue to load unchanged;
-- schema v2 is strict rather than a permissive extension of v1;
+- community profile/plugin schema v2 is strict rather than a permissive extension of plugin schema v1;
 - a new ecosystem profile can be added without arbitrary executable plugin code;
 - detector DSL evaluation remains deterministic and selected-project-root bounded;
 - community detection contributions require explicit selection/digest/grant;
