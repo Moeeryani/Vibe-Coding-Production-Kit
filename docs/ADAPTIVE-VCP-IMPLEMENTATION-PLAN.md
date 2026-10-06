@@ -1561,18 +1561,31 @@ Each capability should include provenance:
 
 Avoid fuzzy model-generated confidence.
 
-Separate **evidence state** from **application authority**.
+Separate **evidence state** from **application state/authority**.
 
-At minimum, the model must distinguish:
+Conceptually:
 
-- `proven` — deterministic evidence matched;
-- `configured` — project/VCP lifecycle state explicitly applies the capability;
-- `proposed` — evidence/profile suggests it but VCP must not apply it automatically;
-- `unknown` — not established.
+~~~text
+evidenceState
+  proven | unknown
 
-Also retain provenance such as `core`, `first-party-profile`, `community-profile:<id>`, or explicit project configuration.
+applicationState
+  applied | proposed | unapplied
 
-A capability can be deterministically proven yet still be **unapplied**.
+applicationProvenance (when applied)
+  auto-core | explicit-project | community-adopted | ...
+
+sourceKind
+  core | first-party-profile | community-profile:<id> | project-config
+~~~
+
+Examples:
+
+- deterministic detector match + no adoption → evidenceState=proven, applicationState=unapplied/proposed;
+- explicit project capability with detector no longer present → evidenceState=unknown, applicationState=applied, applicationProvenance=explicit-project;
+- auto core capability currently matched → evidenceState=proven, applicationState=applied, applicationProvenance=auto-core.
+
+A capability can therefore be deterministically proven yet unapplied, or explicitly applied while current detector evidence is absent.
 
 ## 5.4 Detection should be compositional
 
