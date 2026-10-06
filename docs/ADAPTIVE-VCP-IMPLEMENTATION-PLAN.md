@@ -2425,9 +2425,12 @@ When security review is required, L3 must persist a distinct bounded **security 
 
 - reviewed base/head provenance;
 - active profile IDs/source provenance relevant to the review;
+- a compact resolved-security-guidance identity (for example canonical content digest/fingerprint plus supplying VCP package version for packaged profiles) so unchanged profile names cannot hide changed guidance;
 - material security findings with severity and current-task disposition;
 - resolution/follow-up;
 - unresolved HUMAN DECISION / risk-acceptance boundaries.
+
+At gate time, recompute the required active security profile/guidance identity. If the required profile set or resolved packaged/project profile content changed since security review, that review is stale and must be repeated.
 
 The ordinary L2 independent review is still required. “Security review” is an additional focused control, not a replacement.
 
