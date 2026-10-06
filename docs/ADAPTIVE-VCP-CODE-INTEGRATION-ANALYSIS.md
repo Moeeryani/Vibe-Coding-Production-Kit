@@ -4429,24 +4429,29 @@ Before Stage 12 product-code work:
 
 ## Stage 12 — Safe Adoption Planning
 
-Implement the minimum foundations for trustworthy read-only brownfield planning:
+Implement the minimum foundations for trustworthy **read-only brownfield init planning**:
 
 1. centralized install/manifest metadata construction;
 2. canonical project-override/package-fallback prompt resolver;
-3. schema-v2 file-vs-section ownership and schema-v1 migration;
-4. managed-section parsing/composition/baseline primitives;
-5. NEW / EXISTING / MANAGED repository inspection;
-6. reserved .vcp collision/recovery inspection;
-7. brownfield stack-ambiguity inspection while retaining current Stage 11 stack API;
-8. minimal brownfield adoption-surface planner;
-9. persisted assetSet design: legacy-full vs brownfield-minimal;
-10. tri-state GitHub request provenance;
-11. shared verification-command authority inspection;
-12. Doctor prompt-source / install-surface awareness required for the new valid brownfield shape;
-13. deterministic content-free init action plan;
-14. public vcp init --dry-run [--json];
-15. init-specific destructive force removal;
-16. previous-release → schema-v2 lifecycle/release smoke.
+3. lifecycle manifest schema-v2 file-vs-section ownership and schema-v1 migration;
+4. minimumReaderVersion fail-closed semantics using the shared low-level semver comparator;
+5. managed-section parsing/composition/baseline primitives;
+6. VCP-state readability inspection plus NEW / EXISTING / MANAGED maturity classification;
+7. reserved .vcp collision/recovery inspection;
+8. brownfield stack-ambiguity inspection while retaining current Stage 11 stack API;
+9. minimal brownfield adoption-surface planner;
+10. persisted assetSet design: legacy-full vs brownfield-minimal;
+11. tri-state GitHub request provenance;
+12. shared verification-command authority inspection;
+13. Doctor prompt-source / install-surface awareness required for the new valid brownfield shape;
+14. deterministic content-free init action plan;
+15. public vcp init --dry-run [--json];
+16. init-specific destructive force removal;
+17. previous-release → schema-v2 lifecycle/release smoke, including old-reader fail-closed coverage.
+
+The read-only boundary applies specifically to **unmanaged EXISTING repositories through vcp init**.
+
+Already MANAGED schema-v1 repositories may be transactionally migrated to schema v2 by the normal vcp update path in the Stage-12 release. That migration remains subject to update preview/conflict/backup/rollback/idempotence. vcp init does not perform the managed migration; it redirects to update/status.
 
 Runtime behavior:
 
@@ -4455,18 +4460,24 @@ NEW
 → current greenfield apply may remain
 
 EXISTING
-→ preview only
-→ brownfield mutation blocked
+→ preview supported
+→ brownfield init mutation blocked
 
 MANAGED
-→ lifecycle status/update redirect
+→ init redirects to lifecycle status/update
+→ normal vcp update may perform the Stage-12 schema migration
+
+VCP_STATE_CONFLICT / MANAGED_RECOVERY_REQUIRED
+→ no init mutation
+→ explain upgrade/recovery/health blocker
 ~~~
 
 Stage 12 exit criterion:
 
-- same snapshot → same bounded plan;
-- preview performs zero project/durable VCP mutation;
-- unsafe or ambiguous authority is visible as CONFLICT/decision rather than silently resolved.
+- same readable repository snapshot → same bounded init plan;
+- brownfield preview performs zero project/durable VCP mutation;
+- unsafe/ambiguous authority is visible as CONFLICT/decision rather than silently resolved;
+- previous managed installs migrate only through the existing transactional update lifecycle.
 
 ## Stage 13 — Smart Init Apply
 
