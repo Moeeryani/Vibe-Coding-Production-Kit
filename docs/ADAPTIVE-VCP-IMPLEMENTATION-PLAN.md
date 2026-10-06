@@ -2318,7 +2318,8 @@ Before generating any new VCP CI:
 3. inspect and preserve existing project CI as project-owned state without claiming semantic coverage;
 4. make the Stage-12/13 planner treat CI as preserved project state, not a template target;
 5. make Stage-12 Doctor/install-health logic assetSet-aware so absence of `.github/workflows/validate.yml` is expected for `greenfield-safe-v1` and `brownfield-minimal-v1`;
-6. keep existing `legacy-full-v1` managed `validate.yml` stable until the explicit Phase-3 migration path evaluates it.
+6. keep existing `legacy-full-v1` managed `validate.yml` stable until the explicit Phase-3 migration path evaluates it;
+7. keep the canonical old workflow **inside the VCP package as a legacy lifecycle/migration asset** until that migration is complete, even though fresh greenfield/brownfield desired surfaces no longer install it.
 
 Stage 12 does **not** need the full provider-neutral CI inspector. Until Phase 3, Doctor may report CI coverage as unassessed/unknown for the new safe asset sets; it simply must not diagnose the intentionally absent legacy workflow as a broken VCP install.
 
@@ -2370,7 +2371,24 @@ Unknown custom CI is not automatically an error.
 
 ## 7.5 Migration of the old VCP workflow
 
-When the old managed `.github/workflows/validate.yml` leaves the desired consumer set, remove it only through an explicit lifecycle migration.
+When the old managed `.github/workflows/validate.yml` leaves the legacy desired consumer set, remove it only through an explicit lifecycle migration.
+
+Packaging and consumer installation are separate concerns during the bridge:
+
+~~~text
+Stage 12 package
+→ still contains canonical legacy validate.yml
+→ legacy-full-v1 desired-state/update can reproduce/merge it
+→ greenfield-safe-v1 and brownfield-minimal-v1 do not install it
+
+Phase 3 migration
+→ old managed workflow explicitly DELETE/DETACH/PRESERVE according to lifecycle rules
+
+after migration compatibility is no longer needed
+→ package may stop shipping the legacy workflow asset
+~~~
+
+Do not use "not installed on fresh projects" as a reason to remove bytes that a supported old-install lifecycle still needs.
 
 Existing update semantics should decide:
 
