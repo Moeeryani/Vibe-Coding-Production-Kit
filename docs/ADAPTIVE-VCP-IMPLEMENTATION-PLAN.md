@@ -106,8 +106,8 @@ The following decisions are considered accepted for this plan:
     The success target is universal safe adoption and graceful fallback, not magical perfect detection of every ecosystem.
 
 
-12. **Split safe adoption into a read-only planning stage and a mutating apply stage.**  
-    After the merged Stage 11 closeout gap is reconciled and current main is re-baselined, Stage 12 is the first Adaptive VCP execution slice: it proves repository inspection, section-ownership foundations, prompt fallback, and a trustworthy `vcp init --dry-run` plan without performing brownfield adoption writes. Stage 13 consumes the same planning model to perform transactional Smart Init apply.
+12. **Split brownfield Smart Init into a planning-only Stage 12 and a mutating Stage 13.**  
+    After the merged Stage 11 closeout gap is reconciled and current main is re-baselined, Stage 12 is the first Adaptive VCP execution slice: it proves repository inspection, section-ownership foundations, prompt fallback, and a trustworthy `vcp init --dry-run` plan without performing Smart Init writes into unmanaged EXISTING repositories. Normal transactional `vcp update` may still migrate already-MANAGED lifecycle state. Stage 13 consumes the same planning model to perform transactional brownfield Smart Init apply.
 
 13. **Treat init previews as speculative, not executable authority.**  
     A Stage 12 dry-run is evidence of what VCP would do at that moment. Stage 13 must acquire the lifecycle lock and recompute a fresh plan from the current repository before mutation. Do not persist or blindly apply a stale preview.
@@ -4266,7 +4266,7 @@ Where each major feature belongs:
 
 Resolved by this external re-audit: **Task Packs remain durable VCP Core artifacts;
 they do not become SKILL.md.** Skills are reusable procedural UX/instruction
-packages loaded when relevant, while a Task Pack is per-change durable state,
+packages whose host loading may be relevant/on-demand or eager, while a Task Pack is per-change durable state,
 requirements, readiness, evidence, review, and finalization. Skills may create/read/
 update Task Packs through VCP, but they do not replace the Task Pack serialization.
 
