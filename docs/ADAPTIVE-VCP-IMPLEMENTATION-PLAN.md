@@ -1154,52 +1154,113 @@ BUILD_COMMAND=...
 
 A mature repository may already contain one or more of these keys outside the VCP section. Blindly inserting another set creates duplicate authority and first-match ambiguity.
 
-Stage 12 must inspect all occurrences per command key.
+Stage 12 must introduce one shared authority resolver used by Smart Init planning, Task creation, Doctor, and later gate/readiness logic.
+
+Per command key, classify:
+
+~~~text
+missing
+unique
+duplicate-equivalent
+duplicate-conflicting
+~~~
 
 Required behavior:
 
 ~~~text
-exactly one existing unambiguous project command
-→ preserve/adopt it as effective command authority
-→ do not insert a conflicting duplicate
+missing
+→ VCP section may contribute an evidence-backed value/placeholder
+→ otherwise remain unresolved
 
-no existing command
-→ VCP section may contribute an evidence-backed slot/value
+unique
+→ preserve/use the effective value
+→ record source/provenance
 
-duplicate/conflicting occurrences
-→ CONFLICT or HUMAN DECISION
+duplicate-equivalent
+→ if every configured value is byte-equivalent after only the parser's normal
+   outer-whitespace/line-ending normalization:
+   - effective value is unambiguous
+   - retain every source location/provenance
+   - report duplicate as informational cleanup debt
+   - do NOT rewrite project-owned text
+   - do NOT interrupt the user merely to choose between identical values
+
+duplicate-conflicting
+→ CONFLICT / HUMAN DECISION
 → never silently choose the first match
-
-duplicate/equivalent occurrences
-→ HUMAN DECISION naming both locations (do not auto-normalize: deleting or
-  rewriting the project-owned duplicate is a write into project-owned text)
-→ the resolver returns the value with an ambiguity flag until resolved
-
-[EXTERNAL RE-AUDIT 2026-10-06] Adopted commands carry execution authority:
-every adopted command must record provenance (project-adopted vs vcp-suggested),
-and adoption of a command matching destructive patterns (shell-pipe,
-recursive delete, fetch-and-execute) requires an explicit HUMAN DECISION at
-adoption time even when unique. The boundary is enforced in the CLI resolver,
-never in prompt prose.
-
-Approval is bound to the **exact normalized command value**, not merely to the
-command key or source file. Persist a stable fingerprint/digest plus command key
-and source provenance for every approval-required command. If the effective
-command later changes, disappears, moves to a conflicting authority source, or
-its normalized fingerprint no longer matches, the prior approval becomes stale
-and the resolver must return HUMAN DECISION / blocked state before any future
-Task Pack/gate can execute it.
-
-Safe non-destructive commands do not need permanent approval records merely
-because they are project-owned, but their effective value/provenance is still
-snapshotted into the Task Pack so verification executes the reviewed command,
-not a later first-match re-read from AGENTS.md.
 ~~~
 
-Task creation and Doctor must resolve commands through the same authority helper so they cannot disagree.
+Do not attempt shell-semantic equivalence. `npm test`, aliases, quoting variants, pipelines, or wrappers are not assumed equivalent merely because they may behave similarly.
+
+### Execution authority and destructive-command approval
+
+Adopting a project command makes it executable VCP authority.
+
+Every effective command must therefore expose provenance such as:
+
+~~~text
+project-adopted
+vcp-suggested
+project-configured
+~~~
+
+A command matching a versioned sensitive/destructive-pattern policy—for example fetch-and-execute, recursive destructive deletion, or another explicitly classified dangerous shell effect—requires an explicit HUMAN DECISION before VCP may execute it, even when the value is otherwise unique.
+
+Approval identity is bound to the concrete command, not to a file or slot name:
+
+~~~text
+command key
++
+normalized command fingerprint
++
+source/provenance identity
++
+approval-policy/decision version
+~~~
+
+If the effective command later changes, disappears, moves to a conflicting authority source, or produces a different fingerprint, the old approval is stale and must not authorize the new command.
+
+### Durable owner of approval receipts
+
+The optional Stage-13 answers record may **transport/reuse** the human decision during a fresh apply, but it is not the durable lifecycle authority after adoption.
+
+After a successful adoption/update, approval-required command receipts belong in supported VCP lifecycle state (exact field name is an implementation detail), storing only bounded metadata such as:
+
+~~~text
+command key
+normalized-command digest
+source/provenance identity
+approval-policy version
+decision identity/version
+~~~
+
+Do not store secrets, command output, or unrelated file content in the receipt.
+
+Rules:
+
+- Stage 12 preview may report the required decision but writes no receipt;
+- Stage 13 fresh planning validates any answers-record decision against the current exact command/fingerprint;
+- only successful apply/update persists or replaces the receipt;
+- a stale receipt may remain as historical lifecycle metadata, but resolver/Doctor report it as stale and it grants no execution authority;
+- behavior-bearing approval receipts participate in `minimumReaderVersion` compatibility;
+- rollback restores the exact prior receipt state.
+
+### Task snapshot and command-contract freshness
+
+Task Packs remain the executable verification contract.
+
+For new provenance-aware tasks:
+
+- Task creation snapshots the effective command string plus key, normalized fingerprint, source/provenance, and approval status/receipt identity where required;
+- `vcp verify` executes the task-approved snapshot, not a fresh first-match read from AGENTS.md;
+- before merge-authoritative verification/gate, VCP resolves current command authority again and compares it with the Task Pack snapshot;
+- a changed/missing/conflicting effective command makes the task verification contract stale and requires an explicit task refresh/re-plan before gate can pass;
+- approval-required commands must still match a current valid receipt;
+- legacy Task Packs without command-provenance metadata retain their historical behavior until the Phase-7 parser/gate migration defines the compatibility path.
+
+This prevents a Task Pack from silently verifying against an obsolete project command policy while also preventing a later AGENTS edit from swapping in a new dangerous command under an old approval.
 
 Moving verification configuration to another structured file remains a separate future migration.
-
 ## 3.7 Init action semantics
 
 Use familiar planner action names, but make post-action ownership explicit so init actions cannot be confused with update actions.
@@ -1623,7 +1684,7 @@ Smart adoption is complete only when:
 - omitted brownfield agent choice is not collapsed to explicit generic; observed compatibility remains distinct from VCP ownership; managed/explicit adapter intent survives lifecycle updates correctly;
 - section-owned content survives subsequent updates while surrounding text is preserved;
 - ignore/track cannot convert a brownfield section-owned integration file into whole-file ownership;
-- verification command authority cannot be made ambiguous by duplicate inserted slots; approval-required commands are bound to exact command fingerprints and stale on change;
+- verification command authority cannot be made ambiguous by duplicate inserted slots; equivalent duplicates do not create fake human decisions; approval-required commands have lifecycle-owned exact-command receipts that stale on change; provenance-aware Task Pack command snapshots must be current before merge-authoritative gate;
 - brownfield auto-stack ambiguity is surfaced conservatively;
 - the persisted asset surface, including actual adapter selection, prevents the next update from expanding adoption accidentally;
 - packaged prompt fallback, Context, and Doctor agree without widening project authority;
