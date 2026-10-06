@@ -1,12 +1,15 @@
 import assert from 'node:assert/strict';
+import { execFile } from 'node:child_process';
 import { cp, mkdtemp, mkdir, readFile, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import { promisify } from 'node:util';
 import { createContextPack } from '../lib/context.mjs';
 import { formatDoctorReport, runDoctor } from '../lib/doctor.mjs';
 import { initProject } from '../lib/init.mjs';
 import { createTaskPack } from '../lib/task.mjs';
+import { runVerification } from '../lib/verify.mjs';
 import {
   applyStackProfileToContent,
   detectStack,
@@ -17,6 +20,7 @@ import {
 const repoRoot = path.resolve('.');
 const firstPartyFixture = path.join(repoRoot, 'examples', 'mobile-react-native');
 const baseAgents = await readFile(path.join(repoRoot, 'AGENTS.md'), 'utf8');
+const execFileAsync = promisify(execFile);
 
 async function tempDir() {
   return mkdtemp(path.join(os.tmpdir(), 'vcp-react-native-'));
@@ -293,6 +297,32 @@ test('first-party React Native fixture dogfoods init, task verification, and bou
   assert.match(context.content, /## 16\. React Native stack profile/);
   assert.doesNotMatch(context.content, /## Selected community plugins/);
   assert.equal(context.files.includes('docs/plugins/PLUGINS.json'), false);
+
+  const verification = await runVerification({
+    targetDir: target,
+    task: 'mobile-dogfood',
+    only: ['UNIT_TEST_COMMAND', 'BUILD_COMMAND', 'E2E_COMMAND'],
+    run: false,
+    quiet: true
+  });
+  assert.deepEqual(
+    verification.commands.map((item) => [item.key, item.command, item.status]),
+    [
+      ['UNIT_TEST_COMMAND', 'npm run test:unit', 'planned'],
+      ['BUILD_COMMAND', 'npm run build', 'planned'],
+      ['E2E_COMMAND', 'npm run test:e2e', 'planned']
+    ]
+  );
+
+  await execFileAsync(process.execPath, ['scripts/format-check.mjs'], { cwd: target });
+  await execFileAsync(process.execPath, ['scripts/typecheck.mjs'], { cwd: target });
+  await execFileAsync(process.execPath, ['scripts/build.mjs'], { cwd: target });
+  await execFileAsync(process.execPath, [
+    '--test',
+    'test/unit.test.mjs',
+    'test/integration.test.mjs',
+    'test/e2e.test.mjs'
+  ], { cwd: target });
 });
 
 test('Doctor reports auto-selected JavaScript as React Native specialization and lifecycle-transition eligible', async () => {
