@@ -2430,7 +2430,7 @@ Minimum content should be small and enforcement-driven, for example:
 
 ~~~text
 Outcome / problem
-Governing authority state (reference(s) or explicit none)
+Governing authority state (reference(s) or task-local authority)
 Affected scope
 Acceptance evidence
 Verification
