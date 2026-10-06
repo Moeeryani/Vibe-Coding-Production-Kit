@@ -3392,10 +3392,11 @@ Implement:
 5. backup every path that may change plus explicit prior lifecycle-state presence/absence;
 6. transactional COMPOSE/ADD/ADOPT behavior;
 7. write section-aware baselines and manifest, including the adopted asset set, explicit adapter intent, and VCP-managed adapter surface;
-8. post-apply verification;
-9. automatic rollback on failure;
-10. idempotent managed-project re-run behavior;
-11. subsequent `vcp update` proof.
+8. make `vcp task` / Task Pack Source-of-Truth scaffolding respect the persisted assetSet so brownfield-minimal never generates absent canonical starter paths;
+9. post-apply verification;
+10. automatic rollback on failure;
+11. idempotent managed-project re-run behavior;
+12. subsequent `vcp update` proof.
 
 The apply path must generalize existing backup/rollback semantics for first adoption: when the pre-lock lifecycle state was truly unmanaged, a successful rollback restores project files and removes **all operation-created VCP lifecycle scaffolding**, including the selected adoption backup and generated internal files, then removes `.vcp/` only if empty. If rollback cannot complete, preserve recovery artifacts for manual recovery rather than pretending the repository is clean.
 
