@@ -17,20 +17,37 @@ The manifest and baselines are intentionally persistent. They are the evidence n
 
 `stage/` is intentionally transient. A successful update removes its transaction-specific staged subtree and removes `.vcp/stage/` itself when the directory becomes empty. Recovery from an interrupted transaction does the same after a successful rollback. Cleanup is conservative: VCP never recursively removes unrelated non-empty stage content merely to make the parent directory disappear.
 
+
 ## Ownership policies
 
 VCP does not treat every file the same.
 
-- `managed` — VCP may update an untouched file and three-way merge independent local/upstream edits.
+Current manifest entries may use these update policies:
+
+- `managed` — normal VCP-managed content. Untouched files can update; independent local/upstream edits use the bounded three-way merge path.
+- `merge` — explicitly merge-oriented text/integration content such as repository instructions, prompts, delivery rules, scripts, and some GitHub assets. The current planner uses the same bounded independent-edit merge mechanics as `managed`, but the distinct policy value records the template's intended lifecycle class.
 - `generated` — VCP may regenerate an untouched adapter, but local + upstream edits become a conflict rather than being overwritten.
 - `preserve` — project-owned product/architecture/security decisions are preserved once customized. An untouched starter can still be safely refreshed.
 - ignored — `vcp manage ignore <path>` detaches a file from VCP management without deleting local content.
 
 Reattach a current VCP file with:
 
-```bash
+~~~bash
 vcp manage track AGENTS.md
-```
+~~~
+
+### Current ownership boundary
+
+Released/current lifecycle state still manages **whole files**.
+
+The Adaptive VCP design proposes a future separate ownership dimension:
+
+~~~text
+ownership.kind = file | section
+policy         = managed | merge | generated | preserve
+~~~
+
+That section-ownership model is not current v0.9 behavior. When implemented, it requires a versioned manifest migration so older CLIs fail closed rather than misinterpreting section baselines.
 
 ## Check for lifecycle changes
 
