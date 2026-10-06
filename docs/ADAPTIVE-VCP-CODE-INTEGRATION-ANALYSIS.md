@@ -5384,6 +5384,7 @@ Required details:
 - rollback restores prior absence as well as prior content;
 - section composition preserves surrounding bytes;
 - brownfield install persists brownfield-minimal assetSet, explicit adapter intent, and VCP-managed adapter ownership/provenance;
+- Task Pack generation consumes the persisted assetSet before Smart Init is considered complete;
 - update/manage/Doctor reproduce that adopted surface;
 - repeated init reports MANAGED and does not rewrite;
 - immediate subsequent `vcp update` is safe/idempotent;
