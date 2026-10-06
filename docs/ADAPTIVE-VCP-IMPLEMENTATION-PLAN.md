@@ -1265,15 +1265,18 @@ Source/package validation still runs separately inside the VCP repository.
 
 ## 5.1 Current situation
 
-Current stack detection is effectively exclusive:
+Current stack detection is exclusive and, after merged Stage 11, resolves in this order:
 
 ```text
-Go marker        → go
-Python marker    → python
-tsconfig.json    → typescript
-package.json     → javascript
-otherwise        → generic
+Go marker                → go
+Python marker            → python
+React Native evidence    → react-native
+tsconfig.json            → typescript
+package.json             → javascript
+otherwise                → generic
 ```
+
+React Native is already current runtime behavior on main; it is not future Adaptive work.
 
 The install manifest stores a resolved stack/profile.
 
@@ -1420,22 +1423,35 @@ Simple JS/TS/Python/Go projects should retain equivalent current behavior during
 
 Polyglot repositories should no longer lose evidence merely because old detector precedence finds one language first.
 
-### React Native / Stage 11
 
-Do not first implement React Native as another exclusive concrete stack and then immediately migrate it to capabilities.
+### React Native / Stage 11 migration bridge
 
-Reconcile the pending Stage 11 work with the capability model first.
+Stage 11 React Native support is already merged and is current behavior.
 
-A React Native project is better represented compositionally, for example:
+Do not re-run Stage 11 as though it were pending, and do not discard its lifecycle provenance merely because capabilities are a better future representation.
 
-```text
+The capability transition must preserve and reinterpret:
+
+- explicit requestedStack=react-native intent;
+- auto-selected react-native provenance;
+- the existing bounded generic|javascript|typescript → react-native specialization rule;
+- selected-project-root authority;
+- repository-script verification evidence;
+- mobile sensitive-effect / HUMAN DECISION boundaries;
+- Stage 10 community-plugin coexistence.
+
+A future normalized capability representation may include:
+
+~~~text
 runtime.node
-language.typescript
+language.javascript | language.typescript
 framework.react-native
 mobile.react-native-app
-```
+~~~
 
-while preserving the existing selected-project-root and explicit-evidence constraints.
+but legacy stack fields remain a compatibility summary during migration.
+
+React Native should be a migration/conformance fixture for capabilities, not a throwaway Stage-11 reimplementation.
 
 ## 5.7 Verification discovery from capabilities
 
@@ -1777,7 +1793,7 @@ Workflow levels require VCP Core support, not prompt labels alone.
 
 The code audit confirms that today's generated Task Pack and implementation readiness contract are intentionally comprehensive: security/privacy, observability, multiple test layers, rollout/recovery, review evidence, and finalization all participate. That is appropriate for material work, but it creates too large a jump between a trivial L0 change and ordinary small engineering work.
 
-The first adaptive implementation should therefore support all four conceptual levels, while keeping L1 deliberately compact.
+The first workflow-level implementation should therefore support all four conceptual levels, while keeping L1 deliberately compact.
 
 ### L0 — trivial
 
@@ -1810,12 +1826,16 @@ Minimum content should be small and enforcement-driven, for example:
 
 ~~~text
 Outcome / problem
+Governing reference(s), when applicable
 Affected scope
 Acceptance evidence
 Verification
+Lightweight review outcome / current findings
 Risk/escalation flags
 Completion/evidence summary
 ~~~
+
+L1 does not require empty security/observability/rollout sections, but it also does not bypass Source-of-Truth or fresh-review invariants. If a material product/API/data/security/architecture decision is discovered, promote to L2/L3.
 
 Do not require empty security/observability/rollout sections merely to prove they were considered.
 
@@ -1834,6 +1854,8 @@ Extend L2 with stronger relevant controls based on deterministic/project-declare
 - protected surfaces;
 - explicit workflow policy;
 - human-selected risk requirements.
+
+L3 does **not** silently inject security-profile files into plan/implement context. When security profiles are applicable, require a dedicated security Context Pack/review so the existing Stage 6 context contract remains intact. Governing security Source of Truth may still be referenced normally by other modes.
 
 Potential requirements include security review context, rollback/recovery evidence, sensitive-effect authorization, and stricter exact-head gating.
 
@@ -2195,7 +2217,8 @@ For every fixture:
 - no unrelated file is deleted;
 - no existing agent instruction is silently overwritten;
 - no unproven verification command is executed;
-- init dry-run matches actual apply;
+- for an unchanged repository snapshot, dry-run and fresh apply planning are semantically equivalent;
+- if the repository changes before apply, the apply path re-plans and may differ or block safely;
 - unsupported ecosystem degrades safely;
 - discovered capabilities are evidence-backed;
 - project-root boundaries remain intact;
@@ -2342,16 +2365,20 @@ Backward-compatible migration still applies.
 
 The Adaptive VCP plan is the umbrella roadmap. The numbered implementation stages are bounded execution slices of that roadmap.
 
-## Precondition — finish and re-baseline Stage 11
+## Precondition — reconcile merged Stage 11 closeout and re-baseline current main
 
-Do not begin Stage 12 product-code implementation on top of an unfinalized Stage 11 head.
+Stage 11 React Native implementation is already merged on PR #85 and present on current main.
 
-Before Stage 12:
+The canonical Stage 11 Task Pack is marked Done, but its required post-finalization exact-head rerun remains unchecked. This audit found no durable record proving that rerun before merge.
 
-1. complete Stage 11 exact-head verification/review/finalization;
-2. merge it;
-3. re-baseline Roadmap/README/current-version assumptions;
-4. create the Stage 12 contract/Task Pack from the current main branch.
+Do not invent historical evidence.
+
+Before Stage 12 product-code implementation:
+
+1. record the Stage 11 closeout evidence gap explicitly in Roadmap/Task Pack status;
+2. run and record the appropriate current-main re-baseline verification without pretending it is the missing historical run;
+3. re-baseline Roadmap/README/current-source assumptions;
+4. create the Stage 12 Task Pack from the reconciled current main.
 
 ## Stage 12 — Safe Adoption Planning
 
@@ -2367,7 +2394,13 @@ Implement:
 6. minimal brownfield adoption-surface selection;
 7. deterministic `init` planning actions;
 8. useful `vcp init . --dry-run [--json]` for existing projects;
-9. removal of destructive init `--force` behavior.
+9. persisted install-surface identity for legacy-full vs brownfield-minimal lifecycle behavior;
+10. tri-state GitHub request provenance for brownfield planning;
+11. verification-command authority inspection shared by Task/Doctor;
+12. Doctor prompt-source awareness through the canonical prompt resolver;
+13. reserved .vcp and brownfield stack-ambiguity safety;
+14. schema-v1 → schema-v2 migration plus previous-release lifecycle/release smoke;
+15. removal of destructive init `--force` behavior.
 
 Stage 12 must **not** perform Smart Init mutation into EXISTING repositories.
 
@@ -2496,19 +2529,21 @@ Measure:
 5. Doctor visibility;
 6. behavior/prompt-eval regressions.
 
-## Phase 7 — mechanical gate and first workflow levels
+## Phase 7 — mechanical gate and workflow levels
 
-1. shared Task Pack state parser;
+1. shared task-state parser;
 2. gate preview;
 3. gate run using verification engine;
 4. post-run Git freshness check;
 5. mechanically bounded L0;
-6. existing L2 gate;
-7. L3 high-risk additions.
+6. compact L1 task/readiness/review contract;
+7. current full L2 contract;
+8. L3 relevant high-risk additions;
+9. final-diff minimum-level reclassification.
 
 ### Validation Checkpoint C — Does Auto/gate help more than it interrupts?
 
-Dogfood representative L0/L2/L3 changes.
+Dogfood representative L0/L1/L2/L3 changes.
 
 Measure:
 
@@ -2534,7 +2569,7 @@ Measure:
 2. detection of existing equivalent integration;
 3. keep project verification authority in VCP/task state.
 
-## Phase 9 — Skills UX
+## Phase 9 — Skill UX expansion
 
 Skills may prototype earlier, but release against stable Core contracts.
 
@@ -2609,22 +2644,31 @@ This plan does **not** require:
 
 The redesign succeeds when the following user stories are true.
 
+
 ### Existing project
 
 A developer can run:
 
-```bash
-vcp init .
-```
+~~~text
+vcp init . --dry-run
+~~~
 
-inside a five-year-old repository and receive a safe plan that:
+inside a five-year-old repository and receive a safe, content-free plan that:
 
-- preserves current agent instructions;
-- preserves CI;
-- detects what it can prove;
-- identifies unknowns;
-- adds only necessary VCP artifacts;
-- creates restartable lifecycle state.
+- preserves current agent instructions and CI;
+- discovers what it can prove;
+- identifies unknowns/ambiguity;
+- proposes only the minimal brownfield VCP surface;
+- shows exact ownership actions/conflicts without writing.
+
+After Stage 13, normal apply on an unchanged snapshot re-plans under the lifecycle lock and then:
+
+- adds only necessary VCP artifacts/sections;
+- creates restartable lifecycle state with the correct adopted asset surface;
+- preserves surrounding project text;
+- leaves subsequent vcp update on the same adopted surface.
+
+If the repository changes between preview and apply, the fresh plan may differ or block. That is expected safety behavior.
 
 ### Unsupported ecosystem
 
