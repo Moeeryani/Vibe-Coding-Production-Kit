@@ -1,7 +1,7 @@
 # Adaptive VCP — Code Integration and Impact Analysis
 
 **Status:** Code-level implementation analysis  
-**Inspected repository state:** main at commit 20d0cae76f28b6ce1530054b63e485e7781d8e3d  
+**Runtime/code baseline inspected:** current main after merged Stage 11 / PR #85; detailed consistency pass performed on main at 68dca7d6e172c3ca4c12b190eeaefb372edfafd4. Later documentation-only consistency commits do not change the runtime observations below.  
 **Companion design document:** docs/ADAPTIVE-VCP-IMPLEMENTATION-PLAN.md  
 **Purpose:** Trace every agreed adaptive-VCP change through the real implementation, persisted lifecycle state, tests, release mechanics, and downstream contracts before any feature work is split into issues.
 
@@ -210,7 +210,7 @@ That should be cleaned up before more install-state fields are introduced.
 
 lib/stacks.mjs currently chooses exactly one stack.
 
-Detection order is:
+After merged Stage 11, detection order is:
 
 ~~~text
 go.mod
@@ -218,6 +218,9 @@ go.mod
 
 Python marker
   → python
+
+React Native dependency + selected-root app marker
+  → react-native
 
 tsconfig.json
   → typescript
@@ -228,6 +231,8 @@ package.json
 otherwise
   → generic
 ~~~
+
+React Native is therefore current runtime behavior, not pending Adaptive work.
 
 The precedence means a polyglot repository is reduced to one identity.
 
@@ -373,6 +378,46 @@ New lifecycle features must continue to use:
 
 ---
 
+
+
+## 3.6 Adaptive terminology is orthogonal
+
+Do not overload the existing Operating Model term "mode".
+
+Use:
+
+~~~text
+workflowMode
+  auto | manual
+  → trigger behavior for a developer request
+
+workflowLevel
+  L0 | L1 | L2 | L3
+  → right-sized task/readiness/review/gate ceremony
+
+executionMode
+  AFK | HITL
+  → who may execute; existing Operating Model concept
+
+contextMode
+  plan | implement | review | security | release
+  → existing Context Pack mode
+
+dependency/readiness
+  blocked / ready / ...
+  → whether work is eligible
+~~~
+
+Consequences:
+
+- workflowLevel never implies AFK/HITL;
+- Auto never overrides blockers/readiness;
+- Manual never weakens VCP invariants when invoked;
+- dependencies remain evaluated before execution mode;
+- CLI --mode remains reserved for Context Packs;
+- workflow mode uses an explicit name such as --workflow-mode.
+
+---
 
 # 3A. Product-experience requirements translated into code
 
