@@ -1111,6 +1111,51 @@ brownfield detected existing CLAUDE.md only
 
 Do not treat detected agent files as proof of the developer's preferred coding agent; they are safe composition evidence only.
 
+## 3.8A Agent-selection provenance and adapter targets
+
+Current CLI non-interactive defaults collapse an omitted agent choice into `generic`, while current lifecycle desired-state generation uses one persisted `install.agent` value to decide whether CLAUDE.md / Copilot adapters exist.
+
+That is unsafe for brownfield adoption.
+
+Separate two concepts:
+
+~~~text
+agentPreference
+  unspecified
+  explicit:<generic|codex|cursor|claude|copilot|all>
+
+adapterTargets
+  []
+  [claude]
+  [copilot]
+  [claude, copilot]
+~~~
+
+`agentPreference` is planner input/provenance. `adapterTargets` (or an equivalent persisted normalized set) is lifecycle desired-state identity.
+
+For EXISTING repositories:
+
+- omitted `--agent` remains unspecified through CLI parsing; `-y` must not convert it to explicit generic before inspection;
+- inspect dedicated existing integration surfaces deterministically: CLAUDE.md and .github/copilot-instructions.md;
+- AGENTS.md is the shared/direct instruction surface and does **not** prove whether the human uses Generic, Codex, or Cursor; do not pretend it does;
+- if agent preference is unspecified, preserve/compose the dedicated adapter surfaces that actually exist and persist those adapterTargets;
+- if neither dedicated surface exists, adapterTargets may be empty and the thin AGENTS integration is sufficient for Generic/Codex/Cursor-compatible use;
+- if both exist, persist both targets; do not rely on a lossy single `agent=all` inference as the only lifecycle truth;
+- an explicit agent selection controls which VCP adapter targets may be added, but unrelated pre-existing adapter files are still preserved even when not VCP-managed;
+- explicit `generic`, `codex`, or `cursor` does not authorize deletion/rewrite of an existing Claude/Copilot file; it simply does not add VCP ownership there unless separately selected.
+
+For NEW repositories, historical default `generic` may remain temporarily for CLI compatibility.
+
+Lifecycle compatibility:
+
+- keep legacy `install.agent` as a compatibility/display summary during transition;
+- derive/update adapter desired state from persisted normalized adapterTargets once the field exists;
+- schema-v1 migration derives adapterTargets from the legacy selector (`claude`→[claude], `copilot`→[copilot], `all`→both, other→[]);
+- behavior-bearing adapterTargets requires minimumReaderVersion protection;
+- update/manage/Doctor must use the normalized target set so a brownfield-discovered adapter does not vanish on the next lifecycle operation.
+
+Do not attempt filesystem heuristics for agents that have no dedicated adapter surface in the current product. Unknown/unsupported vendor-specific files are project-owned and preserved.
+
 ## 3.9 Brownfield GitHub-option provenance
 
 Current CLI defaults includeGitHub=true, which conflates:
@@ -1275,6 +1320,7 @@ Smart adoption is complete only when:
 - unchanged repository snapshot produces semantically equivalent planned actions;
 - changed repository state causes fresh re-plan/difference/block rather than stale-plan execution;
 - existing agent/CI/project docs are never silently replaced;
+- omitted brownfield agent choice is not collapsed to explicit generic, and adopted adapter targets survive update/manage;
 - section-owned content survives subsequent updates while surrounding text is preserved;
 - ignore/track cannot convert a brownfield section-owned integration file into whole-file ownership;
 - verification command authority cannot be made ambiguous by duplicate inserted slots;
