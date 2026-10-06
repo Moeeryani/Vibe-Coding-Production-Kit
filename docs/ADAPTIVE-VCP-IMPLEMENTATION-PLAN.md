@@ -1948,6 +1948,21 @@ compose guidance + verification discovery
 
 Multiple non-conflicting capabilities can coexist.
 
+### Core detector filesystem trust
+
+Do not carry forward the current single-stack detector's weaker filesystem assumptions into capability authority.
+
+Today some legacy stack markers are tested with `access()`, which can follow symlinks. That is acceptable only as current compatibility behavior; a new capability detector whose result can alter lifecycle-managed guidance/state must use the stronger trust boundary:
+
+- selected-project-root confinement;
+- explicit regular-file/directory checks;
+- no authority from symlinked markers that escape or alias another location;
+- bounded reads/parsing;
+- deterministic case/path handling where required;
+- evidence records the exact detector/path that matched.
+
+Use the same underlying safe evidence primitives for core/first-party detectors and community DSL where practical so the trust model does not vary by provenance.
+
 ## 5.5 Project-root semantics remain important
 
 Do not turn capability detection into unrestricted recursive repository scanning.
@@ -2125,7 +2140,8 @@ Repository-owned scripts/configuration remain stronger evidence than profile def
 - generic fallback still works;
 - existing simple JS/TS/Python/Go behavior remains compatible;
 - Doctor reports detected capability evidence separately from applied/project-approved capability state, application provenance, mismatches, pending ADD transitions, and approval-required REMOVE transitions;
-- no capability detector silently broadens the selected project root.
+- no capability detector silently broadens the selected project root;
+- core/first-party capability evidence is regular-file/directory checked and symlink-safe rather than inheriting legacy `access()` semantics.
 
 ---
 
