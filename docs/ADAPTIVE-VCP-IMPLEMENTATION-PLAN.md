@@ -2211,25 +2211,60 @@ Existing update semantics should decide:
 
 The update dry-run must make this visible.
 
-## 7.6 Phase E2 — generate CI only after `vcp gate` exists
+## 7.6 Phase E2 — integrate CI only after `vcp gate` exists
 
-Once the mechanical gate exists, VCP may optionally create a thin provider-specific integration:
+Once the mechanical gate exists, CI may delegate the final VCP decision, but VCP must not pretend that running the CLI is the whole project CI environment.
 
-```text
-CI
- ↓
-install/use VCP
- ↓
-vcp gate ... --run
- ↓
-exit code
-```
+The authority boundary is:
 
-Do not maintain one command list in Task Packs and another independently in generated YAML.
+~~~text
+project-owned CI bootstrap / toolchain / dependency / service setup
+        ↓
+VCP gate
+        ↓
+deterministic pass/fail/block
+~~~
 
-The gate should remain the deterministic enforcement contract; CI is only an execution surface.
+> **VCP owns the gate contract; the project owns the execution environment unless a supported profile proves that environment deterministically.**
 
-Branch protection remains platform/repository policy. VCP may report a check but must not claim control of merge policy it does not own.
+Preferred integration order:
+
+1. inspect existing CI and identify a safe explicit integration point;
+2. when requested, add/propose the smallest gate invocation **after** the project's existing setup;
+3. otherwise provide a provider-specific snippet/instructions rather than rewriting unrelated workflows;
+4. generate a standalone workflow only when deterministic first-party/profile evidence plus explicit project policy provides every prerequisite needed by the approved gate verification commands.
+
+VCP must not invent:
+
+- dependency-install/bootstrap commands;
+- application runtime/toolchain versions beyond what VCP itself requires;
+- databases, queues, caches, or service containers;
+- browser/native/mobile SDK setup;
+- secrets/credentials;
+- migration/seed/bootstrap commands;
+- project-specific environment variables.
+
+For material task-bound work:
+
+~~~text
+<project-owned setup>
+vcp gate <explicit-task-slug> --run
+~~~
+
+Task selection is repository/CI configuration. Gate validates the task it is given; it does not scan prose and guess which Task Pack owns a PR.
+
+For L0:
+
+~~~text
+<checkout with explicit base/head refs available>
+vcp gate --level l0 --base <base> --head <head>
+~~~
+
+A shallow checkout or unavailable base/head must block clearly rather than substituting a guessed comparison.
+
+Do not maintain one application verification-command list in Task Packs and another independent list in generated YAML. CI may contain environment/bootstrap steps, but the actual verification authority remains VCP/task state.
+
+Branch protection remains platform/repository policy. VCP may expose a check result but must not claim control over merge policy it does not own.
 
 ## 7.7 Definition of done
 
@@ -2239,7 +2274,9 @@ Branch protection remains platform/repository policy. VCP may report a check but
 - `includeGitHub` no longer implies npm CI;
 - old managed `validate.yml` has an explicit migration path;
 - no generated VCP CI is introduced before the gate contract exists;
-- later generated CI delegates to deterministic VCP gate rather than duplicating project verification logic.
+- later CI integration delegates to deterministic VCP gate rather than duplicating project verification logic;
+- standalone workflow generation never fabricates project bootstrap/toolchain/services;
+- missing Git refs or unsupported environment prerequisites block instead of being guessed.
 
 # 8. Workstream F — Auto mode and Manual mode
 
@@ -3530,9 +3567,13 @@ Measure:
 
 ## Phase 8 — CI gate integration
 
-1. optional thin provider-specific VCP gate workflow;
-2. detection of existing equivalent integration;
-3. keep project verification authority in VCP/task state.
+1. persist/configure explicit gatePolicy;
+2. detect existing compatible integration points;
+3. prefer a thin gate step/snippet after project-owned CI setup;
+4. generate a standalone provider workflow only when all required bootstrap/toolchain prerequisites are deterministically supported and explicitly accepted;
+5. keep project verification authority in VCP/task state;
+6. require explicit task selection for material work and explicit base/head refs for L0;
+7. prove missing/shallow refs or unsupported environment prerequisites fail closed.
 
 ## Phase 9 — Skill UX expansion
 
