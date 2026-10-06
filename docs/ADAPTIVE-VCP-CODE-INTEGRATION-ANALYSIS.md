@@ -4011,203 +4011,210 @@ Do not add every implementation doc automatically; add files required for releas
 
 
 
+
 # 19. Revised implementation order with product validation gates
 
-The Adaptive VCP documents are umbrella design. The next numbered stages should be narrower than the full phases.
+The Adaptive documents are umbrella design. Numbered implementation stages are bounded slices, and each validation checkpoint may simplify or stop later work.
 
-## Precondition — complete Stage 11
+## Precondition — reconcile merged Stage 11 closeout
+
+PR #85 is merged and React Native runtime support is present on main.
+
+However, the canonical Stage 11 implementation Task Pack still has the required post-finalization exact-head rerun unchecked. This audit found no durable record proving that historical run before merge.
 
 Before Stage 12 product-code work:
 
-1. finish Stage 11 exact-head gate/review/finalization;
-2. merge;
-3. re-baseline Roadmap/README/current source state;
-4. create Stage 12 Task Pack from current main.
-
----
+1. record the Stage 11 closeout gap honestly;
+2. perform and record an appropriate current-main re-baseline gate without claiming it is the missing historical run;
+3. synchronize Roadmap/README/current source status;
+4. create Stage 12 Task Pack from that reconciled baseline.
 
 ## Stage 12 — Safe Adoption Planning
 
-Stage 12 combines the minimum enabling refactors required to make a trustworthy **read-only** brownfield adoption plan.
-
-Implement:
+Implement the minimum foundations for trustworthy read-only brownfield planning:
 
 1. centralized install/manifest metadata construction;
-2. canonical package/local prompt resolver;
-3. schema-v2 ownership foundation: file vs section;
+2. canonical project-override/package-fallback prompt resolver;
+3. schema-v2 file-vs-section ownership and schema-v1 migration;
 4. managed-section parsing/composition/baseline primitives;
-5. repository inspection: NEW / EXISTING / MANAGED;
-6. minimal brownfield adoption-surface selection;
-7. deterministic init action planner;
-8. public `vcp init --dry-run [--json]`;
-9. init-specific destructive force removal;
-10. plan/CLI/negative tests.
+5. NEW / EXISTING / MANAGED repository inspection;
+6. reserved .vcp collision/recovery inspection;
+7. brownfield stack-ambiguity inspection while retaining current Stage 11 stack API;
+8. minimal brownfield adoption-surface planner;
+9. persisted assetSet design: legacy-full vs brownfield-minimal;
+10. tri-state GitHub request provenance;
+11. shared verification-command authority inspection;
+12. Doctor prompt-source / install-surface awareness required for the new valid brownfield shape;
+13. deterministic content-free init action plan;
+14. public vcp init --dry-run [--json];
+15. init-specific destructive force removal;
+16. previous-release → schema-v2 lifecycle/release smoke.
 
-Do **not** mutate EXISTING repositories through Smart Init in Stage 12.
+Runtime behavior:
 
-Stage-12 runtime behavior:
-
-```text
+~~~text
 NEW
-→ greenfield apply remains supported
+→ current greenfield apply may remain
 
 EXISTING
-→ preview supported
+→ preview only
 → brownfield mutation blocked
 
 MANAGED
-→ update/status redirect
-```
+→ lifecycle status/update redirect
+~~~
 
-**Exit criterion:** the same repository snapshot always produces the same bounded action plan, no project/durable VCP state is changed by preview, and unsafe/ambiguous composition is visible as CONFLICT.
+Stage 12 exit criterion:
 
----
+- same snapshot → same bounded plan;
+- preview performs zero project/durable VCP mutation;
+- unsafe or ambiguous authority is visible as CONFLICT/decision rather than silently resolved.
 
 ## Stage 13 — Smart Init Apply
 
-Implement mutation using the Stage 12 planner.
+Mutation uses the same planner but always re-runs it under the lifecycle lock.
 
 Sequence:
 
-```text
-acquire lifecycle lock
-→ inspect current state again
-→ recompute fresh plan
-→ block conflicts
-→ create complete recovery point
+~~~text
+lock
+→ inspect again
+→ fresh plan
+→ conflict/precondition check
+→ recovery point
 → stage/apply
-→ write section-aware baselines + manifest
+→ ownership-aware baselines + manifest
 → verify
 → clear transaction
-```
+~~~
 
-Additional required work:
+Required details:
 
-- generalize backup metadata for an unmanaged prior state;
-- rollback deletes newly-created manifest/baselines when those did not previously exist;
-- full-file backups protect composed project files;
-- apply never trusts a stale Stage-12 preview object;
-- subsequent `vcp update` works;
+- apply never trusts a stale preview object;
+- backup metadata records prior absence/presence of manifest, baselines, and VCP state;
+- rollback restores prior absence as well as prior content;
+- section composition preserves surrounding bytes;
+- brownfield install persists brownfield-minimal assetSet;
+- update/manage/Doctor reproduce that asset set;
 - repeated init reports MANAGED and does not rewrite;
-- idempotence and failure rollback are proven.
-
----
+- immediate subsequent vcp update is safe/idempotent.
 
 ### Checkpoint A — adoption safety and usability
 
-Run the Stage 12/13 flow on varied brownfield fixtures and selected real repositories.
+Exercise representative mature repositories.
 
 Measure:
 
-- deterministic preview;
-- preview/apply agreement on unchanged state;
-- safe re-plan when state changes between preview/apply;
-- section preservation;
-- true rollback to unmanaged state;
-- CI/project-doc preservation;
-- repository noise;
-- avoidable setup questions;
-- time/steps to first productive VCP work.
+- preview determinism;
+- preview/fresh-plan agreement on unchanged snapshots;
+- safe divergence/block after intervening changes;
+- section and command-authority preservation;
+- true rollback to unmanaged prior state;
+- existing CI/docs preservation;
+- asset surface/noise;
+- setup questions and discoverable-question defects;
+- path from install to productive work.
 
-Do not continue into broad asset/capability/profile machinery if this checkpoint fails.
-
----
+Do not continue into broad adaptation work if this is not safe and low-friction.
 
 ## Phase 2 — Consumer asset + standing-context reduction
 
 After Checkpoint A:
 
-1. unify the explicit consumer asset catalog across greenfield and managed lifecycle paths;
-2. migrate/remove old framework/reference assets explicitly;
-3. shrink full generated AGENTS standing context;
-4. update Doctor prompt/reference behavior;
-5. remove source-framework validator from consumers;
+1. unify explicit consumer asset catalog across greenfield/managed paths;
+2. migrate/remove legacy framework/reference assets;
+3. finish standing AGENTS reduction;
+4. finish Doctor source-validator/asset expectations;
+5. remove copied source-framework validators;
 6. rewrite release-check consumer smoke;
-7. preserve local prompt overrides.
+7. preserve local prompt overrides and add package-fallback fixture coverage.
 
-## Phase 3 — CI safety, detection only
+## Phase 3 — CI safety/detection
 
-1. stop fresh hardcoded npm workflow installation;
-2. provider-neutral CI inspector;
-3. Doctor CI reporting;
-4. migration of old managed validate.yml.
+1. stop hardcoded npm workflow installation;
+2. split GitHub hygiene from CI policy;
+3. provider-neutral CI inspector;
+4. Doctor CI reporting;
+5. migrate old managed validate.yml.
 
 ## Phase 4 — Capability foundation
 
 1. deterministic capability records;
 2. independent detectors;
-3. legacy stack compatibility adapter;
-4. capability-aware rendering/discovery;
-5. applied-capability provenance;
-6. Doctor/update/manage integration;
-7. polyglot tests.
+3. legacy stack compatibility summary;
+4. applied capability provenance;
+5. Doctor/update/manage integration;
+6. polyglot fixtures;
+7. preserve Stage 11 React Native provenance through the bridge.
 
 ### Checkpoint B — adaptation + context cost
 
-Measure correctness and context-footprint changes. Do not proceed to broad profile machinery if detection creates false certainty or context bloat.
+Do not continue if capability detection creates false certainty, command invention, or material context bloat.
 
 ## Phase 5 — Declarative profiles
 
 1. normalized profile model;
-2. strict v2 plugin schema;
+2. strict versioned plugin schema;
 3. bounded detector DSL;
 4. first-party definitions;
-5. community grants;
-6. React Native Stage 11 reframed onto capabilities;
+5. explicit community grants;
+6. re-express already-merged React Native through capability/profile provenance;
 7. separate plugin validation from context transport.
 
 ## Phase 6 — Workflow mode + minimal router UX
 
 1. persist workflowMode;
-2. --workflow-mode and post-install change;
-3. mode-aware VCP standing sections/adapters;
-4. ship/prototype one thin primary VCP router Skill;
-5. preserve Auto/Manual shared workflow logic;
-6. extend prompt-eval only as needed for router/human-attention behavior.
+2. explicit --workflow-mode and post-install change;
+3. mode-aware thin standing sections/adapters;
+4. one thin primary router Skill shared by Auto/Manual;
+5. Doctor visibility;
+6. prompt-eval changes only where new observable behavior requires them.
+
+The router is best-effort UX. It is not deterministic enforcement.
 
 ## Phase 7 — Workflow levels + gate
 
 1. shared task-state parser;
 2. L0 changed-surface contract;
-3. compact L1 task/readiness contract;
-4. retain L2 current Task Pack;
-5. L3 relevant high-risk additions;
-6. provisional classifier after inspection;
-7. gate preview/run using verification engine;
+3. compact L1 task/readiness/review contract;
+4. current L2 Task Pack/readiness contract;
+5. L3 relevant high-risk extensions with dedicated security mode where applicable;
+6. provisional classification after inspection;
+7. gate preview/run reusing readiness/verify/Git;
 8. final-diff minimum-level reclassification;
 9. post-run Git freshness check.
 
 ### Checkpoint C — ceremony vs prevented failure
 
-Dogfood L0/L1/L2/L3. If ordinary small fixes keep landing in full L2 or gate/classification produces frequent false positives, simplify before CI enforcement.
+Dogfood L0/L1/L2/L3 and Auto/Manual routing.
+
+Do not wire mandatory CI enforcement while local classification/gate behavior is noisy.
 
 ## Phase 8 — CI gate integration
 
-1. optional thin provider-specific gate workflow;
-2. detect equivalent existing integration;
-3. keep application verification authority in VCP/task state.
+Generate only thin provider-specific delegation to VCP gate, and only where explicitly selected/compatible.
 
 ## Phase 9 — Skill UX expansion
 
-After the primary router/Core contracts are stable:
+After the router/Core contracts stabilize:
 
-1. discovery/grill Skill;
-2. review/retro UX where justified;
-3. progressive Skill references;
+1. discovery/grill;
+2. review/retro;
+3. progressive references;
 4. cross-agent packaging;
-5. prompt-eval coverage.
+5. behavior-eval coverage.
 
 ### Checkpoint D — invisible UX
 
-Users should understand decisions/evidence without knowing Core commands.
+Users should understand decisions/evidence without needing to operate VCP internals manually.
 
 ## Phase 10 — Conformance/release hardening
 
-Run full compatibility/public CLI/package smoke and preserve bounded checkpoint evidence.
+Run full compatibility, negative, migration, package, and documentation-claim audits.
 
 ### Checkpoint E — model/tool capability audit
 
-Before major release, explicitly ask what VCP can remove because modern agents/platforms now do it well natively. A valid result is deprecation/deletion rather than new features.
+Before major release, explicitly ask what standing instructions, Skills, orchestration, or Core state can now be removed because current agents/platforms reliably own that work.
 
 # 20. High-risk implementation mistakes to avoid
 
@@ -4263,11 +4270,11 @@ Makes the product unusable.
 
 Mechanically define a safe trivial lane.
 
-## 20.10 "Implement Stage 11 single-stack React Native first"
+## 20.10 "Treat Stage 11 React Native as still pending or throw it away"
 
-Likely produces near-term lifecycle code that the capability model immediately replaces.
+Stage 11 React Native is already merged current behavior.
 
-Reconcile Stage 11 with capabilities first.
+The capability model must migrate/re-express its requested-stack provenance, selected-root detection, specialization, verification, and mobile safety boundaries rather than pretending the implementation does not exist.
 
 ---
 
@@ -4344,6 +4351,7 @@ The adaptive redesign should not be considered complete because all new unit tes
 
 It is complete when the following real scenarios pass.
 
+
 ## Scenario A — mature Claude project
 
 Initial state:
@@ -4356,16 +4364,23 @@ TypeScript + custom test script
 no VCP
 ~~~
 
-After vcp init:
+Stage 12 preview result:
 
-- all user instruction text preserved;
-- exactly one VCP integration section added;
-- existing CI untouched;
-- capabilities discovered from evidence;
-- VCP lifecycle state created;
-- next VCP update changes only VCP-owned section/content.
+- no files are written;
+- existing instruction/CI content is preserved in the plan;
+- command authority is unambiguous or explicitly blocked;
+- optional GitHub hygiene is skipped unless requested;
+- only the brownfield-minimal asset surface is proposed.
 
----
+Stage 13 apply result on an unchanged snapshot:
+
+- a fresh plan is recomputed under lock;
+- user instruction text survives outside one VCP-owned section;
+- existing CI remains untouched;
+- lifecycle state records section ownership and brownfield-minimal assetSet;
+- next VCP update stays on that adopted surface.
+
+If the repository changes after preview, fresh apply may differ or block safely.
 
 ## Scenario B — unsupported Rust project
 
