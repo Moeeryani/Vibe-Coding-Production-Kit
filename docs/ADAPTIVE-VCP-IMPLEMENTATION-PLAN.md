@@ -1340,18 +1340,27 @@ Each capability should include provenance:
 ```json
 {
   "id": "language.typescript",
+  "state": "proven",
   "source": "tsconfig.json",
-  "confidence": "proven",
+  "sourceKind": "core",
   "detector": "core.typescript.v1"
 }
 ```
 
-Avoid fuzzy model-generated confidence. In v1, prefer deterministic states:
+Avoid fuzzy model-generated confidence.
 
-- `proven`
-- `configured`
-- `proposed`
-- `unknown`
+Separate **evidence state** from **application authority**.
+
+At minimum, the model must distinguish:
+
+- `proven` — deterministic evidence matched;
+- `configured` — project/VCP lifecycle state explicitly applies the capability;
+- `proposed` — evidence/profile suggests it but VCP must not apply it automatically;
+- `unknown` — not established.
+
+Also retain provenance such as `core`, `first-party-profile`, `community-profile:<id>`, or explicit project configuration.
+
+A capability can be deterministically proven yet still be **unapplied**.
 
 ## 5.4 Detection should be compositional
 
@@ -1368,9 +1377,11 @@ inspect repository
       ↓
 run deterministic detectors
       ↓
-collect proven capabilities
+collect detected capability evidence + provenance
       ↓
-resolve conflicts / precedence
+apply trust/authority policy
+      ↓
+derive applied/configured capability set
       ↓
 compose guidance + verification discovery
 ```
@@ -1490,7 +1501,7 @@ Repository-owned scripts/configuration remain stronger evidence than profile def
 - unsupported technologies do not cause false configuration;
 - generic fallback still works;
 - existing simple JS/TS/Python/Go behavior remains compatible;
-- Doctor reports detected capabilities separately from project-approved configuration;
+- Doctor reports detected capability evidence separately from applied/project-approved capability state and provenance;
 - no capability detector silently broadens the selected project root.
 
 ---
@@ -1570,7 +1581,10 @@ Important:
 
 - proposed commands are not automatically approved merely because the profile exists;
 - a detector contribution from a **community** profile requires explicit project selection and an explicit capability grant;
-- the plugin can contribute evidence to the normalized capability model, but cannot make itself authoritative.
+- the plugin can contribute **detected evidence** to the normalized capability model, but cannot make itself authoritative;
+- community-detected capabilities remain unapplied/proposed unless a separate project-owned configuration/adoption step authorizes application;
+- first-party/core deterministic capabilities may be eligible for automatic application only under the normal lifecycle/provenance rules;
+- automatic composition must never treat `proven` alone as sufficient authority without considering provenance/application state.
 
 ## 6.4 Trust model
 
@@ -1618,7 +1632,7 @@ Avoid:
 - a new ecosystem profile can be added without arbitrary executable plugin code;
 - detector DSL evaluation remains deterministic and selected-project-root bounded;
 - community detection contributions require explicit selection/digest/grant;
-- first-party and community profile data normalize into the same deterministic capability-composition layer while retaining different trust provenance;
+- first-party and community profile data normalize into the same deterministic evidence model while retaining different trust provenance and application authority;
 - profile-proposed commands remain proposals until project adoption;
 - tampered/incompatible profile state fails before lifecycle mutation;
 - community profile support cannot weaken core VCP invariants.
