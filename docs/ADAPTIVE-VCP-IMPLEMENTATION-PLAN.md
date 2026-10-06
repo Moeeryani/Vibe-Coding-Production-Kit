@@ -1636,18 +1636,32 @@ There is also a release-automation dependency:
 
 Current `release-check` lifecycle smoke validates an updated consumer by executing that consumer's copied `scripts/validate-framework.mjs`.
 
-When consumer installs stop receiving that file, release-check must switch to public consumer contracts such as:
+When consumer installs stop receiving that file, release-check must switch to public lifecycle contracts and also prove the new manifest-reader boundary.
+
+Stage-12/Phase-2 lifecycle smoke should become:
 
 ```text
 previous CLI init
-→ candidate update preview/apply
-→ Doctor
-→ idempotent update preview
-→ expected consumer surface checks
-→ later, canonical vcp gate where appropriate
+→ capture/hash previous managed project state
+→ candidate update preview
+→ candidate update apply (v1 → v2)
+→ candidate Doctor
+→ candidate idempotent update preview
+→ expected assetSet/ownership surface checks
+→ invoke previous CLI against upgraded project
+     → must fail closed on unsupported schema/reader semantics
+     → project bytes/state must remain unchanged
+→ candidate rollback using the update backup
+→ prove prior v1 manifest/baselines/project bytes restored
+→ previous CLI Doctor/status can read the restored project again
+→ candidate update can be applied again successfully
 ```
 
-Source/package validation still runs separately inside the VCP repository.
+The Stage-12 release also needs a focused same-schema fixture for `minimumReaderVersion` because a v0.9 schema-v1 CLI will already fail on schema v2 and therefore cannot by itself prove the later same-schema guard.
+
+Rollback evidence is essential: a migration is not safe merely because forward apply succeeds.
+
+Source/package validation still runs separately inside the VCP repository. Later, canonical `vcp gate` may be added to an appropriate consumer fixture, but it does not replace lifecycle migration proof.
 
 
 ## 4.6 Definition of done
@@ -1660,7 +1674,7 @@ Source/package validation still runs separately inside the VCP repository.
 - customized local security-profile guidance survives as an override while unmodified canonical copies can move to package fallback;
 - consumer projects no longer receive VCP's source-framework validator;
 - Doctor no longer requires copied framework scripts/prompts when packaged equivalents are valid;
-- release-check consumer lifecycle smoke no longer depends on copied `validate-framework`;
+- release-check consumer lifecycle smoke no longer depends on copied `validate-framework` and proves forward migration, old-reader fail-closed behavior, rollback to the prior readable schema, and re-apply;
 - explicit migrations prevent unexplained disappeared-file conflicts;
 - project-selected community-plugin declaration/bundles survive asset migration byte-for-byte unless the project itself changes them;
 - package tests explicitly assert both package surface and consumer-install surface.
