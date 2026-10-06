@@ -3488,6 +3488,31 @@ At minimum:
 - duplicate-equivalent verification commands in multiple project-owned locations;
 - auto-core capability whose detector evidence disappears after it was applied.
 
+## 11.2A Platform evidence is separate from fixture coverage
+
+A repository fixture can prove path/manifest/planner semantics without proving that the released CLI has executed successfully on every operating system/runner.
+
+Keep two evidence classes separate:
+
+~~~text
+semantic fixture coverage
+→ deterministic logic across repository shapes
+
+platform execution evidence
+→ actual CLI/release gate executed on the named OS/runner/toolchain
+~~~
+
+Rules:
+
+- do not claim Linux/macOS/hosted support from Windows-only fixture success;
+- do not claim GitHub Actions support merely because workflow generation/tests pass;
+- Phase 10 release evidence records exactly which OS/runtime/Git channels actually executed;
+- unresolved platform channels remain explicit compatibility follow-ups rather than being hidden by a green generic matrix;
+- current #69 Linux/hosted boundary remains authoritative until real evidence closes it;
+- portable path/case/newline fixtures are still valuable but are semantic tests, not a substitute for native/hosted execution.
+
+Checkpoint/release wording must say `tested on <channels>` rather than `cross-platform` unless all claimed channels have executable evidence.
+
 ## 11.3 Success properties
 
 The matrix should assert properties, not marketing claims.
@@ -3555,7 +3580,8 @@ actionable remediation
 - conformance fixtures run in automated tests;
 - each supported adoption invariant has at least one negative test;
 - release criteria require the matrix to remain green;
-- documentation claims match exactly what the matrix proves.
+- documentation claims match exactly what the matrix proves;
+- platform-support claims are backed by actual per-platform executable evidence and do not infer Linux/macOS/hosted support from semantic fixtures.
 
 ---
 
