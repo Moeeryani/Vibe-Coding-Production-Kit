@@ -1685,11 +1685,13 @@ Must prove:
 - readable managed manifest with missing/corrupt baseline or active transaction → MANAGED recovery/health blocker, never brownfield re-init;
 - unknown pre-existing .vcp content is preserved and blocks unsafe adoption;
 - existing repositories receive an action plan instead of collision-only failure;
+- CLI represents GitHub preference as unspecified/include/exclude and rejects contradictory positive+negative flags;
 - EXISTING non-dry-run mutation is blocked;
 - init `--force` is rejected while unrelated command-specific force behavior remains;
 - dry-run performs zero project-file and zero durable VCP-state writes;
 - plan action ordering is deterministic;
 - public JSON omits file contents;
+- success/preview reporting is repository-class and assetSet aware and never instructs brownfield-minimal to create starter truth it intentionally preserved;
 - broad framework/CI assets are SKIP/PRESERVE in brownfield plans;
 - malformed existing VCP markers produce CONFLICT;
 - planner detects existing equivalent Claude/Copilot integration without duplicate insertion.
@@ -1704,6 +1706,7 @@ Must prove:
 - a repository change between preview and apply changes/rejects the fresh plan safely;
 - apply never trusts a stale preview object;
 - all conflicts block before project-file mutation;
+- a destructive-command approval becomes stale when the approved normalized command fingerprint/source authority changes;
 - section compose preserves surrounding bytes;
 - rollback restores an unmanaged repository to truly unmanaged lifecycle state, including removal of the successful first-adoption recovery backup/internal scaffolding;
 - re-running init after success redirects as MANAGED;
@@ -1907,6 +1910,28 @@ include
 exclude
 ~~~
 
+CLI parsing must preserve this tri-state. The current boolean `includeGitHub=true`
+cannot do so by itself.
+
+Add one explicit positive selector in addition to the existing `--no-github`,
+for example:
+
+~~~text
+--github
+--no-github
+~~~
+
+(or `--include-github` as the final positive spelling).
+
+Rules:
+
+- neither flag → unspecified;
+- positive flag → include;
+- negative flag → exclude;
+- both → syntax error;
+- `--yes` does not convert unspecified to include on EXISTING repositories;
+- NEW compatibility resolution may still choose its documented default after maturity classification.
+
 For EXISTING repositories:
 
 - unspecified → no optional GitHub hygiene mutation;
@@ -1988,9 +2013,18 @@ Two gaps in the above rules:
      recursive delete, network fetch-and-execute) requires an explicit HUMAN DECISION
      at adoption time, even when unique. The pattern list lives in versioned VCP
      source (auditable), not in agent instructions.
+   - Approval identity is `commandKey + normalizedCommandFingerprint + source provenance`,
+     not merely `commandKey` or "this AGENTS.md was approved". Store/derive a stable
+     digest that does not contain secrets/raw output.
+   - Any later effective-command change, conflicting authority source, or fingerprint
+     mismatch invalidates that approval before task creation/gate execution. Reapproval
+     is required for the new destructive command value.
+   - Task Pack command declarations snapshot the approved effective value/provenance;
+     verify/gate execute the task-approved snapshot, not a fresh first-match parse from
+     a possibly changed AGENTS.md.
    - This is the deterministic-enforcement counterpart to the external finding that
-     instruction-only approval boundaries get bypassed: the boundary lives in the
-     CLI resolver, not in prompt prose.
+     instruction-only approval boundaries get bypassed: the boundary lives next to
+     command resolution/execution, not in prompt prose.
 
 ---
 
@@ -5435,8 +5469,10 @@ Stage 12 also needs:
 
 - raw init-request parsing separate from post-inspection preference resolution;
 - explicit presence/provenance bits for agent/GitHub (and any future behavior-bearing choice);
+- explicit positive GitHub flag plus existing negative flag so include/exclude/unspecified are all representable;
 - no stdin prompts in `--json` machine mode;
-- MANAGED/conflict short-circuit before interactive adoption questions.
+- MANAGED/conflict short-circuit before interactive adoption questions;
+- replace the one-size-fits-all `printInitResult()` handoff with repository-class/assetSet-aware reporting. Brownfield-minimal must say "inspect and link existing authority", not "draft canonical VCP Source-of-Truth files"; MANAGED/status paths must not print first-install next steps.
 ---
 
 
