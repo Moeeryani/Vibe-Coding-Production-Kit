@@ -1003,8 +1003,9 @@ ADD
 
 ADOPT
 → establish ownership only when the ownership boundary is already explicit and safe:
-   - an exact whole-file canonical artifact that VCP is allowed to own, or
+   - an exact whole-file canonical artifact whose catalog/asset policy permits whole-file adoption, or
    - an already well-formed marked VCP section
+→ brownfield AGENTS/CLAUDE/Copilot integration paths remain section-owned; an exact unmarked canonical match does not grant whole-file ownership
 → never claim arbitrary unmarked project prose as a VCP-owned section
 
 COMPOSE
@@ -1098,16 +1099,50 @@ For EXISTING repositories:
 
 For NEW repositories, the historical default may remain `generic` during the compatibility transition.
 
-The lifecycle must persist the **actual installed adapter surface**, not reconstruct it later from a lossy single selector. `assetSet` may carry the adapter paths/profile, or install metadata may contain an explicit adapter set; exact representation is an implementation choice.
-
-Important invariant:
+Do not collapse three different facts into one "adapter surface":
 
 ~~~text
-brownfield detected existing CLAUDE.md only
-+ agentPreference=unspecified
-→ integrate existing CLAUDE.md + AGENTS
-→ next vcp update does not suddenly add Copilot/other adapters
+adapter intent
+  → explicit developer request, if any
+  → generic | claude | copilot | ... | all
+
+managed adapter surface
+  → files/sections VCP actually owns after ADD/COMPOSE
+  → lifecycle state
+
+observed compatible adapters
+  → existing project-owned files that already route correctly
+  → derived inspection fact only
 ~~~
+
+Lifecycle state must preserve explicit adapter intent **and** the VCP-managed adapter surface where needed for reproducible updates. Observed compatibility is not ownership and should normally be recomputed rather than persisted as desired content.
+
+Examples:
+
+~~~text
+existing CLAUDE.md already contains @AGENTS.md
++ agentPreference=unspecified
+→ AGENTS integration is added/composed
+→ CLAUDE.md = NOOP, project-owned
+→ Claude compatibility is observed, not managed
+→ next update does not start owning or rewriting CLAUDE.md
+
+existing CLAUDE.md lacks AGENTS routing
++ agentPreference=unspecified
+→ compose one marked VCP section into CLAUDE.md
+→ that section becomes managed with provenance "observed-existing" (or equivalent)
+→ absent Copilot file is not created
+
+agentPreference=explicit claude
++ existing compatible project-owned CLAUDE.md
+→ explicit Claude intent is persisted
+→ CLAUDE.md may remain NOOP/project-owned while compatible
+→ if compatibility later disappears, update may propose safe composition because explicit intent remains
+~~~
+
+For managed adapter sections introduced only because an existing vendor file was observed, later deletion of the whole vendor file must not silently recreate it as though the developer had explicitly requested that adapter. Surface the lifecycle change/conflict or detach it deliberately.
+
+Exact representation is an implementation choice: explicit requested-adapter metadata plus managed-file/assetSet provenance is sufficient; do not add a second hidden adapter database.
 
 Do not treat detected agent files as proof of the developer's preferred coding agent; they are safe composition evidence only.
 
@@ -2932,7 +2967,7 @@ For every fixture:
 - no unproven verification command is executed;
 - for an unchanged repository snapshot, dry-run and fresh apply planning are semantically equivalent;
 - if the repository changes before apply, the apply path re-plans and may differ or block safely;
-- omitted brownfield agent selection is not misread as explicit generic, and the next update reproduces the actual adopted adapter surface;
+- omitted brownfield agent selection is not misread as explicit generic, and the next update reproduces explicit adapter intent and VCP-owned sections without taking ownership of merely observed-compatible project files;
 - intentionally absent brownfield starter docs do not become install-health/strict failures by themselves;
 - packaged prompt fallback reports source/package provenance while remaining self-contained in the Context Pack;
 - unsupported ecosystem degrades safely;
@@ -3119,7 +3154,7 @@ Implement:
 8. brownfield stack-ambiguity safety while retaining the Stage-11-compatible stack API;
 9. minimal brownfield adoption-surface selection;
 10. persisted install-surface identity for legacy-full vs brownfield-minimal lifecycle behavior;
-11. preserved agent request provenance plus persisted **actual adapter surface**;
+11. preserved agent request provenance plus persisted explicit adapter intent plus VCP-managed adapter surface;
 12. tri-state GitHub request provenance for brownfield planning;
 13. verification-command authority inspection shared by Task/Doctor;
 14. Doctor prompt-source/install-surface awareness for the valid brownfield-minimal shape;
@@ -3162,7 +3197,7 @@ Implement:
 4. if blocking/failure occurs before backup creation, release the lock and remove only empty operation-created lock bootstrap state;
 5. backup every path that may change plus explicit prior lifecycle-state presence/absence;
 6. transactional COMPOSE/ADD/ADOPT behavior;
-7. write section-aware baselines and manifest, including the actual adopted asset/adapter surface;
+7. write section-aware baselines and manifest, including the adopted asset set, explicit adapter intent, and VCP-managed adapter surface;
 8. post-apply verification;
 9. automatic rollback on failure;
 10. idempotent managed-project re-run behavior;
