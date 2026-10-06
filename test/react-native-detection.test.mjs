@@ -5,6 +5,7 @@ import path from 'node:path';
 import test from 'node:test';
 import { formatDoctorReport, runDoctor } from '../lib/doctor.mjs';
 import { initProject } from '../lib/init.mjs';
+import { detectStackProfileChange } from '../lib/stack-provenance.mjs';
 import { detectStack, STACK_CHOICES } from '../lib/stacks.mjs';
 
 async function tempDir() {
@@ -174,10 +175,12 @@ test('Doctor reports auto-selected generic profile with both existing re-profile
 
   assert.equal(report.lifecycleStack.installedStack, 'generic');
   assert.equal(report.lifecycleStack.requestedStack, 'auto');
-  assert.equal(report.lifecycleStack.reprofileEligible, true);
-  assert.equal(report.lifecycleStack.reprofileTarget, 'react-native');
+  assert.equal(report.lifecycleStack.reprofileEligible, false);
+  assert.equal(report.lifecycleStack.reprofileTarget, null);
+  assert.equal(report.lifecycleStack.reprofileState, 'deferred-specialization');
   assert.equal(report.lifecycleStack.specializationEligible, true);
   assert.equal(report.lifecycleStack.specializationTarget, 'react-native');
+  assert.equal(await detectStackProfileChange(target, { stack: 'generic', requestedStack: 'auto' }), null);
 });
 
 test('Doctor withholds React Native specialization for explicit lifecycle choice', async () => {
