@@ -1524,7 +1524,9 @@ Must prove:
 
 ## 4.10 Persisted asset-surface identity
 
-A minimal brownfield adoption cannot be correct if the next vcp update immediately rebuilds the full legacy template surface.
+A minimal brownfield adoption cannot be correct if the next `vcp update` immediately rebuilds the full legacy template surface.
+
+The same state also lets fresh greenfield installs stop inheriting source-repository-only CI without forcing an unrelated migration onto existing managed projects.
 
 Persist install-surface identity as lifecycle state.
 
@@ -1532,7 +1534,15 @@ Conceptually:
 
 ~~~text
 legacy-full-v1
+  migrated schema-v1 installs
+  preserves current historical desired surface temporarily
+
+greenfield-safe-v1
+  fresh Adaptive-era NEW installs
+  excludes source-repository .github/workflows/validate.yml
+
 brownfield-minimal-v1
+  established-repository Smart Init surface
 ~~~
 
 Exact identifiers are not important; reproducible desired-state behavior is.
@@ -1550,7 +1560,23 @@ Required propagation:
 
 Do not abuse ignoredFiles for this. Ignored paths represent project-owner lifecycle choices, not which VCP product surface was installed.
 
-Phase 2 may deliberately migrate both legacy install profiles onto a later classified catalog version, but it must preserve greenfield/brownfield asset-selection semantics instead of converging them to one identical installed file set.
+Stage-12 migration behavior:
+
+~~~text
+existing schema-v1 managed project
+→ legacy-full-v1
+→ no surprise validate.yml deletion merely because schema migrated
+
+fresh NEW install
+→ greenfield-safe-v1
+→ GitHub hygiene may be included according to preference
+→ npm-specific VCP source workflow is not installed
+
+Stage-13 brownfield adoption
+→ brownfield-minimal-v1
+~~~
+
+Phase 2 can move all three onto a later classified catalog version while preserving profile-specific selection. Phase 3 owns provider-neutral CI inspection plus explicit migration/detach of the old legacy managed workflow.
 
 ---
 
@@ -3055,9 +3081,9 @@ That is not a provider-neutral CI model.
 
 ---
 
-## 10.2 Phase E1 — Stop doing the harmful part first
+## 10.2 Phase E1 — Stop doing the harmful part first (Stage-12 fresh-install safety)
 
-Before generating any new workflow:
+Before generating any new workflow, and as a Stage-12 requirement for fresh NEW installs:
 
 1. stop installing VCP's source-repository npm workflow into arbitrary fresh consumers;
 2. split CI detection from GitHub issue/PR scaffolding;
@@ -4657,7 +4683,7 @@ Desired-state construction must use the classified catalog plus persisted instal
 
 "Unified catalog" must not mean "same installed paths":
 
-- greenfield may receive starter truth templates;
+- greenfield-safe may receive starter truth templates but not source-repository-only npm CI;
 - brownfield-minimal must not receive those templates automatically;
 - optional hygiene remains preference-driven;
 - package-only assets never become consumer desired state.
@@ -5141,7 +5167,9 @@ Runtime behavior:
 
 ~~~text
 NEW
-→ current greenfield apply may remain
+→ greenfield apply may remain structurally compatible
+→ but uses the safe Adaptive greenfield asset surface
+→ never installs the VCP source npm validation workflow
 
 EXISTING
 → preview supported
@@ -5227,7 +5255,7 @@ After Checkpoint A:
 6. rewrite release-check consumer smoke;
 7. preserve local prompt overrides and add package-fallback fixture coverage.
 
-## Phase 3 — CI safety/detection
+## Phase 3 — provider-neutral CI detection + legacy workflow migration
 
 1. stop hardcoded npm workflow installation;
 2. split GitHub hygiene from CI policy;
