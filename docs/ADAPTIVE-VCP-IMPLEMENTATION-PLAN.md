@@ -1310,6 +1310,46 @@ unmanaged before apply
 
 Acquiring the lock is allowed to create temporary internal state, but that state must not leak after an aborted first-adoption attempt.
 
+### Task creation must respect the adopted asset surface
+
+Smart Init is not truly usable if the first `vcp task` after brownfield adoption generates references to starter documents VCP intentionally did not install.
+
+Current full Task Pack generation pre-populates canonical VCP paths such as:
+
+~~~text
+docs/product/PRD.md
+docs/product/USER-FLOWS.md
+docs/architecture/ARCHITECTURE.md
+docs/security/THREAT-MODEL.md
+docs/testing/TEST-STRATEGY.md
+~~~
+
+For `brownfield-minimal`, Stage 13 must make Task Pack creation asset-set-aware.
+
+Required behavior:
+
+- do not auto-create the missing starter documents merely to satisfy the task template;
+- do not silently map arbitrary existing files to authoritative VCP roles;
+- render a neutral governing-reference scaffold that tells the agent to inspect the repository and link the **actual accepted project authority**;
+- keep project-root/workspace reference rules unchanged;
+- readiness continues to require real accepted Source-of-Truth where the task contract requires it;
+- a Draft Task Pack may contain neutral placeholders, but they must be clearly placeholders rather than fabricated canonical paths;
+- greenfield/legacy-full may retain the current starter-oriented source table until Phase 2 deliberately unifies catalog/template behavior.
+
+Conceptually, a brownfield L2 Source-of-Truth scaffold can start as:
+
+~~~text
+| Authority / decision | Reference |
+|---|---|
+| Governing requirement | <project-relative path#section or workspace:path#section> |
+| Architecture/domain decision (if applicable) | <path#section> |
+| Security/testing/operational authority (if applicable) | <path#section> |
+~~~
+
+The agent must replace/remove placeholder rows from repository evidence before readiness can pass.
+
+This same rule later applies to L1/L3 renderers: workflow level changes ceremony, not the repository's governing-document namespace.
+
 ## 3.12 Definition of done
 
 Smart adoption is complete only when:
@@ -1330,10 +1370,11 @@ Smart adoption is complete only when:
 - brownfield auto-stack ambiguity is surfaced conservatively;
 - the persisted asset surface, including actual adapter selection, prevents the next update from expanding adoption accidentally;
 - packaged prompt fallback, Context, and Doctor agree without widening project authority;
-- brownfield standing instructions never require starter paths absent from the adopted assetSet;
+- brownfield standing instructions and generated Task Packs never require/fabricate starter paths absent from the adopted assetSet;
 - schema migration makes legacy entries explicit whole-file ownership;
 - lock bootstrap leaves no stray VCP state when Stage 13 blocks before backup;
 - rollback restores both prior content **and prior absence of lifecycle state**;
+- first post-adoption `vcp task` produces an assetSet-appropriate Source-of-Truth scaffold rather than nonexistent canonical starter paths;
 - rerunning init after successful adoption reports MANAGED and does not rewrite lifecycle state;
 - documentation contains no instruction to use init --force after review.
 
