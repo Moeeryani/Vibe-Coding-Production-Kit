@@ -3462,7 +3462,8 @@ Before generating any new workflow, and as a Stage-12 requirement for fresh NEW 
 2. split GitHub issue/PR scaffolding from CI desired-state ownership;
 3. preserve existing CI as project-owned state;
 4. make Doctor/install-health assetSet-aware so greenfield-safe/brownfield-minimal do not require the legacy `.github/workflows/validate.yml`;
-5. preserve legacy-full expectation/state until its explicit migration.
+5. preserve legacy-full expectation/state until its explicit migration;
+6. retain the canonical legacy `.github/workflows/validate.yml` in the npm/package surface as a migration/update asset until Phase 3 removes legacy-full ownership, while excluding it from greenfield-safe/brownfield-minimal desired surfaces.
 
 Stage 12 does **not** implement the full provider-neutral CI inspector. For the safe new asset sets, Doctor may report project CI coverage as unknown/unassessed until Phase 3. The required Stage-12 fix is that intentional absence of the legacy VCP workflow is not treated as install corruption.
 
@@ -3556,7 +3557,19 @@ Unknown custom CI is not the same as broken CI.
 
 ## 10.6 Lifecycle migration for old VCP workflow
 
-If .github/workflows/validate.yml is removed from desired consumer assets, declare it explicitly in the next migration.
+If .github/workflows/validate.yml is removed from the **legacy-full desired consumer surface**, declare it explicitly in the Phase-3 migration.
+
+Until that migration ships and the supported previous-install lifecycle no longer needs to render/merge the old canonical file, keep the workflow in the package as a legacy lifecycle asset.
+
+The classified asset catalog therefore distinguishes:
+
+~~~text
+packaged artifact exists
+!=
+fresh consumer desired state includes it
+~~~
+
+Stage 12 can package the file for legacy-full update compatibility while greenfield-safe/brownfield-minimal filter it out. Phase 3 performs the explicit removal/detach migration; a later release may then delete it from the package surface once previous-release migration/recovery smoke proves it is no longer required.
 
 Behavior then follows existing lifecycle rules:
 
@@ -5910,6 +5923,8 @@ Risks:
 Update when new runtime/package assets become required.
 
 Do not add every implementation doc automatically; add files required for released runtime behavior.
+
+Conversely, do not remove a packaged legacy asset merely because fresh installs stop selecting it: keep migration/update compatibility assets until the lifecycle migration that consumes them is itself no longer in the supported upgrade window.
 
 ---
 
