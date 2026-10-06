@@ -2320,6 +2320,28 @@ Workflow level is a minimum safety contract, not a cosmetic label.
 - an explicit downgrade may be allowed only before material implementation/review/finalization evidence exists, only when the recomputed deterministic minimum permits it, and must be visible in task/reporting history;
 - final gate recomputes the minimum from the actual diff, so a lower stale label cannot pass an under-classified change.
 
+Late promotion must preserve historical truth:
+
+~~~text
+promotion discovered before implementation
+→ expand task
+→ satisfy higher-level readiness
+→ continue normally
+
+promotion discovered after implementation has started or at final diff
+→ stop the lower-level completion path
+→ expand the same task
+→ record that escalation occurred after implementation began
+→ reconstruct the stronger current-state contract from repository evidence
+→ resolve any newly exposed HUMAN DECISION before further risky work
+→ correct implementation as needed
+→ perform full higher-level verification/review/final gate
+~~~
+
+Do **not** fill a higher-level plan afterward and describe it as if it existed before the code. A recovered late promotion may become acceptable current-state evidence, but it is not evidence that the original implementation followed the stronger workflow from the start.
+
+The completion report should retain a bounded escalation note when that distinction materially affects auditability.
+
 Do not implement promotion by `--force`-rewriting a Task Pack. Use a bounded level migration/expansion primitive with idempotence tests.
 
 ## 8.6 Classification must happen after inspection and remain promotable
