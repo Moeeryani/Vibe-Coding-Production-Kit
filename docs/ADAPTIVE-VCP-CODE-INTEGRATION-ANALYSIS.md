@@ -1242,8 +1242,9 @@ Public behavior:
 
 ```text
 NEW
-→ greenfield init remains available
-→ dry-run uses the new planner
+→ mutating greenfield init remains available
+→ dry-run/apply use the new planner
+→ desired surface is greenfield-safe-v1, not legacy-full-v1
 
 EXISTING
 → vcp init --dry-run produces full adoption plan
