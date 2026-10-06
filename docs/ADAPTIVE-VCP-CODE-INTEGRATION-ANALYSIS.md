@@ -3760,7 +3760,7 @@ Slug
 Workflow-Level: L1
 
 Outcome / defect
-Governing authority state (references or explicit none)
+Governing authority state (references or task-local)
 Scope
 Acceptance criteria/evidence
 Risk / escalation flags
