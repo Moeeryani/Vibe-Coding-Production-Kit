@@ -184,6 +184,34 @@ test('Go and Python precedence remains above React Native', async () => {
   assert.equal(await detectStack(python), 'python');
 });
 
+test('symlinked package.json cannot grant React Native authority but preserves historical Node fallback', async (t) => {
+  const target = await tempDir();
+  const external = await tempDir();
+  await writePackage(external, {
+    name: 'external-react-native-package',
+    dependencies: { 'react-native': '0.76.0' },
+    scripts: { test: 'node --test' }
+  });
+  await addMarker(target, 'app.json');
+
+  try {
+    await symlink(path.join(external, 'package.json'), path.join(target, 'package.json'), 'file');
+  } catch (error) {
+    if (['EPERM', 'EACCES', 'ENOTSUP'].includes(error?.code)) {
+      t.skip('Host does not permit file symlinks.');
+      return;
+    }
+    throw error;
+  }
+
+  assert.equal(await detectStack(target), 'javascript');
+
+  const result = await applyStackProfileToContent(target, 'javascript', baseAgents);
+  assert.match(result.content, /UNIT_TEST_COMMAND=npm run test/);
+  assert.match(result.content, /## 16\. JavaScript \/ Node\.js stack profile/);
+  assert.doesNotMatch(result.content, /## 16\. React Native stack profile/);
+});
+
 test('React Native app markers must be real selected-root files/directories, not symlinks', async (t) => {
   const target = await tempDir();
   const external = await tempDir();
