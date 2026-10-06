@@ -3536,17 +3536,18 @@ Measure:
 6. migrate/re-express already-merged Stage 11 React Native provenance through the capability compatibility bridge.
 
 
-## Phase 6 — workflow mode + minimal router UX
+## Phase 6 — workflow mode + minimal packaged router UX
 
 1. persist workflowMode;
 2. add explicit --workflow-mode and a post-install mode change;
 3. render mode-aware thin VCP instruction sections/adapters;
 4. expose mode in Doctor/status;
-5. ship/prototype one thin primary VCP router Skill so Auto and Manual exercise one shared routing path;
-6. keep the router progressive and free of duplicated Core policy;
-7. extend prompt-eval only for observable routing/human-attention behavior that the existing schema cannot express.
+5. ship one package-owned primary VCP router Skill (`skills/vcp/SKILL.md` or equivalent) so Auto and Manual exercise one real shared routing path;
+6. add the minimum package/release/source-validation inclusion needed for that router;
+7. keep the router progressive and free of duplicated Core policy;
+8. add/extend prompt-eval coverage for router + human-attention behavior only where existing observables are insufficient.
 
-The router is UX, not authority. Auto routing remains best-effort until Phase 7 gate enforcement exists.
+The Phase-6 router is the minimal installed UX contract, not a throwaway prototype and not Core authority. Auto routing remains best-effort until Phase 7 gate enforcement exists.
 
 ## Phase 7 — mechanical gate and workflow levels
 
@@ -3594,13 +3595,15 @@ Measure:
 
 ## Phase 9 — Skill UX expansion
 
-Skills may prototype earlier, but release against stable Core contracts.
+The primary router is already packaged in Phase 6. Phase 9 expands the UX only after workflow-level/gate contracts stabilize.
 
-1. package canonical Skills;
-2. route to deterministic VCP commands;
-3. reuse prompt-eval observable behavior;
-4. keep Skills thin and replaceable;
-5. enforce progressive disclosure in Skill/reference loading.
+1. add discovery/grill, review, retro, and other justified specialized Skills/references;
+2. preserve the primary router as the default entry point;
+3. route every Skill to deterministic VCP commands/canonical prompts rather than duplicating policy;
+4. reuse prompt-eval observable behavior;
+5. keep Skills thin and replaceable;
+6. enforce progressive disclosure in Skill/reference loading;
+7. broaden cross-agent installer/packaging conformance beyond the minimum Phase-6 router surface.
 
 ### Validation Checkpoint D — Is VCP complexity actually hidden?
 
