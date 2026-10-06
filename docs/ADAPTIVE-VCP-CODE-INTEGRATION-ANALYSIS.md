@@ -3527,12 +3527,22 @@ Exact field/table syntax can differ.
 Persist:
 
 - exact reviewed base/head;
-- active profile IDs and enough source/provenance identity to reconstruct what guidance class was active;
+- active profile IDs and source/provenance identity;
+- a deterministic resolved-security-guidance fingerprint covering the profile texts actually supplied to the review, with VCP package version for packaged fallback and project-relative identity for project overrides;
 - severity;
 - current-task disposition;
 - concise evidence;
 - resolution/follow-up;
 - residual risk / unresolved HUMAN DECISION.
+
+Do not use profile names alone as freshness identity. The mandatory `baseline` ID can remain the same across a package upgrade while the packaged guidance changes.
+
+At gate time:
+
+1. resolve the currently required active profile set under the current L3 policy;
+2. recompute the same guidance fingerprint;
+3. compare it with the security-review record;
+4. stale/mismatched profile set or guidance fingerprint → fresh security review required.
 
 The security-review prompt should emit data compatible with the gate's existing finding/disposition model rather than inventing an unrelated unparseable result shape. Severity remains security-specific metadata.
 
@@ -3716,7 +3726,7 @@ verification declarations
 review findings/dispositions
 review base/head provenance when present
 required review kinds
-security-review findings/severity/dispositions + base/head/profile provenance when applicable
+security-review findings/severity/dispositions + base/head/profile/guidance-fingerprint provenance when applicable
 finalization state
 completion evidence
 ~~~
@@ -4156,7 +4166,7 @@ Require L2 plus applicable high-risk checks. Where the L3 classifier/project ris
 - exact reviewed security head is current for the final implementation surface;
 - ordinary independent review and required security review bind to the same final implementation head before finalization;
 - no unresolved must-fix security finding or HUMAN DECISION/risk-acceptance boundary remains;
-- active-profile provenance required by the review record is coherent.
+- active-profile provenance and resolved security-guidance fingerprint required by the review record are coherent/current.
 
 Security review remains additional to ordinary L2 review.
 
