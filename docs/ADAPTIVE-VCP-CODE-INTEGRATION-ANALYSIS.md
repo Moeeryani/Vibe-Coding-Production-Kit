@@ -3777,20 +3777,21 @@ For L1, governing authority must normalize into one of:
 
 ~~~text
 references([...])
-explicit-none
+task-local
 missing
 invalid
 ~~~
 
 Rules:
 
-- `missing` is a readiness failure;
+- `missing` / `invalid` are readiness failures;
 - references use the existing Source-of-Truth path/authority/freshness rules;
-- `explicit-none` is a durable claim, not proof;
-- known protected/governing surfaces or risk-classification evidence can reject `explicit-none` and require references/promotion;
-- review must be able to challenge an incorrect explicit-none declaration.
+- `task-local` means the accepted L1 outcome + acceptance criteria are the applicable lower-tier task authority, consistent with the existing Source-of-Truth hierarchy;
+- task-local is allowed only when no higher governing document applies, no HUMAN DECISION remains, and Core risk/protected-surface evidence does not require stronger authority;
+- known governing/protected surfaces can invalidate task-local and require references/promotion;
+- review must be able to challenge an incorrect task-local classification.
 
-Do not make absent L2-only headings fail L1 readiness, but do not treat absent authority state as a valid compact shortcut.
+Do not make absent L2-only headings fail L1 readiness, but do not treat absent authority as a valid compact shortcut.
 
 ## 12.3B Promotion mechanics
 
@@ -4243,7 +4244,7 @@ Parse at least:
 - status;
 - slug;
 - workflowLevel, normalized so absent legacy metadata = L2;
-- normalized governing-authority state (references / explicit-none / missing / invalid);
+- normalized governing-authority state (references / task-local / missing / invalid);
 - acceptance state;
 - verification command declarations;
 - review findings/dispositions;
@@ -4319,7 +4320,7 @@ The task's Workflow-Level selects the level contract; an optional CLI level over
 Require:
 
 - compact task readiness;
-- explicit governing-authority state, with any reference valid/current and any explicit-none declaration not contradicted by Core evidence;
+- explicit governing-authority state, with valid/current reference(s) or permitted task-local authority; missing/invalid state fails and Core evidence may invalidate task-local authority;
 - acceptance evidence;
 - no unresolved human blocker;
 - successful required verification in run mode;
