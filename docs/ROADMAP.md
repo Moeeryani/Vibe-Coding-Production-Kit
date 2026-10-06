@@ -2,7 +2,7 @@
 
 **Status:** Living execution roadmap and system-completion contract
 **Released baseline:** VCP `v0.9.3`
-**Current candidate:** none — next bounded work is Stage 11 design, not a prepared release candidate
+**Current candidate:** none — next bounded product work is Stage 12 Safe Adoption Planning after Stage 11 closeout reconciliation; no release candidate is prepared
 
 This is the current execution roadmap. Historical handoffs and design documents remain evidence, but this file owns current status, sequencing, dependencies, and completion criteria.
 
