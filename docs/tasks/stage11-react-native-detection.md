@@ -138,6 +138,8 @@ The accepted design remains authoritative: configuring/discovering a command is 
 |---|---|---|---|---|
 | NO ACTION | accepted design boundary | React Native detection and inspection are bounded by the merged `Authority: ACCEPTED` mobile contract. | Implement only Slice 1. | Guidance, verification mapping, lifecycle apply, nested conformance, and realistic fixture remain later slices. |
 | SECURITY | preserved boundary | Current generic verifier does not have an effect-aware sensitive-action gate. | Add no native/sensitive execution commands in this slice. | Existing generic verifier behavior remains outside this slice. |
+| DEFECT | corrected in self-review | React Native app-marker type checks initially used `stat`, which would follow symlinks and could let an external target activate selected-root detection. | Use `lstat` and require actual selected-root files/directories; symlinks are not application markers. | Concurrent replacement after inspection remains the separate #73 class. |
+| DEFECT | corrected in self-review | One rare generic/non-auto provenance return omitted the new specialization fields because it predates the Stage 11 decorator data. | Include specialization fields on every lifecycle assessment return shape. | JSON shape remains additive and deterministic. |
 | RISK | non-blocking | #69 Linux/hosted conformance remains open. | Use accepted exact-head Windows evidence channel. | Cross-OS proof remains pending. |
 | RISK | non-blocking | #73 concurrent local filesystem replacement remains unresolved. | Do not widen filesystem trust guarantees. | Concurrent replacement remains outside current guarantee. |
 
