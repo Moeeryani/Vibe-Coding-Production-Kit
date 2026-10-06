@@ -4437,7 +4437,8 @@ The exception is semantic, not merely path-based.
 
 Between the recorded reviewed implementation head and the final gate head, the task record may change only in parser-recognized evidence/finalization regions such as:
 
-- independent-review findings/dispositions/resolution/follow-up/residual risk;
+- ordinary independent-review findings/dispositions/resolution/follow-up/residual risk;
+- required L3 security-review findings/dispositions plus profile/guidance/head provenance, provided that review binds to the same unchanged implementation head;
 - Status transition;
 - Finalization checklist;
 - Completion report / accepted verification summary.
@@ -4450,7 +4451,7 @@ Gate should:
 2. compute the exact reviewed-head → current-head diff;
 3. reject any non-task-record path;
 4. parse the task-record diff/section ranges and reject changes outside the allowed evidence/finalization regions;
-5. require a fresh review if that semantic check fails.
+5. require fresh affected review(s) if that semantic check fails.
 
 This is the minimum deterministic state needed to make the existing finalization rule enforceable without creating a path-only bypass.
 
