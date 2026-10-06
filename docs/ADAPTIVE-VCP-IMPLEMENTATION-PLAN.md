@@ -2085,81 +2085,187 @@ The repository already has much of the deterministic machinery needed for a real
 
 Do not create a second verification engine.
 
-## 10.3 Add a canonical Task Pack state parser
 
-Current finalization/review requirements are mostly prose contracts.
+## 10.3 Add a canonical task-state parser
 
-Before gate grows, add one shared canonical parser for at least:
+Current readiness/review/finalization requirements are partly prose contracts.
+
+Before gate grows, add one shared parser/state model for L1/L2/L3 that exposes at least:
 
 - top-level task status;
-- workflow level if present;
-- acceptance-criteria check state;
-- independent review rows/dispositions;
-- finalization checklist;
-- completion-report presence;
-- verification-command declarations.
+- slug;
+- workflowLevel;
+- governing references where the level requires them;
+- acceptance state;
+- verification-command declarations;
+- independent review findings/dispositions;
+- **review provenance** sufficient to identify the reviewed Git surface/head;
+- finalization/completion state appropriate to the workflow level.
 
-Readiness and gate should progressively share that parser so they cannot disagree about the same Task Pack.
+Readiness, context, review tooling, and gate should progressively share this parser so they cannot disagree about the same durable task artifact.
 
-## 10.4 Gate requirements
+Do not create a separate hidden task database.
 
-For a material L2/L3 task, gate may require:
+## 10.4 Gate contracts by workflow level
 
-- project is VCP-managed;
-- required Task Pack exists;
-- plan/implementation readiness is satisfied;
-- acceptance criteria are complete;
-- no unresolved current-task must-fix review finding remains;
-- required verification actually ran successfully;
-- finalization state is structurally complete;
-- current Git revision still corresponds to the accepted executable/review state;
-- any L3-specific security/recovery requirements are satisfied.
+The gate must not pretend every level has the same artifact shape.
 
-Gate output should enumerate explicit pass/fail/block reasons rather than emit a magic score.
+### L0 — changed-surface gate only
 
-## 10.5 Evidence freshness must be current-state aware
+Initial L0 should be intentionally narrow and non-executing.
+
+Command shape:
+
+~~~text
+vcp gate --level l0 --base <ref> [--head <ref>] [--json]
+~~~
+
+Rules:
+
+- no Task Pack is required;
+- --base is required; --head defaults to HEAD;
+- only mechanically allowlisted trivial surfaces/diff characteristics may pass;
+- protected source/config/security/build/migration/public-contract/VCP-lifecycle surfaces force promotion;
+- dirty/unbounded state that prevents trustworthy changed-surface inspection blocks;
+- **if project-specific executable verification is required, the work is not L0 and must promote to at least L1**.
+
+This keeps L0 genuinely trivial rather than creating a second ad-hoc verification model.
+
+### L1 — compact durable engineering gate
+
+Command shape:
+
+~~~text
+vcp gate <task>
+vcp gate <task> --run
+~~~
+
+L1 gate requires the compact durable record and checks:
+
+- applicable governing authority/reference is present;
+- outcome/scope/acceptance evidence is complete;
+- unresolved HUMAN DECISION/blockers are absent;
+- required configured verification runs successfully in --run mode;
+- lightweight fresh review outcome has no unresolved must-fix finding;
+- review provenance still corresponds to the implementation surface, allowing only the bounded finalization edit described below;
+- current final status/completion evidence is structurally complete for L1.
+
+L1 does **not** require the full L2 plan/readiness/security/rollout template.
+
+### L2 — current material-work gate
+
+L2 preserves the current full lifecycle:
+
+- plan readiness;
+- implementation readiness;
+- acceptance criteria;
+- configured verification;
+- fresh independent review;
+- full finalization/completion contract;
+- exact-head executable rerun.
+
+### L3 — L2 plus relevant high-risk gates
+
+L3 adds only applicable high-risk requirements, for example:
+
+- dedicated security-mode review evidence when active security profiles are relevant;
+- migration/recovery/destructive-effect authorization;
+- stronger release/deployment/data-safety evidence.
+
+Gate validates that required human approvals/reviews exist; it does not manufacture approvals or perform AI review itself.
+
+## 10.5 Preserve the existing review → finalization → rerun protocol
+
+The future gate must enforce, not replace, the current Task Pack completion rule.
+
+For L1/L2/L3:
+
+~~~text
+implementation head
+→ executable verification
+→ fresh review on explicit Git surface/head
+→ persist review outcome + review provenance
+→ Task-record-only finalization edit
+→ finalization head
+→ vcp gate <task> --run on that unchanged finalization head
+→ pass permits merge
+~~~
+
+The gate must distinguish:
+
+1. the head/surface that was independently reviewed;
+2. the finalization head on which executable verification is rerun.
+
+A review head does not have to equal the finalization head **only** when the intervening diff is the canonical bounded task-record finalization edit.
+
+If any implementation/config/docs surface other than the allowed finalization artifact changes after review:
+
+- review provenance becomes stale;
+- gate fails/blocks;
+- fresh review is required before finalization/gate can pass again.
+
+This requires minimal durable review Git provenance. Exact Markdown field names can be chosen during Phase 7, but the information cannot remain chat-only.
+
+L0 has no task finalization sequence.
+
+## 10.6 Evidence freshness must be current-state aware
 
 Do not trust an old JSON evidence file solely because it once passed.
 
 Verification provenance is captured before command execution, and writing retained evidence can itself affect worktree state.
 
-Therefore final gate must re-inspect current Git state after executable work.
+For L1/L2/L3 --run:
 
-The preferred first implementation is:
-
-```text
-vcp gate --run
+~~~text
+vcp gate <task> --run
    ↓
-reuse verification engine
+reuse readiness/task-state logic for the selected level
    ↓
-perform required review/finalization checks
+execute verification through the existing verify engine
+   ↓
+validate durable review/finalization requirements
    ↓
 reinspect current HEAD + dirty state
    ↓
-return final gate result
-```
+return explicit gate result
+~~~
 
 Saved verification evidence remains useful for audit/handoff, but it is not by itself merge authorization.
 
-## 10.6 Local and CI enforcement
+The gate itself performs deterministic checks/execution only. It never claims to have carried out an independent AI review.
 
-The same deterministic gate must work locally and in CI.
+## 10.7 Local and CI enforcement
 
-Later CI integration should call the gate rather than recreate its logic.
+The same deterministic gate contract must work locally and in CI.
 
-Branch protection/pre-push integrations remain explicit repository policy.
+Later CI integration delegates to:
 
-## 10.7 Definition of done
+~~~text
+L0:
+vcp gate --level l0 --base <ref>
 
-- gate reuses readiness and verification machinery;
-- stale old-head evidence cannot pass;
+L1/L2/L3:
+vcp gate <task> --run
+~~~
+
+Branch protection, task selection for a CI job, and merge policy remain explicit repository/platform policy.
+
+## 10.8 Definition of done
+
+- gate reuses readiness/task-state and verification machinery;
+- L0 has one explicit no-Task-Pack changed-surface contract;
+- L1 has a compact but restartable verification/review gate;
+- L2 retains current full guarantees;
+- L3 adds only applicable high-risk requirements;
+- stale old-head verification cannot pass;
+- stale review provenance cannot pass after implementation-surface changes;
+- the canonical Task-record-only finalization head transition is supported;
 - post-run current Git state is inspected;
-- unresolved must-fix review evidence cannot pass material work;
-- incomplete finalization cannot pass L2/L3;
-- L0 cannot be used for mechanically protected surfaces;
-- human and JSON output expose exact failed requirements;
-- the gate works without GitHub;
-- CI can invoke the same gate contract.
+- unresolved must-fix review evidence cannot pass;
+- gate never substitutes deterministic checks for HUMAN DECISION or independent AI review;
+- human/JSON output exposes exact pass/fail/block reasons;
+- gate works without GitHub;
+- CI can invoke the same contract without reimplementing it.
 
 # 11. Workstream I — Compatibility and conformance matrix
 
