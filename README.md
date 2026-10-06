@@ -40,7 +40,7 @@ If you intentionally want to run the repository version instead of the published
 npx --yes github:Moeeryani/Vibe-Coding-Production-Kit init . --agent all --stack auto --yes
 ```
 
-The CLI requires **Node.js 22+**, has **no runtime dependencies**, and auto-detects JavaScript/Node.js, TypeScript, Python, and Go only when repository evidence supports that decision.
+The CLI requires **Node.js 22+**, has **no runtime dependencies**, and auto-detects React Native, JavaScript/Node.js, TypeScript, Python, and Go only when the selected-root repository evidence supports that decision.
 
 **New here?** Follow the end-to-end [`10-minute Quickstart`](docs/QUICKSTART.md).
 
