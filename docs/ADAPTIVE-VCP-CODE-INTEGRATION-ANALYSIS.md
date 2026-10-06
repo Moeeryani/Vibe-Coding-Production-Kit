@@ -388,240 +388,329 @@ These must produce implementation and test consequences. Otherwise they are only
 
 ---
 
+
 ## 3A.1 Invisible-by-default UX — implementation contract
 
-### Required technical behavior
+### Current code reality
 
-Auto mode must be operable from normal developer intent without requiring manual sequencing of:
+VCP already gestures toward an invisible UX:
 
-~~~text
-vcp task
-vcp ready
-vcp context
-vcp verify
-vcp gate
-~~~
+- AGENTS.md tells the coding agent to drive task → readiness → context → verify → review;
+- printInitResult() tells the developer to state feature intent normally and let the agent drive the VCP sequence;
+- the CLI exposes deterministic primitives for agents, CI, advanced users, and debugging.
 
-Those commands remain public because agents, CI, advanced users, debugging tools, and Manual mode need them.
+But there is no persisted Auto/Manual mode, no packaged primary VCP router Skill, and no universal interception layer.
 
-But Auto mode must provide a routing surface above them.
+### Architectural limit
 
-The expected runtime relationship is:
+Because VCP intentionally has no embedded LLM, it cannot deterministically intercept every natural-language request across every supported coding agent.
+
+Therefore Auto mode must not be specified as "VCP always intercepts the prompt."
+
+Use this model:
 
 ~~~text
 developer intent
       ↓
-agent adapter / VCP Skill router
+best-effort router
+  Skill + minimal standing instruction
       ↓
-inspect VCP project state
+inspect project / choose provisional workflow
       ↓
-select workflow level
+invoke VCP Core
       ↓
-invoke VCP Core commands
-      ↓
-surface only:
-  - real human decisions
-  - blockers
-  - evidence
-  - outcome
+deterministic gate checks the result
 ~~~
+
+Optional platform hooks can tighten integration where supported, but Core correctness must not depend on one vendor's hook system.
+
+The deterministic guarantee is at the outcome/gate boundary, not at prompt interception.
+
+### Hide mechanics, not meaning
+
+The human-facing layer should normally suppress command choreography while surfacing:
+
+- what was discovered;
+- what changed;
+- material proposals/decisions;
+- what remains blocked;
+- verification actually run;
+- residual risk;
+- why a gate failed.
+
+Do not turn invisible UX into opaque automation.
 
 ### Affected implementation surfaces
 
 At minimum:
 
-- AGENTS integration content;
+- generated/adopted AGENTS.md VCP section;
 - lib/adapters.mjs;
 - workflowMode state;
-- packaged Skills;
+- packaged VCP router Skill;
 - prompt/Skill evaluation;
-- human-facing command/report formatting;
-- future workflow-level routing contract.
+- human-facing reports;
+- workflow-level classifier;
+- future gate.
 
-### Do not hide inspectability
+### Init implications
 
-Invisible-by-default does not mean hidden state.
+Current interactive init asks about target, agent, stack, and GitHub assets.
 
-The user must still be able to inspect:
+Smart init should remove questions that repository evidence can answer:
 
-- task state;
-- readiness;
-- context sources;
-- verification commands/results;
-- gate failures;
-- lifecycle/update state.
+- stack/capabilities → detect;
+- CI → detect/preserve;
+- existing agent integration → detect/compose.
 
-The distinction is:
-
-> Users should not have to operate the internals continuously in order to benefit from them.
+Only real choices should remain.
 
 ### Required tests
 
-Add behavior/conformance tests proving that a representative Auto-mode L2 request can be completed through the agent/Skill contract without a test fixture pretending the user manually issued every VCP command.
+A representative Auto L1/L2 evaluation must start from normal developer intent and show the adapter/Skill invoking VCP primitives internally.
 
-The evaluation may still simulate the agent's command calls internally.
+The test should not model the user manually issuing every CLI command.
 
-The observable user interaction should contain only:
+A bypass test must show that missing required VCP state/evidence is rejected by the gate even if agent-side routing failed.
 
-- necessary decisions;
-- material progress/outcome;
-- evidence/blockers.
-
----
 
 ## 3A.2 Human-attention budget — implementation and evaluation contract
 
-### Existing assets to reuse
+### Existing code is already strong here
 
-The repository already has a strong foundation:
+This point is not a greenfield feature.
 
-- prompts/01-discovery.md;
-- AGENTS.md human decision boundary;
-- prompt-eval properties;
-- repository inspection;
-- Source-of-Truth references;
-- Context Pack composition.
+Current implementation already has:
 
-Do not create a second question-classification framework.
+- DISCOVERABLE / PROPOSABLE / HUMAN DECISION in AGENTS and prompts;
+- discovery instructions that explicitly forbid asking repository-answerable questions;
+- planning/implementation instructions that group or defer human boundaries;
+- prompt-eval property discover-before-ask;
+- evaluator assertions such as not-questioned:<key> that fail if a discoverable fact was asked;
+- human-decision-boundary and proposal-not-approval.
 
-### Add explicit evaluation properties
+Preserve these contracts.
 
-Extend prompt/Skill behavior evaluation with properties equivalent to:
+### Actual gap
+
+The current behavior-record schema can tell which question keys were asked and their class, but it does not represent interaction rounds/batches or redundant approval requests.
+
+Therefore it cannot yet deterministically prove:
+
+- several human decisions were grouped into one interruption;
+- the agent stopped three times instead of once;
+- the agent asked for confirmation before an already-authorized reversible action.
+
+### Recommended evolution
+
+Do not replace the existing evaluator.
+
+When Auto/Skills implementation is ready, evolve the behavior-record contract minimally.
+
+A likely next schema can add bounded observations such as:
 
 ~~~text
-discoverable-question-not-asked
-human-decisions-grouped
-redundant-confirmation-avoided
-proposal-not-silently-approved
+questionBatches:
+  - [decision.a, decision.b]
+
+confirmationsRequested:
+  - action-id
 ~~~
 
-Exact property names may differ, but they must be machine-evaluable from normalized behavior records.
+or an equivalent normalized interaction-round structure.
 
-### Normalized observations should capture
+Keep existing question identity/class semantics.
 
-Where practical:
+Add evaluator properties equivalent to:
 
-- candidate question/decision ID;
-- classification: DISCOVERABLE / PROPOSABLE / HUMAN DECISION;
-- whether repository evidence already contained the answer;
-- whether the agent asked the user;
-- whether questions were grouped;
-- whether a proposal was treated as approval;
-- whether a repeated question should have been persisted as durable project truth.
+~~~text
+human-decisions-grouped
+redundant-confirmation-avoided
+~~~
 
-Do not store full private conversational transcripts merely to evaluate this. Preserve bounded observations.
+Do not migrate schema v1 until the exact observable contract is stable.
+
+### Privacy boundary
+
+VCP does not need runtime conversation telemetry.
+
+Canonical model/adapter evaluations can emit normalized behavior records.
+
+Real dogfood should record aggregate facts—question rounds, corrections, overrides—not full private transcripts.
 
 ### Core vs Skill boundary
 
-The classification conversation itself remains Skill/agent behavior.
+Conversation behavior remains Skill/agent territory.
 
-Core should provide deterministic evidence that makes questions discoverable:
+Core improves attention efficiency by making more facts deterministically discoverable:
 
-- project capabilities;
-- existing commands;
+- capabilities;
+- commands;
 - Source of Truth;
 - accepted decisions;
 - task state;
-- Git/CI facts.
+- Git/CI evidence.
 
-### Required regression behavior
+A capability feature is incomplete if it discovers a fact but the UX still asks the human for it.
 
-A new capability/profile/context feature is incomplete if it discovers useful facts but Skills still ask users for those same facts.
+### Required regressions
 
----
+- existing Stage 7 properties remain non-vacuous;
+- discoverable facts still fail when questioned;
+- HUMAN DECISION items remain visible and unmanufactured;
+- new grouped-question scenario turns red when the same decisions are emitted as several avoidable interruption batches;
+- redundant-confirmation scenario turns red for a project-policy-authorized reversible action.
+
 
 ## 3A.3 Progressive disclosure — resolver and Context Pack contract
 
+### Existing implementation strengths
+
+lib/context.mjs already provides:
+
+- phase-specific modes;
+- explicit Source-of-Truth references;
+- explicit implementation includes/planned paths;
+- bounded Git review surface;
+- 120 KB hard context budget;
+- security profiles only in security mode;
+- plugin guidance filtered by declared modes.
+
+docs/CONTEXT-PACKS.md already states that context is a budget, not a dumping ground.
+
+### Current contradictions found in code
+
+#### Always-on AGENTS is large
+
+Current root AGENTS.md is roughly 13 KB / 253 lines and contains planning, architecture, data/migrations, APIs, security, error handling, observability, testing, review, Definition of Done, communication, and the full VCP agent workflow.
+
+Because AGENTS is standing context for several agents, this is the first place to reduce always-on token tax.
+
+#### Adapters encourage broad reads
+
+Current Claude/Copilot adapters instruct the model to read product, architecture, security, testing, and delivery documents before implementation.
+
+That undermines the phase-specific Context Pack design.
+
+#### Plugin validation and plugin transport are coupled
+
+loadCommunityPluginContext() correctly filters guidance by mode, but context construction still carries selected-plugin declaration/manifests and verification proposals broadly once plugins are selected.
+
+Trust validation may be necessary on every context build; transport of irrelevant plugin material is not.
+
 ### Required loading tiers
 
-Implement a layered source model:
-
 ~~~text
-Tier 0 — minimal always-on integration
-  AGENTS/VCP routing policy only
-
-Tier 1 — workflow guidance
-  L0 / L2 / L3 relevant guidance
-
-Tier 2 — task context
-  Task Pack
-  authoritative Source of Truth
-  affected architecture/files
-
-Tier 3 — risk/profile context
-  only relevant security/profile/migration/recovery material
-
-Tier 4 — deep references
-  loaded only when explicitly required
+Tier 0 — minimal standing routing + cross-cutting invariants
+Tier 1 — current workflow/level guidance
+Tier 2 — task + governing Source of Truth + affected surface
+Tier 3 — only relevant risk/profile/plugin material
+Tier 4 — deep references on demand
 ~~~
 
-These are conceptual tiers. They do not require one physical directory per tier.
+### AGENTS redesign
 
-### Affected code
+Generated VCP-owned standing content should converge toward only:
 
-Primarily:
+- authority/source-of-truth rule;
+- discover/propose/human-decision boundary;
+- Auto/Manual routing;
+- no false verification claims;
+- configured verification command contract;
+- truly universal safety invariants.
 
-- lib/context.mjs;
-- canonical prompt resolver;
-- lib/security-profiles.mjs;
-- lib/community-plugins.mjs;
-- future capability/profile composer;
-- Skills packaging;
-- Context Pack manifest/budget;
-- prompt evaluation.
+Move phase-specific detail into packaged prompts, Skills, and Context Packs.
 
-### Context manifest requirement
+For adopted existing AGENTS files, only the VCP-managed section should follow this design.
 
-The Context Pack manifest should make inclusion provenance inspectable.
+Measure bytes/tokens before and after; do not invent a permanent size threshold until comparative agent evals exist.
 
-For each non-trivial source it should be possible to determine:
+### Adapter redesign
 
-- source identity;
-- source type;
-- why it was included;
-- relevant workflow mode/level/profile if applicable.
+lib/adapters.mjs should become a thin router.
 
-Avoid adding verbose prose if structured metadata suffices.
+Remove broad "read product + architecture + security + testing + delivery docs" language.
+
+Instead direct the agent to:
+
+- repository VCP instructions;
+- the relevant VCP Skill/workflow;
+- generated Context Pack / governing references for the current change.
+
+### Context manifest
+
+Current manifest gives path + byte size.
+
+Evolve it compactly to identify inclusion class/reason without verbose prose, for example:
+
+~~~text
+[prompt]
+[task]
+[source-truth]
+[explicit]
+[security-profile]
+[plugin-guidance]
+[git-review]
+~~~
+
+### Community plugin transport
+
+Separate:
+
+~~~text
+plugin trust validation
+≠
+plugin content inclusion
+~~~
+
+A selected plugin can be validated every time while its manifest, guidance, or proposals enter rendered context only when relevant to the current workflow.
+
+Verification proposals should not automatically inflate every phase context.
 
 ### Negative tests
 
-Tests must prove absence, not only presence.
+Tests must prove absence:
 
-Examples:
+- L0 excludes Task Pack/security/profile machinery;
+- L1 excludes irrelevant high-risk sections;
+- normal plan/implement packs do not inherit security profiles;
+- selected but irrelevant plugin guidance/manifests do not enter rendered context;
+- package prompt fallback loads one relevant canonical prompt, not all prompts;
+- deep Skill references are not eagerly required.
 
-- L0 does not contain unrelated threat-model/profile material;
-- a backend-only task does not load unrelated mobile profile guidance;
-- an installed community plugin that is not selected/relevant does not enter context;
-- all packaged prompts are not concatenated merely because package fallback exists;
-- deeper Skill reference documents are not required for Skill discovery.
+### Budget strategy
 
-### Budget interaction
+Keep the existing hard budget.
 
-Existing Context Pack budgets remain authoritative.
+Add workflow-level measurement first; tune defaults only from dogfood.
 
-Progressive disclosure should reduce what competes for that budget rather than merely increase the budget.
+The goal is to remove unnecessary inputs, not simply raise --max-bytes.
 
----
 
-## 3A.4 Validation checkpoints — engineering evidence contract
+## 3A.4 Validation checkpoints and capability-audit evidence contract
 
-Roadmap checkpoints must use durable, reviewable evidence.
+Roadmap checkpoints must use durable, reviewable evidence, but they should not create a telemetry product.
 
-Do not make checkpoint approval depend on memory of a conversation.
+Use the cheapest evidence layer capable of answering the question:
 
-Recommended location can be project/release evidence or dedicated dogfood reports; exact persistence can be decided per phase.
+~~~text
+deterministic fixtures / negative tests
+→ canonical prompt/Skill behavior evals
+→ structured repository dogfood
+→ small real-user workflow tests
+→ broader adoption evidence
+~~~
 
 ### Checkpoint A — adoption
 
-Collect:
+Collect bounded facts such as:
 
 - target repository class;
 - files added/changed/removed;
 - conflicts;
-- existing instruction preservation result;
-- existing CI preservation result;
-- questions asked;
-- questions retrospectively classified as discoverable;
+- instruction/CI preservation;
+- init questions;
+- questions retrospectively discoverable;
 - manual remediation;
 - install-to-first-productive-work steps.
 
@@ -632,56 +721,85 @@ Collect:
 - capability detector outputs;
 - false-positive corrections;
 - unknowns;
-- proposed commands;
-- accepted commands;
+- command proposals vs accepted commands;
 - human corrections;
 - unsupported fallback result;
-- Context Pack size/delta attributable to adaptation.
+- Context Pack footprint delta.
 
 ### Checkpoint C — Auto/gate
 
 Collect:
 
-- chosen workflow level;
-- actual appropriate level after review;
-- false-high-risk / false-trivial cases;
-- human interruptions;
+- provisional and final/effective workflow level;
+- promotions triggered by inspection/final diff;
+- false-high-risk / unsafe false-low-risk cases;
+- human interruption rounds;
 - redundant questions;
 - gate false positives;
-- genuine failures caught;
-- stale-evidence/bypass detections;
+- genuine failures/stale evidence caught;
 - manual overrides.
 
 ### Checkpoint D — Skills/invisible UX
 
 Collect:
 
-- VCP commands the user had to know/type;
+- CLI commands user had to know/type;
 - VCP-specific concepts required before productive work;
-- human questions;
 - manual recovery events;
-- steps to complete representative workflow;
-- whether user-facing blocker output was sufficient without reading framework internals.
+- human questions;
+- steps to representative outcome;
+- user ability to understand blocker/evidence output without reading framework internals.
 
-### No vanity metrics
+### Capability audit
 
-Stars/downloads can be useful product signals later but they are not implementation correctness evidence.
+Before major VCP releases, and after a substantial improvement in mainstream coding agents, review:
 
-The checkpoints should primarily measure friction, safety, adaptation accuracy, and real prevented failures.
+- AGENTS/Skill instructions now handled natively by models;
+- orchestration that can be retired;
+- Core checks that no longer prevent observed failures;
+- compatibility state whose migration cost exceeds remaining value.
 
----
+Record removals/deprecations as valid improvement.
+
+### Where evidence should live
+
+Do not add a new VCP runtime command merely to store checkpoint metrics unless dogfood proves that necessary.
+
+Initial checkpoint evidence can live in VCP development Task Packs/research/dogfood artifacts and existing prompt-eval outputs.
+
+release-check should remain focused on reproducible package/lifecycle mechanics; do not mix subjective UX scoring into that deterministic command prematurely.
+
+### No arbitrary thresholds yet
+
+Do not invent percentages before a baseline exists.
+
+Zero-tolerance invariants can be absolute:
+
+- no destructive overwrite;
+- no false pass;
+- canonical discoverable question must not be asked;
+- stale evidence must not pass.
+
+Friction thresholds should be set after baseline dogfood shows realistic distributions.
+
 
 ## 3A.5 Complexity ROI — contribution contract
 
-Any significant Core expansion should be required to justify itself in its Task Pack/design.
+### Scope
 
-Recommended section:
+This is a governance rule for development of VCP Core, not a field every consumer application task should carry.
+
+The generic renderTaskPack() template is already intentionally comprehensive. Adding framework-internal ROI paperwork to every generated consumer task would violate the same anti-bloat principle.
+
+### VCP-Core expansion record
+
+For substantial Core expansion in this repository, record:
 
 ~~~text
 ## Why this belongs in VCP Core
 
 Failure prevented:
-Observed frequency / severity:
+Evidence that the failure is real/repeated:
 Why agent-alone behavior is insufficient:
 Why Skill-alone behavior is insufficient:
 Why existing project tooling is insufficient:
@@ -693,40 +811,37 @@ User-visible complexity removed:
 Dogfood evidence to collect:
 ~~~
 
-### Where to enforce this
+### High-cost changes
 
-Do not build a complicated parser immediately.
+Require especially careful review for:
 
-First enforcement can be:
-
-- canonical Task Pack template section;
-- readiness check for designated "Core expansion" tasks, if/when a reliable marker exists;
-- review checklist;
-- contributor documentation.
-
-Only add deterministic parsing/gating if real contribution behavior shows prose review is insufficient.
-
-This follows VCP's own Complexity ROI rule.
-
-### Examples of Core expansion
-
-Likely requires justification:
-
-- new persistent manifest field with behavior;
+- new persistent manifest state;
 - new lifecycle state;
-- new long-lived CLI command;
-- new mandatory gate;
-- new migration class;
-- new managed consumer asset family.
+- new permanent CLI commands;
+- new migration classes;
+- new mandatory gates;
+- new managed consumer asset families;
+- new orchestration engines.
 
-Usually does not require a full ROI record:
+Every persistent field creates read/write/migrate/update/rollback/document/test obligations.
 
-- internal refactor;
-- bug fix preserving contract;
-- test coverage;
-- documentation correction.
+### Enforcement
 
----
+Do not add this section to lib/task.mjs's generic consumer template.
+
+Initial enforcement should live in VCP's own contributor/Task Pack/review policy.
+
+Only add a deterministic readiness parser for "Core expansion" if repeated contribution failures prove that prose review is insufficient.
+
+### Protocol-first consistency
+
+This matches an existing VCP principle already used for dependency-graph/task-state ideas: persist only what enforcement proves necessary.
+
+### Removal is part of ROI
+
+Model/tool capability audits may conclude that an existing Core feature should move to a Skill, integrate with existing tooling, or be deprecated.
+
+That is success, not regression.
 
 ## 3A.6 Product success is not command success
 
