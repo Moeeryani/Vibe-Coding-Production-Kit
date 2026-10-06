@@ -1387,6 +1387,33 @@ A manually requested rollback of a successful first adoption follows the same ru
 
 Current `createBackup()` / `restoreBackup()` primitives should be generalized rather than duplicating backup logic in `init-apply`.
 
+### Rollback result must represent unmanaged state
+
+Current `rollbackProject()` returns `restoredVersion: restored.installedVersion`, which assumes every successful restore returns to another managed VCP version.
+
+Initial-adoption rollback requires a result model that can represent absence of management, conceptually:
+
+~~~json
+{
+  "restoredState": "managed | unmanaged",
+  "restoredVersion": "0.x.y | null",
+  "restoredFromBackupId": "...",
+  "recoveredInterruptedOperation": true
+}
+~~~
+
+Exact names are implementation choices.
+
+Compatibility rules:
+
+- managed update rollback continues to report the restored VCP version;
+- first-adoption rollback reports unmanaged state and must not invent a version;
+- success is returned only after the prior-state shape is verified, including absence of VCP lifecycle state when expected;
+- if unexpected residual `.vcp` content prevents full unmanaged restoration, return/report partial recovery failure rather than `restoredState=unmanaged`;
+- if the first-adoption backup is removed as part of successful unmanaged cleanup, its ID may still be returned as historical operation provenance even though it is no longer listable.
+
+A successful manual rollback of first adoption here means the adoption backup is the currently valid rollback target under the normal rollback guard. This is not a general uninstall-to-any-historical-backup feature.
+
 Do not rename the on-disk `.vcp/update.lock` merely for aesthetics in this stage. Helper APIs may become lifecycle-generic while preserving compatible state paths.
 
 ---
@@ -4678,7 +4705,8 @@ Needs:
 - section-replacement actions;
 - first-install backup semantics where no prior manifest exists;
 - rollback-safe state cleanup;
-- final manifest schema/ownership preservation.
+- final manifest schema/ownership preservation;
+- rollback result/reporting that distinguishes restored managed version from restored unmanaged state and verifies that claim before success.
 
 Do not create a parallel weaker transaction engine.
 
