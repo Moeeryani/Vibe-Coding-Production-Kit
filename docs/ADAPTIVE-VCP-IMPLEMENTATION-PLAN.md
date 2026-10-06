@@ -1193,17 +1193,7 @@ Persist the actual installed decision needed by lifecycle state; do not persist 
 
 ## 3.10 Repository classification, reserved state, and stack ambiguity
 
-Do not classify EXISTING from one arbitrary file.
-
-Use conservative evidence such as:
-
-- Git metadata;
-- source files;
-- build/package manifests;
-- project documentation;
-- CI;
-- agent instructions;
-- non-ignorable file count.
+NaN
 
 ### VCP lifecycle readability is evaluated before ordinary repository classification
 
@@ -2959,7 +2949,9 @@ At minimum:
 
 ### Repository maturity
 
-- empty/new repository;
+- truly empty/new repository;
+- freshly git-initialized but otherwise empty repository;
+- ambiguous root with one unfamiliar project-owned file;
 - small existing repository;
 - large established repository;
 - already VCP-managed repository;
