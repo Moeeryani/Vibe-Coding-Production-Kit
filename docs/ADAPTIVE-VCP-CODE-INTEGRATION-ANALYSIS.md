@@ -3279,7 +3279,7 @@ Minimum content:
 ~~~text
 Status / Slug / Level
 Outcome or defect
-Governing reference(s), when applicable
+Governing authority state (reference(s) or explicit none)
 Affected scope
 Acceptance evidence
 Verification
@@ -3292,7 +3292,7 @@ Do not add empty security/observability/rollout sections just to write "n/a."
 
 L1 still preserves:
 
-- applicable Source-of-Truth authority;
+- explicit, reviewable governing-authority state and normal Source-of-Truth authority rules when references are present;
 - deterministic verification;
 - restartability;
 - fresh lightweight review before completion.
@@ -3536,7 +3536,7 @@ Likely facts:
 slug
 status
 workflowLevel (absent legacy field normalizes to L2)
-governing references
+governing-authority state
 acceptance state
 verification declarations
 review findings/dispositions
@@ -3574,7 +3574,7 @@ L0
 → no task readiness
 
 L1
-→ outcome/scope/acceptance/verification/governing-reference-if-needed/
+→ outcome/scope/acceptance/verification/explicit-governing-authority/
    unresolved-human-decision checks
 
 L2
