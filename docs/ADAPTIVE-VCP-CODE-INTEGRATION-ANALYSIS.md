@@ -1450,12 +1450,21 @@ If Smart Init creates a manifest and then fails, rollback must remove that new l
 
 Current acquireUpdateLock() calls mkdir(.vcp, recursive) before creating `.vcp/update.lock` with exclusive `wx` semantics. For an unmanaged repository, the lock itself can therefore create the first `.vcp/` path before createBackup() runs.
 
-Generalize lock acquisition (or wrap it for init apply) so it returns/retains whether this operation created the VCP directory solely for locking.
+Generalize lock acquisition (or wrap it for init apply) so it returns an operation-scoped handle, for example:
+
+~~~text
+owned lock identity/payload
+whether .vcp existed before acquisition
+whether .vcp was created solely for this lock
+~~~
+
+A unique operation id may be added to the lock payload if needed; PID/host alone must not be treated as general authorization for arbitrary same-process state.
 
 After lock acquisition:
 
-1. run the fresh repository/VCP-state inspection;
-2. if the plan blocks before backup creation, release the lock;
+1. run fresh repository/VCP-state inspection with the owned-lock handle;
+2. allow only that exact owned lock during reinspection; a different/replaced/malformed lock or unexpected transaction/lifecycle state blocks;
+3. if the plan blocks before backup creation, release the owned lock;
 3. attempt only a non-recursive removal of the operation-created `.vcp/` directory;
 4. if anything else exists in that directory, do not delete it—preserve and report;
 5. once backup/transaction state exists, normal adoption recovery semantics take over.
@@ -1823,7 +1832,9 @@ VCP_STATE_CONFLICT
   → no adoption mutation
 ~~~
 
-An active transaction or lock must be surfaced before Smart Init apply. Recovery semantics remain the lifecycle authority.
+An active transaction or lock from another/unknown operation must be surfaced before Smart Init apply. Recovery semantics remain the lifecycle authority.
+
+For the Stage-13 post-acquisition reinspection, repository inspection receives an explicit owned-lock handle. It may tolerate only the exact lock this operation just acquired; if the lock was replaced, its identity no longer matches, or any unexpected transaction/lifecycle state appears, block.
 
 First-adoption recovery metadata must know which .vcp paths existed beforehand. Rollback may remove only state created by the adoption transaction; it must never erase unrelated pre-existing reserved content.
 
@@ -5409,9 +5420,9 @@ Mutation uses the same planner but always re-runs it under the lifecycle lock.
 Sequence:
 
 ~~~text
-first-adoption-aware lock
-→ record whether lock bootstrap created temporary .vcp state
-→ inspect VCP/repository state again
+first-adoption-aware lock handle
+→ record lock identity + whether bootstrap created temporary .vcp state
+→ inspect VCP/repository state again while recognizing only that owned lock
 → fresh plan
 → conflict/precondition check
 → pre-backup cleanup if blocked
@@ -5425,7 +5436,8 @@ first-adoption-aware lock
 Required details:
 
 - apply never trusts a stale preview object;
-- if lock bootstrap created `.vcp` and planning blocks before backup, release the lock and remove only the empty operation-created directory;
+- post-lock inspection recognizes only the exact operation-owned lock; foreign/replaced/malformed lock state blocks;
+- if lock bootstrap created `.vcp` and planning blocks before backup, release that owned lock and remove only the empty operation-created directory;
 - unexpected content in that directory is preserved/reported, never recursively deleted;
 - backup metadata records prior absence/presence of manifest, baselines, and VCP state;
 - rollback restores prior absence as well as prior content;
