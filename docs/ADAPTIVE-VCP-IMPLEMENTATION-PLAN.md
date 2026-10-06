@@ -1536,13 +1536,30 @@ Prompt trust/path rules:
 
 This should follow the same general pattern already used by packaged security-profile fallback.
 
-After prompt fallback exists, the consumer asset set can become explicit and small:
+After prompt fallback exists, the consumer asset set can become explicit and small.
+
+Important security split:
+
+~~~text
+docs/security/THREAT-MODEL.md
+→ greenfield-starter / project-owned Source of Truth
+
+docs/security/SECURITY-PROFILE.md
+→ optional greenfield-starter / project-owned profile declaration
+→ absence is valid; security mode still gets built-in baseline
+
+docs/security/profiles/*.md
+→ canonical VCP guidance belongs in the package
+→ project-local same-path files remain explicit overrides when deliberately customized
+~~~
+
+Consumer-facing classes then include:
 
 ```text
 AGENTS integration
 project product truth
 project architecture truth
-project security declaration/threat model
+project security truth / optional profile declaration
 project testing strategy
 Definition of Ready / Done
 project task support
@@ -1568,7 +1585,10 @@ Migration rules:
 - project-owned docs remain tracked according to policy;
 - release/task history created by the project is never confused with VCP framework history;
 - unmodified old prompt copies may be removed so packaged fallback becomes active;
-- locally modified old prompts remain as project overrides.
+- locally modified old prompts remain as project overrides;
+- unmodified old `docs/security/profiles/*.md` copies may be removed so the existing package fallback becomes active;
+- locally modified security-profile guidance is detached/preserved at the same safe local override path;
+- `docs/security/SECURITY-PROFILE.md` remains project-owned when present and is never confused with package guidance.
 
 There is also a release-automation dependency:
 
@@ -1595,6 +1615,7 @@ Source/package validation still runs separately inside the VCP repository.
 - `vcp context` works even when no project-local canonical prompt copy exists;
 - explicit project prompt overrides still work and are identifiable;
 - customized legacy prompts survive upgrade as overrides;
+- customized local security-profile guidance survives as an override while unmodified canonical copies can move to package fallback;
 - consumer projects no longer receive VCP's source-framework validator;
 - Doctor no longer requires copied framework scripts/prompts when packaged equivalents are valid;
 - release-check consumer lifecycle smoke no longer depends on copied `validate-framework`;
