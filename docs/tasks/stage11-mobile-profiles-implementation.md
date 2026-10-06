@@ -1,6 +1,6 @@
 # Task — Stage 11 React Native Mobile Profiles implementation
 
-Status: Review
+Status: Done
 Slug: `stage11-mobile-profiles-implementation`
 
 ## Outcome
@@ -26,26 +26,26 @@ Ship React Native as VCP's first built-in mobile profile without weakening proje
 
 ## Acceptance criteria
 
-- [ ] AC-001 — `react-native` is an explicit supported first-party stack selector.
-- [ ] AC-002 — auto-detection requires a valid selected-root `dependencies.react-native` runtime dependency plus one canonical application marker.
-- [ ] AC-003 — marker-only, dependency-only, peer/dev-only, malformed-package, symlink-marker, transitive/name/README evidence never activates the profile.
-- [ ] AC-004 — detection precedence remains `go -> python -> react-native -> typescript -> javascript -> generic`.
-- [ ] AC-005 — selected project root is authoritative; sibling/parent mobile evidence is not recursively inherited.
-- [ ] AC-006 — TypeScript React Native applications resolve to `react-native` while preserving explicit typecheck applicability.
-- [ ] AC-007 — generated `AGENTS.md` contains first-party React Native engineering/security guidance and no Go/other-profile fallthrough.
-- [ ] AC-008 — React Native verification uses only selected-root package-manager/script evidence; no native/simulator/signing/deploy commands are invented.
-- [ ] AC-009 — missing TypeScript/build/E2E applicability remains explicit rather than silently `n/a`.
-- [ ] AC-010 — visibly sensitive-effect mobile scripts are not auto-imported into general verification.
-- [ ] AC-011 — Doctor human/JSON output distinguishes detected, installed, requested, re-profile, and React Native specialization state.
-- [ ] AC-012 — auto-selected `generic|javascript|typescript` may specialize transactionally to `react-native`; explicit selectors, legacy unknown provenance, Go, and Python are preserved.
-- [ ] AC-013 — lifecycle specialization retains `requestedStack: "auto"`, respects conflicts/local decisions, creates rollback evidence, and is idempotent after apply.
-- [ ] AC-014 — Stage 10 community plugin selection remains project-owned/additive; built-in React Native does not remove selection, apply proposals, or allow plugin override of core/first-party authority.
-- [ ] AC-015 — first-party `examples/mobile-react-native/` is distinct from Stage 10 plugin dogfood, network-independent for VCP conformance, and package-visible.
-- [ ] AC-016 — realistic dogfood proves detection, generated guidance, verification mapping, bounded context, and no plugin requirement.
-- [ ] AC-017 — security/privacy guidance covers signing material, credentials, permission/lifecycle/deep-link boundaries, and separate HUMAN DECISION execution.
-- [ ] AC-018 — existing JavaScript/TypeScript/Python/Go/generic, Stage 5 workspace, Stage 10 plugin, Doctor, update, task, and verification regressions remain green.
-- [ ] AC-019 — Stage 11 does not modify immutable `v0.9.3`, add Flutter/native iOS/native Android, or revive Dependency Graph Engine work.
-- [ ] AC-020 — one final exact-head Windows gate runs only after all Stage 11 implementation/docs/tests are complete, followed by fresh review/finalization and the required rerun.
+- [x] AC-001 — `react-native` is an explicit supported first-party stack selector.
+- [x] AC-002 — auto-detection requires a valid selected-root `dependencies.react-native` runtime dependency plus one canonical application marker.
+- [x] AC-003 — marker-only, dependency-only, peer/dev-only, malformed-package, symlink-marker, transitive/name/README evidence never activates the profile.
+- [x] AC-004 — detection precedence remains `go -> python -> react-native -> typescript -> javascript -> generic`.
+- [x] AC-005 — selected project root is authoritative; sibling/parent mobile evidence is not recursively inherited.
+- [x] AC-006 — TypeScript React Native applications resolve to `react-native` while preserving explicit typecheck applicability.
+- [x] AC-007 — generated `AGENTS.md` contains first-party React Native engineering/security guidance and no Go/other-profile fallthrough.
+- [x] AC-008 — React Native verification uses only selected-root package-manager/script evidence; no native/simulator/signing/deploy commands are invented.
+- [x] AC-009 — missing TypeScript/build/E2E applicability remains explicit rather than silently `n/a`.
+- [x] AC-010 — visibly sensitive-effect mobile scripts are not auto-imported into general verification.
+- [x] AC-011 — Doctor human/JSON output distinguishes detected, installed, requested, re-profile, and React Native specialization state.
+- [x] AC-012 — auto-selected `generic|javascript|typescript` may specialize transactionally to `react-native`; explicit selectors, legacy unknown provenance, Go, and Python are preserved.
+- [x] AC-013 — lifecycle specialization retains `requestedStack: "auto"`, respects conflicts/local decisions, creates rollback evidence, and is idempotent after apply.
+- [x] AC-014 — Stage 10 community plugin selection remains project-owned/additive; built-in React Native does not remove selection, apply proposals, or allow plugin override of core/first-party authority.
+- [x] AC-015 — first-party `examples/mobile-react-native/` is distinct from Stage 10 plugin dogfood, network-independent for VCP conformance, and package-visible.
+- [x] AC-016 — realistic dogfood proves detection, generated guidance, verification mapping, bounded context, and no plugin requirement.
+- [x] AC-017 — security/privacy guidance covers signing material, credentials, permission/lifecycle/deep-link boundaries, and separate HUMAN DECISION execution.
+- [x] AC-018 — existing JavaScript/TypeScript/Python/Go/generic, Stage 5 workspace, Stage 10 plugin, Doctor, update, task, and verification regressions remain green.
+- [x] AC-019 — Stage 11 does not modify immutable `v0.9.3`, add Flutter/native iOS/native Android, or revive Dependency Graph Engine work.
+- [x] AC-020 — one final exact-head Windows gate runs only after all Stage 11 implementation/docs/tests are complete, followed by fresh review/finalization and the required rerun.
 
 ## Scope
 
@@ -125,19 +125,20 @@ Planned final gate:
 
 ## Finalization
 
-- [ ] Acceptance criteria satisfied.
+- [x] Acceptance criteria satisfied.
 - [x] Full Stage 11 implementation is present on one branch/head before executable acceptance testing.
-- [ ] Pre-final focused/full/package/dogfood gate passed.
-- [ ] Fresh changed-surface review complete with zero unresolved must-fix findings.
-- [ ] Task Pack-only finalization performed with `Status: Done`.
+- [x] Pre-final focused/full/package/dogfood gate passed.
+- [x] Fresh changed-surface review complete with zero unresolved must-fix findings.
+- [x] Task Pack-only finalization performed with `Status: Done`.
+- Pre-final gate evidence: exact head `c7af26129f5612b30e3f35eebf3b832c8fc6e9ce` on fresh Windows clone — focused suite 126/126 pass, consumer init regression passed (installed validator green, no provider runtime leak), first-party mobile fixture 3/3, `npm run validate` 409/409, package surface `PACKAGE_FILES=182` vs `RELEASE_POLICY_REQUIRED=27` PASS, diff/clean-tree guards green, immutable `v0.9.3` identity intact (tag object `2dba09f0375574d880ace812f9f7aae6ce5f222e`, peels to `dc3c6a6572e1b86994de5a46cfb8fc815ed45378`).
 - [ ] Same complete exact-head gate rerun on unchanged finalization head.
 - [ ] Merge only after the post-finalization rerun is green.
 
 ## Completion report
 
-- What changed and why: complete Stage 11 React Native-first implementation is present; verification/review pending.
-- Final accepted verification: pending final full-stage gate.
-- Superseded failed evidence: n/a.
+- What changed and why: complete Stage 11 React Native-first implementation delivered on PR #85; finalization recorded, post-finalization exact-head rerun pending.
+- Final accepted verification: pre-final gate green at `c7af261…`; the same complete gate must rerun green on the unchanged finalization head before merge.
+- Superseded failed evidence: `258c2de…` gate superseded by review-cleanup head; `npm run pack:check` ENOSPC attempt on `c7af261…` was environmental and superseded by the full fresh-clone rerun recorded above.
 - Independent review evidence updated: yes, current findings retained above.
 - Migration/operational impact: additive profile/lifecycle specialization; no manifest schema migration.
 - Remaining risks/limitations: #69 and #73 remain non-blocking; sensitive nested script semantics require project review.
