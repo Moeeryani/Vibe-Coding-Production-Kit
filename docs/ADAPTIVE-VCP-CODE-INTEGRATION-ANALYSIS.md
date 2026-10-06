@@ -2868,6 +2868,43 @@ Therefore the current behavior is semantically closer to Auto than Manual, but i
 
 ---
 
+## 11.1A Do not overload workflowMode with enforcement
+
+`workflowMode` is routing UX only.
+
+A later CI/gate integration needs separate explicit lifecycle state, conceptually:
+
+~~~text
+gatePolicy:
+  disabled
+  advisory
+  required
+~~~
+
+Do not make the exact field part of Phase 6 if Phase 8 enforcement is not shipping yet, but reserve the semantic boundary now.
+
+Rules:
+
+- Auto-compatible legacy normalization changes routing only;
+- changing workflowMode never mutates gatePolicy;
+- gatePolicy=required is never inferred from Auto;
+- required enforcement is enabled only by an explicit project/CI integration step;
+- persisted enforcement semantics raise minimumReaderVersion;
+- Doctor/status report workflowMode and gate policy separately.
+
+Manual + required is not an error, but it changes the practical merge workflow: the agent will not auto-route, while CI still requires explicit VCP evidence for covered changes. The enabling UX must make that consequence explicit.
+
+Test matrix must include:
+
+- auto + disabled;
+- auto + advisory;
+- auto + required;
+- manual + disabled;
+- manual + advisory;
+- manual + required with clear block until explicit VCP preparation.
+
+---
+
 ## 11.2 Recommended state location
 
 For the initial mode implementation, store workflowMode in manifest install metadata.
@@ -4726,6 +4763,8 @@ Do not wire mandatory CI enforcement while local classification/gate behavior is
 ## Phase 8 — CI gate integration
 
 Generate only thin provider-specific delegation to VCP gate, and only where explicitly selected/compatible.
+
+Phase 8 also owns the explicit gatePolicy persistence/configuration contract. It must not repurpose workflowMode.
 
 ## Phase 9 — Skill UX expansion
 
