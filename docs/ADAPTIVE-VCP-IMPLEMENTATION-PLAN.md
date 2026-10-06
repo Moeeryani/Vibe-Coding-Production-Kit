@@ -1795,13 +1795,25 @@ Avoid:
 - network checks;
 - probabilistic LLM classification.
 
+The detector DSL must inherit or strengthen today's community-plugin confinement/resource rules:
+
+- detector paths are normalized selected-project-root-relative paths; traversal/absolute/URL/workspace escape is rejected;
+- symlinked detector targets do not grant evidence across the selected-root trust boundary;
+- file/JSON/text reads use bounded byte/entry limits and deterministic UTF-8/error handling;
+- exact-path/case portability rules remain explicit where authority depends on a path;
+- predicates return only bounded evidence facts (matched/not matched + declared path/predicate identity), not raw matched file contents or secret values;
+- no predicate may read from VCP internal state, Git internals, environment variables, credentials, network services, or arbitrary parent/sibling paths merely because a community bundle requests it;
+- invalid/over-budget detector definitions fail validation before capability composition.
+
+A selected/digest-pinned community profile is still not a license to weaken project-root privacy/safety boundaries.
+
 
 ## 6.6 Definition of done
 
 - existing schema-v1 community plugins continue to load unchanged;
 - community profile/plugin schema v2 is strict rather than a permissive extension of plugin schema v1;
 - a new ecosystem profile can be added without arbitrary executable plugin code;
-- detector DSL evaluation remains deterministic and selected-project-root bounded;
+- detector DSL evaluation remains deterministic, selected-project-root bounded, symlink-safe, resource-bounded, and content-nonleaking;
 - community detection contributions require explicit selection/digest/grant;
 - first-party and community profile data normalize into the same deterministic evidence model while retaining different trust provenance and application authority;
 - profile-proposed commands remain proposals until project adoption;
