@@ -2022,7 +2022,23 @@ Requirements:
 - no durable Task Pack;
 - relevant deterministic checks only;
 - actual changed surface must remain eligible;
-- final gate/review path can reject L0 if the diff crosses a protected surface.
+- final gate/review path can reject L0 if the diff crosses a protected surface;
+- **no universal extension/path heuristic may make L0 eligible by itself**;
+- initial L0 is disabled unless the selected project has an explicit, inspectable deterministic trivial-surface policy; absent policy → minimum L1.
+
+The initial policy should combine:
+
+~~~text
+project-approved trivial path/surface allowlist
+        +
+VCP built-in never-L0 protected classes
+        ↓
+eligible L0 surface
+~~~
+
+Built-in protected classes include VCP lifecycle/task/instruction state, CI/build/dependency/config authority, migrations/data, security-sensitive policy, and other mechanically recognized material contracts. Project policy is still needed because VCP cannot know every custom governing document by filename.
+
+Do not infer `*.md = L0`. A Markdown file may be authoritative product, architecture, security, migration, or operational truth.
 
 ### L1 — bounded engineering
 
@@ -2196,7 +2212,7 @@ Avoid fuzzy model-confidence scores as the Core authority. Use explicit evidence
 - mode can be changed deliberately without reinstalling VCP;
 - Auto mode requires no user knowledge of VCP CLI for normal work;
 - Manual mode does not hijack ordinary coding requests;
-- L0 handles truly trivial work without durable ceremony;
+- L0 handles only explicitly policy-eligible trivial work without durable ceremony and otherwise promotes conservatively;
 - L1 gives ordinary small engineering work a compact contract inside the same Task Pack family instead of forcing the full L2 template;
 - L2 preserves the current strong material-work lifecycle;
 - L3 adds only relevant high-risk controls;
@@ -2383,7 +2399,9 @@ Rules:
 
 - no Task Pack is required;
 - --base is required; --head defaults to HEAD;
-- only mechanically allowlisted trivial surfaces/diff characteristics may pass;
+- only surfaces allowed by the explicit selected-project L0 policy may pass;
+- if no L0 policy is configured, return an actionable promotion to L1 rather than guessing;
+- VCP built-in protected classes override/deny an unsafe trivial allowlist entry;
 - protected source/config/security/build/migration/public-contract/VCP-lifecycle surfaces force promotion;
 - dirty/unbounded state that prevents trustworthy changed-surface inspection blocks;
 - **if project-specific executable verification is required, the work is not L0 and must promote to at least L1**.
