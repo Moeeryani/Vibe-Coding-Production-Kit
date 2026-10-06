@@ -1254,8 +1254,6 @@ Persist the actual installed decision needed by lifecycle state; do not persist 
 
 ## 3.10 Repository classification, reserved state, and stack ambiguity
 
-NaN
-
 ### VCP lifecycle readability is evaluated before ordinary repository classification
 
 NEW / EXISTING / MANAGED describes repository/adoption state only after the VCP namespace has been inspected safely.
