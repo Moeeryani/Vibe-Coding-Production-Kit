@@ -5883,6 +5883,8 @@ Potential changes:
 
 - expose reusable execution/provenance helpers to gate;
 - avoid duplicating command execution;
+- execute the Task Pack's parser-approved command snapshot;
+- when command provenance metadata exists, expose a freshness comparison so gate can prove the task still matches current repository authority;
 - possibly capture/reinspect post-run Git state for gate integration.
 
 Do not change ordinary verify semantics merely to satisfy final gate.
@@ -5925,6 +5927,8 @@ Do not remove durable review/finalization evidence from L2/L3.
 Stage 13 prerequisite:
 
 - read supported lifecycle/install.assetSet when the project is managed;
+- resolve verification commands through the shared authority resolver instead of first-match AGENTS parsing;
+- for new provenance-aware tasks, persist command identity/fingerprint/source plus the relevant lifecycle receipt reference alongside the executable task command;
 - use one assetSet-aware Source-of-Truth scaffold helper;
 - brownfield-minimal renderer must not hardcode absent VCP starter paths;
 - preserve current legacy/full behavior for compatibility until later migration.
