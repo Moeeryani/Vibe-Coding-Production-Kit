@@ -3451,7 +3451,7 @@ Slug
 Workflow-Level: L1
 
 Outcome / defect
-Governing references (when applicable)
+Governing authority state (references or explicit none)
 Scope
 Acceptance criteria/evidence
 Risk / escalation flags
@@ -3464,7 +3464,24 @@ Completion report
 
 Readiness branches on normalized level while sharing helpers for Source-of-Truth authority, HUMAN DECISION detection, command authority, duplicate headings, acceptance state, review evidence, and finalization.
 
-Do not make absent L2-only headings fail L1 readiness.
+For L1, governing authority must normalize into one of:
+
+~~~text
+references([...])
+explicit-none
+missing
+invalid
+~~~
+
+Rules:
+
+- `missing` is a readiness failure;
+- references use the existing Source-of-Truth path/authority/freshness rules;
+- `explicit-none` is a durable claim, not proof;
+- known protected/governing surfaces or risk-classification evidence can reject `explicit-none` and require references/promotion;
+- review must be able to challenge an incorrect explicit-none declaration.
+
+Do not make absent L2-only headings fail L1 readiness, but do not treat absent authority state as a valid compact shortcut.
 
 ## 12.3B Promotion mechanics
 
@@ -3917,7 +3934,7 @@ Parse at least:
 - status;
 - slug;
 - workflowLevel, normalized so absent legacy metadata = L2;
-- governing references where applicable;
+- normalized governing-authority state (references / explicit-none / missing / invalid);
 - acceptance state;
 - verification command declarations;
 - review findings/dispositions;
@@ -3993,7 +4010,7 @@ The task's Workflow-Level selects the level contract; an optional CLI level over
 Require:
 
 - compact task readiness;
-- applicable governing reference/authority;
+- explicit governing-authority state, with any reference valid/current and any explicit-none declaration not contradicted by Core evidence;
 - acceptance evidence;
 - no unresolved human blocker;
 - successful required verification in run mode;
