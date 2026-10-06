@@ -2874,13 +2874,19 @@ The Skill proposes improvements; deterministic VCP Core changes remain normal co
 ---
 
 
-# 10. Workstream H — Mechanical enforcement for Auto mode
+# 10. Workstream H — Mechanical `vcp gate` and deterministic enforcement
 
 ## 10.1 Problem
 
-An instruction such as "the agent must use VCP" is still only prose.
+Agent routing instructions—Auto or explicit Manual invocation—are still not merge authority by themselves.
 
 The repository already has much of the deterministic machinery needed for a real gate, but those facts are not yet joined into one completion decision.
+
+The gate is independent of `workflowMode`:
+
+- Auto may use it as deterministic outcome protection;
+- Manual may use it explicitly/advisorially;
+- a separately configured `gatePolicy=required` may require it for merge-covered work in either routing mode.
 
 ## 10.2 Reuse existing deterministic components
 
