@@ -6,6 +6,15 @@ Stage 11 defines deterministic first-party mobile profiles. The first built-in p
 
 This contract is intentionally narrower than "mobile support" in general. Flutter, native iOS, and native Android are not built-in Stage 11 profiles and require separate design/evidence before support can be claimed.
 
+
+## Implementation status note
+
+The React Native Stage 11 implementation is merged on PR #85 and present on main.
+
+This document remains the ACCEPTED requirements contract. Imperative language below describes normative Stage 11 requirements; it must not be read as evidence that implementation is still pending.
+
+The separate implementation Task Pack records a closeout-evidence gap: the required post-finalization exact-head rerun is not durably recorded even though PR #85 merged. Roadmap/Task Pack status owns that process reconciliation.
+
 ## 1. Authority boundary
 
 First-party mobile profiles are core VCP behavior. They are not community plugins.
@@ -270,7 +279,7 @@ Negative/ambiguous lanes may use isolated test fixtures and must include at leas
 
 ## 12. Implementation slices
 
-After this design contract is merged, product implementation proceeds in bounded slices:
+The merged implementation was developed in the following bounded slices:
 
 1. **Detection + inspection** — `react-native` stack choice, exact evidence detector, Doctor/lifecycle inspection, negative lanes.
 2. **First-party guidance + context** — React Native profile appendix and explicit plugin authority separation.
@@ -278,7 +287,7 @@ After this design contract is merged, product implementation proceeds in bounded
 4. **Nested/lifecycle conformance** — Stage 5 root/workspace preservation plus safe auto specialization and idempotence.
 5. **Security + realistic dogfood** — first-party fixture, secret/signing boundaries, package surface, full fresh-clone exact-head gate.
 
-Each slice must preserve existing non-mobile regressions. A later slice may refine earlier code only when a material review/gate finding requires it.
+Each slice was required to preserve existing non-mobile regressions. The implementation Task Pack and Roadmap record the current evidence/closeout state.
 
 ## 13. Release boundary
 
