@@ -2520,14 +2520,18 @@ Measure:
 5. explicit community grants;
 6. reconcile React Native Stage 11 with capabilities.
 
-## Phase 6 — workflow mode
 
-1. persist \`workflowMode\`;
-2. add \`--workflow-mode\`;
-3. add post-install mode change;
-4. mode-aware VCP sections/adapters;
-5. Doctor visibility;
-6. behavior/prompt-eval regressions.
+## Phase 6 — workflow mode + minimal router UX
+
+1. persist workflowMode;
+2. add explicit --workflow-mode and a post-install mode change;
+3. render mode-aware thin VCP instruction sections/adapters;
+4. expose mode in Doctor/status;
+5. ship/prototype one thin primary VCP router Skill so Auto and Manual exercise one shared routing path;
+6. keep the router progressive and free of duplicated Core policy;
+7. extend prompt-eval only for observable routing/human-attention behavior that the existing schema cannot express.
+
+The router is UX, not authority. Auto routing remains best-effort until Phase 7 gate enforcement exists.
 
 ## Phase 7 — mechanical gate and workflow levels
 
