@@ -183,7 +183,7 @@ vcp manage track AGENTS.md
 The update engine uses:
 
 - persistent baseline hashes and snapshots;
-- `managed`, `generated`, and `preserve` ownership policies;
+- `managed`, `merge`, `generated`, and `preserve` lifecycle policies;
 - bounded three-way merge for independent edits;
 - explicit `CONFLICT` instead of guessing on overlaps;
 - versioned migration declarations for renames/removals;
