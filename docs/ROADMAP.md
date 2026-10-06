@@ -492,7 +492,7 @@ PR #85 merged on 2026-10-06 and React Native first-party runtime support is pres
 
 The consistency audit found a process/evidence mismatch that must not be hidden:
 
-- the implementation Task Pack is marked Done;
+- the implementation Task Pack was marked Done at merge; this consistency audit corrected it to Review because the final rerun evidence is missing;
 - the pre-final exact-head gate and fresh review are durably recorded;
 - Task Pack finalization is recorded;
 - the required post-finalization exact-head rerun remains unchecked;
