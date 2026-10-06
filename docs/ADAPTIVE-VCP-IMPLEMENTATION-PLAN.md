@@ -3021,7 +3021,8 @@ A review head does not have to equal the finalization head **only** when every i
 
 Allowed post-review task-record changes may include:
 
-- independent-review findings/dispositions/resolution/follow-up/residual-risk evidence;
+- ordinary independent-review findings/dispositions/resolution/follow-up/residual-risk evidence;
+- required L3 security-review findings/dispositions/provenance when that review is bound to the same unchanged implementation head;
 - Status transition into Review/Done;
 - Finalization checklist state;
 - Completion report / verification-evidence summary.
@@ -3044,7 +3045,7 @@ If any implementation/config/other docs change after review, or if protected tas
 
 - review provenance becomes stale;
 - gate fails/blocks;
-- fresh review is required before finalization/gate can pass again.
+- fresh affected review(s) are required before finalization/gate can pass again.
 
 This requires minimal durable review Git provenance and parser-visible section boundaries. Exact Markdown field names can be chosen during Phase 7, but the information cannot remain chat-only.
 
