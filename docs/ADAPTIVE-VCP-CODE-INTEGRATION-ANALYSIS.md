@@ -711,17 +711,67 @@ Evolve it compactly to identify inclusion class/reason without verbose prose, fo
 
 ### Community plugin transport
 
-Separate:
+Current code validates correctly but transports too broadly.
+
+Today:
 
 ~~~text
-plugin trust validation
-≠
-plugin content inclusion
+loadCommunityPluginContext(mode)
+→ validates selection + every selected bundle
+→ returns full config + plugin manifests
+→ filters guidance by mode
+→ keeps every verification proposal
+        ↓
+renderContextPack()
+→ renders every selected plugin identity
+→ renders every verification proposal in every mode
+→ includes PLUGINS.json + every plugin.json in Context manifest/files
 ~~~
 
-A selected plugin can be validated every time while its manifest, guidance, or proposals enter rendered context only when relevant to the current workflow.
+Target split:
 
-Verification proposals should not automatically inflate every phase context.
+~~~text
+validateCommunityPluginSelection(root)
+→ full selection/bundle/digest/grant/compatibility validation
+→ trusted Core inspection result
+→ no model-context bytes implied
+
+deriveCommunityPluginTransport(validated, contextMode)
+→ mode-relevant guidance only
+→ schema-v1 verification proposals only for plan mode
+→ only identities needed to attribute transported contributions
+
+renderContextPack(transport)
+→ renders transported contributions only
+~~~
+
+The exact function names may differ.
+
+Structured output must distinguish:
+
+~~~text
+transportedFiles
+  bytes actually rendered / counted in Context Pack
+
+validatedPluginInputs
+  config/manifest identities read for trust validation
+  not model context
+
+validatedCommunityPlugins
+  IDs/versions/digests/grants summary as needed
+~~~
+
+Do not keep one ambiguous files collection that implies every validated file was injected into the model context. Preserve a backward-compatible alias only if its semantics are clearly versioned/documented.
+
+For schema-v1 verification proposals, plan-only transport is the conservative first rule because v1 proposals have no mode field. `vcp plugins` remains the explicit inspection surface in every phase.
+
+Negative tests must prove:
+
+- a selected plugin with review-only guidance adds no plugin bytes to an implement pack;
+- a selected plugin with no current-mode guidance/proposals is validated but contributes zero rendered plugin bytes;
+- PLUGINS.json/plugin.json are not rendered merely for trust validation;
+- v1 verification proposals appear in plan context but not implement/review/security/release context;
+- tampered plugin state still fails context creation even when that plugin would contribute zero transported bytes.
 
 ### Negative tests
 
@@ -5034,11 +5084,20 @@ Important refactor:
 
 Separate plugin/profile validation from rendered transport so selected but irrelevant plugin metadata/proposals do not automatically enter every pack.
 
+`createContextPack()` should expose transported-context provenance separately from validated-plugin provenance; the rendered Context manifest contains only transported files.
+
 ---
 
 ## lib/community-plugins.mjs
 
-Needs schema-versioned v2 support rather than permissive v1 mutation.
+Phase 2 needs a refactor that preserves v1 validation behavior while separating:
+
+- full selected-plugin validation/inspection;
+- mode-relevant context transport;
+- plan-only v1 verification-proposal transport;
+- structured validation summary from rendered bytes.
+
+Phase 5 then adds strict schema-versioned v2 support rather than permissive v1 mutation.
 
 Keep all current trust/resource/path constraints.
 
@@ -5327,7 +5386,8 @@ After Checkpoint A:
 4. finish Doctor source-validator/asset expectations;
 5. remove copied source-framework validators;
 6. rewrite release-check consumer smoke;
-7. preserve local prompt overrides and add package-fallback fixture coverage.
+7. preserve local prompt/security-profile overrides and add package-fallback fixture coverage;
+8. separate schema-v1 plugin validation from Context transport and add negative no-transport fixtures.
 
 ## Phase 3 — provider-neutral CI detection + legacy workflow migration
 
@@ -5359,7 +5419,7 @@ Do not continue if capability detection creates false certainty, command inventi
 4. first-party definitions;
 5. explicit community grants;
 6. re-express already-merged React Native through capability/profile provenance;
-7. separate plugin validation from context transport.
+7. extend the Phase-2 validation/transport separation to v2 detector/capability contributions.
 
 ## Phase 6 — Workflow mode + minimal router UX
 
