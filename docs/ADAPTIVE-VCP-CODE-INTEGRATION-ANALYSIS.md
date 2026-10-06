@@ -2026,6 +2026,48 @@ Two gaps in the above rules:
      instruction-only approval boundaries get bypassed: the boundary lives next to
      command resolution/execution, not in prompt prose.
 
+### 4.12A Durable approval receipts and task-command freshness
+
+The optional init answers record transports a decision; it is not the post-adoption lifecycle authority.
+
+For a command that requires explicit approval, Stage 13 persists a bounded lifecycle receipt containing:
+
+- command key;
+- normalized command digest;
+- source/provenance identity;
+- approval-policy version;
+- stable decision identity/version.
+
+The receipt contains no command output, credentials, secrets, or unrelated file content.
+
+Lifecycle rules:
+
+- Stage 12 preview can report that approval is required but writes no receipt;
+- Stage 13 fresh planning recomputes exact command identity before accepting a reusable answer;
+- successful apply/update writes or replaces the receipt;
+- current command fingerprint and source must match before the receipt grants execution authority;
+- mismatch, removal, or authority conflict makes the receipt stale and blocks until a new human decision is obtained;
+- rollback restores the previous receipt set exactly;
+- all manifest writers preserve the receipt state and raise minimumReaderVersion when this behavior ships.
+
+Do not store approval only in a Task Pack: the authority is repository lifecycle state and can govern future tasks.
+
+#### Task Pack command snapshot
+
+New provenance-aware Task Packs snapshot, per executable command:
+
+- key;
+- exact command;
+- normalized fingerprint;
+- effective source/provenance;
+- approval-receipt identity/status when required.
+
+`vcp verify` executes the Task Pack snapshot. A merge-authoritative gate re-resolves current repository command authority and compares it with the Task Pack snapshot. If identity changed, the task verification contract is stale and must be refreshed/re-planned; VCP must not silently rewrite the task.
+
+This freshness check applies to ordinary commands too: a changed project verification command may be safe, but the old task no longer proves the repository's current verification contract.
+
+Legacy tasks without provenance metadata retain historical verify behavior until Phase 7 defines their gate compatibility path.
+
 ---
 
 ## 4.13 Reserved .vcp state and brownfield stack ambiguity
