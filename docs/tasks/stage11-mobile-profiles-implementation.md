@@ -1,6 +1,6 @@
 # Task — Stage 11 React Native Mobile Profiles implementation
 
-Status: Done
+Status: Review — implementation merged; canonical closeout evidence gap recorded below
 Slug: `stage11-mobile-profiles-implementation`
 
 ## Outcome
@@ -129,15 +129,16 @@ Planned final gate:
 - [x] Full Stage 11 implementation is present on one branch/head before executable acceptance testing.
 - [x] Pre-final focused/full/package/dogfood gate passed.
 - [x] Fresh changed-surface review complete with zero unresolved must-fix findings.
-- [x] Task Pack-only finalization performed with `Status: Done`.
+- [x] Task Pack-only finalization was performed before merge.
 - Pre-final gate evidence: exact head `c7af26129f5612b30e3f35eebf3b832c8fc6e9ce` on fresh Windows clone — focused suite 126/126 pass, consumer init regression passed (installed validator green, no provider runtime leak), first-party mobile fixture 3/3, `npm run validate` 409/409, package surface `PACKAGE_FILES=182` vs `RELEASE_POLICY_REQUIRED=27` PASS, diff/clean-tree guards green, immutable `v0.9.3` identity intact (tag object `2dba09f0375574d880ace812f9f7aae6ce5f222e`, peels to `dc3c6a6572e1b86994de5a46cfb8fc815ed45378`).
-- [ ] Same complete exact-head gate rerun on unchanged finalization head.
-- [ ] Merge only after the post-finalization rerun is green.
+- [ ] Same complete exact-head gate rerun on unchanged finalization head — **not durably recorded before merge**.
+- [x] PR #85 merged on 2026-10-06 despite the unchecked rerun item above; this is a closeout-process inconsistency, not evidence that the run occurred.
 
 ## Completion report
 
-- What changed and why: complete Stage 11 React Native-first implementation delivered on PR #85; finalization recorded, post-finalization exact-head rerun pending.
-- Final accepted verification: pre-final gate green at `c7af261…`; the same complete gate must rerun green on the unchanged finalization head before merge.
+- What changed and why: complete Stage 11 React Native-first implementation merged on PR #85; runtime behavior is present on main.
+- Verification truth: pre-final gate evidence is durably recorded at `c7af261…`; the required post-finalization exact-head rerun is **not** durably recorded in this Task Pack or the PR evidence inspected by the consistency audit. Do not infer that it happened.
+- Reconciliation: run/record an appropriate current-main re-baseline gate before Stage 12 code work, while clearly labeling that run as new evidence rather than the missing historical rerun.
 - Superseded failed evidence: `258c2de…` gate superseded by review-cleanup head; `npm run pack:check` ENOSPC attempt on `c7af261…` was environmental and superseded by the full fresh-clone rerun recorded above.
 - Independent review evidence updated: yes, current findings retained above.
 - Migration/operational impact: additive profile/lifecycle specialization; no manifest schema migration.
