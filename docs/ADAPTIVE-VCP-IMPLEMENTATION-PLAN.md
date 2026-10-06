@@ -1088,7 +1088,23 @@ By default it should:
 
 Because packaged prompt fallback becomes a valid source, Doctor's plan/review availability check must use the same resolver in Stage 12/13. A correctly adopted project must not immediately warn that valid packaged prompts are "missing."
 
-Doctor must also understand the stored install surface well enough not to call intentionally absent VCP source-framework assets a broken install. Broader provider-neutral CI/Doctor redesign remains Phase 3.
+Doctor must also understand the stored install surface well enough not to call intentionally absent assets a broken install.
+
+For `brownfield-minimal`, Doctor must separate:
+
+~~~text
+VCP install health
+→ lifecycle state, owned integration, prompt resolution, command authority, etc.
+
+project-governance coverage
+→ whether Product/Architecture/Security/Testing Source of Truth exists or is configured
+~~~
+
+Missing VCP starter documents that were never part of the adopted asset set are **not install corruption**.
+
+Doctor may report governance coverage as informational/unknown when no explicit governing document is configured, but it must not manufacture equivalence between arbitrary existing docs and VCP canonical roles.
+
+Broader provider-neutral CI cleanup remains Phase 3.
 
 ## 3.12 Definition of done
 
@@ -1179,6 +1195,34 @@ target project
 ```
 
 Project-facing docs should exist only when they are part of durable project truth or project workflow.
+
+A **unified consumer asset catalog does not mean every repository receives the same files**.
+
+Classify catalog entries, conceptually, as:
+
+~~~text
+runtime-required
+  lifecycle/integration artifacts VCP actually needs
+
+greenfield-starter
+  Product/Architecture/Security/Testing starter templates useful for a new project
+
+optional-hygiene
+  issue/PR/repository convenience assets
+
+package-only
+  VCP framework/reference/source assets
+~~~
+
+For an established repository:
+
+- do not add greenfield-starter documents merely to match canonical VCP paths;
+- existing project documentation remains project-owned;
+- VCP may discover candidate equivalent docs, but must not silently declare them authoritative Source of Truth;
+- Task Packs may reference the project's real existing paths directly;
+- a later explicit project decision may adopt/create VCP starter docs if useful.
+
+Phase 2 "unifies the catalog and lifecycle rules", not the installed path set across greenfield and brownfield repositories.
 
 
 ## 4.4 Implementation approach
