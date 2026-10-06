@@ -19,8 +19,26 @@ vcp init . --stack javascript
 vcp init . --stack typescript
 vcp init . --stack python
 vcp init . --stack go
+vcp init . --stack react-native
 vcp init . --stack generic
 ```
+
+## React Native — Stage 11 detection/inspection slice
+
+Detection is more specific than the TypeScript/JavaScript fallback and requires **both**:
+
+1. valid `package.json` with a non-empty string `dependencies["react-native"]`;
+2. at least one selected-root application marker: `android/`, `ios/`, `app.json`, or `app.config.{js,cjs,mjs,ts}`.
+
+A peer dependency, dev dependency, transitive lockfile entry, `node_modules`, repository name/README text, an application marker without the runtime dependency, or the runtime dependency without an application marker is not enough.
+
+Detection precedence is:
+
+```text
+go -> python -> react-native -> typescript -> javascript -> generic
+```
+
+This first Stage 11 slice intentionally implements detection and Doctor/lifecycle inspection only. A detected or explicitly selected `react-native` profile preserves the generic `AGENTS.md` content in this slice; it does **not** fall through to another stack and does not synthesize React Native, Expo, Gradle, Xcode, simulator/device, signing, deployment, or publication commands. First-party React Native guidance and repository-script verification mapping are added in later bounded Stage 11 slices.
 
 ## JavaScript / Node.js
 
