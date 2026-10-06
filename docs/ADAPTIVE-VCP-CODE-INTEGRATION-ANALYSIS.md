@@ -5502,13 +5502,15 @@ After the router/Core contracts stabilize:
 
 Users should understand decisions/evidence without needing to operate VCP internals manually.
 
-## Phase 10 — Conformance/release hardening
-
-Run full compatibility, negative, migration, package, and documentation-claim audits.
-
 ### Checkpoint E — model/tool capability audit
 
-Before major release, explicitly ask what standing instructions, Skills, orchestration, or Core state can now be removed because current agents/platforms reliably own that work.
+Before final conformance/release hardening, explicitly ask what standing instructions, Skills, orchestration, or Core state can now be removed because current agents/platforms reliably own that work.
+
+Apply any justified simplification/deprecation first so final hardening validates the surface we actually intend to ship.
+
+## Phase 10 — Conformance/release hardening
+
+Run full compatibility, negative, migration, package, and documentation-claim audits against the post-audit final surface.
 
 # 20. High-risk implementation mistakes to avoid
 
