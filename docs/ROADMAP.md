@@ -536,7 +536,7 @@ It establishes:
 - schema-v1 → schema-v2 managed-update migration and previous-release lifecycle smoke;
 - section-composition/baseline/update primitives;
 - brownfield-minimal classified install-surface planning and Doctor awareness of intentionally absent starter/framework assets;
-- preserved agent-selector provenance and persisted actual adapter surface;
+- preserved agent-selector provenance, explicit adapter intent, and VCP-managed adapter ownership without claiming merely observed-compatible project files;
 - verification-command authority inspection;
 - safe tri-state GitHub-option provenance;
 - reserved `.vcp` / mixed-stack ambiguity checks;
