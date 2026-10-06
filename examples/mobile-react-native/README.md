@@ -9,7 +9,7 @@ The fixture provides deterministic selected-root evidence:
 - `dependencies["react-native"]`;
 - `app.json`;
 - `tsconfig.json`;
-- local package scripts for format, lint, typecheck, general check, unit, integration, build, and E2E verification.
+- local package scripts for format, lint, general check, unit, integration, build, and E2E verification. The general check also validates the fixture's TypeScript configuration flags.
 
 The scripts use only Node.js and local fixture files so VCP conformance stays network-independent. The declared React Native dependency is detection evidence; Stage 11 dogfood does not install or execute the React Native runtime.
 

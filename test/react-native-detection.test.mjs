@@ -122,7 +122,7 @@ test('TypeScript React Native specializes before TypeScript and maps configured 
   assert.equal(result.stack, 'react-native');
   assert.match(result.content, /FORMAT_CHECK_COMMAND=npm run format:check/);
   assert.match(result.content, /LINT_COMMAND=npm run lint/);
-  assert.match(result.content, /TYPECHECK_COMMAND=npm run typecheck/);
+  assert.match(result.content, /TYPECHECK_COMMAND=<define or n\/a>/);
   assert.match(result.content, /CHECK_COMMAND=npm run check/);
   assert.match(result.content, /UNIT_TEST_COMMAND=npm run test:unit/);
   assert.match(result.content, /INTEGRATION_TEST_COMMAND=npm run test:integration/);
@@ -276,6 +276,8 @@ test('obvious sensitive-effect mobile scripts are not imported into general veri
   });
 
   assert.equal(isSensitiveMobileVerificationScript('fastlane ios release'), true);
+  assert.equal(isSensitiveMobileVerificationScript('codesign --sign IDENTITY ios/build/App.app'), true);
+  assert.equal(isSensitiveMobileVerificationScript('apksigner sign --ks release.jks app.apk'), true);
   assert.equal(isSensitiveMobileVerificationScript('node --test'), false);
 
   const result = await applyStackProfileToContent(target, 'auto', baseAgents);
@@ -303,7 +305,8 @@ test('first-party React Native fixture dogfoods init, task verification, and bou
 
   const agents = await readFile(path.join(target, 'AGENTS.md'), 'utf8');
   assert.match(agents, /## 16\. React Native stack profile/);
-  assert.match(agents, /TYPECHECK_COMMAND=npm run typecheck/);
+  assert.match(agents, /TYPECHECK_COMMAND=<define or n\\/a>/);
+  assert.match(agents, /CHECK_COMMAND=npm run check/);
   assert.match(agents, /E2E_COMMAND=npm run test:e2e/);
 
   const task = await createTaskPack({

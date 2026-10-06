@@ -83,7 +83,7 @@ Ship React Native as VCP's first built-in mobile profile without weakening proje
 
 1. Complete deterministic detection + explicit selector + Doctor inspection.
 2. Add first-party React Native guidance and script-derived verification mapping.
-3. Enable only the approved auto-selected `generic|javascript|typescript -> react-native` lifecycle specialization through the existing transactional update engine.
+3. Enable only the approved auto-selected `generic, javascript, or typescript -> react-native` lifecycle specialization through the existing transactional update engine.
 4. Add nested-root, explicit-choice, conflict, rollback/idempotence, and Stage 10 plugin coexistence coverage.
 5. Add distinct first-party fixture, dogfood, package validation, and docs/changelog/roadmap synchronization.
 6. Perform static self-review, then run one complete exact-head Windows gate.
@@ -118,6 +118,9 @@ Planned final gate:
 | RISK | follow-up candidate | #69 Linux/hosted execution compatibility remains open. | Preserve accepted Windows exact-head final gate. | Cross-OS hosted proof remains pending. |
 | RISK | follow-up candidate | #73 concurrent local filesystem replacement remains unresolved. | Do not widen atomic/concurrent filesystem claims. | Concurrent replacement remains outside current guarantee. |
 | NO ACTION | n/a | Stage 10 plugin authority remains separate/additive. | Coexistence regression added rather than changing plugin trust model. | none known. |
+| DEFECT | fixed from fresh external review | Task Pack evidence used unescaped pipe characters inside a Markdown table cell, breaking the five-column structure. | Reworded the specialization family as `generic, javascript, or typescript -> react-native`. | none. |
+| DEFECT | fixed from fresh external review | The first-party fixture exposed `TYPECHECK_COMMAND=npm run typecheck`, but that helper only validated `tsconfig.json` flags and did not type-check source. | Removed the fixture `typecheck` script, folded config validation into `CHECK_COMMAND`, and left TypeScript applicability as `<define or n/a>` until a real source checker exists. | The fixture deliberately proves truthful unresolved typecheck applicability rather than pretending a compiler exists. |
+| SECURITY | fixed from fresh external review | The visible-script sensitive-effect classifier missed common native signing tools whose names do not match the generic `sign` word boundary. | Added `codesign`, `apksigner`, `jarsigner`, `productsign`, and `signtool` patterns plus focused classifier regressions. | Nested/indirect script effects still require project review as documented. |
 | NO ACTION | n/a | Dependency Graph Engine / Slice D remains deferred. | No Stage 11 graph/scheduler work. | revisit only with new dogfood evidence. |
 
 ## Finalization

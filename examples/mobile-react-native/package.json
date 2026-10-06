@@ -5,8 +5,7 @@
   "scripts": {
     "format:check": "node scripts/format-check.mjs",
     "lint": "node --check src/app.js",
-    "typecheck": "node scripts/typecheck.mjs",
-    "check": "node --check src/app.js",
+    "check": "node --check src/app.js && node scripts/typecheck.mjs",
     "test:unit": "node --test test/unit.test.mjs",
     "test:integration": "node --test test/integration.test.mjs",
     "build": "node scripts/build.mjs",
