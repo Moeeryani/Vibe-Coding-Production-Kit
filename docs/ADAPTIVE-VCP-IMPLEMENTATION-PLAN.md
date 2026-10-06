@@ -1948,6 +1948,59 @@ Examples:
 Exact syntax depends on agent capability; VCP should not hard-code one vendor's command syntax.
 
 
+## 8.1A Routing mode and enforcement policy are separate
+
+`workflowMode` answers:
+
+~~~text
+How does a developer request enter VCP?
+auto   → agent/Skill routes automatically when appropriate
+manual → only explicit VCP invocation enters the workflow
+~~~
+
+It does **not** answer:
+
+~~~text
+Must this repository produce a green VCP gate before merge?
+~~~
+
+That is a separate repository/CI enforcement policy.
+
+Initial model, conceptually:
+
+~~~text
+workflowMode
+  auto | manual
+
+gatePolicy
+  disabled | advisory | required
+~~~
+
+Exact persisted naming can be finalized in Phase 8, but these dimensions must not be collapsed.
+
+Compatibility/defaults:
+
+- enabling Auto does not silently enable gatePolicy=required;
+- new/legacy projects do not become mechanically merge-blocked merely because workflowMode defaults to Auto;
+- changing workflowMode never changes gatePolicy;
+- mandatory CI/gate enforcement is a separate explicit project decision/integration;
+- behavior-bearing persisted gatePolicy state must participate in minimumReaderVersion compatibility.
+
+Manual + required is valid only as an explicit configuration. Its meaning is:
+
+~~~text
+ordinary coding request
+→ agent does not auto-enter VCP
+
+before merge of a gate-covered change
+→ developer must explicitly invoke/prepare the required VCP task/evidence
+→ otherwise CI/gate blocks
+~~~
+
+Therefore Manual mode means **no automatic routing**, not an unconditional exemption from a separately enabled repository merge policy.
+
+UX/Doctor must surface this combination clearly so users are not surprised at merge time.
+
 ## 8.2 Store operating mode as project state
 
 Persist the operating mode in VCP lifecycle state.
@@ -2211,7 +2264,7 @@ Avoid fuzzy model-confidence scores as the Core authority. Use explicit evidence
 - project mode is persisted and inspectable;
 - mode can be changed deliberately without reinstalling VCP;
 - Auto mode requires no user knowledge of VCP CLI for normal work;
-- Manual mode does not hijack ordinary coding requests;
+- Manual mode does not hijack ordinary coding requests; if separate required gate policy is enabled, that requirement is reported explicitly rather than hidden behind the mode;
 - L0 handles only explicitly policy-eligible trivial work without durable ceremony and otherwise promotes conservatively;
 - L1 gives ordinary small engineering work a compact contract inside the same Task Pack family instead of forcing the full L2 template;
 - L2 preserves the current strong material-work lifecycle;
