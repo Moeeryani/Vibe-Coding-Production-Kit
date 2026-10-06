@@ -2910,6 +2910,26 @@ Do not recursively infer sibling package capabilities.
 
 ---
 
+
+### Core detector filesystem trust
+
+Current `detectStack()` is a compatibility API, not the template for capability-grade evidence. It uses `access()` for several markers, which can treat symlinked paths as present.
+
+For the new capability engine, every evidence-producing core/first-party detector must use safe evidence primitives that:
+
+- stay inside the selected project root;
+- require the expected regular-file/directory type;
+- reject/avoid authority from symlinked evidence paths;
+- bound JSON/text reads;
+- make malformed evidence explicit rather than silently positive;
+- record detector id + relative evidence path/provenance;
+- use the same case/path portability rules as other lifecycle-authority readers.
+
+Do not simply refactor `detectStack()` into multiple `exists()` calls and call that composable capabilities.
+
+Legacy stack detection may remain unchanged behind the compatibility layer until it is retired; capability state must use the hardened primitives.
+
+---
 ## 8.5 Keep current stack as a compatibility summary
 
 During transition keep:
