@@ -485,9 +485,9 @@ A React Native-readiness fixture dogfoods the plugin model only. It does **not**
 
 ### Stage 11 — Mobile Profiles
 
-**Status:** 🟢 Design approved — implementation not started. Issue #82 / accepted contract `docs/MOBILE-PROFILES.md` / completed design Task Pack `docs/tasks/stage11-mobile-profiles.md`.
+**Status:** 🟠 Implementation complete — exact-head verification/review pending. Issue #84 / PR #85 / accepted contract `docs/MOBILE-PROFILES.md` / implementation Task Pack `docs/tasks/stage11-mobile-profiles-implementation.md`.
 
-Stage 11 is the next bounded product stage after the published `v0.9.3` baseline. The React Native-first design is approved; product implementation still requires a separate implementation Task Pack/readiness gate and branch.
+Stage 11 is the next bounded product stage after the published `v0.9.3` baseline. The React Native-first implementation now spans all five accepted slices on PR #85; completion still requires one full exact-head Windows gate, fresh review, Task Pack finalization, and the required unchanged-head rerun before merge.
 
 The stage must define:
 

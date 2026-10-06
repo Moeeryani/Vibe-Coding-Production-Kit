@@ -4,6 +4,15 @@ All notable changes to this project will be documented here.
 
 ## [Unreleased]
 
+### Added
+- Stage 11 first-party React Native mobile profiles with deterministic selected-root detection, generated mobile engineering/security guidance, repository-script verification discovery, Doctor specialization inspection, safe lifecycle specialization, Stage 10 plugin coexistence, and realistic network-independent dogfood.
+
+### Changed
+- Auto-selected `generic`, `javascript`, and `typescript` profiles may specialize to `react-native` only when the exact selected-root mobile evidence contract is satisfied; explicit and legacy unknown-provenance choices remain preserved.
+- React Native verification imports configured project scripts conservatively and leaves visibly sensitive signing/publication/deployment/store/device-farm effects outside general `vcp verify --run` authorization.
+- Mobile stack/project detection remains bounded to the selected VCP root; parent/sibling mobile evidence is not recursively inherited.
+
+
 ## [0.9.3] - 2026-10-04
 
 ### Added
