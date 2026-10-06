@@ -1351,16 +1351,22 @@ Tests must cover conflict/no-op/error exits that occur between lock acquisition 
 
 ### Required backup metadata
 
-Generalize recovery metadata so it records prior-state presence explicitly, for example:
+Generalize recovery metadata so it records the **pre-lock** lifecycle state explicitly, for example:
 
 ```text
 operation: init | update
+priorVcpDirectoryExisted: true | false
 priorManifestExisted: true | false
 priorBaselinesExisted: true | false
 priorInstalledVersion: <version> | null
+lockBootstrapCreatedVcpDirectory: true | false
 ```
 
 Exact names are implementation choices.
+
+The pre-lock values must be captured by repository inspection / lock bootstrap **before** `acquireUpdateLock()` creates `.vcp/`. Do not recompute them inside `createBackup()` from the post-lock filesystem.
+
+This operation snapshot should be passed into generalized backup creation so recovery metadata reflects reality rather than the lock's side effects.
 
 ### Required rollback behavior
 
@@ -1370,7 +1376,14 @@ For initial adoption:
 - delete paths that were newly added;
 - remove new manifest if none existed before;
 - remove new baselines if none existed before;
-- clear transaction/lock/stage state.
+- clear transaction/lock/stage state;
+- when `priorVcpDirectoryExisted=false`, remove operation-created `.vcp/.gitignore` if applicable;
+- after a **successful** restore, remove the selected operation-created adoption backup itself and any now-empty operation-created `.vcp/backups` container;
+- finally attempt a non-recursive removal of `.vcp/` so unexpected external/concurrent content is preserved rather than erased.
+
+Do not delete the recovery backup before restore verification succeeds. If rollback fails or leaves an unexpected path, retain the backup/recovery state and report that the repository is not fully restored instead of claiming unmanaged success.
+
+A manually requested rollback of a successful first adoption follows the same rule: successful restore returns the repository to its true prior unmanaged shape, which means no VCP-owned backup residue remains.
 
 Current `createBackup()` / `restoreBackup()` primitives should be generalized rather than duplicating backup logic in `init-apply`.
 
@@ -1411,7 +1424,7 @@ Must prove:
 - apply never trusts a stale preview object;
 - all conflicts block before project-file mutation;
 - section compose preserves surrounding bytes;
-- rollback restores an unmanaged repository to truly unmanaged lifecycle state;
+- rollback restores an unmanaged repository to truly unmanaged lifecycle state, including removal of the successful first-adoption recovery backup/internal scaffolding;
 - re-running init after success redirects as MANAGED;
 - normal `vcp update` works immediately after adoption;
 - apply is idempotent.
@@ -4602,8 +4615,8 @@ Needs:
 - install assetSet validation/preservation;
 - per-entry ownership validation;
 - section-baseline support;
-- generalized lifecycle backup metadata for absent prior manifest/baselines;
-- rollback that removes lifecycle state that did not exist before initial adoption;
+- generalized lifecycle backup metadata sourced from **pre-lock** prior VCP/manifest/baseline state;
+- rollback that removes lifecycle state, adoption backup residue, and internal scaffolding that did not exist before initial adoption;
 - lifecycle transaction reuse for Smart Init.
 
 Do not leave section ownership as an unversioned optional v1 field.
