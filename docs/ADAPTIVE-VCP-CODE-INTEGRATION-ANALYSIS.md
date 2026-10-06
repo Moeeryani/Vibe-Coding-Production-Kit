@@ -1653,18 +1653,35 @@ Do not duplicate conflicting repository rules.
 
 ---
 
+
 ## 5.7 Parsing verification commands
 
-Today parseAgentVerificationCommands reads command slots directly from AGENTS.md.
+Today parseAgentVerificationCommands reads command slots directly from the whole AGENTS.md and returns the first matching line per key. Doctor has parallel first-match logic.
 
-This means the VCP-owned integration section for existing AGENTS.md must continue to expose the effective verification command contract unless/until verification configuration moves to a separate structured source.
+That behavior becomes unsafe once an existing project-owned AGENTS.md can contain its own command slots alongside a VCP-owned section.
 
-Do not move command configuration casually during smart-init work; that would mix two large migrations.
+Stage 12 must therefore add a shared command-authority inspection path before composition.
 
-A later capability refactor may introduce a more structured command source, but initial safe adoption should preserve current command parsing behavior.
+Per command key, distinguish:
 
----
+~~~text
+missing
+unique
+duplicate-equivalent
+duplicate-conflicting
+~~~
 
+Rules:
+
+- a unique existing project-owned configured value remains effective;
+- VCP must not add a second conflicting value merely to keep commands inside its section;
+- a missing value may be contributed by the VCP section from deterministic repository evidence or remain unresolved;
+- duplicate-conflicting values block adoption until authority is clarified;
+- Task generation, Doctor, and any future gate use the same resolver.
+
+The VCP-owned integration section should expose only the slots VCP actually owns after this authority decision.
+
+Do not mix this work with a migration to a new structured verification-config file. That may be valuable later, but safe brownfield adoption can preserve the current command contract once authority is explicit.
 
 ## 5.8 Files affected
 
