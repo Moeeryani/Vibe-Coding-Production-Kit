@@ -70,6 +70,52 @@ These are deliberately not Stage-12 blockers:
 
 ---
 
+
+## 1A. Executable-evidence status of this audit
+
+This audit must not be mistaken for a green executable release gate.
+
+The final documentation/code-inspection pass attempted to create a fresh checkout in the available execution environment and run:
+
+~~~text
+npm run validate
+npm run pack:check
+~~~
+
+The environment failed **before repository checkout** because DNS/network access to GitHub was unavailable:
+
+~~~text
+fatal: unable to access 'https://github.com/Moeeryani/Vibe-Coding-Production-Kit.git/':
+Could not resolve host: github.com
+~~~
+
+The hosted GitHub Actions signal on audited documentation HEAD
+`1d66656072ca69ca91a351b91c158e0fe38eef50` was also not source-test evidence:
+
+- workflow: `Framework Validation`;
+- run: `37457132363`;
+- job: `112247378491`;
+- conclusion: failure;
+- runner_id: `0`;
+- steps: `[]`.
+
+No repository step executed.
+
+Therefore:
+
+~~~text
+architecture / code / contract audit
+→ PASS for Stage-12 design readiness
+
+fresh executable current-main gate
+→ NOT ESTABLISHED BY THIS AUDIT
+→ remains a precondition before product-code Stage-12 work
+~~~
+
+This is consistent with the existing Roadmap evidence policy and open Linux/hosted compatibility follow-up #69.
+
+Do not convert either the local DNS failure or the zero-step hosted failure into a source-code failure. Equally, do not claim a green executable gate that did not run.
+
 ## 2. Audit method
 
 This was not a document-only review.
