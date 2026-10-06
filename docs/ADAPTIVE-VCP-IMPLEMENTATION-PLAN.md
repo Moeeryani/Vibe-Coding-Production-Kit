@@ -2404,9 +2404,29 @@ When the feature ships:
 
 ## 8.3 Auto-mode agent instruction
 
-Auto-mode adapters should communicate the policy concisely:
+The final Auto-mode adapter policy should be concise:
 
 > For meaningful repository changes, route work through the VCP workflow appropriate to the change. Do not bypass deterministic readiness, authority, verification, or review gates. Use the lightest workflow level that safely fits the change.
+
+But stage the wording with the implementation:
+
+### Phase 6
+
+Workflow levels/gate do not exist yet.
+
+Render only the truthful routing foundation, conceptually:
+
+> Route meaningful engineering work through the currently supported VCP workflow. Respect current readiness, Source-of-Truth, verification, and review requirements.
+
+Do **not** mention L0/L1/L2/L3, `vcp gate`, or "lightest level" in installed instructions before Phase 7 actually ships those contracts.
+
+Phase-6 Auto is therefore a routing/UX foundation and dogfood surface, **not the completed adaptive ceremony experience**.
+
+### Phase 7
+
+Once level-aware Task Packs/readiness/context/review/gate exist, update the owned VCP instruction section/router to the final "lightest safe workflow level" policy.
+
+Checkpoint C evaluates Auto only after this Phase-7 transition.
 
 Avoid embedding the full VCP manual in `AGENTS.md`.
 
@@ -3554,7 +3574,7 @@ Measure:
 7. keep the router progressive and free of duplicated Core policy;
 8. add/extend prompt-eval coverage for router + human-attention behavior only where existing observables are insufficient.
 
-The Phase-6 router is the minimal installed UX contract, not a throwaway prototype and not Core authority. Auto routing remains best-effort until Phase 7 gate enforcement exists.
+The Phase-6 router is the minimal installed UX contract, not a throwaway prototype and not Core authority. It must route only through contracts that actually exist in Phase 6; it must not simulate future workflow levels in prose. Adaptive Auto level selection and deterministic gate protection become product-complete only in Phase 7.
 
 ## Phase 7 — mechanical gate and workflow levels
 
