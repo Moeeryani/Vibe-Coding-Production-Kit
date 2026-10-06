@@ -3324,26 +3324,56 @@ Document the removal clearly because an existing repository may currently depend
 
 ---
 
-## 10.7 Phase E2 — Generate CI only after vcp gate exists
+## 10.7 Phase E2 — Integrate CI only after vcp gate exists
 
-Once vcp gate exists, VCP can optionally generate a provider-specific thin workflow such as:
+`vcp gate --run` reuses project-approved verification commands, but those commands still require a project execution environment.
+
+Do not confuse:
 
 ~~~text
-checkout
-setup runtime needed for VCP CLI
-install/run VCP
-vcp gate ...
+CI environment/bootstrap
+with
+verification authority
 ~~~
 
-The workflow should not duplicate every application test command if vcp gate already executes/validates the project-owned contract.
+The project (or an explicitly trusted supported profile) owns runtime/dependency/service setup. VCP owns the deterministic gate decision.
 
-This reduces drift.
+Preferred implementation order:
 
-Do not overwrite existing CI.
+1. inspect existing CI provider/configuration;
+2. identify a safe explicit integration point after the project's existing setup;
+3. add/propose a minimal VCP gate step only when requested/compatible;
+4. otherwise emit provider-specific snippet/instructions;
+5. generate a standalone workflow only if deterministic capability/profile state plus explicit project policy proves every bootstrap prerequisite needed by the gate.
 
-Add a separate VCP workflow only when explicitly requested or when smart init has enough evidence and the user selected automatic CI integration.
+Never infer or synthesize arbitrary:
 
----
+- package/dependency installation;
+- Python/Go/Java/Node application runtime setup beyond VCP's own CLI runtime;
+- databases/queues/caches/service containers;
+- browsers/native/mobile SDKs;
+- secrets or environment configuration;
+- migration/seed/bootstrap commands.
+
+Task-bound material work:
+
+~~~text
+<existing/project-approved setup>
+vcp gate <explicit-task-slug> --run
+~~~
+
+PR/branch → Task Pack mapping is explicit repository/CI configuration unless a later separately designed deterministic selector is justified.
+
+L0:
+
+~~~text
+<checkout with required refs>
+vcp gate --level l0 --base <base> --head <head>
+~~~
+
+Shallow/missing refs cause a clear blocked result; do not guess a base.
+
+Do not overwrite unrelated CI. Do not duplicate application verification commands in YAML. Environment/bootstrap configuration is separate from verification authority.
 
 ## 10.8 Definition of done
 
@@ -3352,7 +3382,9 @@ Add a separate VCP workflow only when explicitly requested or when smart init ha
 - Doctor detects CI through a provider-neutral inspector;
 - includeGitHub no longer implies npm CI;
 - old managed validate.yml has a deliberate migration path;
-- generated future CI delegates to deterministic VCP gate rather than duplicating project logic.
+- generated/integrated future CI delegates to deterministic VCP gate rather than duplicating project logic;
+- standalone generation occurs only with proven bootstrap/toolchain support;
+- shallow/missing Git refs and unsupported environment prerequisites fail closed.
 
 ---
 
@@ -5484,9 +5516,11 @@ Do not wire mandatory CI enforcement while local classification/gate behavior is
 
 ## Phase 8 — CI gate integration
 
-Generate only thin provider-specific delegation to VCP gate, and only where explicitly selected/compatible.
+Phase 8 owns explicit gatePolicy persistence/configuration and provider integration.
 
-Phase 8 also owns the explicit gatePolicy persistence/configuration contract. It must not repurpose workflowMode.
+Prefer a thin gate invocation after project-owned CI setup. Generate a standalone workflow only when every required bootstrap/toolchain prerequisite is deterministically supported and explicitly accepted.
+
+Do not repurpose workflowMode, invent project environment setup, guess task ownership/base refs, or duplicate application verification commands.
 
 ## Phase 9 — Skill UX expansion
 
