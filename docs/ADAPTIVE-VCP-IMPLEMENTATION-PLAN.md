@@ -95,6 +95,16 @@ The following decisions are considered accepted for this plan:
 11. **Create a cross-project compatibility/conformance matrix.**  
     The success target is universal safe adoption and graceful fallback, not magical perfect detection of every ecosystem.
 
+
+12. **Split safe adoption into a read-only planning stage and a mutating apply stage.**  
+    After Stage 11 is completed and the roadmap is re-baselined, Stage 12 is the first Adaptive VCP execution slice: it proves repository inspection, section-ownership foundations, prompt fallback, and a trustworthy `vcp init --dry-run` plan without performing brownfield adoption writes. Stage 13 consumes the same planning model to perform transactional Smart Init apply.
+
+13. **Treat init previews as speculative, not executable authority.**  
+    A Stage 12 dry-run is evidence of what VCP would do at that moment. Stage 13 must acquire the lifecycle lock and recompute a fresh plan from the current repository before mutation. Do not persist or blindly apply a stale preview.
+
+14. **Version section-ownership state explicitly.**  
+    Section ownership changes the meaning of a managed-file baseline. It must be represented by a manifest schema that older CLIs reject rather than silently interpreting section-owned entries as whole-file ownership.
+
 ---
 
 ## 2. Product principle: what belongs in VCP and what belongs in Skills
@@ -709,9 +719,10 @@ or
 
 That contradicts VCP's core preservation philosophy.
 
+
 ## 3.3 Target behavior
 
-The user always runs:
+The public command remains:
 
 ```bash
 vcp init .
@@ -731,8 +742,8 @@ VCP determines repository state:
        REPO         REPO          VCP
          │            │            │
          ▼            ▼            ▼
-     scaffold      integrate     redirect to
-     cleanly       safely        update/status
+     scaffold      plan/adopt     redirect to
+     cleanly       safely         update/status
 ```
 
 ### New repository
@@ -741,33 +752,77 @@ A directory is considered effectively new when no meaningful project artifacts e
 
 Behavior:
 
-- create the normal VCP project assets;
-- generate the selected agent adapters;
-- establish lifecycle state;
-- configure only commands supported by evidence;
+- keep greenfield initialization working;
+- use the same repository inspection and planning vocabulary where practical;
+- create VCP lifecycle state only from evidence-backed configuration;
 - leave unresolved values explicit.
 
 ### Existing repository
 
-Behavior:
+The end-state behavior is:
 
-- inspect existing repository artifacts;
+- inspect before asking;
 - never overwrite project files blindly;
-- merge or compose where semantics are known;
-- preserve project-owned content;
-- report unresolved conflicts;
-- generate a detailed dry-run/adoption plan;
-- ask the human only when semantics cannot be established safely.
+- compose only where ownership is explicit;
+- preserve existing CI and project-owned documentation by default;
+- add the smallest VCP operational surface required for adoption;
+- report unresolved conflicts/decisions;
+- generate a detailed plan before mutation;
+- apply only through the transactional lifecycle path.
 
 ### Already VCP-managed repository
 
 If `.vcp/manifest.json` exists:
 
-- `vcp init` must not mutate the project;
-- report installed version/profile/mode;
-- direct lifecycle work to `vcp update`;
-- optionally provide a concise status summary.
+- `vcp init` must not re-initialize the project;
+- report installed version/profile/mode/state;
+- direct lifecycle work to `vcp update` or status/Doctor;
+- perform no project-file mutation.
 
+### Near-term staged rollout
+
+Do not land the entire brownfield mutation path in one stage.
+
+#### Stage 12 — Safe Adoption Planning
+
+Stage 12 proves:
+
+```text
+READ
+→ UNDERSTAND
+→ CLASSIFY
+→ PLAN
+```
+
+For an EXISTING repository:
+
+- `vcp init . --dry-run` produces the full adoption plan;
+- ordinary non-dry-run init remains blocked from brownfield mutation;
+- no `--force` escape hatch exists;
+- no existing project file is changed.
+
+For a NEW repository, the existing safe greenfield path may remain available while planning is introduced, provided tests prove the dry-run and actual greenfield surface agree.
+
+For a MANAGED repository, init reports lifecycle status/redirect and performs no re-initialization.
+
+#### Stage 13 — Smart Init Apply
+
+Stage 13 adds the mutating brownfield path.
+
+It must:
+
+1. acquire the lifecycle lock;
+2. recompute the init plan from current repository state;
+3. block on conflicts or changed/unsafe preconditions;
+4. create a rollback-complete backup;
+5. stage/apply actions transactionally;
+6. write baselines/manifest describing exactly what VCP owns;
+7. verify the applied result;
+8. prove rollback and idempotence.
+
+The Stage 12 preview is **speculative**. Stage 13 does not blindly apply a previously printed plan. This follows the same safety principle used by mature plan/apply systems: repository state may change between preview and apply.
+
+A future saved-plan feature, if ever justified, would require explicit repository/content preconditions or fingerprints. It is not part of Stage 12/13.
 
 ## 3.4 Remove destructive `--force` from init
 
@@ -790,15 +845,14 @@ If a user truly wants to replace a project-owned file, that should be an explici
 Do not retain a generic init escape hatch that turns adoption into overwrite.
 
 
+
 ## 3.5 Existing agent-file integration requires section-aware ownership
 
 ### Existing `AGENTS.md`
 
 Do not replace it.
 
-A simple "append VCP and baseline the whole resulting file" design is **not safe across later updates**. If VCP snapshots the combined user+VCP file as a whole-file baseline, a future desired VCP-only `AGENTS.md` can cause the update engine to replace user-owned text.
-
-Therefore existing instruction files must use **managed-section ownership**.
+A simple "append VCP and baseline the whole resulting file" design is unsafe across later updates. VCP must own the inserted region, not surrounding project text.
 
 Recommended form:
 
@@ -815,44 +869,95 @@ more project-owned instructions
 For an adopted existing file:
 
 - VCP owns only the marked section;
-- surrounding user content remains project-owned;
-- the lifecycle baseline represents the VCP-owned section, not the whole file;
-- updates may replace/merge only the VCP section;
+- surrounding text remains project-owned and must survive byte-for-byte where practical;
+- the lifecycle baseline represents the VCP-owned section, not the complete file;
+- updates compare/merge only the VCP-owned section;
 - missing, duplicate, nested, or malformed markers fail safely.
 
 For a new repository where `AGENTS.md` does not exist, VCP may continue to own the complete file.
 
-This means ownership is not determined by path alone. The manifest/update planner must be able to distinguish whole-file ownership from section ownership.
+### Ownership is separate from update policy
+
+Do not encode section ownership by inventing a policy named `section`.
+
+The manifest must distinguish:
+
+```text
+what VCP owns
+        │
+        ├─ whole file
+        └─ one VCP-managed section
+
+how VCP updates what it owns
+        │
+        ├─ merge
+        ├─ generated/conflict-on-local-edit
+        └─ preserve
+```
+
+Conceptually:
+
+```json
+{
+  "policy": "merge",
+  "ownership": {
+    "kind": "section",
+    "sectionId": "vcp-agent-integration",
+    "beginMarker": "<!-- VCP:BEGIN -->",
+    "endMarker": "<!-- VCP:END -->"
+  }
+}
+```
+
+### Manifest schema safety
+
+Current manifest schema v1 readers accept managed-file objects without validating all per-entry semantics. Adding section metadata while leaving the schema at v1 would allow an older CLI to accept the manifest and potentially treat a section baseline as a whole-file baseline.
+
+Therefore section-owned state must use a new manifest schema version.
+
+Migration rule:
+
+```text
+schema v1 managed entry
+→ ownership.kind = "file"
+```
+
+Older CLIs must reject the newer schema rather than silently mis-handle it.
+
+Section-owned entries are first persisted when Smart Init Apply is available; Stage 12 may implement/verify the schema and lifecycle primitives before brownfield apply writes them.
 
 ### Existing `CLAUDE.md`
 
 Preserve all existing content.
 
-Add only the smallest required VCP integration, normally a marked block containing `@AGENTS.md` or equivalent thin routing guidance.
+If `@AGENTS.md` already exists and no VCP-owned adapter block is needed, prefer `NOOP` rather than taking ownership unnecessarily.
 
-If the reference already exists, return `NOOP`.
+Otherwise add the smallest marked VCP integration block.
 
 ### Existing Copilot instructions
 
-Use the same additive managed-section strategy.
+Use the same additive principle.
 
-Do not replace existing organization/project guidance and do not duplicate conflicting repository rules.
-
-### Codex / Cursor
-
-Continue using repository `AGENTS.md` directly where supported.
+Do not replace organization/project guidance and do not duplicate existing equivalent routing.
 
 ### Verification-command compatibility
 
 Current verification command parsing reads configured slots from `AGENTS.md`.
 
-Initial smart-adoption work should preserve that contract inside the VCP-owned integration content. Moving verification configuration to a new structured source would be a separate migration and should not be bundled into safe init.
+Safe adoption must preserve that contract until a separate, justified verification-storage migration exists.
+
+### Progressive-disclosure constraint
+
+The section introduced into a brownfield `AGENTS.md` must be a **small routing + universal-invariants block**, not today's full always-on VCP manual.
+
+This is a Stage 12/13 acceptance constraint even though the broader greenfield AGENTS reduction continues in the later standing-context workstream.
+
 
 ## 3.6 Smart init planning model
 
-Reuse concepts from the update planner instead of inventing a second unsafe path.
+Reuse concepts from the update planner instead of inventing a second lifecycle language.
 
-An init plan should classify each desired action as:
+An init plan should classify actions as:
 
 - `ADD`
 - `ADOPT`
@@ -862,9 +967,64 @@ An init plan should classify each desired action as:
 - `NOOP`
 - `SKIP`
 
-`init --dry-run --json` should expose these without file contents.
+`vcp init . --dry-run --json` should expose a content-free, deterministic report containing at least:
 
-No filesystem mutation is allowed when any blocking conflict exists unless the plan explicitly supports independent safe actions and the product chooses atomic all-or-nothing semantics. Prefer atomicity for the initial implementation.
+- repository class: NEW / EXISTING / MANAGED;
+- target VCP version and selected current stack/profile facts;
+- ordered actions;
+- counts;
+- blocking conflicts/decisions;
+- whether the plan is speculative/read-only.
+
+Do not persist a plan file in Stage 12.
+
+### Plan freshness
+
+The preview and apply paths must share the same planner, but Stage 13 must call it again **after acquiring the lifecycle lock**.
+
+Do not implement:
+
+```text
+yesterday's dry-run
+→ apply blindly
+```
+
+Implement:
+
+```text
+dry-run
+→ informative speculative plan
+
+later apply
+→ lock
+→ inspect again
+→ re-plan
+→ apply the fresh conflict-free plan
+```
+
+### Brownfield adoption surface
+
+The planner must not blindly treat today's complete `CORE_ASSET_ROOTS` / `GITHUB_ASSET_ROOTS` as the brownfield adoption surface.
+
+For EXISTING repositories, the default plan should be intentionally minimal:
+
+- VCP lifecycle state;
+- bounded VCP agent integration;
+- only project-operational artifacts required for VCP to function;
+- project prompt overrides only when already present; otherwise use packaged prompt fallback;
+- preserve existing project documentation;
+- preserve existing CI;
+- do not add the current npm-specific workflow;
+- do not copy VCP framework roadmap/release/task-history/source-validation material;
+- avoid GitHub issue/PR hygiene changes unless explicitly requested.
+
+Stage 12 may introduce adoption-surface metadata/filtering without yet migrating all legacy/greenfield consumer assets. The broader consumer-asset migration remains a later phase.
+
+### Atomicity
+
+No filesystem mutation is allowed when an init plan contains a blocking conflict.
+
+The first Smart Init Apply should be atomic at the adoption-operation level rather than partially applying independent actions.
 
 ## 3.7 Repository classification rules
 
@@ -2134,59 +2294,110 @@ Backward-compatible migration still applies.
 - validation checkpoints can defer or remove planned Core features when evidence does not support them.
 
 
+
 # 13. Sequencing and validation checkpoints
 
-The code-level dependency review determines the safest implementation order. The product-experience invariants above determine whether VCP is allowed to continue to the next layer.
+The Adaptive VCP plan is the umbrella roadmap. The numbered implementation stages are bounded execution slices of that roadmap.
 
-## Phase 0 — enabling refactors
+## Precondition — finish and re-baseline Stage 11
 
-1. centralize manifest install-field construction;
-2. introduce prompt resolution while preserving current behavior;
-3. add section-ownership primitives and lifecycle tests;
-4. begin shared Task Pack parsing where required.
+Do not begin Stage 12 product-code implementation on top of an unfinalized Stage 11 head.
 
-**Exit criterion:** later adoption/asset/gate work can reuse lifecycle-safe primitives instead of temporary hacks.
+Before Stage 12:
 
-## Phase 1 — smart adoption safety
+1. complete Stage 11 exact-head verification/review/finalization;
+2. merge it;
+3. re-baseline Roadmap/README/current-version assumptions;
+4. create the Stage 12 contract/Task Pack from the current main branch.
 
-1. repository inspection;
-2. init planning;
-3. remove destructive init force behavior;
-4. section-aware AGENTS/CLAUDE/Copilot adoption;
-5. conflict-safe/transactional apply;
-6. managed-project init redirect/status;
-7. prove a subsequent update preserves user-owned text.
+## Stage 12 — Safe Adoption Planning
 
-## Phase 2 — consumer asset separation
+Stage 12 spans the enabling parts of Phase 0 plus the **read-only** portion of smart adoption.
 
-1. packaged canonical prompt fallback;
-2. Doctor prompt-source changes;
-3. explicit consumer asset manifest;
-4. remove copied framework validator/source docs;
-5. rewrite release-check consumer lifecycle validation;
-6. explicit lifecycle removals/detaches;
-7. preserve customized legacy prompts as overrides.
+Implement:
+
+1. centralized install/manifest metadata construction;
+2. packaged canonical prompt resolver while preserving project overrides;
+3. manifest schema/versioned ownership foundation for whole-file vs section ownership;
+4. section extraction/composition/baseline/update primitives and tests;
+5. read-only repository classification: NEW / EXISTING / MANAGED;
+6. minimal brownfield adoption-surface selection;
+7. deterministic `init` planning actions;
+8. useful `vcp init . --dry-run [--json]` for existing projects;
+9. removal of destructive init `--force` behavior.
+
+Stage 12 must **not** perform Smart Init mutation into EXISTING repositories.
+
+Transitional behavior:
+
+```text
+NEW
+→ existing greenfield initialization remains available
+
+EXISTING
+→ dry-run plan available
+→ non-dry-run brownfield apply safely blocked
+
+MANAGED
+→ status/redirect to update
+```
+
+**Stage 12 exit test:** VCP can inspect an arbitrary representative repository and produce a trustworthy, bounded, non-destructive adoption plan.
+
+## Stage 13 — Smart Init Apply
+
+Stage 13 adds mutation using the Stage 12 planner.
+
+Implement:
+
+1. acquire lifecycle lock;
+2. recompute a fresh plan under lock;
+3. block on conflicts/precondition changes;
+4. backup every path that may change plus explicit prior lifecycle-state presence/absence;
+5. transactional COMPOSE/ADD/ADOPT behavior;
+6. write section-aware baselines and manifest;
+7. post-apply verification;
+8. automatic rollback on failure;
+9. idempotent managed-project re-run behavior;
+10. subsequent `vcp update` proof.
+
+The apply path must generalize existing backup/rollback semantics for first adoption: if no manifest/baselines existed before the transaction, rollback must remove the newly created manifest/baselines rather than leave a false managed state.
+
+Do not rename on-disk lifecycle state merely for aesthetics. Existing lock/backup/transaction locations may remain compatibility-preserving while helper APIs are generalized.
 
 ### Validation Checkpoint A — Is adoption actually easier?
 
-Run the new adoption flow against a deliberately varied set of real or representative repositories.
+Run Stage 12/13 against deliberately varied real or representative repositories before broader Adaptive VCP work.
 
 Collect at least:
 
+- plan/apply agreement on unchanged repositories;
+- correct re-plan behavior when the repository changes between preview and apply;
 - files added/changed/removed;
-- collisions/conflicts;
+- section-preservation behavior;
+- rollback to truly unmanaged prior state;
 - existing instruction/CI preservation;
-- developer questions asked;
 - questions later classified as discoverable;
-- manual remediation required;
 - repository noise added;
 - steps from install to first productive feature.
 
-**GO:** adoption is safe and materially simpler than the current experience.
+**GO:** adoption is safe, minimal, and materially simpler than the current experience.
 
-**SIMPLIFY:** users need to understand too much VCP, too many files are added, or avoidable questions remain.
+**SIMPLIFY:** plans are noisy, brownfield surface is too large, or users must understand too much VCP.
 
-**STOP/DEFER:** do not proceed into broader adaptation machinery while first-use trust is poor.
+**STOP/DEFER:** do not proceed into broad asset/capability/profile machinery while first-use trust is poor.
+
+## Phase 2 — consumer asset and standing-context separation
+
+After Checkpoint A:
+
+1. unify the minimal consumer asset catalog across greenfield and managed lifecycle paths;
+2. migrate old framework/reference assets explicitly;
+3. complete AGENTS standing-context reduction beyond the brownfield section;
+4. update Doctor prompt/reference expectations;
+5. remove copied framework validators/source docs;
+6. rewrite release-check consumer lifecycle validation;
+7. preserve customized legacy prompts as overrides.
 
 ## Phase 3 — CI safety/detection only
 
