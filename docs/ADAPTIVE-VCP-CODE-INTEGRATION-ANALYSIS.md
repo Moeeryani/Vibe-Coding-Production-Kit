@@ -1455,7 +1455,7 @@ Current CLI parsing keeps `agent=null` initially, but `promptForOptions()` and e
 
 That is acceptable for historical greenfield behavior and unsafe as brownfield intent provenance.
 
-Stage 12 CLI/planner input must preserve:
+Stage 12 planner input must preserve:
 
 ~~~text
 agentPreference = unspecified
@@ -1463,129 +1463,81 @@ or
 agentPreference = explicit(<supported selector>)
 ~~~
 
-Brownfield planning rules:
+Repository inspection separately records:
 
 ~~~text
-unspecified
-→ AGENTS integration required
-→ detect existing supported vendor instruction files
-→ compose only those existing adapter surfaces
-→ do not create absent vendor adapter files
-
-explicit generic
-→ AGENTS only
-
-explicit vendor/all
-→ ensure explicitly requested adapter surface
+AGENTS.md present
+CLAUDE.md present + whether it already routes to AGENTS
+.github/copilot-instructions.md present + whether it already routes compatibly
 ~~~
 
-Existing vendor files that are not selected remain project-owned/preserved.
+Do not infer Codex vs Cursor from AGENTS.md.
 
-Do not persist "actual adapter surface" as one undifferentiated list.
-
-Normalize three concepts:
+Normalize three lifecycle concepts:
 
 ~~~text
 requestedAdapterIntent
-  explicit developer intent, or null/unspecified
+  explicit developer intent, or absent
 
 managedAdapterSurface
-  VCP-owned whole files/sections plus why they became managed
-  e.g. explicit-request | observed-existing
+  VCP-owned whole files/sections
+  + ownership/adoption provenance
+    explicit-request | observed-existing | legacy-managed (or equivalent)
 
 observedCompatibleAdapters
-  derived inspection result for project-owned files
+  derived repository inspection
   never ownership by itself
 ~~~
 
-Existing `install.agent` may remain as a compatibility summary, but it is not enough to reproduce brownfield semantics.
-
-Possible lifecycle representation:
-
-- explicit `install.requestedAdapters` / equivalent for durable user intent;
-- normal `managedFiles` ownership entries plus assetSet/origin metadata for VCP-managed adapter sections;
-- no persisted desired-file ownership merely because a project-owned adapter was observed compatible.
-
-Update behavior:
+Brownfield rules:
 
 ~~~text
-project-owned compatible adapter + no VCP section
-→ NOOP while compatibility remains
-→ never rewritten merely because it was observed
+unspecified + already-compatible vendor file
+→ NOOP
+→ keep project-owned
 
-managed adapter section created from observed-existing file
-→ update only that section while the file remains
-→ if whole file disappears, do not silently recreate absent vendor adapter without explicit intent
+unspecified + existing vendor file missing routing
+→ COMPOSE section
+→ manage section with observed-existing provenance
 
-explicit requested adapter
-→ compatibility is a durable desired condition
-→ if absent/incompatible later, planner may ADD/COMPOSE safely
+unspecified + absent vendor file
+→ do not create
+
+explicit vendor + already-compatible project-owned file
+→ persist requested intent
+→ file may remain NOOP while compatible
+
+explicit vendor + missing/incompatible surface
+→ ADD/COMPOSE safely
 ~~~
 
-Desired-file construction, update, manage, Doctor, rollback, and migration must respect this split.
+Deletion/update rules:
 
-Public CLI tests must include `--yes` on an established repo with existing CLAUDE.md/Copilot instructions and no `--agent`, proving omission is not reinterpreted as explicit generic before planning and that already-compatible unowned files remain unowned.
+- project-owned compatible adapter is recomputed, not rewritten;
+- observed-existing managed section updates while its host file exists, but deletion of the host file does not silently create a new vendor adapter file;
+- explicit requested intent is durable and may cause the safe planner to re-establish missing compatibility;
+- legacy managed adapters migrate without losing ownership.
 
----
+Possible persistence:
 
-## 4.10A Agent preference vs persisted adapter targets
+- `install.requestedAdapters` (or equivalent) only for explicit/historical durable intent;
+- managed entry metadata carries adapter origin/adoption reason for VCP-owned sections/files;
+- no persisted desired ownership solely because a compatible project-owned file was observed.
 
-Current `promptForOptions()` turns `-y` with no `--agent` into `generic`, and `buildDesiredFiles()` calls `adapterFiles(agent)` on every desired-state rebuild.
-
-For brownfield Smart Init, that conflates user choice with absence of choice and makes future adapter ownership lossy.
-
-Stage 12 planner input should preserve:
-
-~~~text
-agentPreference:
-  unspecified
-  explicit-generic
-  explicit-codex
-  explicit-cursor
-  explicit-claude
-  explicit-copilot
-  explicit-all
-~~~
-
-Repository inspection separately reports recognized dedicated surfaces:
-
-~~~text
-CLAUDE.md present
-.github/copilot-instructions.md present
-AGENTS.md present
-~~~
-
-Do not infer Codex vs Cursor from AGENTS.md; both consume it directly and there is no dedicated current adapter file to prove which tool the developer uses.
-
-Persist a normalized adapter target set once brownfield ownership is established, conceptually:
-
-~~~json
-{ "adapterTargets": ["claude", "copilot"] }
-~~~
-
-Transition rules:
-
-- schema-v1 legacy agent=claude → [claude];
-- agent=copilot → [copilot];
-- agent=all → [claude, copilot];
-- generic/codex/cursor → [];
-- brownfield unspecified → targets come from recognized existing dedicated integration surfaces that VCP safely composes/adopts;
-- explicit selection → targets come from that selection; other existing files remain project-owned/preserved.
-
-`install.agent` can remain as a compatibility/display summary temporarily, but `buildDesiredFiles`/its successor must stop using that lossy scalar as the sole adapter desired-state authority once adapterTargets exists.
+Current `install.agent` may remain as a compatibility/display summary during transition, but desired-state generation must not treat that scalar as the complete brownfield authority.
 
 CLI implications:
 
-- parsing must retain whether --agent was explicitly supplied;
-- `-y` defaults may be applied **after** repository classification: NEW may keep generic; EXISTING keeps unspecified for planning;
-- human interactive init should not ask which agent is used when recognized dedicated integration evidence already answers what needs composition; ask only when an actual integration choice remains.
+- retain whether `--agent` was explicitly supplied;
+- `-y` may apply generic only after classification for NEW; EXISTING remains unspecified for planning;
+- interactive init asks only when an actual adapter intent choice remains unresolved.
 
 Lifecycle implications:
 
-- init/update/manage/Doctor all consume normalized adapterTargets;
-- adapterTargets changes raise minimumReaderVersion because they affect managed desired content;
-- section ownership rules apply to brownfield CLAUDE/Copilot files just like AGENTS;
-- an update cannot silently detach a brownfield adapter merely because the legacy scalar says generic.
+- buildDesiredFiles/successor, update, manage, Doctor, rollback, and migration consume explicit intent + managed surface provenance;
+- behavior-bearing adapter intent/origin semantics raise minimumReaderVersion;
+- section ownership applies to brownfield adapter integrations;
+- public tests cover unspecified `--yes`, already-compatible NOOP, observed-existing COMPOSE, deletion semantics, and explicit requested re-establishment.
 
 ## 4.11 GitHub request provenance
 
