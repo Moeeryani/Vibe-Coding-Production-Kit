@@ -915,6 +915,17 @@ This sequencing is required for the existing VCP principle: **discover before as
 > The answers record reduces attention cost; it never constrains the fresh plan or
 > bypasses validation.
 
+Answers-record safety rules:
+
+- version the answers-record schema independently from the init plan JSON;
+- each reusable answer carries a stable decision ID + decision-contract version;
+- only explicitly persistable decisions may be written;
+- credentials, tokens, secrets, raw file contents, or arbitrary environment values
+  are never persisted in an answers record;
+- sensitive/non-persistable decisions can still be asked interactively at apply;
+- default output should not silently create a tracked project file; writing the record
+  is explicit and the user controls its destination.
+
 ## 3.4 Remove destructive --force from init only
 
 The shared CLI currently uses --force for other explicit output-overwrite cases.
@@ -1070,6 +1081,32 @@ Requirements:
 - release smoke must run the actual previous released CLI against a migrated fixture and prove its mutating lifecycle commands fail before changing project files.
 
 This is stronger than assuming future code changes can make old binaries call a new reader guard.
+
+### Compatibility-fence scope
+
+The legacy blocker can only mechanically stop old commands that already participate in
+the old lifecycle lock protocol. It cannot retroactively teach a published binary's
+unrelated commands to read a future manifest.
+
+Therefore:
+
+- previous-release **lifecycle mutators** (update/manage/rollback) are the commands
+  Stage 12 must mechanically fence and release-smoke;
+- once a current command's behavior depends on lifecycle semantics such as
+  `assetSet`, section ownership, workflowMode, or capabilities, the **new**
+  implementation must route that command through the shared lifecycle reader/reader
+  guard before mutation or authoritative output;
+- Stage 13 task creation is one example: the new task renderer reads assetSet before
+  rendering brownfield Source-of-Truth scaffolding;
+- an old pre-guard `vcp task` binary cannot be made universally fail-closed by a
+  future repository file if that old code never checks it. Running a CLI older than
+  the manifest's minimumReaderVersion is therefore unsupported outside the
+  mechanically fenced lifecycle-mutator surface;
+- onboarding/Doctor/status should recommend the compatible project/current CLI and
+  report the manifest's minimum reader version clearly.
+
+Do not claim that minimumReaderVersion is a time machine. Its enforceable guarantee is
+for compatible readers plus the explicit old-lifecycle mutation fence above.
 
 ## 3.6 Verification-command authority in brownfield AGENTS.md
 
@@ -3893,7 +3930,9 @@ Measure:
 
 > [AUDIT 2026-10-06 — PRE-IMPLEMENTATION] Until Phase 8 lands, document honestly
 > that local gates are cooperative, not enforcement: any local lifecycle command
-> can be skipped by a non-cooperating agent. The enforcement boundary is CI.
+> can be skipped by a non-cooperating agent. A CI gate becomes a **merge**
+> enforcement boundary only when the platform actually requires that check through
+> branch protection/ruleset/merge-queue policy; otherwise it remains evidence.
 
 ## Phase 9 — Skill UX expansion
 
@@ -4132,7 +4171,7 @@ PRE-IMPLEMENTATION]` at their sections.
 
 | # | Section | Change |
 |---|---------|--------|
-| 1 | §3.6 | duplicate-equivalent → HUMAN DECISION (no auto-normalization); adopted commands record provenance; destructive-pattern adoption requires explicit HUMAN DECISION; boundary enforced in CLI, never prompt prose |
+| 1 | §3.6 | duplicate-equivalent command values do not trigger fake ambiguity: keep every source/provenance and execute the one identical value without rewriting project text; conflicting values → HUMAN DECISION; destructive-pattern adoption still requires explicit HUMAN DECISION |
 | 2 | §3.3A | dry-run may emit a non-authoritative answers record; apply accepts `--answers-file`; plan always recomputed fresh under lock (resolves §2A.2 contradiction) |
 | 3 | §3.10 | Specified polyglot fallback: `stack: generic`, evidence listed, stack-neutral assets only, HUMAN DECISION before stack-specific assets |
 | 4 | §3.5 (ADOPT) | Marker presence ≠ authorship: ADOPT requires empty-or-canonical section content; code-fence-aware marker scanning |
