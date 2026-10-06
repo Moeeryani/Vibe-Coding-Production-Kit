@@ -1079,13 +1079,39 @@ Use conservative evidence such as:
 - agent instructions;
 - non-ignorable file count.
 
-### Reserved .vcp namespace
+### VCP lifecycle readability is evaluated before ordinary repository classification
 
-If .vcp/ already exists without a valid VCP manifest, do not silently claim it.
+NEW / EXISTING / MANAGED describes repository/adoption state only after the VCP namespace has been inspected safely.
 
-Unknown/pre-existing VCP-state paths must produce a safe conflict unless explicitly recognized as recoverable VCP state.
+Use this precedence:
 
-Rollback must also remove VCP-created internal state when the correct prior state was "no VCP lifecycle state."
+~~~text
+.vcp/manifest.json absent
+  + no conflicting reserved VCP state
+  → classify repository maturity as NEW or EXISTING
+
+manifest parses
+  + schema supported
+  + minimumReaderVersion supported
+  → MANAGED
+  → even if baselines/transaction/integrity checks later show the install is unhealthy
+  → report MANAGED + recovery/health blocker; never re-init over it
+
+manifest malformed / structurally invalid
+or schema newer/unsupported
+or minimumReaderVersion newer than running CLI
+or unknown reserved .vcp state prevents safe interpretation
+  → VCP_STATE_CONFLICT
+  → neither NEW/EXISTING nor safely MANAGED
+  → explain remediation/upgrade requirement
+  → zero init mutation
+~~~
+
+An active lifecycle lock or transaction also blocks init/apply. If the manifest is recognized, report it as managed lifecycle recovery state rather than treating the project as unmanaged.
+
+Smart Init must never become a way to overwrite or 'repair' lifecycle state it cannot understand.
+
+Rollback must remove only VCP-created internal state when the true prior state was no VCP lifecycle state; pre-existing unknown .vcp content is never deleted as part of adoption rollback.
 
 ### Brownfield stack ambiguity before capabilities
 
@@ -1137,8 +1163,9 @@ Broader provider-neutral CI cleanup remains Phase 3.
 Smart adoption is complete only when:
 
 - destructive init --force is gone while unrelated force controls remain;
-- NEW / EXISTING / MANAGED classification is deterministic;
-- unknown existing .vcp state fails safely;
+- NEW / EXISTING / MANAGED classification is deterministic only after VCP-state readability checks;
+- malformed/newer/minimum-reader-incompatible manifests and unknown reserved .vcp state fail safely without being reclassified as ordinary EXISTING;
+- recognized-but-unhealthy MANAGED lifecycle state blocks re-init and reports recovery/health status;
 - brownfield dry-run is zero-write;
 - preview and apply use the same planner;
 - unchanged repository snapshot produces semantically equivalent planned actions;
