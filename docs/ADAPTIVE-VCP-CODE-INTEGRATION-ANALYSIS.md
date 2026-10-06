@@ -1713,20 +1713,59 @@ new repo:
 AGENTS.md = whole-file ownership
 ```
 
-When it pre-exists:
+For brownfield adoption, integration files use section ownership whether they pre-exist or VCP creates them:
 
 ```text
-brownfield:
-AGENTS.md = section ownership
+brownfield existing AGENTS.md
+→ compose marked section
+
+brownfield missing AGENTS.md
+→ create a thin file containing the marked section
+→ ownership remains section
 ```
 
-The manifest entry—not the path name alone—decides ownership semantics.
+Greenfield legacy initialization may retain whole-file ownership temporarily.
+
+The manifest entry decides active ownership while managed; the brownfield asset profile plus valid markers provide the safe re-track contract after an explicit detach.
 
 `policyForPath()` can remain a source of default update policy, but it is no longer sufficient to describe ownership.
 
 Schema-v2 migration maps all legacy v1 entries to whole-file ownership.
 
 `update-plan`, baseline handling, apply verification, Doctor, and manage ignore/track must use the manifest ownership record.
+
+### Section-owned manage ignore/track contract
+
+Current manage ignore deletes the managed entry and baseline but preserves local content. Current track rebuilds ownership from the package desired file.
+
+With section ownership, track must not accidentally re-adopt the whole composed file.
+
+Required behavior for brownfield-minimal integration paths:
+
+~~~text
+manage ignore
+→ remove managed section entry/baseline
+→ retain full file + marker block unchanged
+→ add path to ignored set
+
+manage track, file exists
+→ require exactly one valid recognized marker pair
+→ compute current desired VCP section
+→ write section baseline/ownership metadata
+→ preserve surrounding project text
+→ never whole-file adopt
+
+manage track, file absent
+→ recreate thin marked integration file
+→ section ownership
+
+missing/malformed/duplicate marker on existing ignored file
+→ refuse track with actionable conflict
+~~~
+
+Legacy-full whole-file entries keep current track semantics until explicitly migrated.
+
+This allows the existing ignoredFiles path list to remain viable initially because the persisted assetSet/catalog class determines that a brownfield integration path is section-capable; no hidden historical ownership guess is allowed.
 
 ## 5.5 Claude adapter
 
@@ -4063,7 +4102,9 @@ Needs:
 Needs:
 
 - understand new desired-builder/capability/assetSet inputs;
-- clear semantics for ignore/track of section-owned paths;
+- ignore section-owned paths without deleting/reformatting their file/block;
+- re-track brownfield integration paths only from a valid marker boundary (or recreate a missing thin marked file);
+- never infer whole-file ownership for a brownfield composed agent file merely because the prior managed entry was ignored;
 - not reconstruct state only from legacy stack forever.
 
 ---
