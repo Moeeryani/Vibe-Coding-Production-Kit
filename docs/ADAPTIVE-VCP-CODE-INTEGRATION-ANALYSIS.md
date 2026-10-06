@@ -1050,8 +1050,10 @@ Names are proposals; responsibility boundaries are the contract.
 
 Read-only responsibilities:
 
-- detect whether `.vcp/manifest.json` exists;
-- classify NEW / EXISTING / MANAGED;
+- inspect the reserved .vcp namespace before ordinary repository classification;
+- distinguish absent manifest, recognized managed manifest, unsupported/newer reader state, malformed lifecycle state, and active recovery/transaction state;
+- classify NEW / EXISTING / MANAGED only when lifecycle readability permits it;
+- emit VCP_STATE_CONFLICT/recovery-required state instead of reclassifying unreadable lifecycle data as ordinary EXISTING;
 - identify existing agent instruction files;
 - identify CI/config/project markers needed for safe planning;
 - detect current stack using the existing Stage 11-compatible stack model;
@@ -1351,7 +1353,12 @@ Do not rename the on-disk `.vcp/update.lock` merely for aesthetics in this stage
 
 Must prove:
 
-- NEW / EXISTING / MANAGED classification;
+- NEW / EXISTING / MANAGED classification after lifecycle-readability inspection;
+- malformed JSON manifest → VCP_STATE_CONFLICT, zero writes;
+- unsupported/newer schema → VCP_STATE_CONFLICT, zero writes;
+- minimumReaderVersion newer than running CLI → fail closed, zero writes;
+- readable managed manifest with missing/corrupt baseline or active transaction → MANAGED recovery/health blocker, never brownfield re-init;
+- unknown pre-existing .vcp content is preserved and blocks unsafe adoption;
 - existing repositories receive an action plan instead of collision-only failure;
 - EXISTING non-dry-run mutation is blocked;
 - init `--force` is rejected while unrelated command-specific force behavior remains;
@@ -1488,13 +1495,33 @@ This is not the same as moving commands out of AGENTS.md. That larger storage mi
 
 ## 4.13 Reserved .vcp state and brownfield stack ambiguity
 
-### Reserved .vcp path
+### Reserved .vcp path and lifecycle-readability precedence
 
-If .vcp exists without a valid recognizable VCP manifest, repository inspection must not classify the directory as harmless free space.
+Repository maturity classification runs only after VCP state is inspected.
 
-Treat unknown pre-existing state as CONFLICT unless a narrowly defined recovery contract recognizes it.
+Required states:
 
-First-adoption recovery metadata must also know whether .vcp existed before the transaction so rollback does not delete unrelated prior content.
+~~~text
+NO_VCP_STATE
+  → eligible for NEW/EXISTING maturity classification
+
+MANAGED_READABLE
+  → supported schema + supported minimumReaderVersion
+  → init redirects/blocks re-init
+
+MANAGED_RECOVERY_REQUIRED
+  → readable manifest, but integrity/baseline/transaction/lock health blocks normal lifecycle work
+  → still managed; never re-init over it
+
+VCP_STATE_CONFLICT
+  → malformed manifest, unsupported/newer schema, minimumReaderVersion too new,
+    or unknown reserved .vcp content that cannot be interpreted safely
+  → no adoption mutation
+~~~
+
+An active transaction or lock must be surfaced before Smart Init apply. Recovery semantics remain the lifecycle authority.
+
+First-adoption recovery metadata must know which .vcp paths existed beforehand. Rollback may remove only state created by the adoption transaction; it must never erase unrelated pre-existing reserved content.
 
 ### Stack ambiguity before capabilities
 
