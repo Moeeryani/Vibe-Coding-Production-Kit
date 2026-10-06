@@ -2381,17 +2381,52 @@ The gate must distinguish:
 1. the head/surface that was independently reviewed;
 2. the finalization head on which executable verification is rerun.
 
-A review head does not have to equal the finalization head **only** when the intervening diff is the canonical bounded task-record finalization edit.
+A review head does not have to equal the finalization head **only** when every intervening commit/change is confined to the same task record and the changed task sections are semantically allowlisted review/finalization evidence.
 
-If any implementation/config/docs surface other than the allowed finalization artifact changes after review:
+Allowed post-review task-record changes may include:
+
+- independent-review findings/dispositions/resolution/follow-up/residual-risk evidence;
+- Status transition into Review/Done;
+- Finalization checklist state;
+- Completion report / verification-evidence summary.
+
+They must **not** change after the recorded review without invalidating it:
+
+- outcome/requirement restatement;
+- governing Source-of-Truth references;
+- acceptance criteria;
+- scope/boundaries/invariants;
+- security/data/API/migration requirements;
+- verification command declarations;
+- approved implementation plan.
+
+Path-only checking is insufficient.
+
+The reviewed implementation head must be an exact committed Git head. Gate verifies that it is an ancestor of the current finalization head and that the intervening task-record diff stays inside the semantic allowlist.
+
+If any implementation/config/other docs change after review, or if protected task semantics change:
 
 - review provenance becomes stale;
 - gate fails/blocks;
 - fresh review is required before finalization/gate can pass again.
 
-This requires minimal durable review Git provenance. Exact Markdown field names can be chosen during Phase 7, but the information cannot remain chat-only.
+This requires minimal durable review Git provenance and parser-visible section boundaries. Exact Markdown field names can be chosen during Phase 7, but the information cannot remain chat-only.
 
 L0 has no task finalization sequence.
+
+### Git requirement for a merge-authoritative pass
+
+`vcp gate` does not require GitHub, but the initial merge-authoritative gate **does require a local Git worktree**.
+
+- L0 requires explicit base/head Git comparison;
+- L1/L2/L3 review provenance must resolve to exact commit SHAs;
+- final gate pass requires the reviewed head and current finalization head to be committed/inspectable;
+- `--run` merge-authoritative pass requires a clean relevant worktree before execution and the same clean HEAD after verification commands;
+- a dirty/non-Git environment may still use readiness/verify/preview mechanics, but gate returns blocked/non-authoritative rather than claiming merge readiness.
+
+This distinguishes `works without GitHub` from `works without Git provenance`.
+
+Gate-eligible review should use Git-aware review context with explicit base and a resolved implementation head; legacy unbound review context remains usable outside gate authority.
 
 ## 10.6 Evidence freshness must be current-state aware
 
@@ -2443,7 +2478,9 @@ Branch protection, task selection for a CI job, and merge policy remain explicit
 - L2 retains current full guarantees;
 - L3 adds only applicable high-risk requirements;
 - stale old-head verification cannot pass;
-- stale review provenance cannot pass after implementation-surface changes;
+- stale review provenance cannot pass after implementation-surface or protected task-contract changes;
+- post-review task-file edits are checked by allowed semantic sections, not path alone;
+- merge-authoritative pass requires local Git provenance and a clean committed final head;
 - the canonical Task-record-only finalization head transition is supported;
 - post-run current Git state is inspected;
 - unresolved must-fix review evidence cannot pass;
