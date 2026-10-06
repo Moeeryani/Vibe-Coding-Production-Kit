@@ -1424,6 +1424,28 @@ Rules:
 - spreading unknown install fields is data preservation, not proof the older CLI understands them;
 - structurally incompatible changes still require a schema bump.
 
+### [AUDIT 2026-10-06 — PRE-IMPLEMENTATION] Default-raise rule (closes honor-system gap)
+
+"Later behavior-bearing persisted fields raise the guard" is currently honor-system:
+nothing mechanical forces a writer to judge a new field correctly, and
+`buildNextManifest` spreads unknown `install.*` fields forward. A field misjudged as
+inert lets an older same-schema CLI destructively apply semantics it does not
+understand. Required:
+
+- **Default-raise:** any newly persisted `install.*` (or other behavior-bearing)
+  field raises `minimumReaderVersion` to the writing CLI version **unless** the field
+  is explicitly allowlisted as inert in a `INERT_MANIFEST_FIELDS` constant with a
+  comment justifying why it cannot affect desired state, safety, authorization, or
+  lifecycle behavior. When in doubt, raise.
+- **Field-enumeration test:** a test enumerates every persisted manifest field and
+  asserts each is either in the inert allowlist or covered by a guard-raise case.
+  Adding a field without updating the allowlist fails the build.
+- **Guard on restore paths:** `rollbackProject` and `restoreBackup` must call
+  `readManifest` and enforce the guard *before* any restore mutation. An old CLI's
+  `vcp rollback` against an upgraded project must fail closed, not proceed open.
+  Extend the release smoke to cover old-CLI rollback explicitly (not just candidate
+  rollback).
+
 Stage 12 may land schema-v2 support and migration primitives; section-owned entries are only persisted when an operation actually needs them.
 
 ---
@@ -1503,6 +1525,16 @@ For initial adoption:
 - when `priorVcpDirectoryExisted=false`, remove operation-created `.vcp/.gitignore` if applicable;
 - after a **successful** restore, remove the selected operation-created adoption backup itself and any now-empty operation-created `.vcp/backups` container;
 - finally attempt a non-recursive removal of `.vcp/` so unexpected external/concurrent content is preserved rather than erased.
+
+### [AUDIT 2026-10-06 — PRE-IMPLEMENTATION] Reader guard on restore entrypoints
+
+`rollbackProject` and `restoreBackup` currently never call `readManifest`. An old CLI's
+`vcp rollback` against a project whose manifest was upgraded (schema or
+minimumReaderVersion) by a newer CLI would therefore proceed open, not closed —
+restoring bytes it cannot semantically understand. Required: both entrypoints must
+load the manifest through `readManifest` and enforce the schema-version and
+minimumReaderVersion guards *before* any restore mutation. The release smoke test must
+cover old-CLI rollback explicitly (candidate rollback alone does not prove it).
 
 Do not delete the recovery backup before restore verification succeeds. If rollback fails or leaves an unexpected path, retain the backup/recovery state and report that the repository is not fully restored instead of claiming unmanaged success.
 
@@ -1637,6 +1669,30 @@ Stage-13 brownfield adoption
 ~~~
 
 Phase 2 can move all three onto a later classified catalog version while preserving profile-specific selection. Phase 3 owns provider-neutral CI inspection plus explicit migration/detach of the old legacy managed workflow.
+
+### [AUDIT 2026-10-06 — PRE-IMPLEMENTATION] Fail-closed default for absent/corrupt assetSet
+
+The missing-`assetSet` default is currently unspecified, and it is load-bearing: every
+manifest writer (init-plan, buildDesiredFiles, update-plan, manage track, Doctor, task
+renderer, rollback/restore, migrations) must preserve this field, and one missed writer
+decides the outcome far from the bug. Required:
+
+- A schema-v2 manifest whose `install.assetSet` is absent, unparseable, or not one of
+  the known surface identities fails closed with error code `E_ASSETSET_UNKNOWN`.
+  `vcp update`, `vcp doctor`, and `vcp manage` report it as an actionable finding;
+  they must NOT silently fall back to `legacy-full-v1` (that would resurrect the exact
+  framework-docs/CI surface Smart Init deliberately skipped) and must NOT proceed with
+  an assumed surface.
+- Remediation is deterministic, not heuristic: `vcp doctor` offers a guided repair
+  that re-derives the asset set by comparing the manifest's managed entry paths
+  against the three known surfaces. Exact match → adopt that identity (recorded in
+  Doctor evidence). Ambiguous/no match → HUMAN DECISION; the doctor must not guess.
+- `manage ignore` must refuse paths that were never in the managed surface
+  ("package does not manage ${path}" already exists for track; apply the same rule to
+  ignore) so `ignoredFiles` cannot become a junk drawer of never-managed paths that
+  later confuse Doctor's surface diff.
+- Add a writer-audit test: every code path that writes a manifest must round-trip
+  `install.assetSet` byte-identically (property test over the writer list in §8.6).
 
 ---
 
@@ -1805,6 +1861,31 @@ Task creation and Doctor must consume the same effective-command resolver.
 
 This is not the same as moving commands out of AGENTS.md. That larger storage migration remains separate.
 
+### [AUDIT 2026-10-06 — PRE-IMPLEMENTATION] Provenance marking and destructive-command gate
+
+Two gaps in the above rules:
+
+1. **Duplicate-equivalent is undecided.** "Normalize deliberately or report" leaves the
+   action unspecified. Decision: REPORT, do not normalize. Deleting or rewriting the
+   project-owned duplicate line is a write into project-owned text and needs its own
+   safety rule, which does not exist. Equivalent duplicates → HUMAN DECISION naming
+   both locations; the resolver returns the value with an ambiguity flag until
+   resolved. Never silently pick by line order (the current first-match hazard).
+
+2. **Adopted commands gain VCP authority unreviewed.** "Unique project command →
+   preserve/use" means the gate will later *execute* whatever the brownfield
+   AGENTS.md declares — including destructive patterns (`curl | sh`, `rm -rf`,
+   network installs). Required:
+   - Every adopted command records provenance (`project-adopted` vs `vcp-suggested`)
+     in the manifest/task state, visible in `vcp doctor` output.
+   - Adoption of a command matching a destructive pattern list (shell-pipe,
+     recursive delete, network fetch-and-execute) requires an explicit HUMAN DECISION
+     at adoption time, even when unique. The pattern list lives in versioned VCP
+     source (auditable), not in agent instructions.
+   - This is the deterministic-enforcement counterpart to the external finding that
+     instruction-only approval boundaries get bypassed: the boundary lives in the
+     CLI resolver, not in prompt prose.
+
 ---
 
 ## 4.13 Reserved .vcp state and brownfield stack ambiguity
@@ -1878,6 +1959,17 @@ The reference SaaS fixture currently proves local prompt parity/no fallback beha
 - do not leave documentation claiming there is no fallback.
 
 Doctor's broader framework-validator/CI assumptions are handled by install-surface awareness and later Phase 2/3 work; the prompt-source contradiction cannot wait.
+
+### [AUDIT 2026-10-06 — PRE-IMPLEMENTATION] Resolver must be assetSet-aware
+
+The packaged prompt resolver must never offer a starter path the adopted assetSet
+intentionally skipped: on a `brownfield-minimal-v1` project, resolving a prompt
+override that references `docs/architecture/SYSTEM.md` (not installed by design)
+must not produce a Context Pack that contradicts itself by instructing the agent
+to read files Smart Init deliberately did not install. Required: the resolver
+takes the manifest's `assetSet` as input; unresolvable references to
+non-installed starter paths are reported as adoption-scope notes, not as missing
+files; the brownfield Context Pack template contains no hardcoded starter paths.
 
 # 5. Workstream A1 — Existing AGENTS/CLAUDE/Copilot files require section-aware ownership
 
@@ -1987,6 +2079,23 @@ marker structure invalid
 Do not normalize/reformat surrounding user content as a side effect.
 
 For small generated adapter blocks, a stricter generated policy may conflict instead of merging local section edits.
+
+### [AUDIT 2026-10-06 — PRE-IMPLEMENTATION] Marker presence is not authorship
+
+ADOPT must not treat "an already well-formed marked VCP section" as VCP-owned on the
+strength of marker presence alone. A project-authored `<!-- VCP:BEGIN -->` block —
+including one inside a fenced code example documenting VCP itself — would otherwise be
+adopted as VCP-owned and later overwritten by update. Required:
+
+- ADOPT accepts a pre-existing marked section only when its content is empty or
+  byte-identical to the canonical VCP section for the current package version.
+  Anything else → HUMAN DECISION, never silent adoption.
+- Marker scanning must be code-fence-aware: markers inside fenced code blocks
+  (``` or ~~~) do not count as marker pairs for ownership purposes.
+- Add a `vcp doctor` staleness check: if the VCP section has been preserved-as-local
+  across N consecutive updates while the package desired section changed (i.e., the
+  block is pinned to stale content), Doctor warns explicitly instead of reporting
+  success. Silent staleness is the exact failure the lifecycle was built to prevent.
 
 ---
 
@@ -2800,12 +2909,17 @@ Update transition rules:
 
 ~~~text
 auto-core + evidence appears
-→ eligible ADD transition
+→ eligible ADD transition (only on strong, stable evidence — see below)
 
 auto-core + evidence disappears
-→ eligible REMOVE transition
-→ visible in dry-run
-→ desired-content merge/conflict semantics still apply
+→ NEVER automatic removal. Required: explicit project approval (HUMAN DECISION
+  or explicit `vcp` capability command). [AUDIT 2026-10-06: detector evidence is
+  inherently wobbly — a package.json edit, a deleted tsconfig during a build
+  migration, a flaky detector — and every applied transition rewrites the
+  desired VCP section of AGENTS.md, the file users edit most. Automatic REMOVEs
+  would convert routine repo churn into CONFLICT-blocked updates users didn't
+  cause and can't understand. Visibility in dry-run is not consent.]
+→ desired-content merge/conflict semantics still apply once approved
 
 explicit-project + evidence disappears
 → keep applied
@@ -4542,6 +4656,41 @@ Recommended initial implementation:
 
 If later persistent gate evidence is added, model its own path/provenance explicitly.
 
+### [AUDIT 2026-10-06 — PRE-IMPLEMENTATION] Precise "relevant worktree" definition
+
+As specified, the gate is unimplementable: "relevant worktree must remain clean" is
+undefined, and whichever way it is resolved one side breaks (strict = no project with
+build artifacts can ever pass; loose = an unaudited exemption hole a repo-mutating
+verification command can hide in). Required definition:
+
+- Gate captures HEAD + full `git status --porcelain` **before** verification.
+- After verification, gate re-inspects. The tree must be byte-identical to the
+  pre-verification state **except** for paths explicitly declared in the Task Pack's
+  verification section as expected outputs (`verification.outputs: [...]`).
+- Any undeclared change → gate FAILS with the diff attached. This is how scenario U
+  (verification command mutates the repo) is caught: legit output goes to declared
+  paths; everything else is a mutation.
+- Default declared output root is `.vcp/evidence/<task>/`, and `.vcp/.gitignore`
+  MUST cover `evidence/` (fix the current gap noted above) so the gate's own writes
+  never dirty the tree.
+- The declared-outputs list is per-task, versioned with the Task Pack, and shown in
+  `vcp gate --json` output for audit. It is not a global exemption list.
+- Gate evidence binds: task identity, workflow level the review was performed under
+  (required for mechanical promotion invalidation), plan artifact hash, reviewed
+  head SHA, finalization head SHA, command outcomes, and revision before/after.
+  Findings recorded post-review are append-only: the gate's semantic diff rejects
+  any modification or downgrade of an existing finding (e.g. `must-fix` → `n/a`).
+
+### [AUDIT 2026-10-06 — PRE-IMPLEMENTATION] CI-consumable gate receipt
+
+Local enforcement is bypassable; CI is the authoritative boundary (external evidence).
+The gate must therefore emit a machine-readable receipt (JSON to stdout, stable
+schema, versioned) containing the evidence binding above, so a remote CI job can
+re-verify lifecycle completion without trusting the local agent's word: CI checks
+the receipt's head SHAs against the PR head, re-runs `vcp gate` (or verifies the
+receipt signature/hash chain), and treats a missing/invalid receipt as block. Until
+Phase 8 lands, document honestly that local gates are cooperative, not enforcement.
+
 ## 14.10 Explicit result model
 
 Human and JSON output should distinguish:
@@ -5956,3 +6105,74 @@ The right strategy is:
 The most important technical principle for implementation is:
 
 > Every new adaptive feature must integrate with the existing lifecycle model so that the first install, the tenth update, a fresh agent, and CI all interpret the same repository state consistently.
+
+---
+
+# Appendix Z — Pre-implementation audit amendments (2026-10-06)
+
+Independent adversarial audit of this analysis and its companion strategic plan
+(`ADAPTIVE-VCP-IMPLEMENTATION-PLAN.md`), conducted against the real codebase at
+HEAD `6bb23d6fbd0a3b06a57db933ac3c97fabdc8f5e0` (v0.9.3) with fresh 2025–2026
+external research. Six parallel workstreams: codebase reality mapping,
+authoritative-docs cross-check + consistency matrix (38 contracts × 6 columns),
+external ecosystem research, per-point 23-element audits (33 points), interaction
+/ second-order / scenario analysis (23 scenarios A–W: 17 PASS, 6 GAP), and test
+design (255 tests). Product code was not modified.
+
+**Audit verdict: READY WITH MINOR CONDITIONS** (see §16 of the final report at
+`workspace/audit/vcp-audit/FINAL-AUDIT-REPORT.md` in the auditor's workspace).
+Inline amendments are tagged `[AUDIT 2026-10-06 — PRE-IMPLEMENTATION]` at their
+sections. The strategic companion holds the ownership analysis (§9) and
+sequencing decisions; this appendix registers the technical amendments.
+
+## Z.1 Amendments register (technical)
+
+| # | Section | Change |
+|---|---------|--------|
+| 1 | §4.7 | minimumReaderVersion default-raise rule: new `install.*` fields raise the guard unless allowlisted as inert (`INERT_MANIFEST_FIELDS`); field-enumeration test fails the build on unlisted fields |
+| 2 | §4.7, §4.8 | `rollbackProject`/`restoreBackup` must call `readManifest` and enforce schema + reader guards before any restore mutation; release smoke covers old-CLI rollback explicitly |
+| 3 | §4.10 | Fail-closed default for absent/corrupt `assetSet` (`E_ASSETSET_UNKNOWN`); deterministic Doctor-guided re-derivation (exact surface match or HUMAN DECISION); `manage ignore` refuses never-managed paths; writer-audit property test |
+| 4 | §4.14 | Prompt resolver takes `assetSet` as input; no references to non-installed starter paths; brownfield Context Pack has no hardcoded starter paths |
+| 5 | §4.12 | duplicate-equivalent → HUMAN DECISION (no silent normalization); adopted commands record provenance; destructive-pattern adoption requires explicit HUMAN DECISION; boundary in CLI resolver |
+| 6 | §5.3 | Marker presence ≠ authorship: ADOPT requires empty-or-canonical content; code-fence-aware scanning; Doctor staleness check for pinned VCP sections |
+| 7 | §8.5 (capabilities) | Capability REMOVE transitions never automatic — explicit project approval required (detector wobble → AGENTS.md CONFLICT churn) |
+| 8 | §14.9 | Precise "relevant worktree" definition: byte-identical except per-task declared `verification.outputs`; default evidence root `.vcp/evidence/<task>/` gitignored; gate evidence binds task identity + workflow level + plan hash + head SHAs + outcomes; post-review findings append-only via semantic diff |
+| 9 | §14.9 | CI-consumable gate receipt (versioned JSON schema); local gates documented as cooperative until Phase 8 |
+| 10 | §5.4/§8.6 | (via plan §3.5) section-ownership migration notes reference the authorship rule |
+
+## Z.2 Second-order effects now explicitly handled
+
+- assetSet writer-drift → fail-closed default + writer-audit test (Z.1 #3).
+- Marker fragility (comment-stripping toolchains, CRLF drift) → authorship rule +
+  Doctor staleness check (Z.1 #6); no `repair-markers` primitive is specified —
+  recorded as a conscious deferral, not an oversight.
+- Lock-steal semantics → documented: re-inspection under the owned lock is the
+  real mutual-exclusion mechanism; the lock is advisory (implementers must test
+  the re-inspection path, not the lock).
+- L3 fingerprint upgrade-aversion loop → content-digest-only fingerprint.
+- Preview amnesia vs attention budget → answers record (plan §3.3A).
+- Brownfield first-task readiness cliff → acknowledged; L1 `task-local` gaming
+  risk noted — the protected-surface detector calibration is shared with L0 and
+  must be reviewed as one unit in Phase 7.
+- Manual+required task-PR cardinality → Phase-8 entry criterion (plan §7).
+
+## Z.3 Conscious deferrals (not oversights)
+
+- `vcp manage repair-markers` primitive: deferred; conflicts are actionable but
+  manual until usage data justifies the primitive.
+- Answers-record exact format: Stage-13 design detail.
+- SKILL.md serialization decision: required before Phase 7 (plan §9).
+- Windows/macOS native CI runners for the conformance matrix.
+- Detector-DSL fuzzer (no real v2 community profiles yet).
+
+## Z.4 What the audit confirmed technically
+
+- All load-bearing current-code claims in this analysis verified accurate
+  (stack order incl. React Native, shared `--force`, `--yes`→generic collapse,
+  schema-v1 non-validation, first-match parsing, lock-before-backup, transaction
+  model, newest-backup-only rollback).
+- The v1→v2 migration is safe through the existing transactional update path;
+  scenario walk-throughs (A–W) determine 17/23 end-to-end with 6 specified gaps
+  now closed by the amendments above.
+- No parallel backup engine, no second task database, no duplicate gate/CI
+  engines introduced — the "no parallel machinery" constraints held.

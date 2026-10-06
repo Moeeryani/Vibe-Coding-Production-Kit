@@ -900,6 +900,18 @@ Rules:
 
 This sequencing is required for the existing VCP principle: **discover before asking**.
 
+> [AUDIT 2026-10-06 — PRE-IMPLEMENTATION] Preview answers must survive to apply.
+> The no-saved-plan rule is about *repository state* (which goes stale), not about
+> the user's *answers* (which don't). Discarding interactive dry-run answers and
+> re-asking the identical questions at apply contradicts §2A.2 (repeated
+> unnecessary questions are system defects) and teaches users to skip preview for
+> `--yes`, taking the conservative fallback exactly where human judgment mattered
+> most. Required: `init --dry-run` may emit an explicitly non-authoritative
+> **answers record** (user decisions only — no file paths, no hashes, no plan
+> content, labeled "not executable"), and apply accepts `--answers-file` to skip
+> re-prompting answered decisions. Without it, apply re-prompts (current
+> behavior). The plan itself is always recomputed fresh under lock.
+
 ## 3.4 Remove destructive --force from init only
 
 The shared CLI currently uses --force for other explicit output-overwrite cases.
@@ -1049,6 +1061,18 @@ no existing command
 duplicate/conflicting occurrences
 → CONFLICT or HUMAN DECISION
 → never silently choose the first match
+
+duplicate/equivalent occurrences
+→ HUMAN DECISION naming both locations (do not auto-normalize: deleting or
+  rewriting the project-owned duplicate is a write into project-owned text)
+→ the resolver returns the value with an ambiguity flag until resolved
+
+[AUDIT 2026-10-06 — PRE-IMPLEMENTATION] Adopted commands carry execution authority:
+every adopted command must record provenance (project-adopted vs vcp-suggested),
+and adoption of a command matching destructive patterns (shell-pipe,
+recursive delete, fetch-and-execute) requires an explicit HUMAN DECISION at
+adoption time even when unique. The boundary is enforced in the CLI resolver,
+never in prompt prose.
 ~~~
 
 Task creation and Doctor must resolve commands through the same authority helper so they cannot disagree.
@@ -1066,7 +1090,7 @@ ADD
 ADOPT
 → establish ownership only when the ownership boundary is already explicit and safe:
    - an exact whole-file canonical artifact whose catalog/asset policy permits whole-file adoption, or
-   - an already well-formed marked VCP section
+   - an already well-formed marked VCP section whose content is empty or byte-identical to the canonical VCP section for the current package version [AUDIT 2026-10-06: marker presence alone is not authorship — a project-authored marker block, including one inside a fenced code example, must never be silently adopted as VCP-owned; anything else → HUMAN DECISION; marker scanning must be code-fence-aware]
 → brownfield AGENTS/CLAUDE/Copilot integration paths remain section-owned; an exact unmarked canonical match does not grant whole-file ownership
 → never claim arbitrary unmarked project prose as a VCP-owned section
 
@@ -1299,6 +1323,17 @@ However, it must not overstate certainty from legacy single-stack precedence.
 If --stack auto on an EXISTING root contains materially competing major stack-family evidence, Smart Init should surface the ambiguity and require a project-root/stack decision or conservative fallback rather than silently treating precedence as proof of one project identity.
 
 This is a narrow adoption-safety check, not capability persistence.
+
+> [AUDIT 2026-10-06 — PRE-IMPLEMENTATION] Specified polyglot fallback (closes
+> scenario-E gap). For a genuine polyglot monorepo root where no single stack
+> family dominates, Smart Init must NOT silently pick by precedence and must NOT
+> block `--yes` adoption outright. Required behavior: classify `stack: generic`,
+> record the competing evidence list in the (non-persisted) plan output for human
+> visibility, install only stack-neutral assets, and require an explicit
+> HUMAN DECISION (interactive or `--stack`/`--capabilities` flag) before
+> installing any stack-specific assets or recording capability state. Capability
+> composition itself stays in Phase 4; this fallback only guarantees the flagship
+> capabilities case never dead-ends adoption.
 
 ## 3.11 Minimal brownfield adoption surface and Doctor compatibility
 
@@ -2574,7 +2609,13 @@ When security review is required, L3 must persist a distinct bounded **security 
 
 - reviewed base/head provenance;
 - active profile IDs/source provenance relevant to the review;
-- a compact resolved-security-guidance identity (for example canonical content digest/fingerprint plus supplying VCP package version for packaged profiles) so unchanged profile names cannot hide changed guidance;
+- a compact resolved-security-guidance identity: the canonical **content digest**
+  of the resolved guidance (package version recorded as metadata only, NOT part of
+  the fingerprint — [AUDIT 2026-10-06] including the version in the fingerprint
+  invalidates every pending security review on routine CLI patch upgrades, creating
+  upgrade aversion → version pinning → fleet fragmentation → stale guidance, the
+  exact loop the fingerprint was meant to prevent) so unchanged profile names
+  cannot hide changed guidance;
 - material security findings with severity and current-task disposition;
 - resolution/follow-up;
 - unresolved HUMAN DECISION / risk-acceptance boundaries.
@@ -3409,7 +3450,22 @@ Before Stage 12 product-code implementation:
 
 ## Stage 12 — Safe Adoption Planning
 
-Stage 12 spans the enabling parts of Phase 0 plus the **read-only** portion of smart adoption.
+Stage 12 spans the enabling parts of Phase 0 plus the adoption-planning portion of
+smart adoption.
+
+> [AUDIT 2026-10-06 — PRE-IMPLEMENTATION] Precise boundary (replaces the
+> "read-only" shorthand, which is misleading): Stage 12 performs **no Smart Init
+> mutation into unmanaged EXISTING repositories**. It DOES migrate already-MANAGED
+> schema-v1 repositories to schema v2 through the existing transactional
+> `vcp update` path (preview/conflict/backup/rollback/idempotence) — the most
+> battle-tested machinery in the codebase, and the only vehicle that can carry the
+> first real (non-identity) migration. The adjudicated audit position: the
+> migration stays in Stage 12 (moving it to Stage 13 buys nothing — Stage 13's
+> generalized rollback handles *absent* prior state, which never occurs in a
+> v1→v2 migration), but the stage must not be described or tested as "read-only":
+> its exit criteria cover both the adoption planner AND the managed migration,
+> including the same-schema `minimumReaderVersion` fixture test and the old-CLI
+> rollback release-smoke case.
 
 Implement:
 
@@ -3434,7 +3490,7 @@ Implement:
 
 Stage 12 must **not** perform Smart Init mutation into unmanaged EXISTING repositories.
 
-This read-only boundary applies to the **init/adoption path**, not to already-managed lifecycle updates. The Stage-12 release may and should migrate a MANAGED schema-v1 repository to the new lifecycle manifest/schema through the existing transactional `vcp update` path, with normal preview/conflict/backup/rollback guarantees.
+The no-mutation boundary above applies to the **init/adoption path**, not to already-managed lifecycle updates (see the audit note at the top of this section for why the "read-only" shorthand was retired). The Stage-12 release may and should migrate a MANAGED schema-v1 repository to the new lifecycle manifest/schema through the existing transactional `vcp update` path, with normal preview/conflict/backup/rollback guarantees.
 
 `vcp init` on that MANAGED repository still performs no migration itself; it redirects to lifecycle update/status.
 
@@ -3504,6 +3560,16 @@ Collect at least:
 **SIMPLIFY:** plans are noisy, brownfield surface is too large, or users must understand too much VCP.
 
 **STOP/DEFER:** do not proceed into broad asset/capability/profile machinery while first-use trust is poor.
+
+> [AUDIT 2026-10-06 — PRE-IMPLEMENTATION] Checkpoint DONE signals must be
+> mechanical, not vibes. Unit-test greenness alone must never declare a
+> checkpoint passed — several checkpoints (notably B/C/D/E) currently have no
+> automated DONE signal, which risks declaring phases complete on test counts.
+> Required: every checkpoint's Task Pack defines its DONE signal as a
+> checkable artifact (conformance-matrix run, dogfood adoption log, user-study
+> notes, gate-receipt sample), and the GO/SIMPLIFY/STOP-DEFER decision is
+> recorded against that artifact. Checkpoint E (model/tool capability audit)
+> must additionally record deletions made, not just additions considered.
 
 ## Phase 2 — consumer asset and standing-context separation
 
@@ -3624,6 +3690,23 @@ Measure:
 6. require explicit task selection for material work and explicit base/head refs for L0;
 7. prove missing/shallow refs or unsupported environment prerequisites fail closed.
 
+> [AUDIT 2026-10-06 — PRE-IMPLEMENTATION] Phase-8 entry criterion: the
+> PR↔task-selection contract must be specified before Phase 8 begins (not
+> discovered during it). Until then, "task selection is repository/CI
+> configuration" is a gap, not a design: for a PR with no corresponding Task
+> Pack the gate cannot evaluate, and CI reports a configuration error rather
+> than a merge decision. Required: define the selection mechanism (e.g.
+> conventional branch/task-slug mapping, PR-body trailer, explicit CI input),
+> the one-task-per-PR norm (a perpetual "general work" task spanning many PRs
+> is an anti-pattern the gate must flag, since review provenance binds to a
+> head), and the fail-closed behavior when no task is selected. Also required:
+> CI jobs must use full-history checkouts (`fetch-depth: 0`) — shallow clones
+> silently break base/head provenance.
+>
+> [AUDIT 2026-10-06 — PRE-IMPLEMENTATION] Until Phase 8 lands, document honestly
+> that local gates are cooperative, not enforcement: any local lifecycle command
+> can be skipped by a non-cooperating agent. The enforcement boundary is CI.
+
 ## Phase 9 — Skill UX expansion
 
 The primary router is already packaged in Phase 6. Phase 9 expands the UX only after workflow-level/gate contracts stabilize.
@@ -3635,6 +3718,19 @@ The primary router is already packaged in Phase 6. Phase 9 expands the UX only a
 5. keep Skills thin and replaceable;
 6. enforce progressive disclosure in Skill/reference loading;
 7. broaden cross-agent installer/packaging conformance beyond the minimum Phase-6 router surface.
+
+> [AUDIT 2026-10-06 — PRE-IMPLEMENTATION] Required Phase-9 entry decision:
+> evaluate SKILL.md (open standard, Linux Foundation AAIF; natively supported by
+> Codex, Gemini CLI, Copilot, Cursor, 26+ platforms) as the Task Pack
+> serialization format before building more Skill surface. VCP's Task Packs map
+> closely to Skills (name+description with progressive disclosure, body on
+> demand, scripts without entering context); a proprietary format becomes an
+> integration liability the moment users want packs to run outside VCP's own
+> adapters. Decision required in writing: either adopt SKILL.md (with VCP
+> extensions for readiness/verification/review-provenance metadata) or document
+> why VCP's Task Pack semantics cannot be expressed in it. Do not silently
+> default to proprietary. (Namespace VCP pack names regardless: ~46% name
+> collisions observed in the public skill ecosystem.)
 
 ### Validation Checkpoint D — Is VCP complexity actually hidden?
 
@@ -3832,3 +3928,78 @@ The product-level test is:
 The durable design principle is:
 
 > **Use AI where judgment is valuable. Use deterministic software where correctness can be checked. Preserve project truth. Never confuse a persuasive agent narrative with executable evidence.**
+
+---
+
+# Appendix Z — Pre-implementation audit amendments (2026-10-06)
+
+Independent adversarial audit of this plan and its companion technical analysis
+(`ADAPTIVE-VCP-CODE-INTEGRATION-ANALYSIS.md`), conducted against the real
+codebase at HEAD `6bb23d6fbd0a3b06a57db933ac3c97fabdc8f5e0` (v0.9.3) with fresh
+2025–2026 external research. Six parallel workstreams: codebase reality mapping,
+authoritative-docs cross-check + consistency matrix (38 contracts × 6 columns),
+external ecosystem research, per-point 23-element audits (33 points), interaction
+/ second-order / scenario analysis (23 scenarios A–W), and test design
+(255 tests). Product code was not modified.
+
+**Audit verdict: READY WITH MINOR CONDITIONS** (see §16 of the final report at
+`workspace/audit/vcp-audit/FINAL-AUDIT-REPORT.md` in the auditor's workspace).
+The conditions are discharged by the amendments below, which are now part of
+this document. Inline amendments are tagged `[AUDIT 2026-10-06 —
+PRE-IMPLEMENTATION]` at their sections.
+
+## Z.1 Amendments register (strategic)
+
+| # | Section | Change |
+|---|---------|--------|
+| 1 | §3.6 | duplicate-equivalent → HUMAN DECISION (no auto-normalization); adopted commands record provenance; destructive-pattern adoption requires explicit HUMAN DECISION; boundary enforced in CLI, never prompt prose |
+| 2 | §3.3A | dry-run may emit a non-authoritative answers record; apply accepts `--answers-file`; plan always recomputed fresh under lock (resolves §2A.2 contradiction) |
+| 3 | §3.10 | Specified polyglot fallback: `stack: generic`, evidence listed, stack-neutral assets only, HUMAN DECISION before stack-specific assets |
+| 4 | §3.5 (ADOPT) | Marker presence ≠ authorship: ADOPT requires empty-or-canonical section content; code-fence-aware marker scanning |
+| 5 | §8.5 (L3) | Security-review fingerprint = content digest only; package version is metadata, not fingerprint input (breaks the upgrade-aversion loop) |
+| 6 | §7/Phase 8 | Phase-8 entry criterion: PR↔task-selection contract specified before Phase 8; `fetch-depth: 0` required; local gates documented as cooperative until Phase 8 |
+| 7 | §9/Phase 9 | Required Phase-9 entry decision: evaluate SKILL.md as the Task Pack serialization format (adopt or justify in writing) |
+| 8 | §13 (Stage 12) | Retired the misleading "read-only" shorthand; precise boundary stated; v1→v2 migration stays in Stage 12 via the existing transactional update path (adjudicated against a worker's SPLIT proposal — see final report) with tightened exit criteria |
+| 9 | §13 (checkpoints) | Every checkpoint needs a mechanical DONE signal (checkable artifact); Checkpoint E must record deletions |
+
+## Z.2 Ownership analysis (§9 of the audit brief)
+
+Where each major feature belongs:
+
+- **VCP Core (deterministic):** manifest schema v2 + minimumReaderVersion; section
+  ownership + markers + baselines; assetSet; detector DSL + evidence model;
+  community-profile trust (digests); verification-command authority; review
+  provenance + finalization; gate mechanical checks; gate receipt emission;
+  workflow-level classification floor (deterministic rules); workflowMode state;
+  migrations; Doctor; release-check; evidence binding (plan hash, commit SHA).
+- **Skill / agent behavior:** Auto-mode interception/routing (best-effort; gate is
+  the backstop); thin UX Skills (router, grill, retro); invisible-by-default UX;
+  prompt-eval and attention-budget measurement (dogfood, not unit tests).
+- **Existing project/CI tooling (integrate, don't duplicate):** secret scanning
+  (hook point for gitleaks-like tools, not a VCP reimplementation); general CI
+  logic (VCP emits the receipt; CI enforces).
+- **CI/platform:** gate enforcement (Phase 8); provider workflows.
+- **Project configuration:** PR↔task mapping; L0 trivial-surface policy content;
+  security-profile content selection.
+- **Not implemented:** multi-agent orchestration/fleets (evidence-backed rejection);
+  schedulers; a second task database (already rejected by ROADMAP Slice C).
+
+## Z.3 Remaining unresolved questions (not blocking Stage 12)
+
+1. SKILL.md adoption for Task Packs — required written decision before Phase 7.
+2. Exact answers-record format — Stage-13 design detail.
+3. Windows/macOS native runners for the cross-platform conformance matrix.
+4. Detector-DSL fuzzer (no real v2 community profiles exist yet to test against).
+5. npm download-count telemetry for 0.9.3 (unavailable at audit time; not required).
+
+## Z.4 What the audit confirmed
+
+- Zero real contradictions between the Adaptive docs' current-behavior claims and
+  the authoritative docs/code (40+ spot checks).
+- Stage 11 React Native is genuinely implemented on main.
+- The Core/Skills boundary (§2) is correctly drawn and consistently applied.
+- The plan's own phasing already defers speculation; no feature earned REMOVE.
+- External evidence validates the deterministic-control-plane model and the
+  workflows-over-agents stance, while requiring: deterministic (not prompt-based)
+  approval boundaries, CI as the authoritative enforcement layer, and
+  apply-the-saved-plan evidence binding — all now reflected in the gate contract.
