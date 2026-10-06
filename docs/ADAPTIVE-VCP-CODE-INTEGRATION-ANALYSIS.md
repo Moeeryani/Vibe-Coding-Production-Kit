@@ -5148,6 +5148,36 @@ Add fixtures for:
 
 ---
 
+## 16.2A Platform execution evidence
+
+Do not collapse repository-shape fixtures and OS/runner evidence into one green check.
+
+Required reporting layers:
+
+~~~text
+unit/property/fixture tests
+→ planner/parser/lifecycle semantics
+
+public CLI tests on current host
+→ CLI behavior on that host
+
+native/hosted exact-head execution
+→ only evidence that supports a named platform claim
+~~~
+
+Implementation/release consequences:
+
+- conformance reports include host OS, Node version, Git version, and exact SHA for executable channels;
+- package/release smoke may have per-platform rows rather than one boolean `portable` result;
+- Linux/macOS/hosted rows may be `unproven` without failing Stage 12 when Roadmap policy explicitly leaves #69 non-blocking;
+- they may not be reported PASS unless that platform actually executed the required commands;
+- line-ending/case/path fixtures remain required but do not upgrade an unproven platform row to PASS;
+- a future release that claims broader support must tighten its release policy accordingly.
+
+Current accepted evidence policy remains the Roadmap authority until #69 is explicitly resolved.
+
+---
+
 ## 16.3 Public CLI testing matters
 
 Many current tests call initProject directly, which is useful for unit coverage.
@@ -5230,7 +5260,8 @@ The matrix is complete when release gates prove properties, not merely framework
 - preview answers are reused only when the fresh decision contract still matches;
 - nested instruction precedence is visible without recursive VCP ownership;
 - Phase-8 provider mapping is fail-closed for missing/invalid/multiple material task selectors and supports merge-queue/ref requirements;
-- CI evidence is not reported as merge enforcement unless platform required-check state is actually verified.
+- CI evidence is not reported as merge enforcement unless platform required-check state is actually verified;
+- semantic fixtures and current-host tests never masquerade as native/hosted platform execution evidence.
 
 ---
 
