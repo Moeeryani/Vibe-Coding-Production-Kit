@@ -1298,7 +1298,11 @@ Stage 13 must make lock acquisition lifecycle-aware:
 - after the lock is acquired, Smart Init re-inspects the namespace and blocks if any unknown/incompatible VCP state appeared;
 - if planning blocks/fails **before** a backup/transaction is created, release the lock and remove only the empty `.vcp/` directory that this operation created;
 - never recursively delete the directory during this cleanup; if any unexpected content exists, preserve it and report the conflict;
-- once backup/transaction state exists, the normal generalized recovery metadata owns rollback.
+- once backup/transaction state exists, the normal generalized recovery metadata owns rollback;
+- the pre-lock lifecycle snapshot is passed into backup metadata; backup code must not infer "VCP already existed" merely because lock acquisition created `.vcp/`;
+- if the repository was truly unmanaged before the operation, a **successful rollback** removes the operation-created backup itself, baselines, manifest, transaction/stage/lock files, operation-created `.vcp/.gitignore`, and then removes `.vcp/` only if empty;
+- cleanup is path-specific/non-recursive at the final namespace boundary: unexpected concurrently created content is preserved and reported, never erased;
+- if restore/rollback itself fails, retain the recovery backup rather than deleting the only recovery evidence.
 
 The invariant is:
 
@@ -1373,7 +1377,7 @@ Smart adoption is complete only when:
 - brownfield standing instructions and generated Task Packs never require/fabricate starter paths absent from the adopted assetSet;
 - schema migration makes legacy entries explicit whole-file ownership;
 - lock bootstrap leaves no stray VCP state when Stage 13 blocks before backup;
-- rollback restores both prior content **and prior absence of lifecycle state**;
+- rollback restores both prior content **and prior absence of lifecycle state**, including removal of operation-created first-adoption backup/internal scaffolding after successful restore;
 - first post-adoption `vcp task` produces an assetSet-appropriate Source-of-Truth scaffold rather than nonexistent canonical starter paths;
 - rerunning init after successful adoption reports MANAGED and does not rewrite lifecycle state;
 - documentation contains no instruction to use init --force after review.
@@ -3230,7 +3234,7 @@ Implement:
 10. idempotent managed-project re-run behavior;
 11. subsequent `vcp update` proof.
 
-The apply path must generalize existing backup/rollback semantics for first adoption: if no manifest/baselines existed before the transaction, rollback must remove the newly created manifest/baselines rather than leave a false managed state.
+The apply path must generalize existing backup/rollback semantics for first adoption: when the pre-lock lifecycle state was truly unmanaged, a successful rollback restores project files and removes **all operation-created VCP lifecycle scaffolding**, including the selected adoption backup and generated internal files, then removes `.vcp/` only if empty. If rollback cannot complete, preserve recovery artifacts for manual recovery rather than pretending the repository is clean.
 
 Do not rename on-disk lifecycle state merely for aesthetics. Existing lock/backup/transaction locations may remain compatibility-preserving while helper APIs are generalized.
 
