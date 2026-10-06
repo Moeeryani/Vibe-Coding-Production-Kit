@@ -1282,7 +1282,9 @@ or unknown reserved .vcp state prevents safe interpretation
   → zero init mutation
 ~~~
 
-An active lifecycle lock or transaction also blocks init/apply. If the manifest is recognized, report it as managed lifecycle recovery state rather than treating the project as unmanaged.
+An active lifecycle lock or transaction owned by **another/unknown operation** also blocks init/apply. If the manifest is recognized, report it as managed lifecycle recovery state rather than treating the project as unmanaged.
+
+Stage 13's own post-lock reinspection is the deliberate exception: the inspector receives the lock handle/payload returned by the successful acquisition and treats that exact lock as operation-owned temporary state. Any different/replaced/malformed lock still blocks.
 
 Smart Init must never become a way to overwrite or 'repair' lifecycle state it cannot understand.
 
@@ -1342,9 +1344,10 @@ Current update locking creates `.vcp/update.lock` and may create `.vcp/` itself.
 
 Stage 13 must make lock acquisition lifecycle-aware:
 
-- lock acquisition records whether `.vcp/` existed before this operation, or returns equivalent ownership metadata;
+- lock acquisition returns an operation-scoped handle containing enough identity to prove which lock this operation owns, plus whether `.vcp/` existed before this operation;
 - if VCP creates `.vcp/` solely to hold the lock, that directory is temporary lifecycle scaffolding until the adoption transaction/recovery point exists;
-- after the lock is acquired, Smart Init re-inspects the namespace and blocks if any unknown/incompatible VCP state appeared;
+- after the lock is acquired, Smart Init re-inspects the namespace **with that owned-lock handle**;
+- the exact owned lock is allowed during this reinspection; a replaced/different/malformed lock, new transaction, manifest, or other unexpected/incompatible VCP state blocks;
 - if planning blocks/fails **before** a backup/transaction is created, release the lock and remove only the empty `.vcp/` directory that this operation created;
 - never recursively delete the directory during this cleanup; if any unexpected content exists, preserve it and report the conflict;
 - once backup/transaction state exists, the normal generalized recovery metadata owns rollback;
@@ -3431,8 +3434,8 @@ Stage 13 adds mutation using the Stage 12 planner.
 
 Implement:
 
-1. acquire a **first-adoption-aware lifecycle lock** and record whether lock bootstrap created temporary `.vcp` state;
-2. re-inspect the repository/VCP namespace and recompute a fresh plan under lock;
+1. acquire a **first-adoption-aware lifecycle lock handle** and record both lock identity and whether bootstrap created temporary `.vcp` state;
+2. re-inspect the repository/VCP namespace with the owned-lock handle and recompute a fresh plan under lock;
 3. block on conflicts/precondition changes;
 4. if blocking/failure occurs before backup creation, release the lock and remove only empty operation-created lock bootstrap state;
 5. backup every path that may change plus explicit prior lifecycle-state presence/absence;
