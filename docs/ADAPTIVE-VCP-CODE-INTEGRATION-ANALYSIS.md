@@ -4048,7 +4048,7 @@ The Adaptive documents are umbrella design. Numbered implementation stages are b
 
 PR #85 is merged and React Native runtime support is present on main.
 
-However, the canonical Stage 11 implementation Task Pack still has the required post-finalization exact-head rerun unchecked. This audit found no durable record proving that historical run before merge.
+The canonical Stage 11 implementation Task Pack was marked Done at merge even though the required post-finalization exact-head rerun remained unchecked. This consistency audit corrected its status to Review and found no durable record proving that historical run before merge.
 
 Before Stage 12 product-code work:
 
