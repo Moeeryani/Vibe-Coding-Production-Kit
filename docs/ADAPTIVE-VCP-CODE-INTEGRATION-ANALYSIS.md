@@ -3646,6 +3646,8 @@ Current responsibilities are too mixed:
 
 Stage 12 needs an adoption-aware surface so brownfield planning does not blindly use all current CORE/GITHUB roots.
 
+Desired-state construction must also accept the persisted install.assetSet (or equivalent) so the next update reproduces the surface that was actually adopted.
+
 Possible implementation:
 
 - add explicit asset metadata such as brownfield eligibility / framework-reference classification; or
@@ -3714,7 +3716,8 @@ Keep the implementation narrow: one explicitly named VCP section per managed int
 Needs:
 
 - manifest schema v2 support;
-- migration/normalization of v1 managed entries to `ownership.kind=file`;
+- migration/normalization of v1 managed entries to ownership.kind=file;
+- install assetSet validation/preservation;
 - per-entry ownership validation;
 - section-baseline support;
 - generalized lifecycle backup metadata for absent prior manifest/baselines;
@@ -3735,6 +3738,7 @@ Needs:
 
 - section ownership action planning;
 - capability-set lifecycle comparison;
+- install assetSet-aware desired surface;
 - new consumer asset surface;
 - migration-aware removals;
 - new desired-builder inputs.
@@ -3779,7 +3783,7 @@ Needs:
 
 Needs:
 
-- understand new desired-builder/capability inputs;
+- understand new desired-builder/capability/assetSet inputs;
 - clear semantics for ignore/track of section-owned paths;
 - not reconstruct state only from legacy stack forever.
 
@@ -3789,9 +3793,12 @@ Needs:
 
 Needs next-release migration for:
 
-- asset removals;
-- possibly ownership transition;
+- schema-v1 entries → explicit whole-file ownership;
+- schema-v1 installs → legacy-full assetSet;
+- later explicit asset removals/migrations;
 - new install metadata defaults if required.
+
+The previous released version → Stage 12 candidate path must be executable in release-check/lifecycle smoke.
 
 Do not rewrite released historical migrations.
 
@@ -3824,10 +3831,12 @@ Do not lose explicit-vs-auto historical intent.
 
 Needs several changes:
 
+- Stage 12 shared prompt resolver so packaged prompts count as available;
+- Stage 12 install assetSet awareness so intentionally absent source-framework assets are not misdiagnosed;
+- shared verification-command authority resolver;
 - capability reporting;
 - workflow mode;
 - provider-neutral CI inspection;
-- package prompt resolver;
 - removal of local framework validator requirement;
 - new gate status where appropriate.
 
@@ -3835,6 +3844,25 @@ Preserve explicit coverage boundaries.
 
 ---
 
+
+
+## lib/verification-commands.mjs
+
+Stage 12 needs to evolve first-match AGENTS parsing into authority inspection.
+
+Add a shared helper that can detect:
+
+- missing slot;
+- unique configured value;
+- duplicate-equivalent values;
+- duplicate-conflicting values;
+- source/ownership of the effective value where needed.
+
+Task creation and Doctor should use the same effective-command resolution.
+
+Do not silently resolve conflicting duplicates by line order.
+
+---
 
 ## lib/context.mjs
 
