@@ -78,8 +78,8 @@ The following decisions are considered accepted for this plan:
 2. **Remove destructive `--force` semantics from initialization.**  
    Initial adoption must never use “overwrite everything” as the escape hatch.
 
-3. **Separate VCP framework/reference assets from project-owned VCP artifacts.**  
-   A target repository should receive only the files needed to operate VCP, not the full internal VCP documentation tree.
+3. **Separate VCP framework/reference assets from consumer project artifacts.**  
+   A target repository should never receive the full internal VCP documentation tree. It receives runtime-required integration plus only the greenfield starter/optional project assets appropriate to its install profile and explicit choices.
 
 4. **Evolve from one-stack classification to composable project capabilities.**  
    Projects are often polyglot and multi-tool; VCP should model what is proven rather than force a single stack identity.
@@ -91,7 +91,7 @@ The following decisions are considered accepted for this plan:
    VCP must inspect existing CI and project verification instead of installing VCP's own npm-centric workflow into arbitrary repositories.
 
 7. **Add Auto and Manual operating modes.**  
-   Auto mode routes meaningful work through VCP automatically. Manual mode exposes VCP through explicit Skills/commands such as `/vcp` or equivalent agent UX.
+   Auto mode asks the installed agent/Skill UX to route meaningful work through VCP automatically; because VCP has no embedded LLM or universal prompt interceptor, this routing is best-effort and later deterministic gate enforcement protects outcomes. Manual mode exposes VCP through explicit Skills/commands such as `/vcp` or equivalent agent UX.
 
 8. **Use Skills as the UX/orchestration layer, not as the replacement for VCP core.**  
    Skills may be portable across agents. Portability is therefore not a reason by itself to prefer VCP. VCP earns its existence through deterministic state, gates, verification, evidence, lifecycle safety, and executable controls.
