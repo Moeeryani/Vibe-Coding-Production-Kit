@@ -2909,7 +2909,8 @@ Update transition rules:
 
 ~~~text
 auto-core + evidence appears
-→ eligible ADD transition (only on strong, stable evidence — see below)
+→ eligible ADD transition only when the core/first-party capability's deterministic
+  detector contract is fully satisfied and lifecycle/application policy permits it
 
 auto-core + evidence disappears
 → NEVER automatic removal. Required: explicit project approval (HUMAN DECISION
@@ -3134,7 +3135,9 @@ Do not remove the current specialization transition until the capability-era lif
 - polyglot fixture reports multiple capabilities;
 - no detector widens selected project-root authority;
 - Doctor distinguishes detected vs installed capability state;
-- update can propose/apply a safe capability-set change;
+- update can propose/apply safe capability ADD/reconfigure transitions;
+- disappearance of detector evidence never auto-removes an applied capability;
+- capability REMOVE requires explicit project approval/action and then normal merge/conflict handling;
 - explicit user selection is not silently overridden;
 - verification commands remain evidence-backed;
 - existing manifests remain readable;
