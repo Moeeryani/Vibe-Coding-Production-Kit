@@ -2275,7 +2275,7 @@ Minimum content should be small and enforcement-driven, for example:
 
 ~~~text
 Outcome / problem
-Governing reference(s), when applicable
+Governing authority state (reference(s) or explicit none)
 Affected scope
 Acceptance evidence
 Verification
@@ -2660,7 +2660,7 @@ Before gate grows, add one shared parser/state model for L1/L2/L3 that exposes a
 - top-level task status;
 - slug;
 - workflowLevel;
-- governing references where the level requires them;
+- normalized governing-authority state where the level requires it;
 - acceptance state;
 - verification-command declarations;
 - independent review findings/dispositions;
