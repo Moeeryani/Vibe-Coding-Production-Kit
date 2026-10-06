@@ -3377,7 +3377,7 @@ Minimum content:
 ~~~text
 Status / Slug / Level
 Outcome or defect
-Governing authority state (reference(s) or explicit none)
+Governing authority state
 Affected scope
 Acceptance evidence
 Verification
@@ -3388,14 +3388,25 @@ Completion/evidence summary
 
 Do not add empty security/observability/rollout sections just to write "n/a."
 
-L1 still preserves:
+L1 still preserves deterministic authority, verification, restartability, and fresh review.
 
-- explicit, reviewable governing-authority state and normal Source-of-Truth authority rules when references are present;
-- deterministic verification;
-- restartability;
-- fresh lightweight review before completion.
+Governing-authority state must be one of two valid cases:
 
-If investigation reveals a material product/API/data/security/architecture decision, promote to L2/L3.
+~~~text
+external-reference
+→ one or more project/workspace governing references
+→ validate with the existing Source-of-Truth authority helpers
+
+bounded-task-local
+→ no separate governing document applies
+→ bounded defect/internal-maintenance intent is fully captured by task outcome + acceptance
+→ no unresolved HUMAN DECISION
+→ no material product/API/data/security/architecture/compatibility/migration/rollout decision
+~~~
+
+Do not model this as casual "explicit none." The parser/readiness engine must prove which valid authority case applies.
+
+If a real governing document applies, reference it. If expected behavior or material policy cannot be established safely, promote to L2/L3 rather than manufacturing authority.
 
 ### L2 — current material-work contract
 
