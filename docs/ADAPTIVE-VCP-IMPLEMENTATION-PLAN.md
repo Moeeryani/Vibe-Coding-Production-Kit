@@ -2075,6 +2075,61 @@ Potential requirements include security review context, rollback/recovery eviden
 The L3 extension must remain relevant: do not make every high-risk category load every possible security/operations document.
 
 
+## 8.5A One Task Pack family, level-aware contracts
+
+Do not create a second L1 task database or directory.
+
+All durable engineering tasks remain repository-native Task Packs under the existing task path model.
+
+New level-aware tasks persist:
+
+~~~text
+Workflow-Level: L1 | L2 | L3
+~~~
+
+Compatibility rules:
+
+- existing Task Packs with no `Workflow-Level` normalize to **L2**;
+- current full Task Packs therefore keep current readiness/review/finalization semantics without migration churn;
+- once Phase 7 ships, ordinary `vcp task <slug>` without an explicit level remains L2-compatible for manual/legacy callers;
+- Auto/router flows may explicitly create L1/L2/L3 after inspection/classification;
+- L0 has no Task Pack and therefore no level field.
+
+Readiness remains one command family but becomes level-aware:
+
+~~~text
+L1 plan readiness
+→ compact outcome / governing authority when applicable / scope / acceptance / human-decision checks
+
+L1 implement readiness
+→ above + compact implementation approach + approved verification contract
+
+L2
+→ current full plan + implementation readiness contract
+
+L3
+→ L2 + only relevant high-risk prerequisites
+~~~
+
+L1 keeps a compact durable implementation approach so VCP preserves plan-before-code and restartability without forcing the full L2 template.
+
+Context construction becomes level-aware as well: L1 plan/implement contexts stay compact; L2/L3 retain current bounded context behavior plus only relevant L3 dedicated review/security/release evidence.
+
+## 8.5B Promotion and downgrade semantics
+
+Workflow level is a minimum safety contract, not a cosmetic label.
+
+- Core may always promote when new repository/diff evidence requires a higher level;
+- L0 → L1/L2/L3 creates the durable Task Pack before further material implementation;
+- L1 → L2/L3 expands the **same** Task Pack deterministically and preserves existing evidence/history;
+- L2 → L3 adds only relevant high-risk sections/evidence; it does not replace the task;
+- promotion invalidates lower-level review/finalization evidence that is no longer sufficient and readiness is recomputed;
+- Core never auto-downgrades;
+- an explicit downgrade may be allowed only before material implementation/review/finalization evidence exists, only when the recomputed deterministic minimum permits it, and must be visible in task/reporting history;
+- final gate recomputes the minimum from the actual diff, so a lower stale label cannot pass an under-classified change.
+
+Do not implement promotion by `--force`-rewriting a Task Pack. Use a bounded level migration/expansion primitive with idempotence tests.
+
 ## 8.6 Classification must happen after inspection and remain promotable
 
 Do not lock the workflow level from the user's first sentence alone.
@@ -2135,7 +2190,7 @@ Avoid fuzzy model-confidence scores as the Core authority. Use explicit evidence
 - Auto mode requires no user knowledge of VCP CLI for normal work;
 - Manual mode does not hijack ordinary coding requests;
 - L0 handles truly trivial work without durable ceremony;
-- L1 gives ordinary small engineering work a compact contract instead of forcing the full L2 Task Pack;
+- L1 gives ordinary small engineering work a compact contract inside the same Task Pack family instead of forcing the full L2 template;
 - L2 preserves the current strong material-work lifecycle;
 - L3 adds only relevant high-risk controls;
 - classification occurs after repository inspection, can escalate during work, and is revalidated against the final diff;
