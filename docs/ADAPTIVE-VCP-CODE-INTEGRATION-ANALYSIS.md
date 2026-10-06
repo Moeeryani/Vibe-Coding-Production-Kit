@@ -2054,18 +2054,32 @@ Conceptually:
 }
 ~~~
 
-Use deterministic states, not probabilistic confidence scores.
+Use deterministic states, not probabilistic confidence scores, but do not overload one field with both evidence and authority.
 
-Recommended states:
+The internal model must preserve at least:
 
 ~~~text
-proven
-configured
-proposed
-unknown
+evidence/application state:
+  proven
+  configured
+  proposed
+  unknown
+
+source kind:
+  core
+  first-party-profile
+  community-profile:<id>
+  project-config
 ~~~
 
-Initial automatic composition should use only proven/configured capabilities.
+A proven capability is not necessarily applied.
+
+Initial automatic composition may use:
+
+- core/first-party capabilities that are deterministically proven and lifecycle-eligible;
+- explicitly project-configured capabilities.
+
+A community-profile detector may produce proven evidence after selection/digest/grant validation, but that evidence remains unapplied/proposed unless separate project-owned configuration authorizes application.
 
 ---
 
@@ -2181,7 +2195,11 @@ Go      → go
 none    → generic
 ~~~
 
-For polyglot roots, define a conservative compatibility summary, potentially generic/mixed, while the real internal behavior uses capabilities.
+For polyglot roots, define a conservative compatibility summary while the real internal behavior uses capabilities.
+
+In the first transition release, prefer an already-supported summary such as `generic` when no single legacy profile truthfully represents the root.
+
+Do **not** invent a new legacy stack value such as `mixed` unless every stack consumer, manifest validator, CLI selector/report, migration, Doctor path, update/manage path, and compatibility test is migrated together.
 
 Do not choose one language merely because old precedence did.
 
@@ -2314,7 +2332,7 @@ Do not remove the current specialization transition until the capability-era lif
 
 ## 8.12 Definition of done
 
-- JS/TS/Python/Go simple projects retain equivalent behavior;
+- JS/TS/Python/Go/React-Native simple projects retain equivalent behavior;
 - polyglot fixture reports multiple capabilities;
 - no detector widens selected project-root authority;
 - Doctor distinguishes detected vs installed capability state;
@@ -2448,12 +2466,14 @@ community v2 bundle
       normalized profile
 ~~~
 
-Then one deterministic composition engine consumes normalized profiles.
+Then one deterministic engine can evaluate normalized profile evidence, but application policy remains provenance-aware.
 
-Trust remains different:
+Trust/application rules:
 
-- first-party definitions are part of VCP release;
-- community definitions require explicit project selection/digest/grant.
+- first-party definitions are part of the VCP release and may become lifecycle-eligible when deterministic evidence matches;
+- community definitions require explicit project selection/digest/grant merely to contribute their allowed evidence/proposals;
+- community detector matches do **not** automatically enter installed/applied capabilities;
+- project-owned adoption/configuration is required before community-detected capability state can drive VCP-managed guidance/behavior beyond the already-granted bounded contribution type.
 
 ---
 
@@ -2478,7 +2498,7 @@ An invalid selected plugin must block the update rather than silently dropping i
 - capability detection requires explicit selection/grant for community bundles;
 - first-party/community profiles normalize into deterministic internal data;
 - invalid/tampered/incompatible profile state fails before lifecycle mutation;
-- detection and proposal contributions are included in context/reporting without being mistaken for approval.
+- detected community capability evidence and proposals are reportable without being mistaken for applied/approved capability state.
 
 ---
 
