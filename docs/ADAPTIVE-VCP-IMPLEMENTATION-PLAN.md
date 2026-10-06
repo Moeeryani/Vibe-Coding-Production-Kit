@@ -4232,7 +4232,7 @@ external ecosystem research, per-point 23-element audits (33 points), interactio
 (255 tests). Product code was not modified.
 
 **Audit verdict: READY WITH MINOR CONDITIONS** (see §16 of the final report at
-`workspace/audit/vcp-audit/FINAL-AUDIT-REPORT.md` in the auditor's workspace).
+`docs/ADAPTIVE-VCP-FINAL-PREIMPLEMENTATION-AUDIT.md` in this repository).
 The conditions are discharged by the amendments below, which are now part of
 this document. Inline amendments are tagged `[AUDIT 2026-10-06 —
 PRE-IMPLEMENTATION]` at their sections.
@@ -4303,3 +4303,28 @@ update Task Packs through VCP, but they do not replace the Task Pack serializati
   lifecycle lock. A future saved executable plan would be a separate feature and
   would require explicit state/precondition binding. CI becomes a merge-enforcement
   boundary only when the repository/platform actually requires the VCP check.
+
+
+## Z.5 Post-amendment revalidation
+
+The original external audit snapshot was followed by a second full consistency/code-integration pass after the amendments landed.
+
+The durable consolidated result is:
+
+- `docs/ADAPTIVE-VCP-FINAL-PREIMPLEMENTATION-AUDIT.md`
+
+That final pass rechecked the current code couplings, both Adaptive documents, Roadmap/current contracts, the test/release seams, and current external ecosystem guidance.
+
+Additional findings integrated after the original audit snapshot include:
+
+- capability-grade core detectors must not inherit legacy symlink-following marker semantics;
+- Skill correctness/progressive disclosure must not depend on universal lazy loading;
+- semantic conformance fixtures and native/hosted platform evidence are separate;
+- legacy CI may remain packaged as a migration asset even when fresh consumer surfaces stop selecting it;
+- Stage-12 mutation boundaries distinguish unmanaged brownfield init from managed schema migration;
+- routing mode and merge-enforcement policy remain orthogonal;
+- L0 fails conservative without explicit project policy;
+- L1/L2/L3 remain one Task Pack family;
+- reviewed-head/finalization-head exceptions require semantic task-section validation, not path-only checks.
+
+If this appendix and the consolidated report ever diverge, the main strategic/technical sections plus the consolidated report are the pre-implementation authority; historical audit counts remain evidence of the earlier snapshot rather than a substitute for current verification.
