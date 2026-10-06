@@ -3970,6 +3970,8 @@ Needs:
 
 - manifest schema v2 support;
 - top-level minimumReaderVersion validation before lifecycle mutation;
+- running CLI version lookup through the existing version helper;
+- shared semantic-version comparison from a low-level utility rather than making state depend conceptually on migration policy;
 - migration/normalization of v1 managed entries to ownership.kind=file;
 - install assetSet validation/preservation;
 - per-entry ownership validation;
@@ -3983,6 +3985,26 @@ Do not leave section ownership as an unversioned optional v1 field.
 Do not weaken current path/symlink protections.
 
 Keep existing on-disk lock/transaction locations unless a separate migration is justified.
+
+---
+
+## lib/semver.mjs (or equivalent low-level helper)
+
+Current semantic-version parsing/comparison lives in lib/migrations.mjs and is also consumed by update/report/plugin/release code.
+
+minimumReaderVersion makes semantic-version comparison a manifest-reader primitive as well.
+
+Prefer extracting the pure parse/compare functions into a dependency-light helper used by:
+
+- state manifest reader compatibility;
+- migrations;
+- Doctor/update reporting;
+- community plugin compatibility;
+- release checks.
+
+Do not make low-level manifest readability depend on migration-path construction merely to compare versions.
+
+Regression tests for prerelease/build metadata ordering move with the helper.
 
 ---
 
