@@ -2459,22 +2459,952 @@ Do not add every implementation doc automatically; add files required for releas
 ---
 
 
+# 13. Workstream G — Cross-agent Skills as UX, not VCP authority
+
+## 13.1 Current code involved
+
+There is currently no Skills implementation in the repository.
+
+Closest existing surfaces are:
+
+- lib/adapters.mjs;
+- prompts/*;
+- docs/OPERATING-MODEL.md;
+- lib/prompt-eval.mjs;
+- evaluations/prompt-behavior/*.
+
+This is good because Skills can be added without migrating existing durable state.
+
+---
+
+## 13.2 What should move into Skills
+
+Good Skill responsibilities:
+
+- discovery/grill conversation;
+- route request to proper VCP command sequence;
+- explain readiness failures;
+- planning interaction;
+- implementation interaction;
+- review interaction;
+- retro analysis;
+- PR prose;
+- friendly summaries.
+
+Bad Skill responsibilities:
+
+- deciding that failed tests passed;
+- becoming the only store of approved decisions;
+- replacing manifest/update state;
+- implementing its own lifecycle safety;
+- duplicating every VCP rule.
+
+---
+
+## 13.3 Reuse prompt-eval
+
+The existing provider-independent prompt evaluation system already tests properties that matter to Skills:
+
+- discover-before-ask;
+- human decision boundaries;
+- proposal is not approval;
+- negative decisions preserved;
+- bounded vertical planning;
+- blockers/readiness respected;
+- verification reporting accuracy;
+- follow-ups recorded;
+- restartability.
+
+That is an unusually useful foundation.
+
+Skills should produce the same normalized observable behavior expected by this evaluator where applicable.
+
+Add skill-specific scenarios only for behavior not already covered.
+
+Do not build a second Skill-specific model grader.
+
+---
+
+## 13.4 Canonical Skill packaging
+
+Add a package-owned Skills area rather than copying Skills into each consumer repo by default.
+
+Conceptually:
+
+~~~text
+skills/
+  vcp/
+    SKILL.md
+  vcp-discovery/
+    SKILL.md
+  vcp-review/
+    SKILL.md
+  vcp-retro/
+    SKILL.md
+~~~
+
+The exact packaging should follow the cross-agent skill installer chosen for distribution, but the source of behavioral truth should still point back to VCP Core and canonical prompts.
+
+Update:
+
+- package.json files surface;
+- scripts/validate-framework.mjs source checks;
+- release policy required package files where appropriate;
+- prompt-eval scenarios/provenance if Skill content is evaluated.
+
+---
+
+## 13.5 Avoid policy duplication
+
+A Skill should not contain a second 800-line version of AGENTS.md.
+
+Prefer:
+
+~~~text
+inspect VCP state
+      ↓
+run/read canonical VCP context
+      ↓
+call deterministic VCP commands
+      ↓
+interpret results for developer
+~~~
+
+This keeps future changes in one authority.
+
+---
+
+## 13.6 Auto/Manual relationship
+
+Manual:
+
+~~~text
+user invokes /vcp
+→ Skill routes explicitly
+~~~
+
+Auto:
+
+~~~text
+normal request
+→ agent adapter says use VCP when level/policy requires it
+→ same canonical Skill/router logic may be used internally
+~~~
+
+Do not create two different workflows for Auto vs Manual.
+
+Only the trigger differs.
+
+---
+
+## 13.7 Definition of done
+
+- Skill source exists and is package/release tested;
+- Skills remain thin;
+- Skill behavior can be evaluated through prompt-eval-style observable records;
+- repository truth is unchanged when the user switches coding agents;
+- Manual mode can use VCP without CLI memorization;
+- Auto mode can reuse the same router behavior.
+
+---
+
+# 14. Workstream H — Mechanical vcp gate
+
+## 14.1 Existing components to reuse
+
+Do not create a parallel validation framework.
+
+Reuse:
+
+### readiness
+
+lib/readiness.mjs already proves structural plan/implementation readiness.
+
+### verification
+
+lib/verify.mjs already executes the task's approved commands.
+
+### Git provenance
+
+inspectVerificationScope already records Git HEAD and dirty state safely.
+
+### review snapshot
+
+lib/git-review.mjs resolves exact base/head commits and changed surface.
+
+### Task Pack
+
+lib/task.mjs already defines review/finalization semantics.
+
+The missing feature is an aggregator/enforcer.
+
+---
+
+## 14.2 Current gaps gate must close
+
+The current code does not mechanically prove:
+
+- Status is Done;
+- acceptance criteria are all checked;
+- finalization checklist is complete;
+- independent-review table has no unresolved must-fix item;
+- verification evidence is current;
+- final HEAD still matches accepted evidence;
+- workflow level requirements were satisfied.
+
+---
+
+## 14.3 Add a canonical task-state parser
+
+Do not scatter Markdown regexes across gate/readiness/context.
+
+Create a shared parser for the canonical Task Pack structure.
+
+Suggested module:
+
+~~~text
+lib/task-state.mjs
+~~~
+
+It should parse, at minimum:
+
+- top-level status;
+- slug;
+- workflow level if added;
+- acceptance criteria and checked state;
+- independent review rows;
+- dispositions;
+- finalization checklist;
+- completion report presence;
+- verification command set.
+
+Readiness should progressively adopt shared parsing so gate and readiness do not disagree.
+
+---
+
+## 14.4 Structured task metadata may now be justified
+
+VCP previously avoided machine-readable task graph/state because prose contracts were enough.
+
+A deterministic completion gate is a legitimate enforcement reason to add a small amount of structured metadata.
+
+Prefer minimal metadata, not a full task database.
+
+Possible top section:
+
+~~~text
+Status: Done
+Slug: accept-invite
+Workflow-Level: L2
+~~~
+
+Keep human-readable Markdown as the primary artifact.
+
+Do not introduce hidden external state that makes the Task Pack misleading.
+
+---
+
+## 14.5 Verification evidence freshness
+
+Saved evidence cannot simply be trusted forever.
+
+Gate must compare:
+
+~~~text
+evidence.task
+evidence.mode == run
+evidence.success == true
+evidence.readiness.fail == 0
+evidence.revision.headSha
+current HEAD
+current dirty state
+~~~
+
+Important nuance:
+
+verification provenance is captured before commands run.
+
+Therefore final gate should re-inspect Git after verification/evidence loading.
+
+For strongest behavior, gate run mode can execute verification itself and then inspect final repository state before reporting success.
+
+---
+
+## 14.6 Evidence output dirty-state issue
+
+.vcp/.gitignore currently ignores update runtime directories/files, but not .vcp/evidence.
+
+Therefore writing evidence inside the project may itself make a previously clean Git worktree dirty.
+
+Gate design must explicitly handle this rather than comparing dirty=false naively.
+
+Possible approaches:
+
+### Option A — gate executes verification and emits final report to stdout/outside tracked state
+
+Best for CI exact-head proof.
+
+### Option B — permit only the known evidence-output path as post-verification dirty state
+
+More complex and easier to get wrong.
+
+### Option C — change evidence retention policy
+
+Potentially ignore ephemeral evidence while allowing explicitly versioned evidence elsewhere.
+
+Do not choose this casually because prompt-eval/restartability currently treats .vcp/evidence paths as durable artifacts.
+
+Recommended first implementation:
+
+> vcp gate --run should execute verification in-process and perform final Git inspection before optional report persistence. CI should rely on the gate result, not an old JSON file.
+
+Saved verify evidence remains useful for handoff/audit but is not by itself final merge authorization.
+
+---
+
+## 14.7 Proposed command shape
+
+Conceptually:
+
+~~~text
+vcp gate <task>
+vcp gate <task> --run
+vcp gate <task> --base main
+vcp gate <task> --json
+~~~
+
+Preview can explain missing requirements without executing commands.
+
+Run performs required executable verification.
+
+For L0, a separate path may accept changed-surface/base information without a Task Pack.
+
+---
+
+## 14.8 Gate result must be explicit
+
+Machine-readable report should distinguish:
+
+~~~text
+pass
+fail
+blocked
+not-applicable
+~~~
+
+and enumerate why.
+
+Do not compress everything into a magic readiness score.
+
+---
+
+## 14.9 Definition of done
+
+- gate uses readiness rather than reimplementing it;
+- gate uses verification machinery rather than shelling out to duplicated commands;
+- current HEAD is checked after executable work;
+- stale verification cannot pass;
+- unresolved must-fix review evidence cannot pass;
+- incomplete finalization cannot pass L2/L3;
+- L0 cannot be used for protected changed surfaces;
+- JSON/human output have stable contracts;
+- gate works locally without GitHub.
+
+---
+
+# 15. Workstream E2 dependency — CI should call gate, not recreate it
+
+Once gate exists, generated CI becomes thin.
+
+Preferred:
+
+~~~text
+CI
+ ↓
+install/use VCP
+ ↓
+vcp gate <task or policy> --run
+ ↓
+exit code
+~~~
+
+Do not separately maintain:
+
+- one set of verification commands in Task Pack;
+- another set in VCP;
+- another handwritten set in generated YAML.
+
+That would reintroduce drift.
+
+---
+
+# 16. Workstream I — Compatibility/conformance matrix integrated with existing tests
+
+## 16.1 Current strengths
+
+The repository already contains unusually strong focused test surfaces:
+
+- update planning;
+- rollback;
+- update transaction/concurrency;
+- selected project root;
+- workspace source truth;
+- verification scope/provenance;
+- Git-aware review;
+- security profiles;
+- community plugin trust;
+- prompt evaluation;
+- architecture fitness;
+- release portability/release-check.
+
+Do not replace these with a single giant E2E suite.
+
+Add an adoption/conformance layer on top.
+
+---
+
+## 16.2 New fixtures needed
+
+Add fixtures for:
+
+### existing agent configuration
+
+- custom AGENTS.md;
+- custom CLAUDE.md;
+- custom Copilot instructions;
+- all together.
+
+### existing CI
+
+- GitHub Actions with unrelated workflow name;
+- several workflows;
+- GitLab/custom CI marker;
+- no CI.
+
+### ecosystem
+
+- unsupported Rust;
+- unsupported Java;
+- polyglot Go + TypeScript;
+- existing Python;
+- existing Node;
+- custom verification command.
+
+### repository maturity
+
+- empty;
+- established;
+- already VCP-managed;
+- nested selected project;
+- dirty Git worktree.
+
+---
+
+## 16.3 Public CLI testing matters
+
+Many current tests call initProject directly, which is useful for unit coverage.
+
+Adaptive adoption must also have public CLI tests because important behavior lives in:
+
+- option parsing;
+- help text;
+- command-specific flag validation;
+- interactive/non-interactive defaults.
+
+For every important init behavior, include at least one real bin/vibe-coding-production.mjs test.
+
+---
+
+## 16.4 Golden negative fixtures
+
+Required failure cases:
+
+- malformed VCP section markers;
+- duplicate marker blocks;
+- conflicting agent-file integration;
+- selected plugin with bad digest;
+- capability profile with invalid detector;
+- symlinked evidence/config;
+- unsupported destructive verification proposal;
+- stale verification at old HEAD;
+- L0 requested for source/security/build changes.
+
+Each failure must prove no unsafe mutation.
+
+---
+
+## 16.5 Definition of done
+
+The matrix is complete when release gates prove properties, not merely framework names:
+
+- no unrelated deletion;
+- no silent agent instruction overwrite;
+- no silent CI overwrite;
+- no command invention;
+- selected-root isolation;
+- safe unsupported fallback;
+- capability provenance;
+- init plan/apply consistency;
+- update after adoption remains safe;
+- gate rejects stale/bypassed work;
+- rollback/recovery remains valid.
+
+---
+
+# 17. Workstream J — Reduce framework tax using the real package boundaries
+
+## 17.1 Current situation
+
+VCP now contains substantial deterministic infrastructure.
+
+That is not inherently bad.
+
+The problem would be continuing to add infrastructure for behavior that a portable Skill can do just as well.
+
+The code review reinforces a practical split.
+
+---
+
+## 17.2 Strong Core candidates already justified
+
+Keep in VCP Core:
+
+- state.mjs lifecycle persistence;
+- update plan/apply;
+- merge;
+- migrations;
+- readiness;
+- verification;
+- Git provenance;
+- Context Pack construction;
+- security profile resolution;
+- plugin trust;
+- architecture fitness;
+- release-check;
+- future gate.
+
+These provide deterministic value.
+
+---
+
+## 17.3 Skill/UX candidates
+
+Prefer Skills for:
+
+- discovery conversation;
+- grill interaction;
+- explaining options;
+- choosing which deterministic command to call;
+- plan presentation;
+- retro discussion;
+- PR drafting;
+- conversational handoff.
+
+Do not add a CLI subcommand merely because a conversational step has a name.
+
+A command is justified when there is deterministic state/action to perform.
+
+---
+
+## 17.4 Asset reduction is part of reducing framework tax
+
+Moving canonical prompts/reference docs back into the package rather than copying them to every consumer improves:
+
+- install surface;
+- update complexity;
+- conflict rate;
+- repository readability;
+- context discipline.
+
+This is not just cosmetic cleanup.
+
+---
+
+# 18. File-by-file change map
+
+This section summarizes likely ownership of implementation work.
+
+## lib/cli.mjs
+
+Needs:
+
+- init-specific force removal;
+- workflow-mode option/command;
+- capability-aware reporting/options later;
+- vcp gate command;
+- updated help text;
+- no collision with context --mode.
+
+Risks:
+
+- global parser currently shares flags across commands;
+- many CLI help tests pin exact surfaces.
+
+---
+
+## lib/init.mjs
+
+Likely becomes a thin orchestration wrapper around plan/apply.
+
+Remove:
+
+- binary collectConflicts + force overwrite design.
+
+Add:
+
+- repository classification;
+- smart plan;
+- lifecycle-safe apply;
+- complete manifest field construction.
+
+---
+
+## lib/template.mjs
+
+Needs major refactor.
+
+Current responsibilities are too mixed:
+
+- package asset walking;
+- consumer asset choice;
+- ownership policy;
+- adapters;
+- stack rendering.
+
+Separate:
+
+- consumer asset manifest;
+- packaged reference assets;
+- adapter/integration desired sections;
+- capability-rendered content.
+
+Do not use whole docs root.
+
+---
+
+
+## AGENTS.md / generated standing instructions
+
+Current root file is approximately 13 KB / 253 lines and includes many phase-specific engineering rules.
+
+Needs:
+
+- audit every rule as always-on vs task/phase-specific;
+- keep only routing, authority, human-decision boundary, truthfulness, verification configuration, and genuinely universal invariants always-on;
+- move detailed planning/security/testing/review guidance behind Skills/prompts/Context Packs;
+- preserve project-owned surrounding content under section ownership for brownfield adoption;
+- measure instruction footprint and agent behavior before/after.
+
+Do not optimize for an arbitrary byte target; optimize for less standing context without behavioral regression.
+
+---
+
+
+## lib/adapters.mjs
+
+Needs:
+
+- mode-aware thin routing content;
+- integration block generation;
+- additive existing-file semantics;
+- removal of the current broad instruction to read product + architecture + security + testing + delivery documents before every implementation;
+- routing to the relevant VCP Skill/Context instead;
+- user-visible decisions/evidence while hiding command choreography.
+
+Current risk:
+
+The adapters are thin in file size, but their wording defeats progressive disclosure by encouraging broad document loading.
+
+---
+
+## lib/state.mjs
+
+Needs:
+
+- manifest install field normalization;
+- section-managed baseline support if adopted;
+- lifecycle transaction reuse for smart init;
+- possibly generalized lock terminology.
+
+Do not weaken current path/symlink protections.
+
+---
+
+## lib/update-plan.mjs
+
+Needs:
+
+- section ownership action planning;
+- capability-set lifecycle comparison;
+- new consumer asset surface;
+- migration-aware removals;
+- new desired-builder inputs.
+
+Preserve action transparency.
+
+---
+
+## lib/update-apply.mjs
+
+Needs:
+
+- apply section-replacement actions;
+- preserve new manifest fields;
+- rebuild correct baselines for whole files vs sections.
+
+---
+
+## lib/manage.mjs
+
+Needs:
+
+- understand new desired-builder/capability inputs;
+- clear semantics for ignore/track of section-owned paths;
+- not reconstruct state only from legacy stack forever.
+
+---
+
+## lib/migrations.mjs
+
+Needs next-release migration for:
+
+- asset removals;
+- possibly ownership transition;
+- new install metadata defaults if required.
+
+Do not rewrite released historical migrations.
+
+---
+
+## lib/stacks.mjs
+
+Transition from primary model to compatibility layer.
+
+Extract:
+
+- raw detectors;
+- command evidence helpers that remain useful.
+
+Eventually compose through capabilities.
+
+---
+
+## lib/stack-provenance.mjs
+
+Needs capability-era equivalent.
+
+Keep legacy stack provenance during transition.
+
+Do not lose explicit-vs-auto historical intent.
+
+---
+
+## lib/doctor.mjs
+
+Needs several changes:
+
+- capability reporting;
+- workflow mode;
+- provider-neutral CI inspection;
+- package prompt resolver;
+- removal of local framework validator requirement;
+- new gate status where appropriate.
+
+Preserve explicit coverage boundaries.
+
+---
+
+
+## lib/context.mjs
+
+Needs:
+
+- package prompt fallback;
+- project override identity;
+- workflow-level awareness for L1/L2/L3 where contexts apply;
+- compact inclusion-reason/type metadata;
+- later Skill/context interoperability;
+- no hidden parent fallback;
+- negative tests proving irrelevant content is absent.
+
+Current strengths to preserve:
+
+- phase modes;
+- explicit source references;
+- selected-root confinement;
+- hard byte budget;
+- security profiles only in security mode;
+- bounded Git review.
+
+Important refactor:
+
+Separate plugin/profile validation from rendered transport so selected but irrelevant plugin metadata/proposals do not automatically enter every pack.
+
+---
+
+## lib/community-plugins.mjs
+
+Needs schema-versioned v2 support rather than permissive v1 mutation.
+
+Keep all current trust/resource/path constraints.
+
+---
+
+## lib/verify.mjs
+
+Mostly reuse.
+
+Potential changes:
+
+- expose reusable execution/provenance helpers to gate;
+- avoid duplicating command execution;
+- possibly capture/reinspect post-run Git state for gate integration.
+
+Do not change ordinary verify semantics merely to satisfy final gate.
+
+---
+
+
+## lib/readiness.mjs
+
+Keep current plan/implement readiness as the L2 baseline.
+
+Needs:
+
+- shared canonical parser;
+- compact L1 readiness contract;
+- L3 extensions driven by applicable risk;
+- no L0 Task Pack requirement;
+- diagnostics that tell an agent when work must be promoted to a higher level.
+
+Do not weaken current L2 correctness merely to create a lighter lane.
+
+---
+
+
+## lib/task.mjs
+
+Needs:
+
+- workflow-level metadata;
+- compact L1 rendering;
+- current full template retained for L2;
+- L3-compatible extension points;
+- shared parser compatibility.
+
+Do not add VCP framework-development Core-ROI questions to the generic consumer Task Pack.
+
+Do not remove durable review/finalization evidence from L2/L3.
+
+---
+
+## lib/git-review.mjs
+
+Mostly reusable.
+
+Gate may use changed-file enumeration for L0 classification and exact-head review linkage.
+
+Avoid duplicating Git parsing.
+
+---
+
+
+
+## lib/prompt-eval.mjs
+
+Current strengths:
+
+- v1 behavior records already track question keys/classes;
+- discover-before-ask already fails when discoverable facts are asked;
+- human-decision/proposal/restartability contracts already exist.
+
+Future needs when Auto/Skills land:
+
+- interaction-round/question-batch observations;
+- redundant-confirmation observations;
+- Skill/router behavior coverage;
+- mutations proving the new properties are non-vacuous.
+
+Avoid:
+
+- replacing the existing evaluator;
+- changing schema before the new observable contract is stable;
+- full chat transcripts;
+- model-as-judge scoring when deterministic structured assertions suffice.
+
+---
+
+## lib/release-check.mjs
+
+Must change when consumer framework assets are removed.
+
+Replace copied consumer validator execution with consumer-facing VCP checks.
+
+Later include conformance of new Skills/package surfaces as release policy requires.
+
+---
+
+## scripts/validate-framework.mjs
+
+Remain VCP source/package validation.
+
+Update required source/package files for:
+
+- new core modules;
+- Skills;
+- capability definitions;
+- new docs/contracts.
+
+Do not copy it into arbitrary consumer projects.
+
+---
+
+
+## Packaged Skills / Skill source
+
+New surface.
+
+Needs:
+
+- thin cross-agent routing Skills;
+- progressive reference loading;
+- canonical links into VCP Core rather than duplicated policy;
+- package/release inclusion;
+- prompt-eval behavior coverage.
+
+Risks:
+
+- Skills growing into a second copy of VCP;
+- all references loading eagerly;
+- Auto and Manual developing separate workflows.
+
+---
+
+## .github/release-policy.json
+
+Update when new runtime/package assets become required.
+
+Do not add every implementation doc automatically; add files required for released runtime behavior.
+
+---
+
+
 # 19. Revised implementation order with product validation gates
 
-The code dependency order remains important, but implementation is no longer an uninterrupted Phase 0→10 march.
+The deep five-point audit changes sequencing in two ways:
+
+1. progressive-disclosure cleanup begins before new UX layers;
+2. L1 is designed with workflow mode/gate rather than deferred indefinitely.
 
 Each checkpoint can require simplification or deferral.
 
 ## Phase 0 — Internal refactors that enable safe changes
 
 1. centralize install manifest field construction;
-2. extract shared Task Pack parser foundations where needed;
-3. introduce prompt resolver with current local behavior preserved;
-4. add section-ownership primitives/tests before smart adoption.
-
-Why first:
-
-Without these, later features would create temporary unsafe lifecycle behavior.
+2. introduce package/local prompt resolver with current behavior preserved;
+3. add section-ownership primitives/tests;
+4. extract shared Task Pack parser foundations;
+5. baseline current AGENTS/adapters/context footprints for later comparison.
 
 ## Phase 1 — Smart init/adoption safety
 
@@ -2483,73 +3413,43 @@ Without these, later features would create temporary unsafe lifecycle behavior.
 3. remove init force behavior;
 4. section-aware AGENTS/CLAUDE/Copilot adoption;
 5. transactional/conflict-safe apply;
-6. managed-project init status/redirect behavior;
-7. adoption tests.
+6. managed-project init status/redirect;
+7. reduce questions that capability/CI/repository evidence can answer.
 
-Exit criterion:
+## Phase 2 — Consumer asset + standing-context reduction
 
-Existing custom instructions survive init and a subsequent update.
+1. explicit consumer asset manifest;
+2. packaged prompt fallback;
+3. shrink generated VCP standing AGENTS section;
+4. thin adapter routing;
+5. remove source-framework validator from consumer;
+6. release-check consumer-smoke rewrite;
+7. migration/removal/prompt-override preservation.
 
-That second part is mandatory; an init-only green test is not enough.
+### Checkpoint A — adoption/invisible-first-use
 
-## Phase 2 — Consumer asset separation
-
-1. package/local prompt resolver;
-2. Doctor prompt-source changes;
-3. explicit consumer asset manifest;
-4. remove source-framework validator from consumer;
-5. release-check consumer-smoke rewrite;
-6. explicit migration removals;
-7. old customized prompt override preservation.
-
-Exit criterion:
-
-A consumer can run task/context/verify/Doctor after install while containing only project-relevant VCP assets.
-
-### Checkpoint A — adoption experience
-
-Use the evidence contract in section 3A.4.
-
-Do not continue merely because unit/lifecycle tests are green.
-
-Required judgment:
-
-- safe?
-- low-noise?
-- low-question?
-- productive without learning VCP internals?
-
-If not, simplify before capability work.
+Require safe update after adoption, reduced repository/instruction noise, fewer avoidable init questions, and productive use without learning VCP command choreography.
 
 ## Phase 3 — CI safety, detection only
 
 1. stop fresh hardcoded npm workflow installation;
-2. add provider-neutral CI inspector;
+2. provider-neutral CI inspector;
 3. Doctor CI reporting;
 4. migration of old managed validate.yml.
-
-Do not generate new CI yet.
 
 ## Phase 4 — Capability foundation
 
 1. deterministic capability records;
-2. independent built-in detectors;
+2. independent detectors;
 3. legacy stack compatibility adapter;
-4. capability-aware desired rendering;
-5. manifest applied-capability provenance;
+4. capability-aware rendering/discovery;
+5. applied-capability provenance;
 6. Doctor/update/manage integration;
 7. polyglot tests.
 
-### Checkpoint B — adaptation quality
+### Checkpoint B — adaptation + context cost
 
-Use the evidence contract in section 3A.4.
-
-Do not add broad community detector machinery if:
-
-- false positives remain high;
-- unsupported fallback is confusing;
-- command proposals are frequently corrected;
-- context inflation outweighs useful discovery.
+Measure correctness and context-footprint changes. Do not proceed to broad profile machinery if detection creates false certainty or context bloat.
 
 ## Phase 5 — Declarative profiles
 
@@ -2558,80 +3458,61 @@ Do not add broad community detector machinery if:
 3. bounded detector DSL;
 4. first-party definitions;
 5. community grants;
-6. Stage 11 React Native reframed onto capabilities.
+6. React Native Stage 11 reframed onto capabilities;
+7. separate plugin validation from context transport.
 
-## Phase 6 — Workflow mode
+## Phase 6 — Workflow mode + minimal router UX
 
-1. workflowMode persisted;
-2. --workflow-mode init option;
-3. post-install mode command;
-4. mode-aware VCP sections/adapters;
-5. Doctor visibility;
-6. prompt-eval/behavior regressions.
+1. persist workflowMode;
+2. --workflow-mode and post-install change;
+3. mode-aware VCP standing sections/adapters;
+4. ship/prototype one thin primary VCP router Skill;
+5. preserve Auto/Manual shared workflow logic;
+6. extend prompt-eval only as needed for router/human-attention behavior.
 
-## Phase 7 — Gate and initial workflow levels
+## Phase 7 — Workflow levels + gate
 
 1. shared task-state parser;
-2. vcp gate preview;
-3. gate run using verification engine;
-4. post-run Git freshness check;
-5. L0 changed-surface policy;
-6. L2 current Task Pack gate;
-7. L3 high-risk additions.
+2. L0 changed-surface contract;
+3. compact L1 task/readiness contract;
+4. retain L2 current Task Pack;
+5. L3 relevant high-risk additions;
+6. provisional classifier after inspection;
+7. gate preview/run using verification engine;
+8. final-diff minimum-level reclassification;
+9. post-run Git freshness check.
 
-### Checkpoint C — Auto/gate friction vs value
+### Checkpoint C — ceremony vs prevented failure
 
-Use the evidence contract in section 3A.4.
-
-Do not wire mandatory CI gate behavior if:
-
-- local gate false positives are common;
-- users repeatedly bypass it for legitimate work;
-- L0/L2/L3 routing is unstable;
-- human interruptions rise without catching meaningful failures.
+Dogfood L0/L1/L2/L3. If ordinary small fixes keep landing in full L2 or gate/classification produces frequent false positives, simplify before CI enforcement.
 
 ## Phase 8 — CI gate integration
 
-1. generate optional thin VCP gate workflow;
-2. detect existing equivalent integration;
-3. keep application verification in VCP project contract.
+1. optional thin provider-specific gate workflow;
+2. detect equivalent existing integration;
+3. keep application verification authority in VCP/task state.
 
-## Phase 9 — Skills UX
+## Phase 9 — Skill UX expansion
 
-Skills may prototype earlier after Core contracts stabilize, but release them against stable command/state contracts.
+After the primary router/Core contracts are stable:
 
-Requirements:
-
-- thin routing;
-- progressive disclosure;
-- prompt-eval human-attention coverage;
-- same underlying flow for Auto and Manual.
+1. discovery/grill Skill;
+2. review/retro UX where justified;
+3. progressive Skill references;
+4. cross-agent packaging;
+5. prompt-eval coverage.
 
 ### Checkpoint D — invisible UX
 
-Use the evidence contract in section 3A.4.
+Users should understand decisions/evidence without knowing Core commands.
 
-Test with users/agents that have not learned VCP internals.
+## Phase 10 — Conformance/release hardening
 
-The target is:
+Run full compatibility/public CLI/package smoke and preserve bounded checkpoint evidence.
 
-~~~text
-Auto:
-"Build X"
+### Checkpoint E — model/tool capability audit
 
-Manual:
-"/vcp Build X"
-~~~
-
-not framework operation training.
-
-## Phase 10 — Full compatibility matrix and release hardening
-
-Run the complete fixture matrix through public CLI and package/release smoke.
-
-Preserve checkpoint evidence where practical and update documentation claims to exactly what is proven.
-
-A release candidate should be able to be technically green while still being held because a product checkpoint exposed unacceptable friction.
+Before major release, explicitly ask what VCP can remove because modern agents/platforms now do it well natively. A valid result is deprecation/deletion rather than new features.
 
 # 20. High-risk implementation mistakes to avoid
 
@@ -2723,6 +3604,19 @@ Every source must earn inclusion for the current workflow.
 This recreates framework bloat.
 
 Apply the Complexity ROI contract first.
+
+
+## 20.14 "Keep the full AGENTS because more guidance is safer"
+
+Current AGENTS is valuable but large and phase-heavy. Standing context should route and enforce universal invariants; phase detail belongs behind progressive disclosure.
+
+## 20.15 "L0 plus full L2 is enough"
+
+This leaves ordinary bug fixes/refactors with no right-sized lane. Implement a compact L1 contract and prove it remains restartable.
+
+## 20.16 "Auto means prompt interception is guaranteed"
+
+VCP has no embedded LLM and agent platforms differ. Use Skill/adapter routing plus deterministic gate enforcement; hooks are optional accelerators.
 
 # 21. Acceptance evidence for the overall redesign
 
