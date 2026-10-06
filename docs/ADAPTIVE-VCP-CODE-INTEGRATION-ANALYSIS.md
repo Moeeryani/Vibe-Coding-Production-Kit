@@ -1083,6 +1083,25 @@ SKIP
 CONFLICT
 ```
 
+Action ownership rules:
+
+```text
+ADD
+→ create content and establish declared ownership
+
+ADOPT
+→ establish ownership only where the ownership boundary already exists safely:
+   exact canonical whole-file ownership, or an already valid marked VCP section
+→ never claim arbitrary unmarked project prose as a section baseline
+
+COMPOSE
+→ create/reconcile the marked VCP section and preserve surrounding project text
+
+equivalent unmarked integration
+→ NOOP when no managed block is required
+→ otherwise COMPOSE explicitly
+```
+
 The plan is content-free in public JSON.
 
 It may carry private in-memory desired content needed by apply, but public reports must not echo project file contents.
@@ -1835,6 +1854,8 @@ Use an explicit list.
 
 Before prompts are removed from consumer assets, lib/context.mjs must support package fallback.
 
+The **resolver itself lands in Stage 12**, because minimal brownfield Smart Init already uses packaged prompts when no project override exists. Phase 2 consumes that resolver to remove legacy prompt copies from the broader consumer asset set.
+
 Recommended precedence:
 
 ~~~text
@@ -1878,9 +1899,21 @@ Tests must prove both cases.
 
 ## 7.4 Doctor changes
 
-Doctor must stop treating project-local prompt copies as mandatory.
+Split Doctor work by dependency rather than by file ownership.
 
-Instead it should call the same prompt resolver used by context.
+### Stage 12 minimum
+
+Doctor must stop treating project-local prompt copies as mandatory as soon as packaged fallback is valid.
+
+It must call the same prompt resolver used by context so a correctly adopted brownfield project is not immediately reported unhealthy.
+
+### Phase 2/3 broader cleanup
+
+Later consumer-asset/CI work removes the copied source-framework validator expectation and replaces exact-workflow CI assumptions.
+
+Prompt-source correctness does not wait for that broader cleanup.
+
+Report examples:
 
 Report examples:
 
