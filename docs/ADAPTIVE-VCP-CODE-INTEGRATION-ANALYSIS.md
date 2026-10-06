@@ -3261,6 +3261,57 @@ Important Stage 6 compatibility rule:
 
 When active security profiles are relevant, L3 requires a dedicated security Context Pack/review. The existing rule that only contextMode=security auto-loads security profiles remains authoritative.
 
+### Required Stage-7 extension: Git-bound security context
+
+Current createContextPack rejects --base/--head outside review mode.
+
+For gate-authoritative L3 security review, extend the existing git-review snapshot support to:
+
+~~~text
+contextMode=review
+contextMode=security
+~~~
+
+with the same explicit base requirement, optional head default, selected-project/worktree confinement, diff bounds, and exact resolved SHAs.
+
+Do **not** broaden Git comparison into plan/implement merely for convenience.
+
+The security Context Pack then contains both:
+
+- Stage-6 active security profile context;
+- exact changed-surface evidence from git-review.mjs.
+
+### Durable security review evidence
+
+Add a distinct parser-visible Task Pack section only when L3 policy requires security review, for example:
+
+~~~text
+## Security review evidence
+
+Reviewed-Base: <sha>
+Reviewed-Head: <sha>
+Profiles: baseline, multi-tenant, ...
+...
+~~~
+
+Exact field/table syntax can differ.
+
+Persist:
+
+- exact reviewed base/head;
+- active profile IDs and enough source/provenance identity to reconstruct what guidance class was active;
+- severity;
+- current-task disposition;
+- concise evidence;
+- resolution/follow-up;
+- residual risk / unresolved HUMAN DECISION.
+
+The security-review prompt should emit data compatible with the gate's existing finding/disposition model rather than inventing an unrelated unparseable result shape. Severity remains security-specific metadata.
+
+Ordinary independent review remains required separately.
+
+Before finalization, all required L3 review kinds should cover the same final implementation head. A code/config change after either review invalidates that review; Task-record-only finalization may then move HEAD under the same semantic finalization exception already defined for gate.
+
 Other L3 additions may include migration/recovery evidence, destructive-effect authorization, sensitive deployment/release boundaries, or stronger exact-head gates.
 
 ## 12.3A Task template/readiness compatibility
@@ -3419,6 +3470,8 @@ acceptance state
 verification declarations
 review findings/dispositions
 review base/head provenance when present
+required review kinds
+security-review findings/severity/dispositions + base/head/profile provenance when applicable
 finalization state
 completion evidence
 ~~~
@@ -3479,6 +3532,7 @@ L1 implement
 L3 security review
 → dedicated security context
 → active security profiles + relevant security Source of Truth
+→ explicit Git base/head snapshot for gate-authoritative changed-surface evidence
 ~~~
 
 Negative tests must prove irrelevant profile/plugin material remains absent.
@@ -3851,7 +3905,15 @@ Require current plan/implementation readiness, acceptance criteria, verification
 
 ### L3
 
-Require L2 plus applicable high-risk checks, including dedicated security-mode review evidence where the active security profile/risk policy requires it.
+Require L2 plus applicable high-risk checks. Where active security profile/risk policy requires dedicated security review, gate must prove:
+
+- parser-visible security-review evidence exists;
+- exact reviewed security head is current for the final implementation surface;
+- ordinary independent review and required security review bind to the same final implementation head before finalization;
+- no unresolved must-fix security finding or HUMAN DECISION/risk-acceptance boundary remains;
+- active-profile provenance required by the review record is coherent.
+
+Security review remains additional to ordinary L2 review.
 
 The gate **validates** durable review/approval evidence. It does not call an LLM reviewer, accept risk, approve destructive actions, or decide product intent.
 
