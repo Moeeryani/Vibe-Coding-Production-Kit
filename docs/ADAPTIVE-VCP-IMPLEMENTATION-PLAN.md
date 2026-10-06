@@ -1038,6 +1038,39 @@ Rules:
 
 Use a schema bump when the structural representation itself changes incompatibly. The reader-version guard avoids unnecessary schema churn for additive but behavior-bearing semantics.
 
+### Published-old-CLI mutation fence
+
+`minimumReaderVersion` protects **new code that reads the manifest**. It cannot
+retroactively change an already-published CLI path that mutates without reading the
+manifest first.
+
+Current v0.9.3 `rollback` is such a path: it acquires `.vcp/update.lock`, selects
+a backup, and restores it without first calling `readManifest()`.
+
+Therefore schema-v2 needs an on-disk compatibility fence that old mutating CLIs
+already respect:
+
+~~~text
+schema-v1 managed project
+→ actual lifecycle lock remains .vcp/update.lock
+
+successful schema-v1 → schema-v2 migration
+→ leave .vcp/update.lock present as a persistent legacy-CLI blocker/sentinel
+→ schema-v2-capable VCP uses a new actual lifecycle lock path
+   (for example .vcp/lifecycle.lock)
+~~~
+
+Requirements:
+
+- v0.9.x update/manage/rollback sees the legacy lock path occupied and fails before mutation;
+- new schema-v2 lifecycle code recognizes the sentinel as compatibility state, not an active new-CLI lock;
+- schema-v1 operations performed by the new CLI continue to coordinate through the legacy lock until migration commits;
+- if migration rolls back to schema-v1, the persistent sentinel is not left behind;
+- schema-v2 `.vcp/.gitignore` ignores both the persistent legacy blocker and the new runtime lock;
+- release smoke must run the actual previous released CLI against a migrated fixture and prove its mutating lifecycle commands fail before changing project files.
+
+This is stronger than assuming future code changes can make old binaries call a new reader guard.
+
 ## 3.6 Verification-command authority in brownfield AGENTS.md
 
 Current Task/Doctor command discovery scans AGENTS.md for command slots such as:
@@ -1444,6 +1477,30 @@ The agent must replace/remove placeholder rows from repository evidence before r
 
 This same rule later applies to L1/L3 renderers: workflow level changes ceremony, not the repository's governing-document namespace.
 
+### Recovery must remain possible when the current manifest is corrupt
+
+Fail-closed compatibility must not make recovery impossible.
+
+A current compatible CLI may need to roll back precisely because the active manifest
+is malformed or partially written. Therefore the new rollback design validates the
+**recovery artifact** itself before mutation:
+
+- backup metadata has its own version/reader contract;
+- a backed-up manifest, when present, is validated for compatibility before restore;
+- an initial-adoption backup explicitly represents "no prior manifest";
+- an interrupted transaction record also has a version/reader contract;
+- if the active manifest is readable, its schema/minimumReaderVersion is checked;
+- if the active manifest is malformed/missing, explicit recovery may proceed only
+  from a compatible, validated backup/transaction target.
+
+Do not require successful parsing of the damaged current manifest as an unconditional
+precondition for recovery.
+
+The persistent legacy-CLI mutation fence above protects against an old CLI attempting
+this recovery with semantics it cannot understand.
+
+---
+
 ## 3.12 Definition of done
 
 Smart adoption is complete only when:
@@ -1467,6 +1524,7 @@ Smart adoption is complete only when:
 - packaged prompt fallback, Context, and Doctor agree without widening project authority;
 - brownfield standing instructions and generated Task Packs never require/fabricate starter paths absent from the adopted assetSet;
 - schema migration makes legacy entries explicit whole-file ownership;
+- schema-v2 migration establishes a real old-CLI mutation fence, and previous-release update/manage/rollback fail before mutation;
 - lock bootstrap leaves no stray VCP state when Stage 13 blocks before backup;
 - rollback restores both prior content **and prior absence of lifecycle state**, including removal of operation-created first-adoption backup/internal scaffolding after successful restore;
 - first post-adoption `vcp task` produces an assetSet-appropriate Source-of-Truth scaffold rather than nonexistent canonical starter paths;
