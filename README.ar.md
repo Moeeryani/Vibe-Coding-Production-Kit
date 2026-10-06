@@ -35,7 +35,7 @@ npx --yes github:Moeeryani/Vibe-Coding-Production-Kit \
   init . --agent all --stack auto --yes
 ```
 
-المتطلبات: **Node.js 22+**. الـCLI لا يملك runtime dependencies خارجية، ويستطيع اكتشاف JavaScript/Node.js وTypeScript وPython وGo من أدلة المستودع.
+المتطلبات: **Node.js 22+**. الـCLI لا يملك runtime dependencies خارجية، ويستطيع اكتشاف React Native وJavaScript/Node.js وTypeScript وPython وGo من أدلة المستودع داخل selected project root.
 
 إذا كانت هذه أول مرة تستخدم المشروع، ابدأ من [`docs/QUICKSTART.md`](docs/QUICKSTART.md).
 
