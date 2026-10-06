@@ -1,8 +1,8 @@
 # VCP Roadmap — System Completion Plan
 
 **Status:** Living execution roadmap and system-completion contract
-**Released baseline:** VCP `v0.9.2`
-**Current candidate:** VCP `v0.9.3` prepared but unpublished; tag creation/publication remain HUMAN DECISION
+**Released baseline:** VCP `v0.9.3`
+**Current candidate:** none — next bounded work is Stage 11 design, not a prepared release candidate
 
 This is the current execution roadmap. Historical handoffs and design documents remain evidence, but this file owns current status, sequencing, dependencies, and completion criteria.
 
@@ -90,7 +90,22 @@ Every roadmap capability must connect to this lifecycle or to infrastructure tha
 
 ## 4. Current State
 
-### ✅ Immutable released baseline — v0.9.2
+### ✅ Current immutable released baseline — v0.9.3
+
+Released and verified:
+
+- npm package: `vibe-coding-production@0.9.3`;
+- npm dist-tag: `latest -> 0.9.3`;
+- annotated tag: `v0.9.3`;
+- tag object: `2dba09f0375574d880ace812f9f7aae6ce5f222e`;
+- peeled/release commit: `dc3c6a6572e1b86994de5a46cfb8fc815ed45378`;
+- GitHub Release: `Vibe Coding Production Kit v0.9.3`;
+- published-registry clean-consumer smoke: both public CLI aliases report `0.9.3`;
+- Stages 3–10 are included in this released baseline.
+
+Do not move, delete, recreate, or silently republish the `v0.9.3` release identity.
+
+### ✅ Previous immutable released baseline — v0.9.2
 
 Already released:
 
@@ -262,13 +277,13 @@ Source-of-Truth freshness, decision lifecycle, negative decisions, task state, l
 
 Verification, Git-aware review, security profiles, prompt evaluation, architecture fitness, conformance.
 
-**Next:** maintain completed Stage 9 release-candidate evidence mechanics; keep publication/tag creation human-controlled and Linux/hosted compatibility as non-blocking conformance follow-up #69.
+**Next:** maintain the released Stage 9 evidence mechanics and immutable release discipline; keep future publication/tag creation human-controlled and Linux/hosted compatibility as non-blocking conformance follow-up #69.
 
 ### Track D — Repository Scale and Delivery
 
 CI evidence, monorepos, release automation, stack/mobile profiles, package/repo scale.
 
-**Next:** Linux/hosted compatibility proof when an authorized environment exists (#69), then mobile/repository-scale delivery work without reopening completed Stages 5–9.
+**Next:** design Stage 11 Mobile Profiles on top of the released v0.9.3 baseline; pursue Linux/hosted compatibility when an authorized environment exists (#69) without reopening completed Stages 5–10.
 
 ### Track E — Developer UX and Ecosystem
 
@@ -280,44 +295,42 @@ Onboarding, simple workflow, agent interoperability, reference projects, docs co
 
 ## 7. Dogfood-Derived Follow-Up Queue
 
-### #21 — Project-level required check commands
-Represent required commands such as `npm run check` without forcing them into inaccurate verification categories.
+### Historical completed follow-ups
 
-### #22 — Source-of-Truth reference parsing
-Do not interpret every Markdown code span as a file path; keep path safety deterministic.
+Issues `#21–#30` and `#48` are all **Closed / Completed** and are retained here as historical evidence, not active backlog:
 
-### #23 — Reference project context self-containment
-Make the flagship nested example run plan/implement/review/security/release context from a clean checkout without undocumented prompt copying.
+| Issue | Completed capability |
+|---|---|
+| #21 | Project-level required check commands |
+| #22 | Source-of-Truth reference parsing |
+| #23 | Reference project context self-containment |
+| #24 | Project-root semantics |
+| #25 | Canonical Task Pack convention |
+| #26 | Durable fresh-review findings |
+| #27 | Accept-vs-revoke race coverage |
+| #28 | Doctor detected-vs-preserved stack clarity |
+| #29 | Stage-directory cleanup contract |
+| #30 | Lifecycle exit-code semantics |
+| #48 | Task Pack completion finalization |
 
-### #24 — Project-root semantics
-Make task/readiness/context/verify agree on the owning root and reference resolution in nested `--dir` workflows.
+### Open non-blocking follow-ups
 
-### #25 — Canonical Task Pack convention
-Unify current generated tasks with older `docs/delivery/TASK-*` examples without silently deleting historical user artifacts.
+#### #69 — Linux/hosted execution compatibility
 
-### #26 — Durable fresh-review findings
-Preserve concise material finding/disposition evidence so continuation does not depend on reviewer chat.
+Prove cross-OS/hosted conformance when an authorized environment with Node >=22 and Git is available. This remains non-blocking because the accepted fresh-clone Windows exact-head evidence channel is proven and the current hosted Actions failure occurs before any repository step executes.
 
-### #27 — Accept-vs-revoke race coverage
-Add a deterministic service-level concurrency test to the invitation reference slice.
+#### #73 — Concurrent local filesystem replacement TOCTOU
 
-### #28 — Doctor detected vs preserved stack clarity
-Explain when deterministic detection differs from the intentionally preserved lifecycle profile.
+Investigate a portable root-anchored/no-follow confinement design for concurrently replaced local paths. Current static traversal/symlink/digest contracts remain valid; do not claim an atomic filesystem snapshot.
 
-### #29 — Stage-directory cleanup contract
-Define whether empty `.vcp/stage/` is removed or intentionally retained after successful lifecycle operations.
+### Intentionally deferred design
 
-### #30 — Lifecycle exit-code semantics
-Document no-work / work-available / blocked / failure semantics for scripting and CI.
-
-### #48 — Task Pack completion finalization
-Keep final Task Pack status and bounded verification evidence synchronized after successful exact-head validation and merge so restartability does not depend on stale `pending` / prior-failure text.
+The Dependency Graph Engine / Slice D remains designed but deferred. Re-open it only if later dogfood proves a concrete ambiguity, restartability, cycle, dependency-frontier, or AFK-eligibility problem that current Task Pack semantics cannot solve safely.
 
 Prioritize by dependency and user impact, not issue number.
-
 ---
 
-## 8. Remaining v1 Stages
+## 8. Completed v1 Stages + Next Design Stage
 
 ### Stage 3 — Git-aware bounded review
 
@@ -448,7 +461,7 @@ Stage 9 automates repeatable **release-candidate evidence** without automating a
 
 The command never executes actual `npm publish`, creates/moves/deletes tags, creates GitHub releases, or deploys. A green `vcp release-check` result proves the declared candidate mechanics only; **release approval and publication remain HUMAN DECISION actions**.
 
-The repository prepares `vibe-coding-production@0.9.3` as an unpublished candidate with an explicit `0.9.2 -> 0.9.3` migration. Stage 9 completion does not claim that `v0.9.3` exists or that npm publication occurred.
+The Stage 9 candidate mechanics were subsequently used to release `vibe-coding-production@0.9.3` from exact commit `dc3c6a6572e1b86994de5a46cfb8fc815ed45378`, with immutable annotated tag `v0.9.3`, npm publication, clean-consumer registry smoke, and a non-draft/non-prerelease GitHub Release. The automation contract itself still does not infer or perform approval/publication.
 
 This Done state reaches `main` only through the standard exact-head Review → pre-final gate → Task Pack-only finalization → final gate sequence.
 
@@ -470,11 +483,29 @@ Stage 10 adds a deliberately narrow declarative extension model:
 
 A React Native-readiness fixture dogfoods the plugin model only. It does **not** implement native mobile detection or make the separate Mobile profiles commitment complete.
 
-### Mobile profiles
+### Stage 11 — Mobile Profiles
 
-**Status:** ⬜ Planned commitment retained from the public roadmap.
+**Status:** 🟡 Design — Issue #82 / Task Pack `docs/tasks/stage11-mobile-profiles.md`.
 
-Define detection, generated guidance, verification, nested-project behavior, lifecycle updates, and plugin/profile compatibility before implementation.
+Stage 11 is the next bounded product stage after the published `v0.9.3` baseline. Design must be approved before implementation.
+
+The stage must define:
+
+- deterministic mobile project/profile detection and ambiguity behavior;
+- first-party generated mobile guidance;
+- verification-command discovery without invented simulator/device/signing/deploy commands;
+- nested-project and monorepo behavior consistent with Stage 5 project/workspace authority;
+- lifecycle init/update/re-profile semantics consistent with requested-vs-resolved stack provenance;
+- explicit compatibility and precedence with Stage 10 community profiles/plugins;
+- mobile signing/secrets/privacy boundaries;
+- realistic mobile conformance and negative/ambiguous fixtures;
+- exact completion/release evidence.
+
+The existing React Native-readiness community fixture remains **Stage 10 plugin dogfood only** and does not become built-in authority by implication.
+
+**HUMAN DECISION before implementation:** select the first built-in ecosystem boundary. Issue #82 proposes React Native as the first built-in profile, while Flutter/native iOS/native Android remain follow-ups; this proposal is not implementation authority until explicitly approved.
+
+Dependency Graph Engine / Slice D remains deferred and is not a Stage 11 dependency.
 
 ---
 
@@ -655,14 +686,14 @@ Add future `SYSTEM-CONTRACT.md` / `QUALITY-GATES.md` only if they reduce ambigui
 
 ## 15. Recommended Execution Order From Current Main
 
-1. Preserve the fresh-clone Windows exact-head evidence channel adopted under closed Issue #15; keep Linux/hosted compatibility as non-blocking follow-up #69.
-2. Maintain completed Stage 5 monorepo/workspace semantics and conformance.
-3. Maintain completed Stage 6 project-sensitive security profiles.
-4. Maintain completed Stage 7 prompt behavioral evaluation and expand canonical scenarios only when new workflow evidence justifies them.
-5. Maintain completed Stage 8 explicit architecture fitness functions without expanding them into inferred graph authority.
-6. Maintain completed Stage 9 release-candidate mechanics without automating approval or publication.
-7. Extend mobile/plugins/ecosystem only after core contracts stabilize.
-8. Revisit broader graph validation/eligibility only if later dogfood demonstrates a concrete problem that required metadata would solve.
+1. Treat released `v0.9.3` as the immutable current baseline; do not mix Stage 11 work into that released identity.
+2. Complete Stage 11 Mobile Profiles design/readiness under Issue #82 and `docs/tasks/stage11-mobile-profiles.md`.
+3. After explicit approval of the built-in ecosystem boundary, implement Stage 11 as bounded vertical slices with exact-head evidence.
+4. Preserve completed Stage 5 monorepo/workspace semantics, Stage 6 security profiles, Stage 7 prompt evaluation, Stage 8 architecture fitness, Stage 9 release mechanics, and Stage 10 plugin trust boundaries through Stage 11.
+5. Keep Linux/hosted compatibility as non-blocking follow-up #69 until an authorized execution environment exists.
+6. Keep #73 as an explicit residual filesystem-concurrency risk unless a portable complete confinement design becomes available.
+7. Pursue broader cross-agent/ecosystem conformance after the bounded Stage 11 mobile contract is proven.
+8. Revisit Dependency Graph Engine / Slice D only if later dogfood demonstrates a concrete problem that required graph metadata would solve.
 
 ---
 
