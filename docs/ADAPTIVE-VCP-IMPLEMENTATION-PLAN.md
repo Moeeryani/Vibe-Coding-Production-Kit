@@ -1366,8 +1366,10 @@ This is a narrow adoption-safety check, not capability persistence.
 > block `--yes` adoption outright. Required behavior: classify `stack: generic`,
 > record the competing evidence list in the (non-persisted) plan output for human
 > visibility, install only stack-neutral assets, and require an explicit
-> HUMAN DECISION (interactive or `--stack`/`--capabilities` flag) before
-> installing any stack-specific assets or recording capability state. Capability
+> HUMAN DECISION (interactive or an explicit Stage-12-supported `--stack`
+> / selected-project-root choice) before installing any stack-specific assets.
+> Capability-specific CLI/configuration does not exist until Phase 4 and must not
+> be referenced as a Stage-12 escape hatch. Capability
 > composition itself stays in Phase 4; this fallback only guarantees the flagship
 > capabilities case never dead-ends adoption.
 
@@ -3838,19 +3840,38 @@ Measure:
 6. require explicit task selection for material work and explicit base/head refs for L0;
 7. prove missing/shallow refs or unsupported environment prerequisites fail closed.
 
-> [AUDIT 2026-10-06 — PRE-IMPLEMENTATION] Phase-8 entry criterion: the
-> PR↔task-selection contract must be specified before Phase 8 begins (not
-> discovered during it). Until then, "task selection is repository/CI
-> configuration" is a gap, not a design: for a PR with no corresponding Task
-> Pack the gate cannot evaluate, and CI reports a configuration error rather
-> than a merge decision. Required: define the selection mechanism (e.g.
-> conventional branch/task-slug mapping, PR-body trailer, explicit CI input),
-> the one-task-per-PR norm (a perpetual "general work" task spanning many PRs
-> is an anti-pattern the gate must flag, since review provenance binds to a
-> head), and the fail-closed behavior when no task is selected. Also required:
-> CI jobs must use full-history checkouts (`fetch-depth: 0`) — shallow clones
-> silently break base/head provenance.
+> [EXTERNAL RE-AUDIT 2026-10-06] Initial Phase-8 PR↔task selection
+> contract is now specified:
 >
+> ~~~text
+> explicit material-task selector present
+> → run vcp gate <task> --run
+>
+> no task selector present
+> → attempt L0 gate using explicit PR base/head
+> → L0 passes: check passes
+> → L0 says material/promotion required: check blocks and instructs the author to
+>   provide one VCP task selector
+> ~~~
+>
+> Initial provider integrations support **one primary Task Pack per PR**. Multiple
+> task selectors block with an actionable message: split the PR or create/use one
+> bounded primary task whose accepted scope covers the PR. This is an intentional
+> first-release constraint, not a hidden assumption.
+>
+> Core gate does not parse PR prose. Provider adapters map platform metadata to the
+> task slug. For GitHub, the initial adapter may use a strict PR-body trailer such
+> as `VCP-Task: <slug>` (exact syntax finalized with Phase-8 CLI docs); other CI
+> providers pass an explicit environment/input value.
+>
+> Required CI properties:
+> - full Git history/base refs available (no shallow guessed provenance);
+> - stable unique VCP check/job name;
+> - gate job is not hidden behind path filters that can skip the required check;
+> - `pull_request` is supported, and `merge_group` is included when merge queues
+>   are part of the repository policy;
+> - missing/invalid/multiple task selection fails closed for material work.
+
 > [AUDIT 2026-10-06 — PRE-IMPLEMENTATION] Until Phase 8 lands, document honestly
 > that local gates are cooperative, not enforcement: any local lifecycle command
 > can be skipped by a non-cooperating agent. The enforcement boundary is CI.
@@ -3867,18 +3888,10 @@ The primary router is already packaged in Phase 6. Phase 9 expands the UX only a
 6. enforce progressive disclosure in Skill/reference loading;
 7. broaden cross-agent installer/packaging conformance beyond the minimum Phase-6 router surface.
 
-> [AUDIT 2026-10-06 — PRE-IMPLEMENTATION] Required Phase-9 entry decision:
-> evaluate SKILL.md (open standard, Linux Foundation AAIF; natively supported by
-> Codex, Gemini CLI, Copilot, Cursor, 26+ platforms) as the Task Pack
-> serialization format before building more Skill surface. VCP's Task Packs map
-> closely to Skills (name+description with progressive disclosure, body on
-> demand, scripts without entering context); a proprietary format becomes an
-> integration liability the moment users want packs to run outside VCP's own
-> adapters. Decision required in writing: either adopt SKILL.md (with VCP
-> extensions for readiness/verification/review-provenance metadata) or document
-> why VCP's Task Pack semantics cannot be expressed in it. Do not silently
-> default to proprietary. (Namespace VCP pack names regardless: ~46% name
-> collisions observed in the public skill ecosystem.)
+> [EXTERNAL RE-AUDIT 2026-10-06] Resolved: Task Packs do **not** become
+> SKILL.md. §9.2A is authoritative. Skills remain reusable procedural UX packages;
+> Task Packs remain per-change durable Core state parsed by readiness/context/gate.
+> Phase 9 only decides packaging/reference details for reusable Skills.
 
 ### Validation Checkpoint D — Is VCP complexity actually hidden?
 
@@ -4105,8 +4118,8 @@ PRE-IMPLEMENTATION]` at their sections.
 | 3 | §3.10 | Specified polyglot fallback: `stack: generic`, evidence listed, stack-neutral assets only, HUMAN DECISION before stack-specific assets |
 | 4 | §3.5 (ADOPT) | Marker presence ≠ authorship: ADOPT requires empty-or-canonical section content; code-fence-aware marker scanning |
 | 5 | §8.5 (L3) | Security-review fingerprint = content digest only; package version is metadata, not fingerprint input (breaks the upgrade-aversion loop) |
-| 6 | §7/Phase 8 | Phase-8 entry criterion: PR↔task-selection contract specified before Phase 8; `fetch-depth: 0` required; local gates documented as cooperative until Phase 8 |
-| 7 | §9/Phase 9 | Required Phase-9 entry decision: evaluate SKILL.md as the Task Pack serialization format (adopt or justify in writing) |
+| 6 | §7/Phase 8 | PR↔task selection resolved for first release: one explicit material Task Pack per PR; absent selector attempts L0 then blocks on material work; full-history refs, non-skippable stable gate job, and merge-group support where applicable |
+| 7 | §9/Phase 9 | Resolved: Task Packs remain durable Core artifacts; SKILL.md is only for reusable Skill UX/procedure packaging |
 | 8 | §13 (Stage 12) | Retired the misleading "read-only" shorthand; precise boundary stated; v1→v2 migration stays in Stage 12 via the existing transactional update path (adjudicated against a worker's SPLIT proposal — see final report) with tightened exit criteria |
 | 9 | §13 (checkpoints) | Every checkpoint needs a mechanical DONE signal (checkable artifact); Checkpoint E must record deletions |
 
