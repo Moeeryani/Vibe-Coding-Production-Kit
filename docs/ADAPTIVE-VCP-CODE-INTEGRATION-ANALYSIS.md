@@ -1326,6 +1326,166 @@ Must prove:
 - normal `vcp update` works immediately after adoption;
 - apply is idempotent.
 
+
+## 4.10 Persisted asset-surface identity
+
+A minimal brownfield adoption cannot be correct if the next vcp update immediately rebuilds the full legacy template surface.
+
+Persist install-surface identity as lifecycle state.
+
+Conceptually:
+
+~~~text
+legacy-full-v1
+brownfield-minimal-v1
+~~~
+
+Exact identifiers are not important; reproducible desired-state behavior is.
+
+Required propagation:
+
+- buildManifest / centralized install metadata;
+- schema-v1 → schema-v2 migration;
+- init plan/apply;
+- buildDesiredFiles or its successor;
+- update-plan;
+- manage track;
+- Doctor expectations;
+- rollback/restore.
+
+Do not abuse ignoredFiles for this. Ignored paths represent project-owner lifecycle choices, not which VCP product surface was installed.
+
+Phase 2 may deliberately migrate legacy-full and brownfield-minimal to a later unified consumer surface.
+
+---
+
+## 4.11 GitHub request provenance
+
+Current CLI parsing defaults includeGitHub=true before repository classification.
+
+For Smart Init this loses a material distinction:
+
+~~~text
+default/unspecified
+!=
+developer explicitly requested GitHub assets
+~~~
+
+Stage 12 planning needs tri-state request provenance such as:
+
+~~~text
+unspecified
+include
+exclude
+~~~
+
+For EXISTING repositories:
+
+- unspecified → no optional GitHub hygiene mutation;
+- include → only explicitly supported non-CI repository hygiene is eligible;
+- exclude → skip;
+- existing CI is always preserved.
+
+The current npm-specific workflow is never part of brownfield Smart Init.
+
+For NEW repositories, old default behavior may be retained temporarily for compatibility until Phase 2/3.
+
+The planner input needs provenance; the lifecycle manifest only needs the actual installed decision/profile required to reproduce desired state.
+
+---
+
+## 4.12 Verification-command authority must be inspected, not first-match parsed
+
+lib/verification-commands.mjs and Doctor currently use first-match regular expressions over the whole AGENTS.md.
+
+That is safe only while VCP controls the entire file.
+
+With brownfield section ownership, this can become ambiguous:
+
+~~~text
+project content:
+UNIT_TEST_COMMAND=project test
+
+VCP section:
+UNIT_TEST_COMMAND=detected test
+~~~
+
+The current parser silently chooses whichever matching line appears first.
+
+Stage 12 should introduce one shared command-authority inspection helper.
+
+Conceptual output per key:
+
+~~~text
+missing
+unique(value, source)
+duplicate-equivalent
+duplicate-conflicting
+~~~
+
+Required rules:
+
+- one unambiguous existing project-owned command → preserve/use; do not add a conflicting duplicate;
+- no occurrence → VCP section may contribute an evidence-backed value/placeholder;
+- equivalent duplicates → normalize deliberately or report; never rely on ordering;
+- conflicting duplicates → adoption CONFLICT/HUMAN DECISION.
+
+Task creation and Doctor must consume the same effective-command resolver.
+
+This is not the same as moving commands out of AGENTS.md. That larger storage migration remains separate.
+
+---
+
+## 4.13 Reserved .vcp state and brownfield stack ambiguity
+
+### Reserved .vcp path
+
+If .vcp exists without a valid recognizable VCP manifest, repository inspection must not classify the directory as harmless free space.
+
+Treat unknown pre-existing state as CONFLICT unless a narrowly defined recovery contract recognizes it.
+
+First-adoption recovery metadata must also know whether .vcp existed before the transaction so rollback does not delete unrelated prior content.
+
+### Stack ambiguity before capabilities
+
+Stage 12 continues using the Stage 11 single-stack API for compatibility.
+
+However, auto selection in an established root must not claim that detector precedence proves project intent when multiple major stack-family markers coexist.
+
+Repository inspection should record ambiguity separately from detectStack compatibility output.
+
+When material ambiguity exists:
+
+- explicit selected project root or stack selection may resolve it;
+- otherwise the plan should expose a decision/conservative fallback;
+- do not persist a fabricated capability set.
+
+This is an adoption safety guard, not early implementation of Workstream C.
+
+---
+
+## 4.14 Prompt resolver and Doctor must land together
+
+Stage 12 package prompt fallback changes the definition of "prompt available."
+
+Current Doctor directly checks for project-local plan/review prompt files.
+
+That would make a correctly adopted brownfield project warn immediately after successful init.
+
+Therefore the canonical prompt resolver must be reusable by at least:
+
+- Context Pack construction;
+- Doctor plan/review availability;
+- tests/fixtures that prove project override precedence.
+
+The reference SaaS fixture currently proves local prompt parity/no fallback behavior. When fallback lands, update that contract:
+
+- local prompt copies remain a deliberate **override** fixture;
+- add a separate fallback test/fixture proving canonical package resolution;
+- do not leave documentation claiming there is no fallback.
+
+Doctor's broader framework-validator/CI assumptions are handled by install-surface awareness and later Phase 2/3 work; the prompt-source contradiction cannot wait.
+
 # 5. Workstream A1 — Existing AGENTS/CLAUDE/Copilot files require section-aware ownership
 
 This is the most important second-order effect discovered in the code review.
