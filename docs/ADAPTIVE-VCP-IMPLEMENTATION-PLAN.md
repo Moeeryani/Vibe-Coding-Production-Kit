@@ -671,6 +671,54 @@ VCP's own repository may require the justification for tasks that expand durable
 - default posture for new permanent state is "not yet" until enforcement/dogfood demonstrates need;
 - VCP's user-facing complexity does not grow automatically with internal capability count.
 
+
+## 2A.6 Terminology and orthogonality
+
+Adaptive VCP introduces several concepts that must not be collapsed into one overloaded word such as "mode".
+
+Use these terms consistently:
+
+~~~text
+workflowMode
+  auto | manual
+  → how VCP is triggered for a developer request
+
+workflowLevel
+  L0 | L1 | L2 | L3
+  → how much durable contract / verification / review ceremony the change requires
+
+executionMode
+  AFK | HITL
+  → who can execute the work; existing Operating Model concept
+
+contextMode
+  plan | implement | review | security | release
+  → what bounded Context Pack is being built
+
+dependency / readiness state
+  blocked | ready | ...
+  → whether the work is eligible to proceed
+~~~
+
+These dimensions are orthogonal.
+
+In particular:
+
+- workflowLevel does not imply AFK or HITL;
+- Auto mode does not make blocked work executable;
+- Manual mode does not weaken readiness, Source-of-Truth, verification, or gate semantics when VCP is invoked;
+- dependencies/readiness still determine eligibility before execution-mode scheduling;
+- contextMode remains the existing vcp context --mode contract and must never be reused for Auto/Manual state.
+
+This preserves the existing rule:
+
+~~~text
+dependencies first
+then execution mode
+~~~
+
+while adding right-sized workflow ceremony as a separate concern.
+
 # 3. Workstream A — Smart `vcp init` for new, existing, and managed repositories
 
 ## 3.1 Current situation
