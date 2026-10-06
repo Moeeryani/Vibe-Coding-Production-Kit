@@ -495,7 +495,9 @@ The consistency audit found a process/evidence mismatch that must not be hidden:
 - the implementation Task Pack was marked Done at merge; this consistency audit corrected it to Review because the final rerun evidence is missing;
 - the pre-final exact-head gate and fresh review are durably recorded;
 - Task Pack finalization is recorded;
-- the required post-finalization exact-head rerun remains unchecked;
+- `c7af261… -> bcc79c1…` is a single Task-Pack-only finalization commit, so the reviewed implementation surface did not change;
+- the required post-finalization Windows exact-head rerun remains unchecked/unrecorded;
+- both hosted `Framework Validation` runs on `bcc79c1…` failed before job steps were reported; those hosted failures are not equivalent to the accepted Windows gate and remain within the separately tracked #69 compatibility boundary;
 - the PR nevertheless merged.
 
 No missing historical verification is inferred.
