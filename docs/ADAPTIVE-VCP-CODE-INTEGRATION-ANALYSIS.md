@@ -373,6 +373,383 @@ New lifecycle features must continue to use:
 
 ---
 
+
+# 3A. Product-experience requirements translated into code
+
+The strategic plan now adds five product invariants:
+
+1. invisible-by-default UX;
+2. human-attention budget;
+3. progressive disclosure;
+4. validation checkpoints;
+5. Complexity ROI.
+
+These must produce implementation and test consequences. Otherwise they are only aspirations.
+
+---
+
+## 3A.1 Invisible-by-default UX — implementation contract
+
+### Required technical behavior
+
+Auto mode must be operable from normal developer intent without requiring manual sequencing of:
+
+~~~text
+vcp task
+vcp ready
+vcp context
+vcp verify
+vcp gate
+~~~
+
+Those commands remain public because agents, CI, advanced users, debugging tools, and Manual mode need them.
+
+But Auto mode must provide a routing surface above them.
+
+The expected runtime relationship is:
+
+~~~text
+developer intent
+      ↓
+agent adapter / VCP Skill router
+      ↓
+inspect VCP project state
+      ↓
+select workflow level
+      ↓
+invoke VCP Core commands
+      ↓
+surface only:
+  - real human decisions
+  - blockers
+  - evidence
+  - outcome
+~~~
+
+### Affected implementation surfaces
+
+At minimum:
+
+- AGENTS integration content;
+- lib/adapters.mjs;
+- workflowMode state;
+- packaged Skills;
+- prompt/Skill evaluation;
+- human-facing command/report formatting;
+- future workflow-level routing contract.
+
+### Do not hide inspectability
+
+Invisible-by-default does not mean hidden state.
+
+The user must still be able to inspect:
+
+- task state;
+- readiness;
+- context sources;
+- verification commands/results;
+- gate failures;
+- lifecycle/update state.
+
+The distinction is:
+
+> Users should not have to operate the internals continuously in order to benefit from them.
+
+### Required tests
+
+Add behavior/conformance tests proving that a representative Auto-mode L2 request can be completed through the agent/Skill contract without a test fixture pretending the user manually issued every VCP command.
+
+The evaluation may still simulate the agent's command calls internally.
+
+The observable user interaction should contain only:
+
+- necessary decisions;
+- material progress/outcome;
+- evidence/blockers.
+
+---
+
+## 3A.2 Human-attention budget — implementation and evaluation contract
+
+### Existing assets to reuse
+
+The repository already has a strong foundation:
+
+- prompts/01-discovery.md;
+- AGENTS.md human decision boundary;
+- prompt-eval properties;
+- repository inspection;
+- Source-of-Truth references;
+- Context Pack composition.
+
+Do not create a second question-classification framework.
+
+### Add explicit evaluation properties
+
+Extend prompt/Skill behavior evaluation with properties equivalent to:
+
+~~~text
+discoverable-question-not-asked
+human-decisions-grouped
+redundant-confirmation-avoided
+proposal-not-silently-approved
+~~~
+
+Exact property names may differ, but they must be machine-evaluable from normalized behavior records.
+
+### Normalized observations should capture
+
+Where practical:
+
+- candidate question/decision ID;
+- classification: DISCOVERABLE / PROPOSABLE / HUMAN DECISION;
+- whether repository evidence already contained the answer;
+- whether the agent asked the user;
+- whether questions were grouped;
+- whether a proposal was treated as approval;
+- whether a repeated question should have been persisted as durable project truth.
+
+Do not store full private conversational transcripts merely to evaluate this. Preserve bounded observations.
+
+### Core vs Skill boundary
+
+The classification conversation itself remains Skill/agent behavior.
+
+Core should provide deterministic evidence that makes questions discoverable:
+
+- project capabilities;
+- existing commands;
+- Source of Truth;
+- accepted decisions;
+- task state;
+- Git/CI facts.
+
+### Required regression behavior
+
+A new capability/profile/context feature is incomplete if it discovers useful facts but Skills still ask users for those same facts.
+
+---
+
+## 3A.3 Progressive disclosure — resolver and Context Pack contract
+
+### Required loading tiers
+
+Implement a layered source model:
+
+~~~text
+Tier 0 — minimal always-on integration
+  AGENTS/VCP routing policy only
+
+Tier 1 — workflow guidance
+  L0 / L2 / L3 relevant guidance
+
+Tier 2 — task context
+  Task Pack
+  authoritative Source of Truth
+  affected architecture/files
+
+Tier 3 — risk/profile context
+  only relevant security/profile/migration/recovery material
+
+Tier 4 — deep references
+  loaded only when explicitly required
+~~~
+
+These are conceptual tiers. They do not require one physical directory per tier.
+
+### Affected code
+
+Primarily:
+
+- lib/context.mjs;
+- canonical prompt resolver;
+- lib/security-profiles.mjs;
+- lib/community-plugins.mjs;
+- future capability/profile composer;
+- Skills packaging;
+- Context Pack manifest/budget;
+- prompt evaluation.
+
+### Context manifest requirement
+
+The Context Pack manifest should make inclusion provenance inspectable.
+
+For each non-trivial source it should be possible to determine:
+
+- source identity;
+- source type;
+- why it was included;
+- relevant workflow mode/level/profile if applicable.
+
+Avoid adding verbose prose if structured metadata suffices.
+
+### Negative tests
+
+Tests must prove absence, not only presence.
+
+Examples:
+
+- L0 does not contain unrelated threat-model/profile material;
+- a backend-only task does not load unrelated mobile profile guidance;
+- an installed community plugin that is not selected/relevant does not enter context;
+- all packaged prompts are not concatenated merely because package fallback exists;
+- deeper Skill reference documents are not required for Skill discovery.
+
+### Budget interaction
+
+Existing Context Pack budgets remain authoritative.
+
+Progressive disclosure should reduce what competes for that budget rather than merely increase the budget.
+
+---
+
+## 3A.4 Validation checkpoints — engineering evidence contract
+
+Roadmap checkpoints must use durable, reviewable evidence.
+
+Do not make checkpoint approval depend on memory of a conversation.
+
+Recommended location can be project/release evidence or dedicated dogfood reports; exact persistence can be decided per phase.
+
+### Checkpoint A — adoption
+
+Collect:
+
+- target repository class;
+- files added/changed/removed;
+- conflicts;
+- existing instruction preservation result;
+- existing CI preservation result;
+- questions asked;
+- questions retrospectively classified as discoverable;
+- manual remediation;
+- install-to-first-productive-work steps.
+
+### Checkpoint B — adaptation
+
+Collect:
+
+- capability detector outputs;
+- false-positive corrections;
+- unknowns;
+- proposed commands;
+- accepted commands;
+- human corrections;
+- unsupported fallback result;
+- Context Pack size/delta attributable to adaptation.
+
+### Checkpoint C — Auto/gate
+
+Collect:
+
+- chosen workflow level;
+- actual appropriate level after review;
+- false-high-risk / false-trivial cases;
+- human interruptions;
+- redundant questions;
+- gate false positives;
+- genuine failures caught;
+- stale-evidence/bypass detections;
+- manual overrides.
+
+### Checkpoint D — Skills/invisible UX
+
+Collect:
+
+- VCP commands the user had to know/type;
+- VCP-specific concepts required before productive work;
+- human questions;
+- manual recovery events;
+- steps to complete representative workflow;
+- whether user-facing blocker output was sufficient without reading framework internals.
+
+### No vanity metrics
+
+Stars/downloads can be useful product signals later but they are not implementation correctness evidence.
+
+The checkpoints should primarily measure friction, safety, adaptation accuracy, and real prevented failures.
+
+---
+
+## 3A.5 Complexity ROI — contribution contract
+
+Any significant Core expansion should be required to justify itself in its Task Pack/design.
+
+Recommended section:
+
+~~~text
+## Why this belongs in VCP Core
+
+Failure prevented:
+Observed frequency / severity:
+Why agent-alone behavior is insufficient:
+Why Skill-alone behavior is insufficient:
+Why existing project tooling is insufficient:
+Deterministic requirement:
+New persistent state:
+Migration/lifecycle burden:
+User-visible complexity added:
+User-visible complexity removed:
+Dogfood evidence to collect:
+~~~
+
+### Where to enforce this
+
+Do not build a complicated parser immediately.
+
+First enforcement can be:
+
+- canonical Task Pack template section;
+- readiness check for designated "Core expansion" tasks, if/when a reliable marker exists;
+- review checklist;
+- contributor documentation.
+
+Only add deterministic parsing/gating if real contribution behavior shows prose review is insufficient.
+
+This follows VCP's own Complexity ROI rule.
+
+### Examples of Core expansion
+
+Likely requires justification:
+
+- new persistent manifest field with behavior;
+- new lifecycle state;
+- new long-lived CLI command;
+- new mandatory gate;
+- new migration class;
+- new managed consumer asset family.
+
+Usually does not require a full ROI record:
+
+- internal refactor;
+- bug fix preserving contract;
+- test coverage;
+- documentation correction.
+
+---
+
+## 3A.6 Product success is not command success
+
+The technical acceptance model must combine:
+
+~~~text
+correctness
++
+safety
++
+adaptation
++
+low ceremony
++
+low human interruption
++
+bounded relevant context
+~~~
+
+A release can be technically green and still fail the product checkpoint.
+
+That is intentional.
+
 # 4. Workstream A — Smart init without a separate adopt command
 
 ## 4.1 Current code involved
@@ -2698,6 +3075,23 @@ Avoid duplicating Git parsing.
 
 ---
 
+
+## lib/prompt-eval.mjs
+
+Needs:
+
+- new human-attention properties;
+- Skill/router behavior coverage;
+- normalized observations for discoverable-vs-human decisions;
+- regression cases for redundant questions and unnecessary confirmation.
+
+Avoid:
+
+- storing full chat transcripts;
+- provider/model-specific scoring when deterministic observable assertions are enough.
+
+---
+
 ## lib/release-check.mjs
 
 Must change when consumer framework assets are removed.
@@ -2723,6 +3117,27 @@ Do not copy it into arbitrary consumer projects.
 
 ---
 
+
+## Packaged Skills / Skill source
+
+New surface.
+
+Needs:
+
+- thin cross-agent routing Skills;
+- progressive reference loading;
+- canonical links into VCP Core rather than duplicated policy;
+- package/release inclusion;
+- prompt-eval behavior coverage.
+
+Risks:
+
+- Skills growing into a second copy of VCP;
+- all references loading eagerly;
+- Auto and Manual developing separate workflows.
+
+---
+
 ## .github/release-policy.json
 
 Update when new runtime/package assets become required.
@@ -2731,9 +3146,12 @@ Do not add every implementation doc automatically; add files required for releas
 
 ---
 
-# 19. Revised implementation order based on code dependencies
 
-The code review changes the safest sequencing slightly from the high-level plan.
+# 19. Revised implementation order with product validation gates
+
+The code dependency order remains important, but implementation is no longer an uninterrupted Phase 0→10 march.
+
+Each checkpoint can require simplification or deferral.
 
 ## Phase 0 — Internal refactors that enable safe changes
 
@@ -2745,8 +3163,6 @@ The code review changes the safest sequencing slightly from the high-level plan.
 Why first:
 
 Without these, later features would create temporary unsafe lifecycle behavior.
-
----
 
 ## Phase 1 — Smart init/adoption safety
 
@@ -2764,8 +3180,6 @@ Existing custom instructions survive init and a subsequent update.
 
 That second part is mandatory; an init-only green test is not enough.
 
----
-
 ## Phase 2 — Consumer asset separation
 
 1. package/local prompt resolver;
@@ -2780,7 +3194,20 @@ Exit criterion:
 
 A consumer can run task/context/verify/Doctor after install while containing only project-relevant VCP assets.
 
----
+### Checkpoint A — adoption experience
+
+Use the evidence contract in section 3A.4.
+
+Do not continue merely because unit/lifecycle tests are green.
+
+Required judgment:
+
+- safe?
+- low-noise?
+- low-question?
+- productive without learning VCP internals?
+
+If not, simplify before capability work.
 
 ## Phase 3 — CI safety, detection only
 
@@ -2790,12 +3217,6 @@ A consumer can run task/context/verify/Doctor after install while containing onl
 4. migration of old managed validate.yml.
 
 Do not generate new CI yet.
-
-Exit criterion:
-
-VCP never overwrites existing CI and never installs npm CI into non-Node projects.
-
----
 
 ## Phase 4 — Capability foundation
 
@@ -2807,11 +3228,16 @@ VCP never overwrites existing CI and never installs npm CI into non-Node project
 6. Doctor/update/manage integration;
 7. polyglot tests.
 
-Exit criterion:
+### Checkpoint B — adaptation quality
 
-Polyglot evidence survives without breaking existing simple stack behavior.
+Use the evidence contract in section 3A.4.
 
----
+Do not add broad community detector machinery if:
+
+- false positives remain high;
+- unsupported fallback is confusing;
+- command proposals are frequently corrected;
+- context inflation outweighs useful discovery.
 
 ## Phase 5 — Declarative profiles
 
@@ -2822,12 +3248,6 @@ Polyglot evidence survives without breaking existing simple stack behavior.
 5. community grants;
 6. Stage 11 React Native reframed onto capabilities.
 
-Exit criterion:
-
-A new ecosystem can extend detection/guidance/proposals without executable plugin code.
-
----
-
 ## Phase 6 — Workflow mode
 
 1. workflowMode persisted;
@@ -2836,12 +3256,6 @@ A new ecosystem can extend detection/guidance/proposals without executable plugi
 4. mode-aware VCP sections/adapters;
 5. Doctor visibility;
 6. prompt-eval/behavior regressions.
-
-Exit criterion:
-
-Auto/Manual changes trigger behavior but never rewrite user-owned instruction text.
-
----
 
 ## Phase 7 — Gate and initial workflow levels
 
@@ -2853,11 +3267,16 @@ Auto/Manual changes trigger behavior but never rewrite user-owned instruction te
 6. L2 current Task Pack gate;
 7. L3 high-risk additions.
 
-Exit criterion:
+### Checkpoint C — Auto/gate friction vs value
 
-An agent narrative alone cannot make a material task green.
+Use the evidence contract in section 3A.4.
 
----
+Do not wire mandatory CI gate behavior if:
+
+- local gate false positives are common;
+- users repeatedly bypass it for legitimate work;
+- L0/L2/L3 routing is unstable;
+- human interruptions rise without catching meaningful failures.
 
 ## Phase 8 — CI gate integration
 
@@ -2865,31 +3284,42 @@ An agent narrative alone cannot make a material task green.
 2. detect existing equivalent integration;
 3. keep application verification in VCP project contract.
 
-Exit criterion:
-
-CI integration is an enforcement surface, not duplicated project logic.
-
----
-
 ## Phase 9 — Skills UX
 
-Skills can begin earlier in parallel after Core contracts stabilize, but release them against stable command/state contracts.
+Skills may prototype earlier after Core contracts stabilize, but release them against stable command/state contracts.
 
-Use prompt-eval behavior tests.
+Requirements:
 
-Exit criterion:
+- thin routing;
+- progressive disclosure;
+- prompt-eval human-attention coverage;
+- same underlying flow for Auto and Manual.
 
-Manual user does not need CLI knowledge; Auto user does not need to invoke a Skill explicitly.
+### Checkpoint D — invisible UX
 
----
+Use the evidence contract in section 3A.4.
+
+Test with users/agents that have not learned VCP internals.
+
+The target is:
+
+~~~text
+Auto:
+"Build X"
+
+Manual:
+"/vcp Build X"
+~~~
+
+not framework operation training.
 
 ## Phase 10 — Full compatibility matrix and release hardening
 
 Run the complete fixture matrix through public CLI and package/release smoke.
 
-Update documentation claims to exactly what is proven.
+Preserve checkpoint evidence where practical and update documentation claims to exactly what is proven.
 
----
+A release candidate should be able to be technically green while still being held because a product checkpoint exposed unacceptable friction.
 
 # 20. High-risk implementation mistakes to avoid
 
@@ -2952,6 +3382,35 @@ Likely produces near-term lifecycle code that the capability model immediately r
 Reconcile Stage 11 with capabilities first.
 
 ---
+
+
+## 20.11 "Passing tests means the product is validated"
+
+False.
+
+Tests prove implementation contracts.
+
+They do not prove:
+
+- invisible UX;
+- low human interruption;
+- useful workflow classification;
+- acceptable false-positive rate;
+- worthwhile complexity.
+
+Use the product validation checkpoints.
+
+## 20.12 "Load all helpful context just in case"
+
+This defeats Context Pack discipline and progressive disclosure.
+
+Every source must earn inclusion for the current workflow.
+
+## 20.13 "Every useful idea belongs in Core"
+
+This recreates framework bloat.
+
+Apply the Complexity ROI contract first.
 
 # 21. Acceptance evidence for the overall redesign
 
@@ -3052,6 +3511,55 @@ Result:
 - rollback restores old project state.
 
 ---
+
+
+## Scenario H — invisible Auto UX
+
+A developer unfamiliar with VCP asks for a normal material feature.
+
+Result:
+
+- user does not manually invoke task/readiness/context/verify/gate;
+- agent/Skill routes internally;
+- only genuine human decisions interrupt;
+- final response gives outcome, evidence, risks and any unresolved decision;
+- deterministic CLI state remains inspectable afterward.
+
+---
+
+## Scenario I — human-attention discipline
+
+A discovery case contains a mixture of repository facts, safe proposals and true product decisions.
+
+Result:
+
+- discoverable items are resolved without questions;
+- proposals are labeled as proposals;
+- true human decisions are grouped;
+- no repeated question asks for already durable project truth.
+
+---
+
+## Scenario J — progressive disclosure
+
+An L0 documentation correction and an L3 authentication change are run in the same installed project.
+
+Result:
+
+- L0 context excludes unrelated security/profile/deep reference material;
+- L3 loads only the additional security/recovery material relevant to the change;
+- Context Pack manifests make the inclusion difference inspectable.
+
+---
+
+## Scenario K — Complexity ROI rejection
+
+A proposed new Core command duplicates behavior already handled reliably by a thin Skill or existing repository tooling.
+
+Result:
+
+- Task/design review can reject or redirect the feature without treating non-implementation as failure;
+- no unnecessary persistent state/migration surface is added.
 
 # 22. Final architectural judgment after inspecting the code
 
