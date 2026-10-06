@@ -2747,7 +2747,11 @@ Implement:
 15. previous-release lifecycle/release smoke proving old/new reader behavior;
 16. removal of destructive init `--force` behavior.
 
-Stage 12 must **not** perform Smart Init mutation into EXISTING repositories.
+Stage 12 must **not** perform Smart Init mutation into unmanaged EXISTING repositories.
+
+This read-only boundary applies to the **init/adoption path**, not to already-managed lifecycle updates. The Stage-12 release may and should migrate a MANAGED schema-v1 repository to the new lifecycle manifest/schema through the existing transactional `vcp update` path, with normal preview/conflict/backup/rollback guarantees.
+
+`vcp init` on that MANAGED repository still performs no migration itself; it redirects to lifecycle update/status.
 
 Transitional behavior:
 
