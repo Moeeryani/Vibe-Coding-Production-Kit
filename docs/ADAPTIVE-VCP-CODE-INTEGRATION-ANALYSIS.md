@@ -3516,6 +3516,46 @@ Shallow/missing refs cause a clear blocked result; do not guess a base.
 
 Do not overwrite unrelated CI. Do not duplicate application verification commands in YAML. Environment/bootstrap configuration is separate from verification authority.
 
+## 10.7A Platform enforcement state is separate from gate execution
+
+Running a CI gate check produces deterministic evidence. It does not necessarily
+block merge.
+
+For GitHub, merge enforcement depends on repository/platform policy such as a
+required status check in branch protection/rulesets (and merge-queue configuration
+where used).
+
+Model/report these separately:
+
+~~~text
+gatePolicy
+  disabled | advisory | required
+  → VCP/project intent
+
+platformEnforcement
+  detected-required
+  detected-not-required
+  unverified
+  unsupported
+  → observed platform state
+~~~
+
+Rules:
+
+- workflowMode never implies either field;
+- gatePolicy=required does not justify reporting "merge protected" when platform
+  enforcement is unverified;
+- if the GitHub connector/API permissions cannot inspect the protection/ruleset,
+  Doctor reports unverified instead of guessing;
+- generated GitHub Actions for merge queues must support the appropriate
+  `merge_group` event when a required check is expected there;
+- branch protection/ruleset bypass permissions remain platform policy outside VCP.
+
+VCP may guide setup or report what it can inspect, but Core must not claim to own
+GitHub merge policy.
+
+---
+
 ## 10.8 Definition of done
 
 - fresh Python/Go/unsupported project never receives npm-specific VCP CI;
@@ -3696,6 +3736,44 @@ The Phase-6 packaged router follows the same feature gate: it cannot invent L1/L
 Keep adapters/Skill routing thin.
 
 Do not paste the whole operating model into CLAUDE.md/Copilot files.
+
+---
+
+## 11.5A Nested/path-specific instruction precedence
+
+Root AGENTS/adapter routing is not guaranteed to be the final instruction set for
+every path.
+
+Supported coding agents can apply nested/path-specific instructions; for example,
+the nearest nested `AGENTS.md` may take precedence for work below that directory,
+and Copilot can also combine path-specific instruction files with repository-wide
+instructions.
+
+Implementation consequences:
+
+- Stage 12 repository inspection may inventory nested supported instruction files
+  as project-owned observations, but must not recursively compose VCP blocks into
+  them;
+- Phase 6 Doctor/status should warn when Auto mode's root VCP routing may be
+  shadowed/overridden in a subtree;
+- adapters/Skills must not claim that root standing instructions are universal;
+- Phase 7 gate remains the deterministic backstop for gate-covered work regardless
+  of routing/instruction precedence;
+- a future path-specific VCP integration requires its own explicit ownership,
+  precedence, and update contract.
+
+Required fixture:
+
+~~~text
+root AGENTS.md contains VCP Auto routing
+src/special/AGENTS.md contains local project instructions without VCP routing
+change occurs under src/special/**
+→ no silent nested-file rewrite
+→ Doctor/status can surface precedence risk
+→ gate behavior remains truthful
+~~~
+
+Do not try to "fix" the platform hierarchy by duplicating root policy everywhere.
 
 ---
 
@@ -4262,6 +4340,39 @@ Bad Skill responsibilities:
 
 ---
 
+## 13.2A Task Packs do not become SKILL.md
+
+Do not serialize VCP Task Packs as Agent Skills.
+
+The code/lifecycle contracts are different:
+
+~~~text
+Skill package
+→ reusable procedure/instructions/resources
+→ discovered/loaded for relevant tasks
+→ UX/orchestration layer
+
+Task Pack
+→ one task's durable repository artifact
+→ parsed by readiness/context/gate
+→ requirements + governing authority + verification + review + finalization
+~~~
+
+The packaged router/discovery/review Skills may invoke `vcp task`, read the Task Pack,
+or help the agent fill/update it, but the Task Pack remains Core-owned durable state.
+
+This avoids:
+
+- coupling durable task history to one agent's Skill loading semantics;
+- creating a second task serialization alongside `docs/tasks/*.md`;
+- confusing reusable behavior with per-change accepted evidence;
+- weakening the shared Task Pack parser/gate authority.
+
+The Phase-9 packaging decision is therefore about **how Skills reference VCP
+commands/prompts**, not whether Task Packs become Skills.
+
+---
+
 ## 13.3 Reuse prompt-eval
 
 The existing provider-independent prompt evaluation system already tests properties that matter to Skills:
@@ -4676,20 +4787,43 @@ verification command can hide in). Required definition:
 - The declared-outputs list is per-task, versioned with the Task Pack, and shown in
   `vcp gate --json` output for audit. It is not a global exemption list.
 - Gate evidence binds: task identity, workflow level the review was performed under
-  (required for mechanical promotion invalidation), plan artifact hash, reviewed
-  head SHA, finalization head SHA, command outcomes, and revision before/after.
-  Findings recorded post-review are append-only: the gate's semantic diff rejects
+  (required for mechanical promotion invalidation), a deterministic
+  **protected-task-contract digest** when persisted/needed, reviewed head SHA,
+  finalization head SHA, command outcomes, and revision before/after.
+- The protected-task-contract digest is derived from the shared parser's normalized
+  protected task semantics (requirements/authority/acceptance/scope/risk/
+  verification declarations/approved implementation approach), with stable text
+  normalization. It explicitly excludes append-only review/finalization/evidence
+  regions governed by the semantic-diff rule.
+- This digest is a Task Pack/gate identity. It is **not** a Smart Init preview-plan
+  hash and does not create saved-plan semantics.
+- Findings recorded post-review are append-only: the gate's semantic diff rejects
   any modification or downgrade of an existing finding (e.g. `must-fix` → `n/a`).
 
 ### [AUDIT 2026-10-06 — PRE-IMPLEMENTATION] CI-consumable gate receipt
 
-Local enforcement is bypassable; CI is the authoritative boundary (external evidence).
-The gate must therefore emit a machine-readable receipt (JSON to stdout, stable
-schema, versioned) containing the evidence binding above, so a remote CI job can
-re-verify lifecycle completion without trusting the local agent's word: CI checks
-the receipt's head SHAs against the PR head, re-runs `vcp gate` (or verifies the
-receipt signature/hash chain), and treats a missing/invalid receipt as block. Until
-Phase 8 lands, document honestly that local gates are cooperative, not enforcement.
+Local enforcement is bypassable. The gate should emit a machine-readable receipt
+(JSON to stdout, stable/versioned schema) containing the evidence binding above for
+diagnostics, CI output, and audit.
+
+Initial Phase-8 authority is simpler and stronger than inventing receipt signing:
+
+~~~text
+CI checks out the exact PR/merge-queue revision
+→ CI runs vcp gate itself
+→ that CI run's gate result/receipt describes the revision it just verified
+~~~
+
+A locally produced receipt is advisory and never authorizes merge by itself.
+
+Do **not** design receipt signatures, attestations, or a hash-chain trust protocol in
+the first release. Those would be separate features requiring a threat model, key/
+identity management, freshness/replay rules, and a real delegated-trust use case.
+
+CI becomes a platform merge-enforcement boundary only when the relevant check is
+actually required by branch protection/ruleset/merge-queue policy. Until Phase 8
+plus platform policy are in place, local/CI gate results are evidence, not an
+unbypassable merge guarantee.
 
 ## 14.10 Explicit result model
 
@@ -6136,7 +6270,7 @@ sequencing decisions; this appendix registers the technical amendments.
 | 5 | §4.12 | duplicate-equivalent → HUMAN DECISION (no silent normalization); adopted commands record provenance; destructive-pattern adoption requires explicit HUMAN DECISION; boundary in CLI resolver |
 | 6 | §5.3 | Marker presence ≠ authorship: ADOPT requires empty-or-canonical content; code-fence-aware scanning; Doctor staleness check for pinned VCP sections |
 | 7 | §8.5 (capabilities) | Capability REMOVE transitions never automatic — explicit project approval required (detector wobble → AGENTS.md CONFLICT churn) |
-| 8 | §14.9 | Precise "relevant worktree" definition: byte-identical except per-task declared `verification.outputs`; default evidence root `.vcp/evidence/<task>/` gitignored; gate evidence binds task identity + workflow level + plan hash + head SHAs + outcomes; post-review findings append-only via semantic diff |
+| 8 | §14.9 | Precise "relevant worktree" definition: byte-identical except per-task declared `verification.outputs`; default evidence root `.vcp/evidence/<task>/` gitignored; gate evidence binds task identity + workflow level + protected Task-contract identity/digest + head SHAs + outcomes; this is not a Smart-Init plan hash; post-review findings append-only via semantic diff |
 | 9 | §14.9 | CI-consumable gate receipt (versioned JSON schema); local gates documented as cooperative until Phase 8 |
 | 10 | §5.4/§8.6 | (via plan §3.5) section-ownership migration notes reference the authorship rule |
 
@@ -6161,7 +6295,6 @@ sequencing decisions; this appendix registers the technical amendments.
 - `vcp manage repair-markers` primitive: deferred; conflicts are actionable but
   manual until usage data justifies the primitive.
 - Answers-record exact format: Stage-13 design detail.
-- SKILL.md serialization decision: required before Phase 7 (plan §9).
 - Windows/macOS native CI runners for the conformance matrix.
 - Detector-DSL fuzzer (no real v2 community profiles yet).
 
@@ -6176,3 +6309,7 @@ sequencing decisions; this appendix registers the technical amendments.
   now closed by the amendments above.
 - No parallel backup engine, no second task database, no duplicate gate/CI
   engines introduced — the "no parallel machinery" constraints held.
+- Fresh external re-audit clarified that Smart Init intentionally uses speculative
+  preview + fresh re-plan (not saved-plan execution), that Task Packs remain Core
+  artifacts rather than SKILL.md, and that CI becomes merge-authoritative only
+  when the platform actually requires the VCP check.
