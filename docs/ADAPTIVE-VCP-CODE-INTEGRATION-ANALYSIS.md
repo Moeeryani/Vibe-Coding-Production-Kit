@@ -3259,7 +3259,7 @@ Important Stage 6 compatibility rule:
 
 > L3 does not automatically inject security-profile documents into plan/implement Context Packs.
 
-When active security profiles are relevant, L3 requires a dedicated security Context Pack/review. The existing rule that only contextMode=security auto-loads security profiles remains authoritative.
+When the deterministic L3 classifier/project risk policy requires a security review, L3 requires a dedicated security Context Pack/review. The existing rule that only contextMode=security auto-loads security profiles remains authoritative.
 
 Security-profile presence alone is not the trigger: the mandatory baseline profile exists whenever security mode is used. The deterministic L3 risk policy decides whether security review is required; active profiles then scope that review.
 
