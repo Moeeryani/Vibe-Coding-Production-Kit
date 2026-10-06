@@ -1072,6 +1072,27 @@ Read-only responsibilities:
 
 Classification affects planning/UX, not path-safety trust.
 
+Maturity rule after VCP-state inspection:
+
+~~~text
+NEW
+→ bounded inspection proves there is no meaningful project-owned content
+
+EXISTING
+→ meaningful project-owned content exists
+→ or inspection is ambiguous
+~~~
+
+Implementation notes:
+
+- ignore VCS internals such as `.git/` for the NEW/EXISTING content test; a freshly git-initialized empty root can still be NEW;
+- use a small explicit set of harmless metadata exclusions rather than a giant framework-specific ignore list;
+- source/manifests/docs/CI/agent/config/migration files are meaningful;
+- unknown non-ignorable entries and symlinks conservatively imply EXISTING/ambiguous;
+- avoid walking dependency/vendor/build caches recursively;
+- deterministic ordering/reporting is required;
+- do not classify an established root as NEW merely because its ecosystem is unsupported.
+
 ### init-plan
 
 One deterministic planner is shared by preview and later apply.
@@ -1425,6 +1446,8 @@ Do not rename the on-disk `.vcp/update.lock` merely for aesthetics in this stage
 Must prove:
 
 - NEW / EXISTING / MANAGED classification after lifecycle-readability inspection;
+- empty root and git-only-empty root classify NEW;
+- one unknown meaningful file/symlink classifies EXISTING/ambiguous rather than NEW;
 - malformed JSON manifest → VCP_STATE_CONFLICT, zero writes;
 - unsupported/newer schema → VCP_STATE_CONFLICT, zero writes;
 - minimumReaderVersion newer than running CLI → fail closed, zero writes;
@@ -4341,6 +4364,8 @@ Add fixtures for:
 ### repository maturity
 
 - empty;
+- git-initialized but otherwise empty;
+- one unfamiliar meaningful file;
 - established;
 - already VCP-managed;
 - pre-Adaptive/schema-v1 managed install;
