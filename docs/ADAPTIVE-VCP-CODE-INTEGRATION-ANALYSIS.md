@@ -1487,6 +1487,65 @@ Public CLI tests must include `--yes` on an established repo with existing CLAUD
 
 ---
 
+## 4.10A Agent preference vs persisted adapter targets
+
+Current `promptForOptions()` turns `-y` with no `--agent` into `generic`, and `buildDesiredFiles()` calls `adapterFiles(agent)` on every desired-state rebuild.
+
+For brownfield Smart Init, that conflates user choice with absence of choice and makes future adapter ownership lossy.
+
+Stage 12 planner input should preserve:
+
+~~~text
+agentPreference:
+  unspecified
+  explicit-generic
+  explicit-codex
+  explicit-cursor
+  explicit-claude
+  explicit-copilot
+  explicit-all
+~~~
+
+Repository inspection separately reports recognized dedicated surfaces:
+
+~~~text
+CLAUDE.md present
+.github/copilot-instructions.md present
+AGENTS.md present
+~~~
+
+Do not infer Codex vs Cursor from AGENTS.md; both consume it directly and there is no dedicated current adapter file to prove which tool the developer uses.
+
+Persist a normalized adapter target set once brownfield ownership is established, conceptually:
+
+~~~json
+{ "adapterTargets": ["claude", "copilot"] }
+~~~
+
+Transition rules:
+
+- schema-v1 legacy agent=claude → [claude];
+- agent=copilot → [copilot];
+- agent=all → [claude, copilot];
+- generic/codex/cursor → [];
+- brownfield unspecified → targets come from recognized existing dedicated integration surfaces that VCP safely composes/adopts;
+- explicit selection → targets come from that selection; other existing files remain project-owned/preserved.
+
+`install.agent` can remain as a compatibility/display summary temporarily, but `buildDesiredFiles`/its successor must stop using that lossy scalar as the sole adapter desired-state authority once adapterTargets exists.
+
+CLI implications:
+
+- parsing must retain whether --agent was explicitly supplied;
+- `-y` defaults may be applied **after** repository classification: NEW may keep generic; EXISTING keeps unspecified for planning;
+- human interactive init should not ask which agent is used when recognized dedicated integration evidence already answers what needs composition; ask only when an actual integration choice remains.
+
+Lifecycle implications:
+
+- init/update/manage/Doctor all consume normalized adapterTargets;
+- adapterTargets changes raise minimumReaderVersion because they affect managed desired content;
+- section ownership rules apply to brownfield CLAUDE/Copilot files just like AGENTS;
+- an update cannot silently detach a brownfield adapter merely because the legacy scalar says generic.
+
 ## 4.11 GitHub request provenance
 
 Current CLI parsing defaults includeGitHub=true before repository classification.
@@ -4372,6 +4431,8 @@ Stage 13:
 - calls the transactional init-apply path;
 - never blindly applies an earlier preview.
 
+
+CLI/init option work also needs to retain explicit-vs-unspecified agent provenance through repository inspection. Non-interactive `-y` may keep legacy generic behavior for NEW repositories, but must not pre-resolve EXISTING repositories to explicit generic before Smart Init planning.
 ---
 
 
