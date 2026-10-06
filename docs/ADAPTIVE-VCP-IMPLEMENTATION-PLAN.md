@@ -813,7 +813,7 @@ For EXISTING repositories:
 - no destructive init --force exists;
 - preview writes neither project files nor durable VCP state.
 
-For NEW repositories, the existing greenfield path may remain temporarily while the new planner is introduced, provided greenfield preview/apply tests remain coherent.
+For NEW repositories, the existing greenfield lifecycle may remain temporarily **except for the known-unsafe source-repository CI workflow**. A fresh Adaptive-era install must not copy `.github/workflows/validate.yml` into arbitrary consumers. Greenfield preview/apply tests must prove that safety floor.
 
 For MANAGED repositories, init performs no re-initialization and reports lifecycle/update status.
 
@@ -1065,43 +1065,42 @@ Public --json reports remain content-free.
 
 ## 3.8 Persist the adopted asset surface
 
-A brownfield Smart Init deliberately installs **less** than the current legacy greenfield template.
+A brownfield Smart Init deliberately installs less than the current legacy greenfield template, and fresh Adaptive greenfield installs must also stop inheriting source-repository-only CI.
 
-That choice must survive the very next vcp update.
+That choice must survive the very next `vcp update`.
 
-Do not represent this by filling ignoredFiles with framework assets; ignored paths are user lifecycle choices, not install-profile identity.
+Do not represent install identity by filling `ignoredFiles`; ignored paths are user lifecycle choices, not product-surface identity.
 
 Persist an explicit install-surface identifier, conceptually:
 
-~~~json
-{
-  "install": {
-    "assetSet": "legacy-full-v1"
-  }
-}
-~~~
+~~~text
+legacy-full-v1
+  → migrated pre-Adaptive managed installs
+  → preserves their historical desired surface until explicit migration
 
-and for new brownfield adoption:
+greenfield-safe-v1
+  → fresh Adaptive-era NEW installs
+  → may temporarily keep current starter docs/prompts
+  → does NOT include the VCP source-repository npm validation workflow
 
-~~~json
-{
-  "install": {
-    "assetSet": "brownfield-minimal-v1"
-  }
-}
+brownfield-minimal-v1
+  → Stage-13 adoption into established repositories
+  → minimal integration only
 ~~~
 
 Exact names may change, but the contract is required.
 
 Rules:
 
-- migrated schema-v1 projects map to the legacy current surface;
-- temporary greenfield compatibility may remain on the legacy surface;
+- migrated schema-v1 projects map to `legacy-full-v1` and do not experience an unexplained workflow deletion during the Stage-12 schema migration;
+- fresh NEW projects use the safe greenfield surface, not the exact legacy source-repository surface;
 - Stage 13 brownfield adoption records the minimal surface;
+- `includeGitHub` on new Adaptive surfaces means optional GitHub hygiene/scaffolding, **not** automatic VCP npm CI;
 - update/manage/Doctor desired-state logic respects the stored surface;
-- Phase 2 may migrate both legacy install profiles onto a newer **classified catalog version**, while preserving the repository's greenfield/brownfield asset-selection semantics. It must not collapse them into one identical installed path set.
+- Phase 2 may migrate these install profiles onto a newer classified catalog version while preserving greenfield/brownfield asset-selection semantics;
+- Phase 3 owns provider-neutral CI inspection and the deliberate migration/detach decision for old `legacy-full-v1` managed `.github/workflows/validate.yml`.
 
-Without this state, Smart Init would be non-destructive on day one and the next update would try to add everything it intentionally skipped.
+Without this state, Smart Init would be non-destructive on day one and the next update could expand or mutate the installed surface unexpectedly.
 
 ## 3.8A Brownfield agent-selector provenance
 
@@ -2066,7 +2065,7 @@ Doctor also treats that exact workflow path as the CI-validation signal.
 
 This couples VCP's source-repository npm workflow to arbitrary consumer projects.
 
-## 7.2 Phase E1 — remove the unsafe assumption first
+## 7.2 Phase E1 — remove the unsafe assumption first (Stage-12 safety floor)
 
 Before generating any new VCP CI:
 
@@ -3329,7 +3328,7 @@ After Checkpoint A:
 6. rewrite release-check consumer lifecycle validation;
 7. preserve customized legacy prompts as overrides.
 
-## Phase 3 — CI safety/detection only
+## Phase 3 — provider-neutral CI detection + legacy workflow migration
 
 1. stop hard-coded npm workflow installation;
 2. split CI from GitHub issue/PR hygiene;
