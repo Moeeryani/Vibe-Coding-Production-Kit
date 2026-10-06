@@ -2752,184 +2752,267 @@ If manifest missing/corrupt, do not infer an authoritative project mode from cha
 ---
 
 
+
 # 12. Workstream F1 — Workflow levels require changes below the prompt layer
 
 ## 12.1 Current limitation
 
-Current renderTaskPack() creates a full material-work artifact with sections for Source of Truth, acceptance criteria, scope, affected boundaries, domain invariants, security/privacy, failure modes, observability, unit/integration/E2E/security tests, rollout/migration/recovery, implementation plan, verification, independent review, and finalization.
+The current Task Pack + implementation-readiness contract is intentionally full-strength material-work machinery.
 
-Current runTaskReadiness(... stage=implement) turns many of those into blocking implementation requirements.
+It covers Source of Truth, acceptance criteria, scope, boundaries, security/privacy, failure modes, observability, multiple test layers, rollout/recovery, implementation plan, verification, independent review, and finalization.
 
-That is strong for material work and too heavy for many everyday bug fixes/refactors.
+That is appropriate for L2 material work and too heavy for many ordinary engineering fixes.
 
-A system with only L0 trivial or L2 full Task Pack has a product-dangerous gap.
+The adaptive model therefore needs four workflow levels without weakening existing truth/readiness/review semantics.
 
-## 12.2 Initial level architecture
+## 12.2 Workflow levels are not execution modes
 
-### L0 — no durable Task Pack
+Workflow level and AFK/HITL answer different questions.
 
-For tightly bounded mechanically eligible changes. Gate uses actual changed surface plus relevant checks.
+~~~text
+workflowLevel
+  L0/L1/L2/L3
+  → how much durable engineering contract/gate ceremony applies
 
-### L1 — compact bounded engineering record
+executionMode
+  AFK/HITL
+  → who may execute
 
-Add a compact task/change artifact rather than the full Task Pack.
+dependency/readiness
+  → whether the work is eligible at all
+~~~
 
-Minimum enforceable content should be driven by what a fresh agent/reviewer actually needs:
+A small L1 task may still be HITL. A high-risk L3 task may have AFK implementation slices after all human decisions are resolved.
+
+Preserve the existing Operating Model rule:
+
+~~~text
+dependencies first
+then execution mode
+~~~
+
+## 12.3 Initial level architecture
+
+### L0 — mechanically trivial
+
+No durable Task Pack.
+
+Use only for explicitly eligible low-risk changed surfaces.
+
+The final diff/gate remains authoritative. If protected/material surface appears, promote before completion.
+
+### L1 — compact bounded engineering
+
+Use a compact durable record rather than the full L2 Task Pack.
+
+Minimum content:
 
 ~~~text
 Status / Slug / Level
 Outcome or defect
+Governing reference(s), when applicable
 Affected scope
 Acceptance evidence
 Verification
+Lightweight review outcome / current findings
 Risk/escalation flags
 Completion/evidence summary
 ~~~
 
-Do not create empty security/observability/rollout sections merely to say "n/a."
+Do not add empty security/observability/rollout sections just to write "n/a."
 
-Possible implementation approaches:
+L1 still preserves:
 
-1. one Task Pack parser with level-specific required sections; or
-2. a compact Task Note format normalized into the same internal task-state model.
+- applicable Source-of-Truth authority;
+- deterministic verification;
+- restartability;
+- fresh lightweight review before completion.
 
-Prefer the approach that minimizes parser duplication. Do not invent a separate task database.
+If investigation reveals a material product/API/data/security/architecture decision, promote to L2/L3.
 
-### L2 — current full material-work Task Pack
+### L2 — current material-work contract
 
-Preserve existing strong readiness/verification/review path.
+Keep the existing full Task Pack, plan/implementation readiness, verification, independent review, and finalization path as the baseline.
 
-### L3 — L2 plus relevant high-risk extensions
+### L3 — L2 plus relevant high-risk controls
 
-Add only applicable high-risk context/gates.
+Add only controls relevant to the proven risk.
 
-## 12.3 Classification architecture
+Important Stage 6 compatibility rule:
 
-Use three layers:
+> L3 does not automatically inject security-profile documents into plan/implement Context Packs.
+
+When active security profiles are relevant, L3 requires a dedicated security Context Pack/review. The existing rule that only contextMode=security auto-loads security profiles remains authoritative.
+
+Other L3 additions may include migration/recovery evidence, destructive-effect authorization, sensitive deployment/release boundaries, or stronger exact-head gates.
+
+## 12.4 Classification architecture
+
+Use:
 
 ~~~text
 agent/Skill semantic proposal
+        +
+Core deterministic minimum
         ↓
-Core deterministic minimum from inspectable facts
-        ↓
-effective level
+effective workflowLevel
 ~~~
 
-Before implementation, inspect likely affected surface. During/finally after implementation, recompute minimum level from the actual Git diff.
+Classification happens after repository inspection, not solely from the user's first sentence.
 
-Core may always promote. A too-light selected lane must fail at gate with actionable remediation.
+Core deterministic evidence may include:
 
-Avoid using model confidence as Core authority.
+- changed/planned paths;
+- protected-path policy;
+- migrations/data markers;
+- public contracts/config;
+- security-sensitive surfaces;
+- installed capability/profile state;
+- final Git diff.
 
-## 12.4 Code impact
+Core may always promote.
 
-#
-## lib/task.mjs
+After implementation, recompute the minimum from the actual final diff. A too-light lane fails with actionable promotion requirements.
+
+Do not use fuzzy model confidence as Core authority.
+
+## 12.5 Shared task-state parser
+
+Do not create separate Markdown interpretations in task, readiness, context, review, and gate.
+
+Extract one canonical parser/state model that can represent both:
+
+- compact L1 records;
+- current full L2/L3 Task Packs.
+
+The parser should expose durable facts, not policy decisions that belong elsewhere.
+
+Likely facts:
+
+~~~text
+slug
+status
+workflowLevel
+governing references
+acceptance state
+verification declarations
+review findings/dispositions
+finalization state
+completion evidence
+~~~
+
+L0 has no Task Pack and therefore bypasses this parser by design.
+
+## 12.6 lib/task.mjs
 
 Needs:
 
-- workflow-level metadata;
-- compact L1 rendering;
-- current full template retained for L2;
-- L3-compatible extension points;
+- explicit workflowLevel support;
+- compact L1 renderer;
+- current full renderer preserved for L2;
+- L3 extension hooks without cloning the whole template;
 - shared parser compatibility.
 
-Do not add VCP framework-development Core-ROI questions to the generic consumer Task Pack.
+Do not add VCP-Core ROI governance questions to consumer Task Packs.
 
-Do not remove durable review/finalization evidence from L2/L3.
+## 12.7 lib/readiness.mjs
 
----
+Keep current readiness as the L2 baseline.
 
-## lib/git-review.mjs
+Add level-aware policy:
 
-Mostly reusable.
+~~~text
+L0
+→ no task readiness
 
-Gate may use changed-file enumeration for L0 classification and exact-head review linkage.
+L1
+→ outcome/scope/acceptance/verification/governing-reference-if-needed/
+   unresolved-human-decision checks
 
-Avoid duplicating Git parsing.
+L2
+→ current plan + implementation readiness
 
----
+L3
+→ L2 + applicable high-risk readiness
+~~~
 
+Readiness must emit promotion diagnostics when a lower level is no longer sufficient.
 
+Do not weaken current L2 checks to make L1 easier.
 
-## lib/prompt-eval.mjs
+## 12.8 lib/context.mjs
 
-Current strengths:
+Context construction must stay mode-specific and progressively disclosed.
 
-- v1 behavior records already track question keys/classes;
-- discover-before-ask already fails when discoverable facts are asked;
-- human-decision/proposal/restartability contracts already exist.
+Level affects which durable task material exists, but does not rewrite contextMode semantics.
 
-Future needs when Auto/Skills land:
+Examples:
 
-- interaction-round/question-batch observations;
-- redundant-confirmation observations;
-- Skill/router behavior coverage;
-- mutations proving the new properties are non-vacuous.
+~~~text
+L1 implement
+→ compact task + governing refs + relevant files + verification
 
-Avoid:
+L3 security review
+→ dedicated security context
+→ active security profiles + relevant security Source of Truth
+~~~
 
-- replacing the existing evaluator;
-- changing schema before the new observable contract is stable;
-- full chat transcripts;
-- model-as-judge scoring when deterministic structured assertions suffice.
+Negative tests must prove irrelevant profile/plugin material remains absent.
 
----
+## 12.9 lib/git-review.mjs
 
-## lib/release-check.mjs
+Reuse changed-file enumeration for:
 
-Must change when consumer framework assets are removed.
+- provisional/final workflow-level minimum;
+- protected-surface detection;
+- review context;
+- exact changed-surface evidence.
 
-Replace copied consumer validator execution with consumer-facing VCP checks.
+Do not create a second Git parser for the gate.
 
-Later include conformance of new Skills/package surfaces as release policy requires.
+## 12.10 lib/verify.mjs and future gate
 
----
+Reuse the existing verification execution/provenance engine.
 
-## scripts/validate-framework.mjs
+Gate adds orchestration over existing deterministic facts; it does not implement a second command runner.
 
-Remain VCP source/package validation.
+Final gate must re-inspect Git state after verification and compare current state with the evidence it relies on.
 
-Update required source/package files for:
+## 12.11 Review contract
 
-- new core modules;
-- Skills;
-- capability definitions;
-- new docs/contracts.
+L0 may omit a durable independent-review artifact only when mechanical eligibility proves the change is truly trivial and unprotected.
 
-Do not copy it into arbitrary consumer projects.
+L1 requires a compact fresh review outcome/current-findings record.
 
----
+L2/L3 retain the existing independent-review evidence model.
 
+Any material finding that expands product/security/data/architecture scope may force promotion.
 
-## Packaged Skills / Skill source
+## 12.12 Documentation impact
 
-New surface.
+When workflow levels ship, update coherently:
 
-Needs:
+- OPERATING-MODEL.md — workflowLevel vs executionMode/readiness;
+- TASK-PACKS.md — L1 vs L2/L3 durable contract;
+- TASK-READINESS.md — level-specific gates;
+- CONTEXT-PACKS.md — level does not change contextMode/security-profile rules;
+- AGENTS.md / Skills — routing only;
+- README/CLI — user-visible workflow semantics.
 
-- thin cross-agent routing Skills;
-- progressive reference loading;
-- canonical links into VCP Core rather than duplicated policy;
-- package/release inclusion;
-- prompt-eval behavior coverage.
+Do not change current canonical docs ahead of implementation in a way that falsely claims released support.
 
-Risks:
+## 12.13 Definition of done
 
-- Skills growing into a second copy of VCP;
-- all references loading eagerly;
-- Auto and Manual developing separate workflows.
-
----
-
-## .github/release-policy.json
-
-Update when new runtime/package assets become required.
-
-Do not add every implementation doc automatically; add files required for released runtime behavior.
-
----
-
+- L0 remains mechanically narrow;
+- common small engineering fixtures use compact L1 rather than full L2;
+- L1 preserves applicable Source of Truth, verification, restartability, and fresh review;
+- L2 current guarantees remain intact;
+- L3 adds only applicable high-risk controls;
+- security profiles still auto-load only in security Context Pack mode;
+- workflowLevel remains orthogonal to AFK/HITL and readiness;
+- final-diff classification catches risk/scope growth;
+- all task-aware consumers use one parser/state interpretation;
+- gate reuses verify/Git/readiness mechanics rather than duplicating them.
 
 # 13. Workstream G — Cross-agent Skills as UX, not VCP authority
 
