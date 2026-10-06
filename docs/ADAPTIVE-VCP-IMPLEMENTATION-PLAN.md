@@ -1047,7 +1047,7 @@ Rules:
 - temporary greenfield compatibility may remain on the legacy surface;
 - Stage 13 brownfield adoption records the minimal surface;
 - update/manage/Doctor desired-state logic respects the stored surface;
-- Phase 2 may later migrate both surfaces deliberately to a unified consumer asset set.
+- Phase 2 may migrate both legacy install profiles onto a newer **classified catalog version**, while preserving the repository's greenfield/brownfield asset-selection semantics. It must not collapse them into one identical installed path set.
 
 Without this state, Smart Init would be non-destructive on day one and the next update would try to add everything it intentionally skipped.
 
@@ -1175,7 +1175,7 @@ project-governance coverage
 
 Missing VCP starter documents that were never part of the adopted asset set are **not install corruption**.
 
-Doctor may report governance coverage as informational/unknown when no explicit governing document is configured, but it must not manufacture equivalence between arbitrary existing docs and VCP canonical roles.
+Doctor may report governance coverage as informational/unknown when no explicit governing document is configured, but that absence is not a warning/strict failure merely because a brownfield-minimal install lacks VCP starter files. It becomes blocking only when an actual task/readiness/policy contract requires governing truth that is missing. Doctor must not manufacture equivalence between arbitrary existing docs and VCP canonical roles.
 
 Broader provider-neutral CI cleanup remains Phase 3.
 
