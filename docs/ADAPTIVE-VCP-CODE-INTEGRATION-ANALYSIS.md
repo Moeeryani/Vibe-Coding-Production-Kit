@@ -2279,6 +2279,39 @@ Existing project docs may be referenced directly by Task Packs; Smart Init must 
 
 ---
 
+## 7.1A Security-profile assets already demonstrate the package-fallback pattern
+
+`lib/security-profiles.mjs` already separates project declaration from canonical guidance:
+
+~~~text
+docs/security/SECURITY-PROFILE.md
+→ optional project-local declaration
+→ if absent, baseline still applies
+
+docs/security/profiles/<name>.md
+→ local file wins when present
+→ otherwise packaged canonical profile is loaded as vcp:<path>
+~~~
+
+Phase 2 should preserve this model explicitly.
+
+Catalog classification:
+
+- THREAT-MODEL.md → greenfield-starter/project truth;
+- SECURITY-PROFILE.md → optional greenfield-starter/project-owned config;
+- canonical docs/security/profiles/*.md → package-only canonical guidance with supported project-local override precedence.
+
+Migration:
+
+- old unmodified managed profile guidance → explicit removal, packaged fallback becomes active;
+- old locally modified profile guidance → detach/preserve as project override at the same selected-root path;
+- profile declaration → preserve/project-owned;
+- no declaration on brownfield-minimal → valid baseline-only security context, not install failure.
+
+Tests must prove local override precedence survives removal of managed canonical copies and Doctor/Context still report the active source identity correctly.
+
+---
+
 ## 7.2 Prompt resolution must change first
 
 Before prompts are removed from consumer assets, lib/context.mjs must support package fallback.
@@ -2438,9 +2471,11 @@ Never remove the entire docs directory.
 - packaged prompts are never mistaken for project Source of Truth;
 - project prompt overrides still work and remain selected-root confined;
 - old modified prompts survive upgrade as overrides;
+- old modified local security-profile guidance survives as an override, while unmodified canonical profile copies can use package fallback;
 - Doctor is green/accurate without copied framework scripts;
 - release-check consumer lifecycle smoke no longer depends on copied validate-framework;
 - explicit migration removals prevent disappeared-file conflicts;
+- security profile declaration vs packaged guidance ownership remains distinct;
 - package-level validation still checks the VCP source/package itself.
 
 ---
