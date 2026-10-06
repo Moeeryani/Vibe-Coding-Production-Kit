@@ -2076,7 +2076,10 @@ Resolver safety contract:
 - the packaged prompt is typed as execution-prompt context, never Source of Truth;
 - a Task Pack cannot cite a packaged prompt to satisfy product/architecture/security authority;
 - package prompt bytes count toward the existing context budget;
-- vcp: identity is rendered in the Context Pack/manifest so a reviewer can distinguish package guidance from project-owned truth.
+- vcp: identity is rendered in the Context Pack/manifest so a reviewer can distinguish package guidance from project-owned truth;
+- the resolver returns typed provenance, for example `sourceKind: project-override | packaged`, and packaged results include the supplying VCP package version;
+- `createContextPack()` exposes that prompt provenance in its structured return/JSON contract instead of making callers infer it from a path prefix;
+- the full prompt content remains embedded in the Context Pack, so a saved pack is self-contained even after a VCP upgrade.
 
 This mirrors security-profile behavior without widening repository authority.
 
@@ -4440,6 +4443,7 @@ Do not silently resolve conflicting duplicates by line order.
 Needs:
 
 - package prompt fallback;
+- typed prompt provenance in structured output (`project-override` vs `packaged`), including package version for fallback;
 - project override identity;
 - workflow-level awareness for L1/L2/L3 where contexts apply;
 - compact inclusion-reason/type metadata;
