@@ -2822,7 +2822,10 @@ At minimum:
 - empty/new repository;
 - small existing repository;
 - large established repository;
-- already VCP-managed repository.
+- already VCP-managed repository;
+- pre-Adaptive/schema-v1 managed repository;
+- readable managed repository with damaged/missing lifecycle support state;
+- lifecycle manifest requiring a newer minimumReaderVersion than the running CLI.
 
 ### Languages / ecosystems
 
@@ -2848,7 +2851,9 @@ At minimum:
 - existing `AGENTS.md`;
 - existing `CLAUDE.md`;
 - existing Copilot instructions;
-- all of the above with local custom text.
+- all of the above with local custom text;
+- brownfield `--yes` / no explicit `--agent` with only one existing vendor adapter;
+- ignored then re-tracked brownfield section-owned integration.
 
 ### CI
 
@@ -2866,7 +2871,9 @@ At minimum:
 - unusual line endings;
 - case-sensitive/case-insensitive filename scenarios;
 - malformed manifests/config files;
-- missing tools.
+- missing tools;
+- brownfield-minimal repository with no VCP starter Product/Architecture/Security/Testing documents;
+- custom governing Markdown located in a path that must never become globally L0 merely because it is `.md`.
 
 ## 11.3 Success properties
 
@@ -2879,10 +2886,14 @@ For every fixture:
 - no unproven verification command is executed;
 - for an unchanged repository snapshot, dry-run and fresh apply planning are semantically equivalent;
 - if the repository changes before apply, the apply path re-plans and may differ or block safely;
+- omitted brownfield agent selection is not misread as explicit generic, and the next update reproduces the actual adopted adapter surface;
+- intentionally absent brownfield starter docs do not become install-health/strict failures by themselves;
+- packaged prompt fallback reports source/package provenance while remaining self-contained in the Context Pack;
 - unsupported ecosystem degrades safely;
-- discovered capabilities are evidence-backed;
+- discovered capabilities are evidence-backed and applied capability transitions preserve provenance;
 - project-root boundaries remain intact;
 - existing CI is preserved;
+- an older same-schema CLI fails closed when minimumReaderVersion requires a newer reader;
 - lifecycle state is restartable;
 - update after init is idempotent;
 - rollback/recovery behavior is correct where applicable.
@@ -2895,9 +2906,15 @@ Examples:
 
 - ambiguous agent-file composition;
 - conflicting VCP/user block;
-- invalid plugin digest;
-- unsafe symlink;
+- malformed/unreadable reserved VCP lifecycle state;
+- minimumReaderVersion newer than the running CLI;
+- invalid plugin digest or invalid/over-budget capability detector;
+- unsafe symlink/path escape;
+- conflicting verification-command authority;
 - unsupported destructive command proposal;
+- L0 requested with no explicit trivial-surface policy or against a custom governing document;
+- stale ordinary/security review after the implementation surface moves;
+- post-review Task Pack edit that changes protected requirements/acceptance/scope rather than only allowlisted finalization evidence;
 - malformed existing CI where VCP cannot safely integrate.
 
 Expected result:
