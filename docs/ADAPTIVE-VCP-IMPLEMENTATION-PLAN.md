@@ -2255,7 +2255,35 @@ Extend L2 with stronger relevant controls based on deterministic/project-declare
 
 L3 does **not** silently inject security-profile files into plan/implement context. When security profiles are applicable, require a dedicated security Context Pack/review so the existing Stage 6 context contract remains intact. Governing security Source of Truth may still be referenced normally by other modes.
 
-Potential requirements include security review context, rollback/recovery evidence, sensitive-effect authorization, and stricter exact-head gating.
+A gate-authoritative L3 security review also needs **exact changed-surface provenance**.
+
+Current code only allows Git `--base/--head` comparison in `contextMode=review`. Phase 7 must deliberately extend the same bounded Git review snapshot to `contextMode=security` when explicit base/head is supplied:
+
+~~~text
+vcp context <task> --mode security --base <base> [--head <implementation-head>]
+~~~
+
+This does not make security profiles load in plan/implement mode. It only lets the dedicated security pack include:
+
+- exact resolved base/head SHAs;
+- bounded changed-file/diff evidence;
+- active security profiles;
+- governing security Source of Truth;
+- the canonical security-review prompt.
+
+When security review is required, L3 must persist a distinct bounded **security review evidence** record in the same Task Pack. It must be distinguishable from ordinary independent code-review evidence and retain at least:
+
+- reviewed base/head provenance;
+- active profile IDs/source provenance relevant to the review;
+- material security findings with severity and current-task disposition;
+- resolution/follow-up;
+- unresolved HUMAN DECISION / risk-acceptance boundaries.
+
+The ordinary L2 independent review is still required. “Security review” is an additional focused control, not a replacement.
+
+For finalization authority, required ordinary review and required security review should both bind to the same final implementation head. Any non-finalization implementation/config change after either review makes the affected review stale; the existing bounded Task-record-only finalization exception may apply afterward.
+
+Potential requirements also include rollback/recovery evidence, sensitive-effect authorization, and stricter exact-head gating.
 
 The L3 extension must remain relevant: do not make every high-risk category load every possible security/operations document.
 
@@ -2636,7 +2664,8 @@ L2 preserves the current full lifecycle:
 
 L3 adds only applicable high-risk requirements, for example:
 
-- dedicated security-mode review evidence when active security profiles are relevant;
+- distinct Git-bound security-mode review evidence when active security profiles/risk policy require it;
+- proof that required ordinary and security reviews cover the same final implementation head before finalization;
 - migration/recovery/destructive-effect authorization;
 - stronger release/deployment/data-safety evidence.
 
