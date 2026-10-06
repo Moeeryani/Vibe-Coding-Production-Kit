@@ -1526,6 +1526,8 @@ install.requestedStack
 
 and add explicit capability detection/applied-state provenance.
 
+Because applied capability state affects desired managed content, the first release that persists those semantics must also raise minimumReaderVersion to a CLI that understands them.
+
 The direction is:
 
 ```text
@@ -1878,7 +1880,7 @@ Exact syntax depends on agent capability; VCP should not hard-code one vendor's 
 
 Persist the operating mode in VCP lifecycle state.
 
-For the initial implementation, manifest install metadata is sufficient:
+For the initial implementation, manifest install metadata is sufficient. Because workflowMode changes generated/managed routing instructions, the release that persists it as behavior-bearing state must also raise minimumReaderVersion:
 
 ```json
 {
@@ -2713,7 +2715,7 @@ Collect at least:
 
 After Checkpoint A:
 
-1. unify the minimal consumer asset catalog across greenfield and managed lifecycle paths;
+1. unify one classified consumer asset catalog across greenfield and managed lifecycle paths without forcing identical installed files;
 2. migrate old framework/reference assets explicitly;
 3. complete AGENTS standing-context reduction beyond the brownfield section;
 4. update Doctor prompt/reference expectations;
@@ -2764,7 +2766,7 @@ Measure:
 3. bounded detector DSL;
 4. first-party definitions;
 5. explicit community grants;
-6. reconcile React Native Stage 11 with capabilities.
+6. migrate/re-express already-merged Stage 11 React Native provenance through the capability compatibility bridge.
 
 
 ## Phase 6 — workflow mode + minimal router UX
