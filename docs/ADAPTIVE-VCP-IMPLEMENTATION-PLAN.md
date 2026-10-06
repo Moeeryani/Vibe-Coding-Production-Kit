@@ -3481,7 +3481,11 @@ Do not rename on-disk lifecycle state merely for aesthetics. Existing lock/backu
 
 ### Validation Checkpoint A — Is adoption actually easier?
 
-Run Stage 12/13 against deliberately varied real or representative repositories before broader Adaptive VCP work.
+Run Stage 12/13 primarily against deliberately varied **mature brownfield repositories**, because that is the behavior these stages are adding.
+
+Also include NEW and already-MANAGED fixtures as regression coverage so the adoption work does not break greenfield init or normal lifecycle update.
+
+Checkpoint A does **not** require the later Phase-2 full consumer/framework asset cleanup to be complete for legacy/greenfield surfaces. It does require the new brownfield-minimal surface to be genuinely minimal and the Stage-12 greenfield CI safety floor to hold.
 
 Collect at least:
 
