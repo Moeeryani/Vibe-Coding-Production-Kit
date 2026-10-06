@@ -1024,7 +1024,7 @@ External changes such as Agent OS v3 retiring its own orchestration reinforce th
 
 # 5. Cross-workstream consistency results
 
-The final post-amendment consistency matrix rechecked forty load-bearing contracts across both Adaptive documents.
+The final post-amendment consistency matrix rechecked **41 load-bearing contracts** across both Adaptive documents.
 
 The contracts include:
 
@@ -1067,9 +1067,10 @@ The contracts include:
 37. deferred dependency graph;
 38. negative conformance fixtures;
 39. platform evidence separation;
-40. Checkpoint A sequencing after Stage 13.
+40. Checkpoint A sequencing after Stage 13;
+41. compatible recovery from a malformed/missing active manifest using validated version-compatible backup/transaction state.
 
-After correcting search-term false positives and the additional amendments in this final pass, no architectural contradiction remained among these contracts.
+All **41/41** contracts were present and mutually compatible after correcting search-term false positives and the additional amendments in this final pass. No architectural contradiction remained among these contracts.
 
 This does **not** mean implementation bugs are impossible. It means the intended contracts no longer prescribe mutually incompatible behavior.
 
