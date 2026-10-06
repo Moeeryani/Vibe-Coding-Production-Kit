@@ -2255,6 +2255,8 @@ Extend L2 with stronger relevant controls based on deterministic/project-declare
 
 L3 does **not** silently inject security-profile files into plan/implement context. When security profiles are applicable, require a dedicated security Context Pack/review so the existing Stage 6 context contract remains intact. Governing security Source of Truth may still be referenced normally by other modes.
 
+Security-profile presence alone is not the trigger: the mandatory `baseline` profile exists whenever security mode is used. The trigger is the deterministic L3 risk policy; once triggered, the active profile set scopes the review.
+
 A gate-authoritative L3 security review also needs **exact changed-surface provenance**.
 
 Current code only allows Git `--base/--head` comparison in `contextMode=review`. Phase 7 must deliberately extend the same bounded Git review snapshot to `contextMode=security` when explicit base/head is supplied:
