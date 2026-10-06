@@ -1131,6 +1131,9 @@ By default it should:
 
 - add minimal lifecycle state;
 - add thin VCP agent routing/invariants;
+- make that brownfield VCP instruction block **asset-set aware**: it must not instruct the agent to read canonical Product/PRD/Architecture/Security/Testing starter paths that brownfield-minimal intentionally did not install;
+- route detailed work through the Task Pack's explicit governing references and bounded Context Pack instead of hard-coded starter-document paths;
+- expose only verification slots whose authority was resolved safely during adoption;
 - use project prompt overrides when present and packaged prompt fallback otherwise;
 - preserve project docs;
 - preserve CI;
@@ -1175,7 +1178,8 @@ Smart adoption is complete only when:
 - verification command authority cannot be made ambiguous by duplicate inserted slots;
 - brownfield auto-stack ambiguity is surfaced conservatively;
 - the persisted asset surface prevents the next update from expanding adoption accidentally;
-- packaged prompt fallback and Doctor agree;
+- packaged prompt fallback, Context, and Doctor agree without widening project authority;
+- brownfield standing instructions never require starter paths absent from the adopted assetSet;
 - schema migration makes legacy entries explicit whole-file ownership;
 - rollback restores both prior content **and prior absence of lifecycle state**;
 - rerunning init after successful adoption reports MANAGED and does not rewrite lifecycle state;
@@ -1299,6 +1303,14 @@ use packaged canonical VCP prompt
 ```
 
 Packaged identity should be explicit in context/evidence, for example `vcp:prompts/02-plan-task.md`.
+
+Prompt trust/path rules:
+
+- project prompt overrides remain selected-project-root files and must use the same confinement/symlink-safety discipline as other project context inputs;
+- packaged fallback is resolved only from VCP's fixed canonical mode-prompt allowlist, not from an arbitrary user-supplied `vcp:` path;
+- packaged prompt content is **execution guidance**, not project Source of Truth, and cannot satisfy a Task Pack Source-of-Truth reference;
+- packaged prompt bytes still count against the Context Pack budget and their `vcp:` identity remains inspectable;
+- package fallback does not widen project/workspace filesystem authority.
 
 This should follow the same general pattern already used by packaged security-profile fallback.
 
