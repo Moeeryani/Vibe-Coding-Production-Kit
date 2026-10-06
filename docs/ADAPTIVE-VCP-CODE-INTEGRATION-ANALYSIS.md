@@ -3584,17 +3584,21 @@ No magic score.
 
 Once gate exists, generated CI becomes thin.
 
-Preferred:
+Preferred first implementation:
 
 ~~~text
-CI
- ↓
-install/use VCP
- ↓
-vcp gate <task or policy> --run
- ↓
-exit code
+task-bound material workflow
+  → CI receives an explicit task slug from repository workflow/configuration
+  → vcp gate <task> --run
+
+mechanically trivial L0 workflow
+  → CI supplies explicit base/head refs
+  → vcp gate --level l0 --base <base> --head <head>
 ~~~
+
+Do not invent an undefined generic `policy` gate mode in the first release.
+
+Mapping a pull request/branch to one material Task Pack is repository/CI configuration unless a later separately designed deterministic task-selection contract is justified. The gate validates the task it is given; it does not scan prose and guess which task owns a change.
 
 Do not separately maintain:
 
