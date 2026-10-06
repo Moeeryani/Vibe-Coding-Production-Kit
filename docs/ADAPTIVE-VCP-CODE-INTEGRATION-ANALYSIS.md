@@ -5473,7 +5473,9 @@ Required details:
 
 ### Checkpoint A — adoption safety and usability
 
-Exercise representative mature repositories.
+Exercise representative mature brownfield repositories as the primary product sample.
+
+Include NEW and already-MANAGED fixtures as regression coverage, but do not treat the not-yet-executed Phase-2 broad asset cleanup as a Stage-13 failure. Brownfield-minimal itself must already be minimal.
 
 Measure:
 
