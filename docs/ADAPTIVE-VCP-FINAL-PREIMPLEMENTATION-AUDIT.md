@@ -1,7 +1,7 @@
 # Adaptive VCP — Final Pre-Implementation Audit
 
 **Audit date:** 2026-10-06  
-**Post-amendment repository baseline:** `1513232ccbc3b3f77c2bf3b2f4a90aae4c4ba761` plus the documentation amendments committed during this final pass.  
+**Adaptive document blobs re-audited in the final consistency pass:** strategic `97cf860821e26c517f439fe6f68a65ce281bd325`; technical `3032f5f48904376f98b02890cb1718d4d3639784`. This audit-record update itself is documentation-only.  
 **Scope:** architecture, real-code integration, lifecycle compatibility, external ecosystem research, cross-document consistency, and implementation-readiness review for the Adaptive VCP roadmap.  
 **Product code changed by this audit:** none. Documentation and status/evidence records only.
 
@@ -215,6 +215,30 @@ Source: https://developer.hashicorp.com/terraform/cli/commands/plan
 
 VCP is **not** implementing saved-plan execution in Stage 12/13. A future saved-plan feature would need explicit repository/file/version preconditions.
 
+### Sensitive action approval belongs at the side-effect boundary
+
+OpenAI's current agent guardrail guidance separates automatic validation from human approval and specifically recommends pausing before sensitive side effects such as edits, shell commands, cancellations, or sensitive MCP actions.
+
+Source:
+
+- https://developers.openai.com/api/docs/guides/agents/guardrails-approvals
+
+This supports VCP's command-authority refinement: a project file being trusted as context is not sufficient authorization to execute every command string it contains. Approval-required verification commands are bound to the exact normalized command identity/fingerprint and source provenance. A changed command invalidates the old approval.
+
+### Workflow and shell inputs must be treated as untrusted
+
+GitHub's current Actions security guidance explicitly warns that attacker-controlled context values can become executable script input when interpolated into shell/workflow code.
+
+Source:
+
+- https://docs.github.com/en/actions/concepts/security/script-injections
+
+This reinforces two VCP boundaries:
+
+- task/PR/branch/context strings are never assumed safe shell fragments;
+- future CI integration delegates to fixed VCP CLI arguments/contracts rather than constructing arbitrary verification shell from untrusted platform text.
+
+
 ### Standing instructions vs task workflows
 
 GitHub's current guidance distinguishes always-on repository/path instructions from task-specific Skills. That supports shrinking VCP standing instructions and routing detailed workflow behavior through Skills/Context Packs instead of making `AGENTS.md` a permanent full engineering manual.
@@ -224,6 +248,7 @@ Sources:
 - https://docs.github.com/en/copilot/reference/custom-instructions-support
 - https://docs.github.com/en/copilot/concepts/agents/code-review
 - https://docs.github.com/en/copilot/reference/customization-cheat-sheet
+- https://docs.github.com/en/copilot/how-tos/copilot-sdk/features/skills
 
 The host-loading semantics are **not uniform**. VCP therefore keeps its top-level Skill small even if a host eagerly injects it and never makes correctness depend on lazy loading.
 
@@ -247,6 +272,8 @@ platformEnforcement
 ~~~
 
 A green VCP job is evidence. It is not automatically merge enforcement.
+
+**Current repository observation (2026-10-06):** the GitHub branch API reported `main` as `protected=false` with required status-check enforcement off. This is a time-bounded audit observation, not a permanent architectural assumption. It demonstrates why VCP must report `gatePolicy` separately from observed `platformEnforcement`.
 
 ### Right-sized workflow / framework tax
 
@@ -399,7 +426,11 @@ duplicate-equivalent
 duplicate-conflicting
 ~~~
 
-Equivalent duplicates keep provenance and execute one identical value; conflicting values require resolution. Destructive-pattern adopted commands remain a HUMAN DECISION boundary.
+Equivalent duplicates are one unambiguous effective value after only ordinary outer-whitespace/line-ending normalization; every source location is retained, project text is not rewritten, and no fake human decision is created. Conflicting values require resolution.
+
+Approval-required commands use a durable lifecycle receipt bound to the exact command key + normalized-command fingerprint + source/provenance + approval-policy/decision version. The optional answers record may transport the human decision during fresh apply, but it is not the durable post-adoption authority.
+
+New provenance-aware Task Packs snapshot the executable command contract. Merge-authoritative gate re-resolves current repository command authority; if the current identity differs, the task is stale and must be refreshed/re-planned before it can pass.
 
 ### Agent and GitHub option provenance
 
@@ -415,6 +446,17 @@ githubPreference
 
 For brownfield `--yes`, omission stays omission.
 
+The CLI must represent GitHub request provenance explicitly:
+
+~~~text
+no GitHub flag → unspecified on EXISTING
+--github (or final positive equivalent) → include
+--no-github → exclude
+both positive + negative → syntax error
+~~~
+
+This prevents the current `includeGitHub=true` parser default from being mistaken for explicit user intent.
+
 ### Acceptance
 
 Stage-12/13 tests must prove:
@@ -427,7 +469,11 @@ Stage-12/13 tests must prove:
 - unchanged snapshot gives equivalent fresh plan;
 - changed snapshot re-plans/differs/blocks;
 - section surrounding bytes survive;
-- command authority is unambiguous;
+- command authority is unambiguous and duplicate-equivalent values do not cause needless HUMAN DECISION;
+- approval-required command receipts are persisted only after successful apply/update and become stale on command/source change;
+- provenance-aware task command snapshots are rejected as stale when current repository command authority changes;
+- init preview/success messaging is repository-class/assetSet aware and never tells brownfield-minimal to create starter truth it deliberately preserved;
+- public CLI can express GitHub `unspecified | include | exclude` without collapsing omission;
 - first-adoption rollback returns to true unmanaged shape;
 - immediate post-adoption update is safe/idempotent.
 
@@ -1080,13 +1126,13 @@ The contracts include:
 4. section ownership + schema versioning;
 5. minimum reader compatibility;
 6. old-CLI mutation fence;
-7. install asset sets;
+7. install asset sets + assetSet-aware adoption/task/onboarding behavior;
 8. agent preference provenance;
-9. GitHub preference provenance;
-10. verification-command authority;
+9. GitHub preference provenance + explicit CLI representability of unspecified/include/exclude;
+10. verification-command authority + lifecycle-owned approval receipts + Task Pack command-contract freshness;
 11. reserved VCP state;
 12. prompt fallback authority;
-13. Doctor assetSet behavior;
+13. Doctor/install-result assetSet behavior;
 14. classified consumer catalog;
 15. capability evidence vs applied state;
 16. approval-required capability removal;
@@ -1156,6 +1202,15 @@ The final post-audit review found and incorporated additional issues that were n
 10. **One Task Pack family**  
     L1/L2/L3 share durable repository artifacts; legacy no-level Task Packs normalize L2.
 
+11. **Command approval is value-bound, not source-file-bound**  
+    Sensitive verification approval persists as a bounded lifecycle receipt; command/source changes stale it, and Task Pack command snapshots must still match current authority for merge-authoritative gate.
+
+12. **GitHub preference needs a positive CLI form**  
+    Once omission means `unspecified`, current `--no-github` alone is insufficient. The public CLI needs one explicit positive include flag and must reject contradictory positive+negative flags.
+
+13. **Init handoff must match the adopted asset surface**  
+    Current greenfield `printInitResult()` cannot be reused unchanged for brownfield-minimal because it would instruct the agent to create Source-of-Truth starters VCP deliberately did not install.
+
 These amendments are now integrated into the main Adaptive documents rather than living only in an audit note.
 
 ---
@@ -1211,6 +1266,7 @@ A safe implementation decomposition is:
 - NEW/EXISTING/MANAGED/conflict/recovery;
 - reserved `.vcp`;
 - raw agent/GitHub/stack request provenance;
+- explicit positive+negative GitHub CLI request representation;
 - brownfield stack ambiguity;
 - no mutation.
 
@@ -1220,7 +1276,7 @@ A safe implementation decomposition is:
 - assetSet-aware desired surface;
 - canonical prompt resolver;
 - Doctor prompt-source minimum;
-- verification-command authority inspection;
+- verification-command authority inspection, command identity/fingerprint/provenance, and approval-needed decision reporting;
 - greenfield-safe CI filtering;
 - legacy workflow remains packaged.
 
@@ -1229,6 +1285,7 @@ A safe implementation decomposition is:
 - ADD/ADOPT/COMPOSE/PRESERVE/NOOP/SKIP/CONFLICT;
 - deterministic ordering;
 - content-free JSON;
+- repository-class/assetSet-aware human + JSON handoff/next-step reporting;
 - zero-write brownfield dry-run;
 - non-dry-run brownfield apply blocked;
 - remove init-specific `--force`;
@@ -1246,6 +1303,10 @@ Require:
 - review against both Adaptive documents;
 - exact-head release/package checks accepted under the current executable evidence policy;
 - Checkpoint evidence artifact proving the Stage-12 contract—not future Stage-13 adoption success.
+
+### Stage-13 command-authority carry-forward
+
+Stage 13 must not merely consume the Stage-12 command decision and forget it. Fresh apply revalidates any reusable decision against the exact current command identity, then successful apply persists the bounded lifecycle receipt. Rollback restores prior receipt state. New brownfield Task Packs capture command provenance/fingerprint so later verification/gate can detect stale project command authority.
 
 ---
 
@@ -1278,6 +1339,7 @@ The most important reason it is ready is not the number of pages or tests. It is
 - package vs consumer;
 - whole file vs managed section;
 - project text vs VCP authority;
+- command text vs executable approval receipt/current Task Pack command contract;
 - detected evidence vs applied capability;
 - prompt guidance vs Source of Truth;
 - Auto routing vs merge enforcement;
