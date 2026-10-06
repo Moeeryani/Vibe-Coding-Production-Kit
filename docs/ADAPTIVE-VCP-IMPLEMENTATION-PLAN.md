@@ -3047,21 +3047,23 @@ Stage 12 spans the enabling parts of Phase 0 plus the **read-only** portion of s
 Implement:
 
 1. centralized install/manifest metadata construction;
-2. packaged canonical prompt resolver while preserving project overrides;
-3. manifest schema/versioned ownership foundation for whole-file vs section ownership;
-4. section extraction/composition/baseline/update primitives and tests;
-5. read-only repository classification: NEW / EXISTING / MANAGED;
-6. minimal brownfield adoption-surface selection;
-7. deterministic `init` planning actions;
-8. useful `vcp init . --dry-run [--json]` for existing projects;
-9. persisted install-surface identity for legacy-full vs brownfield-minimal lifecycle behavior;
-10. tri-state GitHub request provenance for brownfield planning;
-11. verification-command authority inspection shared by Task/Doctor;
-12. Doctor prompt-source awareness through the canonical prompt resolver;
-13. reserved .vcp and brownfield stack-ambiguity safety;
-14. schema-v1 → schema-v2 migration plus minimumReaderVersion fail-closed semantics;
-15. previous-release lifecycle/release smoke proving old/new reader behavior;
-16. removal of destructive init `--force` behavior.
+2. packaged canonical prompt resolver with project-override precedence and structured source provenance;
+3. lifecycle manifest schema/versioned ownership foundation for whole-file vs section ownership;
+4. minimumReaderVersion fail-closed semantics for behavior-bearing same-schema state;
+5. section extraction/composition/baseline/update primitives and tests;
+6. VCP-state readability inspection before NEW / EXISTING / MANAGED maturity classification;
+7. reserved `.vcp` collision/recovery inspection;
+8. brownfield stack-ambiguity safety while retaining the Stage-11-compatible stack API;
+9. minimal brownfield adoption-surface selection;
+10. persisted install-surface identity for legacy-full vs brownfield-minimal lifecycle behavior;
+11. preserved agent request provenance plus persisted **actual adapter surface**;
+12. tri-state GitHub request provenance for brownfield planning;
+13. verification-command authority inspection shared by Task/Doctor;
+14. Doctor prompt-source/install-surface awareness for the valid brownfield-minimal shape;
+15. deterministic content-free `init` planning actions;
+16. useful `vcp init . --dry-run [--json]` for existing projects;
+17. schema-v1 → schema-v2 migration through normal managed `vcp update`, plus previous-release lifecycle/release smoke proving old/new reader behavior;
+18. removal of destructive init `--force` behavior.
 
 Stage 12 must **not** perform Smart Init mutation into unmanaged EXISTING repositories.
 
@@ -3091,16 +3093,17 @@ Stage 13 adds mutation using the Stage 12 planner.
 
 Implement:
 
-1. acquire lifecycle lock;
-2. recompute a fresh plan under lock;
+1. acquire a **first-adoption-aware lifecycle lock** and record whether lock bootstrap created temporary `.vcp` state;
+2. re-inspect the repository/VCP namespace and recompute a fresh plan under lock;
 3. block on conflicts/precondition changes;
-4. backup every path that may change plus explicit prior lifecycle-state presence/absence;
-5. transactional COMPOSE/ADD/ADOPT behavior;
-6. write section-aware baselines and manifest;
-7. post-apply verification;
-8. automatic rollback on failure;
-9. idempotent managed-project re-run behavior;
-10. subsequent `vcp update` proof.
+4. if blocking/failure occurs before backup creation, release the lock and remove only empty operation-created lock bootstrap state;
+5. backup every path that may change plus explicit prior lifecycle-state presence/absence;
+6. transactional COMPOSE/ADD/ADOPT behavior;
+7. write section-aware baselines and manifest, including the actual adopted asset/adapter surface;
+8. post-apply verification;
+9. automatic rollback on failure;
+10. idempotent managed-project re-run behavior;
+11. subsequent `vcp update` proof.
 
 The apply path must generalize existing backup/rollback semantics for first adoption: if no manifest/baselines existed before the transaction, rollback must remove the newly created manifest/baselines rather than leave a false managed state.
 
