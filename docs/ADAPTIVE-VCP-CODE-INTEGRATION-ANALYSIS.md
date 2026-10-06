@@ -1080,7 +1080,7 @@ Inputs include:
 
 - selected root;
 - repository inspection result;
-- agent request provenance plus resolved actual adapter surface;
+- agent request provenance plus resolved managed/observed adapter state;
 - current stack selector/result;
 - adoption-surface policy.
 
@@ -1104,7 +1104,9 @@ ADD
 
 ADOPT
 → establish ownership only where the ownership boundary already exists safely:
-   exact canonical whole-file ownership, or an already valid marked VCP section
+   an exact canonical whole-file artifact whose asset policy permits whole-file adoption,
+   or an already valid marked VCP section
+→ brownfield AGENTS/CLAUDE/Copilot paths stay section-owned; exact unmarked content does not authorize whole-file takeover
 → never claim arbitrary unmarked project prose as a section baseline
 
 COMPOSE
@@ -1479,11 +1481,50 @@ explicit vendor/all
 
 Existing vendor files that are not selected remain project-owned/preserved.
 
-Persist the actual adapter surface as part of reproducible desired state. Do not rely only on `install.agent` when one selector cannot faithfully encode a brownfield combination. Options include an explicit `install.adapters` list or adapter entries inside the classified `assetSet`.
+Do not persist "actual adapter surface" as one undifferentiated list.
 
-Desired-file construction, update, manage, Doctor, rollback, and migration must consume the persisted actual surface so a later update never materializes adapters that Smart Init intentionally skipped.
+Normalize three concepts:
 
-Public CLI tests must include `--yes` on an established repo with existing CLAUDE.md/Copilot instructions and no `--agent`, proving omission is not reinterpreted as explicit generic before planning.
+~~~text
+requestedAdapterIntent
+  explicit developer intent, or null/unspecified
+
+managedAdapterSurface
+  VCP-owned whole files/sections plus why they became managed
+  e.g. explicit-request | observed-existing
+
+observedCompatibleAdapters
+  derived inspection result for project-owned files
+  never ownership by itself
+~~~
+
+Existing `install.agent` may remain as a compatibility summary, but it is not enough to reproduce brownfield semantics.
+
+Possible lifecycle representation:
+
+- explicit `install.requestedAdapters` / equivalent for durable user intent;
+- normal `managedFiles` ownership entries plus assetSet/origin metadata for VCP-managed adapter sections;
+- no persisted desired-file ownership merely because a project-owned adapter was observed compatible.
+
+Update behavior:
+
+~~~text
+project-owned compatible adapter + no VCP section
+→ NOOP while compatibility remains
+→ never rewritten merely because it was observed
+
+managed adapter section created from observed-existing file
+→ update only that section while the file remains
+→ if whole file disappears, do not silently recreate absent vendor adapter without explicit intent
+
+explicit requested adapter
+→ compatibility is a durable desired condition
+→ if absent/incompatible later, planner may ADD/COMPOSE safely
+~~~
+
+Desired-file construction, update, manage, Doctor, rollback, and migration must respect this split.
+
+Public CLI tests must include `--yes` on an established repo with existing CLAUDE.md/Copilot instructions and no `--agent`, proving omission is not reinterpreted as explicit generic before planning and that already-compatible unowned files remain unowned.
 
 ---
 
@@ -4294,7 +4335,7 @@ The matrix is complete when release gates prove properties, not merely framework
 - selected-root isolation;
 - safe unsupported fallback;
 - lifecycle reader compatibility fails closed;
-- brownfield adapter/install-surface provenance is reproducible;
+- brownfield explicit adapter intent and VCP-managed adapter provenance are reproducible without claiming observed-compatible project files;
 - capability add/remove/sticky provenance is preserved;
 - init plan/apply consistency;
 - update after adoption remains safe;
@@ -4910,7 +4951,7 @@ Implement the minimum foundations for trustworthy **read-only brownfield init pl
 8. brownfield stack-ambiguity inspection while retaining the current Stage-11-compatible stack API;
 9. minimal brownfield adoption-surface planner;
 10. persisted assetSet design: legacy-full vs brownfield-minimal;
-11. agent request provenance plus persisted actual adapter surface;
+11. agent request provenance plus persisted explicit adapter intent / managed adapter surface;
 12. tri-state GitHub request provenance;
 13. shared verification-command authority inspection;
 14. Doctor prompt-source / install-surface awareness required for the new valid brownfield shape;
@@ -4977,7 +5018,7 @@ Required details:
 - backup metadata records prior absence/presence of manifest, baselines, and VCP state;
 - rollback restores prior absence as well as prior content;
 - section composition preserves surrounding bytes;
-- brownfield install persists brownfield-minimal assetSet **and the actual adapter surface**;
+- brownfield install persists brownfield-minimal assetSet, explicit adapter intent, and VCP-managed adapter ownership/provenance;
 - update/manage/Doctor reproduce that adopted surface;
 - repeated init reports MANAGED and does not rewrite;
 - immediate subsequent `vcp update` is safe/idempotent.
