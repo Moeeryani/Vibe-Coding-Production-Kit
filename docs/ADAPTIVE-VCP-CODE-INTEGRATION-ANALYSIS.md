@@ -1039,6 +1039,48 @@ This prevents context-mode and project-mode semantics from colliding.
 ---
 
 
+## 4.4A Split raw CLI parsing from post-inspection option resolution
+
+Current flow is:
+
+~~~text
+parseArgs
+→ promptForOptions
+→ validate resolved agent/stack
+→ initProject
+~~~
+
+That ordering is incompatible with evidence-first brownfield adoption.
+
+Refactor conceptually to:
+
+~~~text
+parseInitRequest
+  → preserve target + explicitness/provenance of each flag
+        ↓
+inspectRepository(target)
+        ↓
+resolveInitPreferences(request, inspection)
+        ↓
+planInit(...)
+~~~
+
+`resolveInitPreferences` may be CLI/UI-specific; the deterministic planner receives normalized intent plus explicit unresolved-decision records.
+
+Important behavior:
+
+- do not call the current greenfield `promptForOptions()` unchanged for EXISTING repositories;
+- MANAGED/VCP_STATE_CONFLICT paths short-circuit before adoption prompts;
+- `--yes` on EXISTING keeps omitted agent/GitHub intent unspecified and applies only documented conservative defaults;
+- `--dry-run --json` never reads stdin; unresolved human choices are structured plan items;
+- public human dry-run may prompt only after inspection and only for an actual choice that affects the plan;
+- option validation distinguishes syntax validity from semantic repository applicability;
+- NEW may use a compatibility resolver that reproduces current defaults until the greenfield UX is migrated.
+
+This can be implemented by splitting the existing helper rather than forcing repository inspection into `lib/cli.mjs`; the dependency direction should remain CLI → inspection/planning, not planner → terminal prompting.
+
+---
+
 ## 4.5 Recommended implementation architecture
 
 Do not grow `initProject()` into one large conditional function.
@@ -4393,6 +4435,8 @@ For every important init behavior, include at least one real bin/vibe-coding-pro
 Mandatory public-CLI regressions include:
 
 - brownfield `--yes` with omitted `--agent` preserves unspecified provenance;
+- `--dry-run --json` on a brownfield ambiguity does not prompt and returns a structured unresolved decision;
+- MANAGED/unreadable VCP state does not trigger agent/stack/GitHub adoption prompts;
 - omitted GitHub preference remains distinct from explicit include/exclude;
 - init `--force` is rejected while unrelated force flags retain their own contracts;
 - unsupported/newer lifecycle reader state fails closed before mutation.
@@ -4539,6 +4583,13 @@ Risks:
 - global parser currently shares flags across commands;
 - many CLI help tests pin exact surfaces.
 
+
+Stage 12 also needs:
+
+- raw init-request parsing separate from post-inspection preference resolution;
+- explicit presence/provenance bits for agent/GitHub (and any future behavior-bearing choice);
+- no stdin prompts in `--json` machine mode;
+- MANAGED/conflict short-circuit before interactive adoption questions.
 ---
 
 
