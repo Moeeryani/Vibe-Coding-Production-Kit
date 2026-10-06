@@ -1330,6 +1330,22 @@ baselines did not exist
 
 If Smart Init creates a manifest and then fails, rollback must remove that new lifecycle state.
 
+### Lock bootstrap occurs before backup and needs its own cleanup contract
+
+Current acquireUpdateLock() calls mkdir(.vcp, recursive) before creating `.vcp/update.lock` with exclusive `wx` semantics. For an unmanaged repository, the lock itself can therefore create the first `.vcp/` path before createBackup() runs.
+
+Generalize lock acquisition (or wrap it for init apply) so it returns/retains whether this operation created the VCP directory solely for locking.
+
+After lock acquisition:
+
+1. run the fresh repository/VCP-state inspection;
+2. if the plan blocks before backup creation, release the lock;
+3. attempt only a non-recursive removal of the operation-created `.vcp/` directory;
+4. if anything else exists in that directory, do not delete it—preserve and report;
+5. once backup/transaction state exists, normal adoption recovery semantics take over.
+
+Tests must cover conflict/no-op/error exits that occur between lock acquisition and backup creation.
+
 ### Required backup metadata
 
 Generalize recovery metadata so it records prior-state presence explicitly, for example:
@@ -1386,6 +1402,8 @@ Must prove:
 Must prove:
 
 - lock is acquired before fresh re-planning;
+- if lock bootstrap creates .vcp and planning blocks before backup, lock cleanup returns the repository to no VCP state;
+- unexpected content appearing in the lock-created .vcp directory is preserved and reported rather than recursively deleted;
 - a repository change between preview and apply changes/rejects the fresh plan safely;
 - apply never trusts a stale preview object;
 - all conflicts block before project-file mutation;
@@ -3994,6 +4012,7 @@ Smart Init Apply should preserve this ordering.
 
 Needs:
 
+- first-adoption-aware lock bootstrap metadata/cleanup before backup exists;
 - reusable transaction/apply primitives for initial adoption;
 - section-replacement actions;
 - first-install backup semantics where no prior manifest exists;
