@@ -3261,6 +3261,8 @@ Important Stage 6 compatibility rule:
 
 When active security profiles are relevant, L3 requires a dedicated security Context Pack/review. The existing rule that only contextMode=security auto-loads security profiles remains authoritative.
 
+Security-profile presence alone is not the trigger: the mandatory baseline profile exists whenever security mode is used. The deterministic L3 risk policy decides whether security review is required; active profiles then scope that review.
+
 ### Required Stage-7 extension: Git-bound security context
 
 Current createContextPack rejects --base/--head outside review mode.
@@ -3905,7 +3907,7 @@ Require current plan/implementation readiness, acceptance criteria, verification
 
 ### L3
 
-Require L2 plus applicable high-risk checks. Where active security profile/risk policy requires dedicated security review, gate must prove:
+Require L2 plus applicable high-risk checks. Where the L3 classifier/project risk policy requires dedicated security review, gate must prove:
 
 - parser-visible security-review evidence exists;
 - exact reviewed security head is current for the final implementation surface;
