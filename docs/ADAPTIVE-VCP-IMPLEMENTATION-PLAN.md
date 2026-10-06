@@ -900,17 +900,20 @@ Rules:
 
 This sequencing is required for the existing VCP principle: **discover before asking**.
 
-> [AUDIT 2026-10-06 — PRE-IMPLEMENTATION] Preview answers must survive to apply.
-> The no-saved-plan rule is about *repository state* (which goes stale), not about
-> the user's *answers* (which don't). Discarding interactive dry-run answers and
-> re-asking the identical questions at apply contradicts §2A.2 (repeated
-> unnecessary questions are system defects) and teaches users to skip preview for
-> `--yes`, taking the conservative fallback exactly where human judgment mattered
-> most. Required: `init --dry-run` may emit an explicitly non-authoritative
-> **answers record** (user decisions only — no file paths, no hashes, no plan
-> content, labeled "not executable"), and apply accepts `--answers-file` to skip
-> re-prompting answered decisions. Without it, apply re-prompts (current
-> behavior). The plan itself is always recomputed fresh under lock.
+> [EXTERNAL RE-AUDIT 2026-10-06] Preview answers may be reused, but they
+> are not timeless authority. The no-saved-plan rule still stands: repository
+> state is always re-inspected and the plan is recomputed under lock. To avoid
+> unnecessary repeated questions without replaying stale intent, a non-executable
+> **answers record** may contain only stable decision IDs/versions and the user's
+> chosen value (no file contents, repository plan, or executable mutations).
+> During Stage-13 fresh planning:
+> - same decision still exists + recorded value is still valid → reuse silently;
+> - decision disappeared → ignore the stale answer and report that it was unused;
+> - option/value is no longer valid or the decision contract changed → ask/block
+>   again as a genuine HUMAN DECISION;
+> - a new decision appeared → ask/block normally.
+> The answers record reduces attention cost; it never constrains the fresh plan or
+> bypasses validation.
 
 ## 3.4 Remove destructive --force from init only
 
@@ -1067,7 +1070,7 @@ duplicate/equivalent occurrences
   rewriting the project-owned duplicate is a write into project-owned text)
 → the resolver returns the value with an ambiguity flag until resolved
 
-[AUDIT 2026-10-06 — PRE-IMPLEMENTATION] Adopted commands carry execution authority:
+[EXTERNAL RE-AUDIT 2026-10-06] Adopted commands carry execution authority:
 every adopted command must record provenance (project-adopted vs vcp-suggested),
 and adoption of a command matching destructive patterns (shell-pipe,
 recursive delete, fetch-and-execute) requires an explicit HUMAN DECISION at
