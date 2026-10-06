@@ -1,6 +1,7 @@
 # Task — Stage 11 React Native Mobile Profiles implementation
 
-Status: Review — implementation merged; canonical closeout evidence gap recorded below
+Status: Review
+Closeout note: implementation merged; canonical post-finalization exact-head rerun evidence is not durably recorded. See Finalization below.
 Slug: `stage11-mobile-profiles-implementation`
 
 ## Outcome
