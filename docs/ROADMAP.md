@@ -526,22 +526,24 @@ Dependency Graph Engine / Slice D remains deferred.
 
 **Status:** 🔵 Next designed execution stage — implementation must begin from a reconciled current-main baseline. Canonical design: docs/ADAPTIVE-VCP-IMPLEMENTATION-PLAN.md with code authority in docs/ADAPTIVE-VCP-CODE-INTEGRATION-ANALYSIS.md.
 
-Stage 12 is intentionally read-only for established repositories.
+Stage 12 is intentionally read-only for **unmanaged brownfield Smart Init**. Already-managed repositories may still migrate through the normal transactional `vcp update` lifecycle.
 
 It establishes:
 
-- NEW / EXISTING / MANAGED inspection;
-- project-override / packaged canonical prompt resolution;
-- manifest schema evolution for whole-file vs section ownership;
+- VCP-state readability before NEW / EXISTING / MANAGED classification, including fail-closed newer/malformed/recovery states;
+- project-override / packaged canonical prompt resolution with inspectable source provenance;
+- lifecycle manifest schema v2 for whole-file vs section ownership plus a minimum-reader compatibility guard;
+- schema-v1 → schema-v2 managed-update migration and previous-release lifecycle smoke;
 - section-composition/baseline/update primitives;
-- brownfield-minimal install-surface planning;
+- brownfield-minimal classified install-surface planning and Doctor awareness of intentionally absent starter/framework assets;
+- preserved agent-selector provenance and persisted actual adapter surface;
 - verification-command authority inspection;
-- safe GitHub-option provenance;
-- reserved .vcp / mixed-stack ambiguity checks;
-- content-free vcp init --dry-run planning;
-- removal of destructive init --force behavior.
+- safe tri-state GitHub-option provenance;
+- reserved `.vcp` / mixed-stack ambiguity checks;
+- content-free `vcp init --dry-run` planning;
+- removal of destructive init `--force` behavior.
 
-Stage 12 does not mutate EXISTING repositories through Smart Init.
+Stage 12 does not mutate unmanaged EXISTING repositories through Smart Init; `vcp init` on MANAGED state redirects to lifecycle update/status.
 
 ### Stage 13 — Smart Init Apply
 
@@ -550,7 +552,8 @@ Stage 12 does not mutate EXISTING repositories through Smart Init.
 Stage 13 adds transactional brownfield mutation:
 
 ~~~text
-lifecycle lock
+first-adoption-aware lifecycle lock
+→ own temporary lock bootstrap state
 → inspect again
 → fresh plan
 → conflict/precondition check
@@ -563,7 +566,7 @@ lifecycle lock
 
 Apply never treats an earlier preview as executable authority.
 
-Rollback must restore prior absence of VCP lifecycle state as well as prior file contents.
+If planning blocks before backup creation, lock bootstrap must not leave a stray `.vcp/` directory in a previously unmanaged repository. Once a recovery point exists, rollback must restore prior absence of VCP lifecycle state as well as prior file contents.
 
 Stage 13 is followed immediately by Adaptive Validation Checkpoint A before broader capability/profile/CI/Auto machinery proceeds.
 
