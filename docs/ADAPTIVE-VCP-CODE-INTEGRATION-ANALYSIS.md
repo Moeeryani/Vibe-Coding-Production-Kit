@@ -3547,25 +3547,38 @@ Mode change should:
 
 ## 11.5 Adapter rendering
 
-lib/adapters.mjs needs mode-aware content.
+lib/adapters.mjs needs mode-aware content, but rendering must be **feature-aware**.
 
-Auto section:
+### Phase 6 Auto
+
+~~~text
+Route meaningful engineering changes through the currently supported VCP workflow.
+Respect current readiness / Source-of-Truth / verification / review requirements.
+~~~
+
+Do not mention workflow levels or vcp gate yet.
+
+### Phase 7 Auto
+
+After workflow levels/gate are real:
 
 ~~~text
 Route meaningful engineering changes through the appropriate VCP workflow.
-Use the lightest allowed workflow level.
-Do not bypass readiness/verification/review requirements.
+Use the lightest Core-allowed workflow level.
+Do not bypass readiness/verification/review/gate requirements.
 ~~~
 
-Manual section:
+### Manual
 
 ~~~text
 VCP is available.
 Use it when explicitly invoked by the developer/Skill.
-Ordinary requests do not automatically enter full VCP workflow.
+Ordinary requests do not automatically enter VCP workflow.
 ~~~
 
-Keep adapters thin.
+The Phase-6 packaged router follows the same feature gate: it cannot invent L1/L0 artifacts or call `vcp gate` before Phase 7 exists.
+
+Keep adapters/Skill routing thin.
 
 Do not paste the whole operating model into CLAUDE.md/Copilot files.
 
@@ -3592,8 +3605,11 @@ If manifest missing/corrupt, do not infer an authoritative project mode from cha
 - existing managed projects have deterministic backward behavior;
 - mode-specific adapter changes preserve user text;
 - Doctor reports mode;
-- Auto and Manual behavioral tests exist;
+- Auto and Manual behavioral tests exist for the contracts actually shipped in Phase 6;
+- installed Phase-6 routing contains no references to unimplemented workflow levels/gate;
 - context --mode semantics remain completely separate.
+
+Full adaptive Auto completion is a Phase-7/Checkpoint-C property, not a Phase-6 definition-of-done claim.
 
 ---
 
@@ -5528,7 +5544,7 @@ Do not continue if capability detection creates false certainty, command inventi
 6. Doctor visibility;
 7. prompt-eval coverage only where new observable routing behavior requires it.
 
-This router is the real minimum installed UX surface, not a disposable prototype. It remains best-effort UX and is not deterministic enforcement.
+This router is the real minimum installed UX surface, not a disposable prototype. In Phase 6 it routes only through currently implemented VCP contracts; it must not fabricate future L0/L1/L3/gate behavior. Adaptive level selection/enforcement becomes active in Phase 7.
 
 ## Phase 7 — Workflow levels + gate
 
