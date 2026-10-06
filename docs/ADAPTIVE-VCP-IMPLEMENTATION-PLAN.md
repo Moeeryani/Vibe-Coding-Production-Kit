@@ -2769,11 +2769,15 @@ Modern agent environments can install portable Skills across multiple coding age
 
 Therefore portability alone is not a reason to prefer VCP over Skills.
 
-## 9.2 Target
+## 9.2 Target and staged surface
 
-Ship thin Skills that make VCP pleasant to use.
+Ship thin Skills that make VCP pleasant to use, but stage them deliberately.
 
-Potential user surfaces:
+Phase 6 ships the one package-owned primary `/vcp`-style router required by Auto/Manual UX.
+
+Phase 9 may add specialized Skills/references only after the underlying workflow-level/gate contracts stabilize.
+
+Potential eventual user surfaces:
 
 ```text
 /vcp
@@ -2867,6 +2871,9 @@ The Skill proposes improvements; deterministic VCP Core changes remain normal co
 
 ## 9.6 Definition of done
 
+For the full Workstream-G / Phase-9 outcome:
+
+- the Phase-6 primary router remains the default entry point;
 - at least the primary supported agents can install/use equivalent VCP Skills;
 - the Skills contain little duplicated policy;
 - switching agents does not change repository truth;
