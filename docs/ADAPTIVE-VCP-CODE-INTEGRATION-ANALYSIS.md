@@ -1440,11 +1440,11 @@ understand. Required:
 - **Field-enumeration test:** a test enumerates every persisted manifest field and
   asserts each is either in the inert allowlist or covered by a guard-raise case.
   Adding a field without updating the allowlist fails the build.
-- **Guard on restore paths:** `rollbackProject` and `restoreBackup` must call
-  `readManifest` and enforce the guard *before* any restore mutation. An old CLI's
-  `vcp rollback` against an upgraded project must fail closed, not proceed open.
-  Extend the release smoke to cover old-CLI rollback explicitly (not just candidate
-  rollback).
+- **Do not rely on future reader code to protect already-published CLIs.** Current
+  v0.9.3 rollback does not call `readManifest` before restore, so adding that call
+  in the new release cannot make v0.9.3 fail closed. Schema-v2 migration therefore
+  needs a legacy mutation fence described below, plus versioned backup/transaction
+  metadata for new-CLI recovery.
 
 Stage 12 may land schema-v2 support and migration primitives; section-owned entries are only persisted when an operation actually needs them.
 
@@ -1526,15 +1526,74 @@ For initial adoption:
 - after a **successful** restore, remove the selected operation-created adoption backup itself and any now-empty operation-created `.vcp/backups` container;
 - finally attempt a non-recursive removal of `.vcp/` so unexpected external/concurrent content is preserved rather than erased.
 
-### [AUDIT 2026-10-06 — PRE-IMPLEMENTATION] Reader guard on restore entrypoints
+### [EXTERNAL RE-AUDIT 2026-10-06] Old-CLI mutation fence + recovery reader contract
 
-`rollbackProject` and `restoreBackup` currently never call `readManifest`. An old CLI's
-`vcp rollback` against a project whose manifest was upgraded (schema or
-minimumReaderVersion) by a newer CLI would therefore proceed open, not closed —
-restoring bytes it cannot semantically understand. Required: both entrypoints must
-load the manifest through `readManifest` and enforce the schema-version and
-minimumReaderVersion guards *before* any restore mutation. The release smoke test must
-cover old-CLI rollback explicitly (candidate rollback alone does not prove it).
+Current v0.9.3 mutating lifecycle paths coordinate on `.vcp/update.lock`; notably,
+`rollbackProject()` does **not** read the active manifest before `restoreBackup()`.
+
+That creates two different requirements:
+
+#### Prevent old published CLIs from mutating schema-v2 state
+
+Future code cannot retrofit a manifest guard into v0.9.3. Use an on-disk primitive
+that old code already obeys.
+
+For schema-v2:
+
+~~~text
+.vcp/update.lock
+→ persistent legacy-CLI blocker/sentinel
+
+.vcp/lifecycle.lock
+→ actual schema-v2 runtime lock (final name may differ)
+~~~
+
+Migration behavior:
+
+1. schema-v1 update acquires the legacy `update.lock` normally;
+2. if the v1→v2 transaction succeeds, convert/leave that path as the persistent
+   legacy blocker instead of deleting it;
+3. all schema-v2 lifecycle mutations use the new lock path;
+4. if migration rolls back to schema-v1, remove/restore the blocker so v1 semantics
+   are intact;
+5. v0.9.3 update/manage/rollback must be exercised against the migrated fixture and
+   proven to fail before project-file mutation.
+
+A schema-v2-capable reader distinguishes the sentinel from its real active lock.
+
+#### Keep recovery possible when the active manifest is damaged
+
+Do **not** make successful `readManifest(current)` mandatory for all recovery. A
+current compatible CLI must be able to restore a known-good backup when the current
+manifest itself is corrupt.
+
+Version the recovery artifacts:
+
+~~~text
+backup metadata:
+  backupSchemaVersion
+  minimumReaderVersion
+  operation
+  prior lifecycle state
+  target/restored manifest identity
+
+transaction metadata:
+  transactionSchemaVersion
+  minimumReaderVersion
+  backupId / operation identity
+~~~
+
+Before restore mutation:
+
+- validate backup/transaction structure and reader compatibility;
+- validate the backed-up manifest when one exists;
+- if current manifest is readable, also enforce its reader guard;
+- if current manifest is malformed/missing, allow explicit recovery only from a
+  compatible validated backup/transaction target;
+- initial-adoption backup may validly target unmanaged/no-manifest state.
+
+This gives fail-closed old-version protection **and** preserves recovery from a
+damaged current manifest.
 
 Do not delete the recovery backup before restore verification succeeds. If rollback fails or leaves an unexpected path, retain the backup/recovery state and report that the repository is not fully restored instead of claiming unmanaged success.
 
@@ -5318,7 +5377,10 @@ Keep the implementation narrow: one explicitly named VCP section per managed int
 Needs:
 
 - manifest schema v2 support;
-- top-level minimumReaderVersion validation before lifecycle mutation;
+- top-level minimumReaderVersion validation before normal lifecycle mutation;
+- schema-v2 persistent legacy `.vcp/update.lock` blocker plus a new actual runtime lock path;
+- versioned backup/transaction metadata and compatibility validation for recovery;
+- recovery path that can validate a backup even when the active manifest is damaged;
 - running CLI version lookup through the existing version helper;
 - shared semantic-version comparison from a low-level utility rather than making state depend conceptually on migration policy;
 - migration/normalization of v1 managed entries to ownership.kind=file;
@@ -5384,6 +5446,8 @@ Smart Init Apply should preserve this ordering.
 Needs:
 
 - first-adoption-aware lock bootstrap metadata/cleanup before backup exists;
+- schema-aware lock selection: legacy lock for schema-v1 operations, new lifecycle
+  lock for schema-v2, with persistent old-CLI blocker after successful migration;
 - reusable transaction/apply primitives for initial adoption;
 - section-replacement actions;
 - first-install backup semantics where no prior manifest exists;
@@ -6312,7 +6376,7 @@ sequencing decisions; this appendix registers the technical amendments.
 | # | Section | Change |
 |---|---------|--------|
 | 1 | §4.7 | minimumReaderVersion default-raise rule: new `install.*` fields raise the guard unless allowlisted as inert (`INERT_MANIFEST_FIELDS`); field-enumeration test fails the build on unlisted fields |
-| 2 | §4.7, §4.8 | `rollbackProject`/`restoreBackup` must call `readManifest` and enforce schema + reader guards before any restore mutation; release smoke covers old-CLI rollback explicitly |
+| 2 | §4.7, §4.8 | published-old-CLI safety cannot rely on new reader code: schema-v2 establishes a persistent legacy-lock mutation fence; new backup/transaction metadata is versioned so compatible recovery can proceed even if the active manifest is damaged; release smoke runs the actual previous CLI against update/manage/rollback |
 | 3 | §4.10 | Fail-closed default for absent/corrupt `assetSet` (`E_ASSETSET_UNKNOWN`); no heuristic auto-repair from current paths; Doctor reports candidate evidence/backup recovery and explicit repair remains human/auditable; `manage ignore` refuses never-managed paths; writer-audit property test |
 | 4 | §4.14 | Prompt resolver takes `assetSet` as input; no references to non-installed starter paths; brownfield Context Pack has no hardcoded starter paths |
 | 5 | §4.12 | duplicate-equivalent values execute as one unambiguous value while retaining all provenance and without rewriting project text; conflicting values → HUMAN DECISION; adopted destructive-pattern commands still require explicit HUMAN DECISION |
