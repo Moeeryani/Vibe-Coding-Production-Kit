@@ -512,13 +512,14 @@ At minimum:
 
 Current interactive init asks about target, agent, stack, and GitHub assets.
 
-Smart init should remove questions that repository evidence can answer:
+Smart init should remove questions that repository evidence can answer, without pretending later capability work already exists:
 
-- stack/capabilities → detect;
+- Stage 12/13 stack evidence → use the current deterministic Stage-11-compatible detector, while surfacing material mixed-stack ambiguity rather than guessing;
+- Phase 4+ capabilities → detect compositionally once that model lands;
 - CI → detect/preserve;
 - existing agent integration → detect/compose.
 
-Only real choices should remain.
+Only real choices should remain. Repository ambiguity that affects authority/profile selection is a real decision until deterministic capability semantics can resolve it.
 
 ### Required tests
 
