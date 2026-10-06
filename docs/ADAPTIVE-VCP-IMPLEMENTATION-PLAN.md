@@ -899,6 +899,32 @@ schema-v1 managed entry
 
 Older CLIs must reject the newer schema rather than guessing.
 
+### Forward-reader compatibility inside a schema
+
+A schema number alone is not sufficient once later Adaptive phases add behavior-bearing fields to the same structural schema.
+
+Later releases may persist applied capability state/provenance, workflowMode, explicit CI/gate integration state, or other fields that change desired managed content or lifecycle behavior. An older schema-v2 CLI must not accept those fields as harmless unknown metadata and then rewrite the repository using older semantics.
+
+Therefore manifests need a fail-closed semantic reader guard, conceptually:
+
+~~~json
+{
+  "schemaVersion": 2,
+  "minimumReaderVersion": "<first VCP version that understands all behavior-bearing semantics in this manifest>"
+}
+~~~
+
+Rules:
+
+- Stage 12 writes the minimum reader version required for section ownership and assetSet semantics;
+- whenever a later release adds or changes persisted state that affects lifecycle or desired content, it raises minimumReaderVersion to the first compatible CLI version;
+- lifecycle entrypoints compare the running CLI version before planning or mutation;
+- an older CLI may inspect enough metadata to explain incompatibility, but it must not update/manage/rollback through semantics it does not understand;
+- all manifest writers, migrations, manage operations, backups, and restores preserve or deliberately raise the guard;
+- merely spreading unknown install fields forward is data preservation, not semantic compatibility.
+
+Use a schema bump when the structural representation itself changes incompatibly. The reader-version guard avoids unnecessary schema churn for additive but behavior-bearing semantics.
+
 ## 3.6 Verification-command authority in brownfield AGENTS.md
 
 Current Task/Doctor command discovery scans AGENTS.md for command slots such as:
@@ -2579,8 +2605,9 @@ Implement:
 11. verification-command authority inspection shared by Task/Doctor;
 12. Doctor prompt-source awareness through the canonical prompt resolver;
 13. reserved .vcp and brownfield stack-ambiguity safety;
-14. schema-v1 → schema-v2 migration plus previous-release lifecycle/release smoke;
-15. removal of destructive init `--force` behavior.
+14. schema-v1 → schema-v2 migration plus minimumReaderVersion fail-closed semantics;
+15. previous-release lifecycle/release smoke proving old/new reader behavior;
+16. removal of destructive init `--force` behavior.
 
 Stage 12 must **not** perform Smart Init mutation into EXISTING repositories.
 
