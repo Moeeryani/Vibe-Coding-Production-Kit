@@ -3228,9 +3228,12 @@ That is not a provider-neutral CI model.
 Before generating any new workflow, and as a Stage-12 requirement for fresh NEW installs:
 
 1. stop installing VCP's source-repository npm workflow into arbitrary fresh consumers;
-2. split CI detection from GitHub issue/PR scaffolding;
-3. preserve existing CI;
-4. make Doctor CI-aware rather than one-path-aware.
+2. split GitHub issue/PR scaffolding from CI desired-state ownership;
+3. preserve existing CI as project-owned state;
+4. make Doctor/install-health assetSet-aware so greenfield-safe/brownfield-minimal do not require the legacy `.github/workflows/validate.yml`;
+5. preserve legacy-full expectation/state until its explicit migration.
+
+Stage 12 does **not** implement the full provider-neutral CI inspector. For the safe new asset sets, Doctor may report project CI coverage as unknown/unassessed until Phase 3. The required Stage-12 fix is that intentional absence of the legacy VCP workflow is not treated as install corruption.
 
 Do not wait for full vcp gate to stop fresh npm-workflow installation.
 
@@ -3258,7 +3261,9 @@ A future major version may rename/retire the field after legacy compatibility is
 
 ---
 
-## 10.4 Add CI inspection module
+## 10.4 Add CI inspection module — Phase 3
+
+After the Stage-12 install-health safety floor, add the provider-neutral inspector.
 
 Suggested:
 
@@ -3289,7 +3294,17 @@ project verification coverage: unassessed unless deterministically provable
 
 ## 10.5 Doctor changes
 
-Replace hardcoded validate.yml check with the CI inspector.
+### Stage 12 minimum
+
+Make the hardcoded validate.yml expectation conditional on install.assetSet:
+
+- legacy-full-v1 may still expect/report the historical managed workflow until migration;
+- greenfield-safe-v1 / brownfield-minimal-v1 treat its absence as expected;
+- project CI coverage is informational unknown/unassessed unless deterministically known.
+
+### Phase 3
+
+Replace the remaining one-path CI reporting with the provider-neutral inspector.
 
 Examples:
 
@@ -5081,12 +5096,12 @@ Do not lose explicit-vs-auto historical intent.
 Needs several changes:
 
 - Stage 12 shared prompt resolver so packaged prompts count as available;
-- Stage 12 install assetSet awareness so intentionally absent source-framework assets, greenfield starter docs, and optional hygiene are not misdiagnosed;
+- Stage 12 install assetSet awareness so intentionally absent source-framework assets, greenfield starter docs, optional hygiene, and legacy validate.yml are not misdiagnosed;
 - separation of VCP install health from project-governance coverage;
 - shared verification-command authority resolver;
 - capability reporting including detected/applied/provenance/mismatch/pending-transition state;
 - workflow mode;
-- provider-neutral CI inspection;
+- Phase-3 provider-neutral CI inspection;
 - removal of local framework validator requirement;
 - new gate status where appropriate.
 
