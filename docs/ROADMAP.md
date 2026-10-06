@@ -188,9 +188,9 @@ Dogfood proved the protocol can discover facts, stop at genuine human decisions,
 
 It also produced real product follow-ups #21–#27.
 
-### Slice C — Decide whether `mode` / `blockedBy` deserve persistence
+### Slice C — Decide whether execution mode (AFK/HITL) / `blockedBy` deserve persistence
 
-**Status:** ✅ Done — Issue #44 dogfood found current Task Pack prose sufficient; required `mode` / `blockedBy` persistence is not justified yet.
+**Status:** ✅ Done — Issue #44 dogfood found current Task Pack prose sufficient; required execution-mode / `blockedBy` persistence is not justified yet.
 
 The multi-branch dogfood exercised:
 
@@ -205,7 +205,7 @@ The multi-branch dogfood exercised:
 The zero-context read recovered AFK/HITL classification, the blocking decision, dependency rationale, approved/rejected choices, and the eligibility transition without required graph metadata. Therefore:
 
 ```text
-mode: AFK | HITL
+executionMode: AFK | HITL
 blockedBy: [...]
 ```
 
@@ -283,7 +283,7 @@ Verification, Git-aware review, security profiles, prompt evaluation, architectu
 
 CI evidence, monorepos, release automation, stack/mobile profiles, package/repo scale.
 
-**Next:** design Stage 11 Mobile Profiles on top of the released v0.9.3 baseline; pursue Linux/hosted compatibility when an authorized environment exists (#69) without reopening completed Stages 5–10.
+**Next:** reconcile the merged Stage 11 closeout evidence gap, then implement Stage 12 Safe Adoption Planning from the current-main baseline. Linux/hosted compatibility remains a separate non-blocking follow-up (#69).
 
 ### Track E — Developer UX and Ecosystem
 
@@ -586,7 +586,7 @@ Before material implementation planning, make explicit:
 id
 title
 outcome
-mode
+executionMode
 blockedBy
 status
 acceptanceCriteria
