@@ -483,31 +483,87 @@ Stage 10 adds a deliberately narrow declarative extension model:
 
 A React Native-readiness fixture dogfoods the Stage 10 plugin model only and does not itself confer built-in mobile authority. Stage 11 implements first-party React Native support separately in `examples/mobile-react-native/`.
 
+
 ### Stage 11 — Mobile Profiles
 
-**Status:** 🟠 Implementation complete — exact-head verification/review pending. Issue #84 / PR #85 / accepted contract `docs/MOBILE-PROFILES.md` / implementation Task Pack `docs/tasks/stage11-mobile-profiles-implementation.md`.
+**Status:** 🟠 Implementation merged; closeout evidence reconciliation required. Issue #84 / merged PR #85 / accepted contract docs/MOBILE-PROFILES.md / implementation Task Pack docs/tasks/stage11-mobile-profiles-implementation.md.
 
-Stage 11 is the next bounded product stage after the published `v0.9.3` baseline. The React Native-first implementation now spans all five accepted slices on PR #85; completion still requires one full exact-head Windows gate, fresh review, Task Pack finalization, and the required unchanged-head rerun before merge.
+PR #85 merged on 2026-10-06 and React Native first-party runtime support is present on main.
 
-The implemented Stage 11 contract covers:
+The consistency audit found a process/evidence mismatch that must not be hidden:
 
-- deterministic mobile project/profile detection and ambiguity behavior;
-- first-party generated mobile guidance;
-- verification-command discovery without invented simulator/device/signing/deploy commands;
-- nested-project and monorepo behavior consistent with Stage 5 project/workspace authority;
-- lifecycle init/update/re-profile semantics consistent with requested-vs-resolved stack provenance;
-- explicit compatibility and precedence with Stage 10 community profiles/plugins;
-- mobile signing/secrets/privacy boundaries;
-- realistic mobile conformance and negative/ambiguous fixtures;
-- exact completion/release evidence.
+- the implementation Task Pack is marked Done;
+- the pre-final exact-head gate and fresh review are durably recorded;
+- Task Pack finalization is recorded;
+- the required post-finalization exact-head rerun remains unchecked;
+- the PR nevertheless merged.
 
-The existing React Native-readiness community fixture remains **Stage 10 plugin dogfood only** and does not become built-in authority by implication.
+No missing historical verification is inferred.
 
-**Approved ecosystem boundary:** React Native is the first built-in Stage 11 mobile profile. Flutter, native iOS, and native Android remain explicit follow-ups and are not Stage 11 implementation scope. The Stage 10 React Native-readiness community fixture remains plugin dogfood and does not become first-party authority.
+Therefore Stage 11 functionality is merged, but the canonical completion record is not considered fully reconciled until the repository explicitly records the evidence gap and performs an appropriate current-main re-baseline gate. A later current-main run is new evidence; it must not be described as the missing historical rerun.
 
-Dependency Graph Engine / Slice D remains deferred and is not a Stage 11 dependency.
+The merged Stage 11 contract includes:
 
----
+- explicit react-native stack selection;
+- deterministic selected-root dependency + application-marker detection;
+- detection precedence go → python → react-native → typescript → javascript → generic;
+- first-party React Native engineering/security guidance;
+- repository-script verification discovery without invented native/signing/deploy commands;
+- generic/javascript/typescript → react-native automatic specialization only for requestedStack=auto and exact current evidence;
+- explicit selector and legacy unknown-provenance preservation;
+- nested-project and monorepo behavior consistent with Stage 5;
+- Stage 10 community-plugin coexistence;
+- sensitive mobile HUMAN DECISION boundaries;
+- realistic first-party mobile conformance/dogfood.
+
+Flutter, native iOS, and native Android remain out of Stage 11 scope.
+
+Dependency Graph Engine / Slice D remains deferred.
+
+### Stage 12 — Safe Adoption Planning
+
+**Status:** 🔵 Next designed execution stage — implementation must begin from a reconciled current-main baseline. Canonical design: docs/ADAPTIVE-VCP-IMPLEMENTATION-PLAN.md with code authority in docs/ADAPTIVE-VCP-CODE-INTEGRATION-ANALYSIS.md.
+
+Stage 12 is intentionally read-only for established repositories.
+
+It establishes:
+
+- NEW / EXISTING / MANAGED inspection;
+- project-override / packaged canonical prompt resolution;
+- manifest schema evolution for whole-file vs section ownership;
+- section-composition/baseline/update primitives;
+- brownfield-minimal install-surface planning;
+- verification-command authority inspection;
+- safe GitHub-option provenance;
+- reserved .vcp / mixed-stack ambiguity checks;
+- content-free vcp init --dry-run planning;
+- removal of destructive init --force behavior.
+
+Stage 12 does not mutate EXISTING repositories through Smart Init.
+
+### Stage 13 — Smart Init Apply
+
+**Status:** ⚪ Planned after Stage 12 proves the adoption planner.
+
+Stage 13 adds transactional brownfield mutation:
+
+~~~text
+lifecycle lock
+→ inspect again
+→ fresh plan
+→ conflict/precondition check
+→ complete recovery point
+→ staged apply
+→ ownership-aware baselines/manifest
+→ verify
+→ clear transaction
+~~~
+
+Apply never treats an earlier preview as executable authority.
+
+Rollback must restore prior absence of VCP lifecycle state as well as prior file contents.
+
+Stage 13 is followed immediately by Adaptive Validation Checkpoint A before broader capability/profile/CI/Auto machinery proceeds.
 
 ## 9. Conceptual Contracts That Must Stay Coherent
 
@@ -684,18 +740,21 @@ Add future `SYSTEM-CONTRACT.md` / `QUALITY-GATES.md` only if they reduce ambigui
 
 ---
 
+
 ## 15. Recommended Execution Order From Current Main
 
-1. Treat released `v0.9.3` as the immutable current baseline; do not mix Stage 11 work into that released identity.
-2. Complete Stage 11 Mobile Profiles design/readiness under Issue #82 and `docs/tasks/stage11-mobile-profiles.md`.
-3. After explicit approval of the built-in ecosystem boundary, implement Stage 11 as bounded vertical slices with exact-head evidence.
-4. Preserve completed Stage 5 monorepo/workspace semantics, Stage 6 security profiles, Stage 7 prompt evaluation, Stage 8 architecture fitness, Stage 9 release mechanics, and Stage 10 plugin trust boundaries through Stage 11.
-5. Keep Linux/hosted compatibility as non-blocking follow-up #69 until an authorized execution environment exists.
-6. Keep #73 as an explicit residual filesystem-concurrency risk unless a portable complete confinement design becomes available.
-7. Pursue broader cross-agent/ecosystem conformance after the bounded Stage 11 mobile contract is proven.
-8. Revisit Dependency Graph Engine / Slice D only if later dogfood demonstrates a concrete problem that required graph metadata would solve.
+1. Keep released v0.9.3 immutable.
+2. Reconcile the merged Stage 11 closeout evidence gap honestly; do not fabricate the missing historical post-finalization rerun.
+3. Run and record the appropriate current-main re-baseline evidence before Stage 12 code work.
+4. Implement Stage 12 Safe Adoption Planning only: read/inspect/classify/plan for EXISTING repositories, with no brownfield mutation.
+5. Implement Stage 13 Smart Init Apply using the Stage 12 planner under the lifecycle lock, with rollback to truly unmanaged prior state.
+6. Run Adaptive Validation Checkpoint A and simplify/stop if real brownfield adoption is still noisy or unsafe.
+7. Only after Checkpoint A, continue consumer-asset cleanup, provider-neutral CI work, composable capabilities/profiles, workflow modes/levels, gate integration, and expanded Skills in the order defined by the Adaptive documents.
+8. Preserve completed Stage 5–10 invariants and merged Stage 11 behavior through every migration.
+9. Keep Linux/hosted compatibility follow-up #69 and filesystem-concurrency residual risk #73 explicit unless separately resolved.
+10. Revisit Dependency Graph Engine / Slice D only if new dogfood demonstrates a problem current Task Pack prose cannot solve safely.
 
----
+The Adaptive implementation documents are the detailed authority for Stages 12+; this Roadmap remains the status/sequencing authority.
 
 ## 16. v1 Quality Definition
 
