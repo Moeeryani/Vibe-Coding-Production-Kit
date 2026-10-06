@@ -5489,6 +5489,22 @@ acceptable.
 
 ---
 
+## 17.5 Dependency Graph Engine remains deferred
+
+Nothing in workflowLevel, task-state parsing, gate, CI task selection, or Auto routing authorizes a persisted dependency graph or scheduler.
+
+Do not add:
+
+- dependency-edge persistence;
+- autonomous ready queues;
+- multi-agent dispatch state;
+- graph lifecycle migrations;
+- scheduler retry state.
+
+Current Task Pack dependency prose and existing readiness remain the authority until dogfood proves a deterministic graph is necessary.
+
+---
+
 # 18. File-by-file change map
 
 This section summarizes likely ownership of implementation work.
