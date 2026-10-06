@@ -1778,7 +1778,14 @@ Also provide a post-install command so changing mode does not require rerunning 
 
 Mode changes must update only VCP-owned instruction sections/files and preserve project-owned surrounding content.
 
-For old manifests without `workflowMode`, preserve historical behavior deterministically—currently closest to Auto routing—without automatically enabling new merge/CI enforcement until that enforcement is explicitly configured.
+Workflow mode is a user-experience preference, not a repository fact to "detect".
+
+When the feature ships:
+
+- new installs default to `auto` unless the developer explicitly selects `manual`;
+- `--workflow-mode manual` is the explicit opt-out from automatic routing;
+- old manifests without `workflowMode` normalize to Auto-compatible behavior because current VCP already uses agent-first routing;
+- defaulting/interpreting Auto changes routing instructions only; it does **not** silently enable new CI/gate/merge enforcement. Those enforcement integrations remain separately explicit/configured.
 
 ## 8.3 Auto-mode agent instruction
 
