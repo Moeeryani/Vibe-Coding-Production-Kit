@@ -5814,6 +5814,8 @@ Preserve explicit coverage boundaries.
 
 Stage 12 needs to evolve first-match AGENTS parsing into authority inspection.
 
+Its normalized result must carry command identity, fingerprint, all source locations, effective provenance, equivalence/conflict state, and lifecycle freshness metadata used by the Stage-13 receipt contract in §4.12A.
+
 Add a shared helper that can detect:
 
 - missing slot;
