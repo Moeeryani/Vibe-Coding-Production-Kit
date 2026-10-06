@@ -1683,10 +1683,14 @@ decides the outcome far from the bug. Required:
   they must NOT silently fall back to `legacy-full-v1` (that would resurrect the exact
   framework-docs/CI surface Smart Init deliberately skipped) and must NOT proceed with
   an assumed surface.
-- Remediation is deterministic, not heuristic: `vcp doctor` offers a guided repair
-  that re-derives the asset set by comparing the manifest's managed entry paths
-  against the three known surfaces. Exact match → adopt that identity (recorded in
-  Doctor evidence). Ambiguous/no match → HUMAN DECISION; the doctor must not guess.
+- Do not auto-repair a missing/corrupt schema-v2 assetSet by guessing from current
+  paths. `managedFiles` is not a pristine install fingerprint: users may have
+  detached paths, `ignoredFiles` may contain historical choices, and catalog
+  versions evolve. Stage-12 behavior is fail-closed. Doctor reports the invalid
+  state plus non-authoritative candidate evidence (for example managed+ignored path
+  coverage and backup history), and recommends restoring a known-good backup or an
+  explicit human repair. A dedicated repair command is deferred until real usage
+  justifies it; if added later it must be explicit and auditable, never heuristic.
 - `manage ignore` must refuse paths that were never in the managed surface
   ("package does not manage ${path}" already exists for track; apply the same rule to
   ignore) so `ignoredFiles` cannot become a junk drawer of never-managed paths that
@@ -1865,12 +1869,14 @@ This is not the same as moving commands out of AGENTS.md. That larger storage mi
 
 Two gaps in the above rules:
 
-1. **Duplicate-equivalent is undecided.** "Normalize deliberately or report" leaves the
-   action unspecified. Decision: REPORT, do not normalize. Deleting or rewriting the
-   project-owned duplicate line is a write into project-owned text and needs its own
-   safety rule, which does not exist. Equivalent duplicates → HUMAN DECISION naming
-   both locations; the resolver returns the value with an ambiguity flag until
-   resolved. Never silently pick by line order (the current first-match hazard).
+1. **Duplicate-equivalent must not become fake ambiguity.** Do not normalize by
+   rewriting project-owned text, but also do not interrupt the user merely to choose
+   between identical commands. If every normalized configured value for a command key
+   is identical, treat the effective execution value as unambiguous, record all source
+   locations/provenance, and report the duplicate as informational/cleanup debt.
+   Different effective values remain CONFLICT/HUMAN DECISION. Destructive-pattern
+   approval below still applies to the effective command even when duplicates are
+   equivalent.
 
 2. **Adopted commands gain VCP authority unreviewed.** "Unique project command →
    preserve/use" means the gate will later *execute* whatever the brownfield
@@ -2092,10 +2098,11 @@ adopted as VCP-owned and later overwritten by update. Required:
   Anything else → HUMAN DECISION, never silent adoption.
 - Marker scanning must be code-fence-aware: markers inside fenced code blocks
   (``` or ~~~) do not count as marker pairs for ownership purposes.
-- Add a `vcp doctor` staleness check: if the VCP section has been preserved-as-local
-  across N consecutive updates while the package desired section changed (i.e., the
-  block is pinned to stale content), Doctor warns explicitly instead of reporting
-  success. Silent staleness is the exact failure the lifecycle was built to prevent.
+- Add a `vcp doctor`/update status that reports section drift directly from current
+  baseline/local/desired state: local customization, upstream VCP change, or both.
+  Do not introduce an arbitrary "N consecutive updates" counter or new persistence
+  merely to detect staleness. If local and upstream both changed, the normal
+  merge/conflict result already exposes the actionable condition.
 
 ---
 
@@ -6268,9 +6275,9 @@ sequencing decisions; this appendix registers the technical amendments.
 |---|---------|--------|
 | 1 | §4.7 | minimumReaderVersion default-raise rule: new `install.*` fields raise the guard unless allowlisted as inert (`INERT_MANIFEST_FIELDS`); field-enumeration test fails the build on unlisted fields |
 | 2 | §4.7, §4.8 | `rollbackProject`/`restoreBackup` must call `readManifest` and enforce schema + reader guards before any restore mutation; release smoke covers old-CLI rollback explicitly |
-| 3 | §4.10 | Fail-closed default for absent/corrupt `assetSet` (`E_ASSETSET_UNKNOWN`); deterministic Doctor-guided re-derivation (exact surface match or HUMAN DECISION); `manage ignore` refuses never-managed paths; writer-audit property test |
+| 3 | §4.10 | Fail-closed default for absent/corrupt `assetSet` (`E_ASSETSET_UNKNOWN`); no heuristic auto-repair from current paths; Doctor reports candidate evidence/backup recovery and explicit repair remains human/auditable; `manage ignore` refuses never-managed paths; writer-audit property test |
 | 4 | §4.14 | Prompt resolver takes `assetSet` as input; no references to non-installed starter paths; brownfield Context Pack has no hardcoded starter paths |
-| 5 | §4.12 | duplicate-equivalent → HUMAN DECISION (no silent normalization); adopted commands record provenance; destructive-pattern adoption requires explicit HUMAN DECISION; boundary in CLI resolver |
+| 5 | §4.12 | duplicate-equivalent values execute as one unambiguous value while retaining all provenance and without rewriting project text; conflicting values → HUMAN DECISION; adopted destructive-pattern commands still require explicit HUMAN DECISION |
 | 6 | §5.3 | Marker presence ≠ authorship: ADOPT requires empty-or-canonical content; code-fence-aware scanning; Doctor staleness check for pinned VCP sections |
 | 7 | §8.5 (capabilities) | Capability REMOVE transitions never automatic — explicit project approval required (detector wobble → AGENTS.md CONFLICT churn) |
 | 8 | §14.9 | Precise "relevant worktree" definition: byte-identical except per-task declared `verification.outputs`; default evidence root `.vcp/evidence/<task>/` gitignored; gate evidence binds task identity + workflow level + protected Task-contract identity/digest + head SHAs + outcomes; this is not a Smart-Init plan hash; post-review findings append-only via semantic diff |
@@ -6287,7 +6294,9 @@ sequencing decisions; this appendix registers the technical amendments.
   real mutual-exclusion mechanism; the lock is advisory (implementers must test
   the re-inspection path, not the lock).
 - L3 fingerprint upgrade-aversion loop → content-digest-only fingerprint.
-- Preview amnesia vs attention budget → answers record (plan §3.3A).
+- Preview amnesia vs attention budget → validated decisions-only answers record:
+  reuse only when the fresh plan still exposes the same compatible decision;
+  otherwise ignore/re-prompt rather than replay stale intent (plan §3.3A).
 - Brownfield first-task readiness cliff → acknowledged; L1 `task-local` gaming
   risk noted — the protected-surface detector calibration is shared with L0 and
   must be reviewed as one unit in Phase 7.
