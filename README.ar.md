@@ -447,7 +447,7 @@ npm run check
 - [x] Versioned lifecycle state
 - [x] Safe `vcp update`
 - [x] Three-way merge + migrations + backup/rollback + manage
-- [ ] Mobile stack profiles
+- [ ] Mobile stack profiles — تنفيذ Stage 11 لـ React Native مكتمل؛ بوابة التحقق النهائية والمراجعة ما زالت مطلوبة (#85)
 - [x] Monorepo/project evidence semantics
 - [x] Project-sensitive security profiles
 - [x] Git-aware review/release automation

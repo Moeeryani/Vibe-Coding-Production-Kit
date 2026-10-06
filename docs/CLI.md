@@ -53,9 +53,9 @@ Use `--offline` to avoid registry access and compare only with the running CLI:
 vcp update . --check --offline
 ```
 
-If a stored profile is `generic` and lifecycle provenance records `requestedStack: "auto"`, VCP may re-run the same deterministic stack detection used by fresh init. When current repository evidence now resolves to a supported concrete stack, `--check`, `--dry-run`, and JSON output expose a `stackProfileChange` such as `generic -> javascript` before apply.
+If a stored profile is `generic` and lifecycle provenance records `requestedStack: "auto"`, VCP may re-run the same deterministic stack detection used by fresh init. Stage 11 additionally allows an auto-selected `generic`, `javascript`, or `typescript` profile to specialize to `react-native` when the exact selected-root mobile evidence contract becomes true. `--check`, `--dry-run`, and JSON output expose the transition before apply.
 
-Explicit `requestedStack: "generic"` selections are never silently re-profiled. Older manifests that predate stack-selection provenance also remain `generic` because VCP cannot safely reconstruct whether that historical value was automatic fallback or a human choice.
+Explicit stack selections are never silently re-profiled. Older manifests that predate stack-selection provenance remain conservative because VCP cannot safely reconstruct historical intent.
 
 Preview the exact migration plan without changing files:
 
@@ -130,7 +130,7 @@ The CLI asks for:
 
 1. target directory;
 2. AI coding tool;
-3. stack profile (auto/generic/javascript/typescript/python/go);
+3. stack profile (auto/generic/javascript/typescript/python/go/react-native);
 4. whether GitHub issue/PR/validation files should be installed.
 
 ## Non-interactive examples
@@ -335,7 +335,7 @@ The CLI is intentionally conservative:
 - any update conflict blocks apply before project-file writes;
 - removals must be explicitly declared by migrations;
 - customized `preserve` documents are not overwritten;
-- explicit or provenance-unknown `generic` stack profiles are not silently re-profiled;
+- explicit stack selections and provenance-unknown legacy profiles are not silently re-profiled;
 - update/rollback/manage mutations share one lifecycle lock;
 - update reports omit project/template file contents from public JSON;
 - repository and `.vcp` paths reject traversal and symlink escapes;
@@ -347,7 +347,7 @@ Before using bootstrap `--force`, inspect the reported conflicts. The CLI never 
 
 ```text
 --agent <name>     generic | codex | cursor | claude | copilot | all
---stack <name>     auto | generic | javascript | typescript | python | go
+--stack <name>     auto | generic | javascript | typescript | python | go | react-native
 --yes, -y          non-interactive initialization
 --force            explicit overwrite where that command supports it
 --no-github        skip GitHub issue/PR/workflow files during init
@@ -383,4 +383,4 @@ Before using bootstrap `--force`, inspect the reported conflicts. The CLI never 
 
 Node.js 22 or newer. The CLI has no runtime dependencies.
 
-See [`STACK-PROFILES.md`](STACK-PROFILES.md) for evidence-based JavaScript/Node.js, TypeScript, Python, and Go adaptation.
+See [`STACK-PROFILES.md`](STACK-PROFILES.md) for evidence-based React Native, JavaScript/Node.js, TypeScript, Python, and Go adaptation.

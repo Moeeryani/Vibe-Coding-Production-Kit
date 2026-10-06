@@ -67,6 +67,8 @@ For example, a legacy project may have an installed `generic` profile while curr
 - missing `install.requestedStack` on a legacy generic install → historical intent is unknown, so re-profiling is intentionally withheld rather than inferred;
 - already-concrete installed profiles are not automatically re-profiled by this generic-to-concrete rule.
 
+Stage 11 adds a separate **React Native specialization inspection**. Doctor reports auto-selected `generic`, `javascript`, or `typescript` installations as specialization-eligible when current evidence resolves to `react-native`. The same transition is exposed through `vcp update --check`; apply remains transactional, conflict-aware, backup/rollback protected, and idempotent. Explicit selectors and legacy unknown provenance remain withheld.
+
 Human-readable Doctor output therefore labels the detected stack, installed profile, requested selector, and re-profile state separately.
 
 JSON output preserves the historical top-level `stack` field as the **detected** stack and adds `lifecycleStack` when a readable lifecycle manifest exists. `lifecycleStack` includes:
@@ -77,7 +79,11 @@ JSON output preserves the historical top-level `stack` field as the **detected**
 - `reprofileEligible`;
 - `reprofileTarget`;
 - `reprofileState`;
-- `reason`.
+- `reason`;
+- `specializationEligible`;
+- `specializationTarget`;
+- `specializationState`;
+- `specializationReason`.
 
 This reporting is informational and does not weaken conservative lifecycle provenance rules. Explicit-generic and unknown-provenance preservation are not Doctor warnings by themselves, so `doctor --strict` does not become red merely because VCP is correctly preserving lifecycle intent.
 

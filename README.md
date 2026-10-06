@@ -435,7 +435,7 @@ Do not duplicate conflicting rules across multiple agent configuration files. Pr
 - [x] Worked reference vertical slice
 - [x] Versioned lifecycle state and safe `vcp update`
 - [x] Three-way merge, migrations, locking, backup, rollback, and manage ignore/track
-- [ ] Mobile stack profiles
+- [ ] Mobile stack profiles — Stage 11 React Native implementation complete; final exact-head gate/review pending (#85)
 - [x] Monorepo-aware project/evidence semantics
 - [x] Project-sensitive security profiles
 - [x] Git-aware review/release automation

@@ -1,0 +1,17 @@
+{
+  "name": "vcp-mobile-react-native-fixture",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "format:check": "node scripts/format-check.mjs",
+    "lint": "node --check src/app.js",
+    "check": "node --check src/app.js && node scripts/typecheck.mjs",
+    "test:unit": "node --test test/unit.test.mjs",
+    "test:integration": "node --test test/integration.test.mjs",
+    "build": "node scripts/build.mjs",
+    "test:e2e": "node --test test/e2e.test.mjs"
+  },
+  "dependencies": {
+    "react-native": "0.76.0"
+  }
+}
