@@ -2149,9 +2149,12 @@ Before generating any new VCP CI:
 
 1. stop installing the hard-coded npm validation workflow into arbitrary **fresh** consumers;
 2. split GitHub issue/PR scaffolding from CI integration on new Adaptive install surfaces;
-3. inspect and preserve existing project CI;
+3. inspect and preserve existing project CI as project-owned state without claiming semantic coverage;
 4. make the Stage-12/13 planner treat CI as preserved project state, not a template target;
-5. keep existing legacy-managed `validate.yml` stable until the explicit Phase-3 migration path evaluates it.
+5. make Stage-12 Doctor/install-health logic assetSet-aware so absence of `.github/workflows/validate.yml` is expected for `greenfield-safe-v1` and `brownfield-minimal-v1`;
+6. keep existing `legacy-full-v1` managed `validate.yml` stable until the explicit Phase-3 migration path evaluates it.
+
+Stage 12 does **not** need the full provider-neutral CI inspector. Until Phase 3, Doctor may report CI coverage as unassessed/unknown for the new safe asset sets; it simply must not diagnose the intentionally absent legacy workflow as a broken VCP install.
 
 Do not wait for full Auto mode to stop the harmful fresh-install behavior. Do not create surprise deletion in the same schema-migration step used merely to introduce Adaptive lifecycle state.
 
@@ -2174,9 +2177,9 @@ Future CI integration becomes separate state/policy.
 
 After legacy workflow migration compatibility is no longer needed, a future major version may rename or retire the historical field.
 
-## 7.4 CI inspection
+## 7.4 CI inspection — Phase 3
 
-Add one provider-neutral CI inspection layer.
+After the Stage-12 safety floor, add one provider-neutral CI inspection layer in Phase 3.
 
 Initial evidence can identify:
 
@@ -3386,7 +3389,7 @@ Implement:
 11. preserved agent request provenance plus persisted explicit adapter intent plus VCP-managed adapter surface;
 12. tri-state GitHub request provenance for brownfield planning;
 13. verification-command authority inspection shared by Task/Doctor;
-14. Doctor prompt-source/install-surface awareness for the valid brownfield-minimal shape;
+14. Doctor prompt-source/install-surface awareness for valid greenfield-safe/brownfield-minimal shapes, including no false failure for the intentionally absent legacy validate.yml;
 15. deterministic content-free `init` planning actions;
 16. useful `vcp init . --dry-run [--json]` for existing projects;
 17. schema-v1 → schema-v2 migration through normal managed `vcp update`, plus previous-release lifecycle/release smoke proving old/new reader behavior;
