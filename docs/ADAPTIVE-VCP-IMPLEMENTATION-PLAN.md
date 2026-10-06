@@ -1658,6 +1658,65 @@ Simple JS/TS/Python/Go projects should retain equivalent current behavior during
 Polyglot repositories should no longer lose evidence merely because old detector precedence finds one language first.
 
 
+## 5.6A Capability lifecycle provenance
+
+Detected capability evidence is derived current-repository fact. Applied capability state is lifecycle state and therefore needs **application provenance**.
+
+Do not persist only a flat list of IDs.
+
+Conceptually retain enough information to distinguish:
+
+~~~text
+auto-core
+  deterministically detected core/first-party capability
+  automatically applied under VCP lifecycle rules
+
+explicit-project
+  developer/project explicitly configured capability
+
+community-adopted
+  community-profile capability explicitly adopted by project policy
+  after selection/digest/grant validation
+~~~
+
+Exact field names may differ.
+
+Lifecycle rules:
+
+- current detected evidence is recomputed from the selected project root; it is not authoritative merely because an old snapshot said it once existed;
+- `auto-core` applied capabilities may be added or removed when deterministic evidence changes, but every transition is visible in status/update dry-run before mutation;
+- an automatic transition may alter managed guidance/discovery only through the bounded capability composition rules; it still cannot invent verification commands;
+- `explicit-project` capabilities are sticky until explicitly changed; missing detector evidence becomes a Doctor/status mismatch, not silent removal;
+- `community-adopted` capabilities are also sticky project decisions; disappearance/tampering/incompatibility of their required selected profile blocks dependent lifecycle mutation rather than silently dropping behavior;
+- conflicting capability evidence or an application change that crosses a human policy boundary becomes CONFLICT/HUMAN DECISION rather than precedence guessing;
+- detected-but-unapplied community evidence remains proposed/reportable only;
+- removal of auto-applied capability effects goes through normal desired-state merge/conflict semantics so local managed-section edits are not silently destroyed.
+
+Migration from the legacy stack model must translate historical intent:
+
+~~~text
+requestedStack=auto
+→ corresponding core stack-derived capabilities may become auto-core
+
+explicit requestedStack=<value>
+→ corresponding capability intent is explicit-project
+
+missing/unknown requestedStack provenance
+→ preserve conservatively; do not invent auto provenance
+~~~
+
+Doctor/status should report at least:
+
+~~~text
+detected now
+applied now
+application provenance
+evidence missing/mismatch
+pending add/remove transition
+~~~
+
+This preserves the proven Stage-11 rule: explicit human selection is not overridden by later detection.
+
 ### React Native / Stage 11 migration bridge
 
 Stage 11 React Native support is already merged and is current behavior.
@@ -1715,7 +1774,7 @@ Repository-owned scripts/configuration remain stronger evidence than profile def
 - unsupported technologies do not cause false configuration;
 - generic fallback still works;
 - existing simple JS/TS/Python/Go behavior remains compatible;
-- Doctor reports detected capability evidence separately from applied/project-approved capability state and provenance;
+- Doctor reports detected capability evidence separately from applied/project-approved capability state, application provenance, mismatches, and pending transitions;
 - no capability detector silently broadens the selected project root.
 
 ---
