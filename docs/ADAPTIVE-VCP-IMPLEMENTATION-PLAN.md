@@ -1067,6 +1067,48 @@ Rules:
 
 Without this state, Smart Init would be non-destructive on day one and the next update would try to add everything it intentionally skipped.
 
+## 3.8A Brownfield agent-selector provenance
+
+Current CLI behavior also collapses an important distinction:
+
+~~~text
+no --agent supplied
+!= developer explicitly selected --agent generic
+~~~
+
+Today non-interactive `--yes` resolves missing agent selection to `generic` before repository classification. Smart Init must preserve request provenance until after it knows whether the repository is NEW or EXISTING.
+
+Planning input should distinguish:
+
+~~~text
+agentPreference:
+  unspecified
+  explicit: generic | codex | cursor | claude | copilot | all
+~~~
+
+For EXISTING repositories:
+
+- unspecified → always establish the bounded AGENTS integration, inspect existing vendor instruction files, and compose VCP routing only into supported vendor files that already exist;
+- unspecified → do **not** create absent CLAUDE/Copilot/vendor adapter files merely because VCP supports them;
+- explicit generic → AGENTS integration only; preserve vendor files without adding VCP routing to them unless separately requested;
+- explicit claude/copilot/etc. → ensure the requested supported adapter exists/integrates safely;
+- explicit all → ensure all supported adapters requested by the user, subject to normal collision/section-ownership rules.
+
+For NEW repositories, the historical default may remain `generic` during the compatibility transition.
+
+The lifecycle must persist the **actual installed adapter surface**, not reconstruct it later from a lossy single selector. `assetSet` may carry the adapter paths/profile, or install metadata may contain an explicit adapter set; exact representation is an implementation choice.
+
+Important invariant:
+
+~~~text
+brownfield detected existing CLAUDE.md only
++ agentPreference=unspecified
+→ integrate existing CLAUDE.md + AGENTS
+→ next vcp update does not suddenly add Copilot/other adapters
+~~~
+
+Do not treat detected agent files as proof of the developer's preferred coding agent; they are safe composition evidence only.
+
 ## 3.9 Brownfield GitHub-option provenance
 
 Current CLI defaults includeGitHub=true, which conflates:
@@ -1235,7 +1277,7 @@ Smart adoption is complete only when:
 - ignore/track cannot convert a brownfield section-owned integration file into whole-file ownership;
 - verification command authority cannot be made ambiguous by duplicate inserted slots;
 - brownfield auto-stack ambiguity is surfaced conservatively;
-- the persisted asset surface prevents the next update from expanding adoption accidentally;
+- the persisted asset surface, including actual adapter selection, prevents the next update from expanding adoption accidentally;
 - packaged prompt fallback, Context, and Doctor agree without widening project authority;
 - brownfield standing instructions never require starter paths absent from the adopted assetSet;
 - schema migration makes legacy entries explicit whole-file ownership;
