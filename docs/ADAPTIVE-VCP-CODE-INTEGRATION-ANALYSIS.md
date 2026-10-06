@@ -1442,7 +1442,7 @@ Required propagation:
 
 Do not abuse ignoredFiles for this. Ignored paths represent project-owner lifecycle choices, not which VCP product surface was installed.
 
-Phase 2 may deliberately migrate legacy-full and brownfield-minimal to a later unified consumer surface.
+Phase 2 may deliberately migrate both legacy install profiles onto a later classified catalog version, but it must preserve greenfield/brownfield asset-selection semantics instead of converging them to one identical installed file set.
 
 ---
 
@@ -2045,6 +2045,8 @@ For brownfield-minimal:
 - missing VCP Product/PRD/Architecture/Threat-Model/Test-Strategy starter paths are not installation failures if those assets were never installed/owned;
 - existing arbitrary docs are not silently promoted to authoritative equivalents;
 - project-governance coverage may be reported as configured / absent / unknown separately from install health;
+- absent/unknown governance is informational by default for brownfield-minimal and must not make doctor --strict fail merely because VCP starter paths were never installed;
+- it becomes blocking only when a concrete readiness/task/policy contract requires missing governing truth;
 - Task Pack Source-of-Truth references remain the execution-time authority.
 
 Similarly, Doctor should stop requiring scripts/validate-framework.sh inside every consumer.
@@ -4427,7 +4429,7 @@ Do not continue into broad adaptation work if this is not safe and low-friction.
 
 After Checkpoint A:
 
-1. unify explicit consumer asset catalog across greenfield/managed paths;
+1. unify one classified consumer asset catalog across greenfield/managed paths while preserving install-profile-specific selection;
 2. migrate/remove legacy framework/reference assets;
 3. finish standing AGENTS reduction;
 4. finish Doctor source-validator/asset expectations;
