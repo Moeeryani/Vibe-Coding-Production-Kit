@@ -3205,11 +3205,12 @@ Likely facts:
 ~~~text
 slug
 status
-workflowLevel
+workflowLevel (absent legacy field normalizes to L2)
 governing references
 acceptance state
 verification declarations
 review findings/dispositions
+review base/head provenance when present
 finalization state
 completion evidence
 ~~~
@@ -3223,15 +3224,10 @@ Needs:
 - explicit `Workflow-Level` metadata for new level-aware tasks;
 - L1 compact renderer;
 - current full renderer retained as L2;
-- L3 extension composition;
-- deterministic same-file promotion/expansion helper;
-- omitted level remains L2-compatible;
-
-- explicit workflowLevel support;
-- compact L1 renderer;
-- current full renderer preserved for L2;
 - L3 extension hooks without cloning the whole template;
-- shared parser compatibility.
+- deterministic same-file promotion/expansion helper;
+- shared parser compatibility;
+- omitted level remains L2-compatible.
 
 Do not add VCP-Core ROI governance questions to consumer Task Packs.
 
@@ -3279,6 +3275,8 @@ L3 security review
 
 Negative tests must prove irrelevant profile/plugin material remains absent.
 
+For L1, progressive disclosure is achieved primarily through the compact task and bounded selected files/references. Reuse canonical mode-prompt behavior unless measurement proves a separate prompt is justified; do not fork policy casually.
+
 ## 12.9 lib/git-review.mjs
 
 Reuse changed-file enumeration for:
@@ -3302,9 +3300,17 @@ Final gate must re-inspect Git state after verification and compare current stat
 
 L0 may omit a durable independent-review artifact only when mechanical eligibility proves the change is truly trivial and unprotected.
 
-L1 requires a compact fresh review outcome/current-findings record.
+L1 requires a compact fresh review outcome/current-findings record, but not a weaker review authority.
 
-L2/L3 retain the existing independent-review evidence model.
+For gate-authoritative L1/L2/L3 review:
+
+- use one canonical finding/disposition vocabulary;
+- build review context from an explicit Git base and resolved implementation head;
+- persist the exact reviewed base/head provenance required by the gate;
+- a smaller L1 Task Pack/context reduces review cost, but stale/unbound review is never accepted as merge evidence;
+- the existing review prompt may become level-aware; do not create a second low-trust reviewer contract merely to make L1 shorter.
+
+L2/L3 retain the full existing independent-review evidence expectations.
 
 Any material finding that expands product/security/data/architecture scope may force promotion.
 
