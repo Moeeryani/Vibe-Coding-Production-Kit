@@ -3394,7 +3394,8 @@ At minimum:
 - existing Copilot instructions;
 - all of the above with local custom text;
 - brownfield `--yes` / no explicit `--agent` with only one existing vendor adapter;
-- ignored then re-tracked brownfield section-owned integration.
+- ignored then re-tracked brownfield section-owned integration;
+- nested/path-specific `AGENTS.md` under a subtree that changes instruction precedence without giving VCP ownership of that file.
 
 ### CI
 
@@ -3402,7 +3403,11 @@ At minimum:
 - existing GitHub Actions;
 - multiple GitHub workflows;
 - unknown/custom CI;
-- CI with commands that differ from VCP defaults.
+- CI with commands that differ from VCP defaults;
+- GitHub required-check configuration detected vs not-required vs unverified;
+- merge-queue repository requiring `merge_group`;
+- required VCP gate job with no path filters that can silently skip it;
+- material PR with one valid task selector, no selector, invalid selector, and multiple selectors.
 
 ### Repository complexity
 
@@ -3414,7 +3419,11 @@ At minimum:
 - malformed manifests/config files;
 - missing tools;
 - brownfield-minimal repository with no VCP starter Product/Architecture/Security/Testing documents;
-- custom governing Markdown located in a path that must never become globally L0 merely because it is `.md`.
+- custom governing Markdown located in a path that must never become globally L0 merely because it is `.md`;
+- valid decisions-only answers record whose decision remains valid at apply;
+- stale answers record whose decision disappeared or whose allowed value changed;
+- duplicate-equivalent verification commands in multiple project-owned locations;
+- auto-core capability whose detector evidence disappears after it was applied.
 
 ## 11.3 Success properties
 
@@ -3434,10 +3443,15 @@ For every fixture:
 - discovered capabilities are evidence-backed and applied capability transitions preserve provenance;
 - project-root boundaries remain intact;
 - existing CI is preserved;
-- an older same-schema CLI fails closed when minimumReaderVersion requires a newer reader;
+- a newer same-schema CLI enforces minimumReaderVersion;
+- the actual previous released CLI's lifecycle mutators fail before mutation on schema-v2 through the legacy compatibility fence, rather than relying on code the old binary does not have;
 - lifecycle state is restartable;
 - update after init is idempotent;
-- rollback/recovery behavior is correct where applicable.
+- rollback/recovery behavior is correct where applicable, including recovery from a corrupt/missing active manifest using a compatible validated backup;
+- valid preview decisions can be reused without constraining fresh planning, while stale/incompatible answers are ignored or re-asked;
+- equivalent duplicate command values do not create a fake HUMAN DECISION, while conflicting values still block;
+- disappearing auto-core evidence never silently removes the applied capability;
+- nested/path-specific agent instructions never cause VCP to claim universal Auto interception.
 
 ## 11.4 Golden failure tests
 
@@ -3452,6 +3466,11 @@ Examples:
 - invalid plugin digest or invalid/over-budget capability detector;
 - unsafe symlink/path escape;
 - conflicting verification-command authority;
+- previous released CLI attempting update/manage/rollback against schema-v2 lifecycle state;
+- corrupted active manifest with incompatible/invalid recovery artifact;
+- stale/incompatible answers-file replay;
+- auto-core evidence disappearance incorrectly causing automatic capability removal;
+- nested instruction file incorrectly overwritten or treated as VCP-owned;
 - unsupported destructive command proposal;
 - L0 requested with no explicit trivial-surface policy or against a custom governing document;
 - stale ordinary/security review after the implementation surface moves;
