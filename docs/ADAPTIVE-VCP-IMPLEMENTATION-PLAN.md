@@ -1484,8 +1484,9 @@ manifest parses
   + schema supported
   + minimumReaderVersion supported
   → MANAGED
-  → even if baselines/transaction/integrity checks later show the install is unhealthy
-  → report MANAGED + recovery/health blocker; never re-init over it
+  → if baselines/transaction/integrity checks later show the install is unhealthy,
+     classify lifecycle health as MANAGED_RECOVERY_REQUIRED
+  → report the recovery/health blocker; never re-init over it
 
 manifest malformed / structurally invalid
 or schema newer/unsupported
@@ -2585,8 +2586,8 @@ Phase 8 must therefore distinguish:
 gatePolicy
 → VCP/project intent: disabled | advisory | required
 
-platform enforcement state
-→ detected-required | detected-not-required | unverified/unsupported
+platformEnforcement
+→ detected-required | detected-not-required | unverified | unsupported
 ~~~
 
 If VCP cannot inspect or configure the platform rule, Doctor/status must say so.
@@ -3720,6 +3721,19 @@ actionable remediation
 
 ---
 
+
+### Dependency Graph Engine remains explicitly deferred
+
+The Adaptive roadmap does not authorize persisted dependency-graph/scheduler state.
+
+Workflow levels, gate metadata, review provenance, and task promotion must not become a backdoor for adding:
+
+- persisted dependency edges;
+- ready-queue scheduling;
+- multi-agent work dispatch;
+- graph recomputation state.
+
+Keep the existing protocol-first rule: only revisit the Dependency Graph Engine if new dogfood demonstrates a failure that current Task Pack dependency prose cannot enforce safely.
 
 # 12. Workstream J — Reduce framework tax and enforce Complexity ROI
 
