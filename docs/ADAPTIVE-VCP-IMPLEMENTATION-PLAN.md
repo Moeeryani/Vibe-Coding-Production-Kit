@@ -1569,6 +1569,20 @@ VCP lifecycle state
 
 VCP's own roadmap, release history, source-validation scripts, framework task history, evaluations, and canonical reference documentation remain package/source assets rather than consumer project assets.
 
+Community-plugin state is a separate **project-owned/external input class**, not a VCP consumer-install asset:
+
+~~~text
+docs/plugins/PLUGINS.json
+→ explicit project-owned selection/grant state
+→ VCP does not create it merely because plugin support exists
+
+community-plugins/**
+→ project/vendor-owned local bundles selected by the project
+→ validated by VCP when referenced, but never framework cleanup material
+~~~
+
+Phase 2 must not start managing, deleting, relocating, or auto-selecting those paths. Context/Doctor may validate them when present. A future plugin schema migration evolves the plugin contract, not VCP lifecycle ownership of the project's plugin files.
+
 Do not copy `scripts/validate-framework.*` into arbitrary projects. Those scripts validate the VCP source/package, not a universal application.
 
 
@@ -1583,6 +1597,7 @@ Migration rules:
 - unmodified VCP-only framework docs/scripts may be removed;
 - locally modified former framework files are detached/preserved;
 - project-owned docs remain tracked according to policy;
+- project-owned `docs/plugins/PLUGINS.json` and `community-plugins/**` are untouched by framework-asset removal; they are not former VCP template assets;
 - release/task history created by the project is never confused with VCP framework history;
 - unmodified old prompt copies may be removed so packaged fallback becomes active;
 - locally modified old prompts remain as project overrides;
@@ -1620,6 +1635,7 @@ Source/package validation still runs separately inside the VCP repository.
 - Doctor no longer requires copied framework scripts/prompts when packaged equivalents are valid;
 - release-check consumer lifecycle smoke no longer depends on copied `validate-framework`;
 - explicit migrations prevent unexplained disappeared-file conflicts;
+- project-selected community-plugin declaration/bundles survive asset migration byte-for-byte unless the project itself changes them;
 - package tests explicitly assert both package surface and consumer-install surface.
 
 # 5. Workstream C — Replace single-stack identity with composable capabilities
