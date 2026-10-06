@@ -1706,7 +1706,10 @@ Must prove:
 - a repository change between preview and apply changes/rejects the fresh plan safely;
 - apply never trusts a stale preview object;
 - all conflicts block before project-file mutation;
-- a destructive-command approval becomes stale when the approved normalized command fingerprint/source authority changes;
+- a reusable decision is revalidated against the fresh exact command identity before apply;
+- successful adoption persists the bounded lifecycle receipt and rollback restores the prior receipt state;
+- a command receipt becomes stale when the approved normalized command fingerprint/source authority changes;
+- a provenance-aware Task Pack whose current repository command identity changed is stale before merge-authoritative gate;
 - section compose preserves surrounding bytes;
 - rollback restores an unmanaged repository to truly unmanaged lifecycle state, including removal of the successful first-adoption recovery backup/internal scaffolding;
 - re-running init after success redirects as MANAGED;
