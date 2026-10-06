@@ -2307,6 +2307,37 @@ Do not maintain one application verification-command list in Task Packs and anot
 
 Branch protection remains platform/repository policy. VCP may expose a check result but must not claim control over merge policy it does not own.
 
+## 7.6A When CI is actually merge-authoritative
+
+A VCP gate workflow/check is deterministic evidence, but it is **not automatically
+a merge-enforcement boundary** merely because it ran.
+
+For GitHub, it becomes merge-enforcing only when repository/platform policy actually
+requires the relevant check for the protected/ruleset-governed branch (or merge
+queue), with bypass rules understood.
+
+Phase 8 must therefore distinguish:
+
+~~~text
+gatePolicy
+→ VCP/project intent: disabled | advisory | required
+
+platform enforcement state
+→ detected-required | detected-not-required | unverified/unsupported
+~~~
+
+If VCP cannot inspect or configure the platform rule, Doctor/status must say so.
+`gatePolicy=required` must not be reported as "enforced" unless the platform check
+requirement is verified or the user explicitly records that enforcement is managed
+outside VCP.
+
+Merge queues also require the CI trigger/check to run on the platform's merge-queue
+event where applicable.
+
+VCP does not own branch protection/rulesets and must not imply otherwise.
+
+---
+
 ## 7.7 Definition of done
 
 - fresh Python/Go/unsupported projects never receive npm-specific VCP CI;
@@ -2436,6 +2467,31 @@ When the feature ships:
 - `--workflow-mode manual` is the explicit opt-out from automatic routing;
 - old manifests without `workflowMode` normalize to Auto-compatible behavior because current VCP already uses agent-first routing;
 - defaulting/interpreting Auto changes routing instructions only; it does **not** silently enable new CI/gate/merge enforcement. Those enforcement integrations remain separately explicit/configured.
+
+## 8.2A Nested/path-specific agent instructions are an Auto-routing limitation
+
+Modern coding agents can apply repository instructions hierarchically. A nested
+`AGENTS.md`, override file, or path-specific instruction may take precedence over
+or combine with the repository-root VCP routing block for files under that path.
+
+Therefore:
+
+- root VCP standing instructions are **best-effort routing**, not a universal
+  deterministic interception boundary;
+- Smart Init must not recursively rewrite nested/path-specific project instructions;
+- repository inspection may inventory supported nested instruction surfaces, but
+  observation never creates VCP ownership;
+- Doctor/status should surface potentially shadowing/overriding instruction scopes
+  when Auto mode relies on the root integration;
+- Auto correctness must still be enforced by Core/gate for gate-covered work;
+- if a future feature wants VCP path-specific routing, it requires an explicit
+  ownership/design contract rather than copying the root block into subdirectories.
+
+Conformance must include a repository with a nested `AGENTS.md` whose local rules
+differ from root routing and prove that VCP does not overwrite it or falsely claim
+universal Auto interception.
+
+---
 
 ## 8.3 Auto-mode agent instruction
 
@@ -2860,6 +2916,35 @@ inspect durable VCP state
       ↓
 route to discovery / planning / implementation / review
 ```
+
+## 9.2A Task Packs are not Skills
+
+Do not serialize Task Packs as `SKILL.md`.
+
+The two artifacts have different ownership and lifecycle:
+
+~~~text
+Skill
+→ reusable procedure / interaction capability
+→ loaded when relevant
+→ portable UX/instructions/scripts/resources
+→ may invoke VCP Core
+
+Task Pack
+→ one change/task's durable repository state
+→ accepted requirement/authority references
+→ readiness + implementation contract
+→ verification/review/finalization evidence
+→ inspected mechanically by Core/gate
+~~~
+
+A Skill may create, explain, read, or update a Task Pack through VCP commands.
+It must not become the authoritative storage format for that task's lifecycle state.
+
+This preserves the Core/Skills boundary and avoids coupling task durability to any
+one agent platform's Skill discovery/loading semantics.
+
+---
 
 ## 9.3 Skills must remain thin
 
@@ -3971,7 +4056,9 @@ Where each major feature belongs:
   community-profile trust (digests); verification-command authority; review
   provenance + finalization; gate mechanical checks; gate receipt emission;
   workflow-level classification floor (deterministic rules); workflowMode state;
-  migrations; Doctor; release-check; evidence binding (plan hash, commit SHA).
+  migrations; Doctor; release-check; gate evidence binding (normalized protected
+  Task-contract identity/digest where useful, reviewed/finalization commit SHAs,
+  verification outcomes). This is **not** a Smart-Init preview-plan hash.
 - **Skill / agent behavior:** Auto-mode interception/routing (best-effort; gate is
   the backstop); thin UX Skills (router, grill, retro); invisible-by-default UX;
   prompt-eval and attention-budget measurement (dogfood, not unit tests).
@@ -3986,11 +4073,16 @@ Where each major feature belongs:
 
 ## Z.3 Remaining unresolved questions (not blocking Stage 12)
 
-1. SKILL.md adoption for Task Packs — required written decision before Phase 7.
-2. Exact answers-record format — Stage-13 design detail.
-3. Windows/macOS native runners for the cross-platform conformance matrix.
-4. Detector-DSL fuzzer (no real v2 community profiles exist yet to test against).
-5. npm download-count telemetry for 0.9.3 (unavailable at audit time; not required).
+1. Exact answers-record format — Stage-13 design detail.
+2. Windows/macOS native runners for the cross-platform conformance matrix.
+3. Detector-DSL fuzzer (no real v2 community profiles exist yet to test against).
+4. npm download-count telemetry for 0.9.3 (unavailable at audit time; not required).
+
+Resolved by this external re-audit: **Task Packs remain durable VCP Core artifacts;
+they do not become SKILL.md.** Skills are reusable procedural UX/instruction
+packages loaded when relevant, while a Task Pack is per-change durable state,
+requirements, readiness, evidence, review, and finalization. Skills may create/read/
+update Task Packs through VCP, but they do not replace the Task Pack serialization.
 
 ## Z.4 What the audit confirmed
 
@@ -4000,6 +4092,10 @@ Where each major feature belongs:
 - The Core/Skills boundary (§2) is correctly drawn and consistently applied.
 - The plan's own phasing already defers speculation; no feature earned REMOVE.
 - External evidence validates the deterministic-control-plane model and the
-  workflows-over-agents stance, while requiring: deterministic (not prompt-based)
-  approval boundaries, CI as the authoritative enforcement layer, and
-  apply-the-saved-plan evidence binding — all now reflected in the gate contract.
+  workflows-over-agents stance, while reinforcing: deterministic (not prompt-based)
+  approval boundaries, progressive disclosure, and state-bound plan/apply integrity.
+  For Smart Init, VCP deliberately uses the **speculative-preview + fresh re-plan**
+  model: preview is not executable authority, and Stage 13 recomputes under the
+  lifecycle lock. A future saved executable plan would be a separate feature and
+  would require explicit state/precondition binding. CI becomes a merge-enforcement
+  boundary only when the repository/platform actually requires the VCP check.
