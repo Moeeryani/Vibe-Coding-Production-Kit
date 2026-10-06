@@ -2615,6 +2615,26 @@ lib/profile-dsl.mjs
 
 ---
 
+## 9.4A Detector DSL resource and path contract
+
+The v2 detector evaluator must reuse the security posture already proven by the v1 bundle loader rather than introducing a looser path reader.
+
+Required detector-evaluation invariants:
+
+- every declared evidence path is portable, selected-project-root-relative, and passed through root-confinement/symlink protections;
+- parent/sibling/workspace/URL/absolute path escape is rejected;
+- symlink targets cannot confer capability evidence outside the selected root;
+- JSON/text predicates have per-file and aggregate byte limits; directory/predicate counts have deterministic limits;
+- decoding/parsing failure is explicit and cannot silently become a positive match;
+- exact path/case semantics are deterministic across supported platforms where a predicate depends on a concrete path;
+- output reports predicate identity/path/result only; never raw matched file contents, secret-looking values, environment data, or arbitrary JSON field values;
+- .vcp/, .git/, environment/process state, credentials, and network state are not detector evidence surfaces for community profiles;
+- invalid/tampered/over-budget selected detector state blocks before desired-content composition.
+
+Negative tests must cover traversal, symlink escape, oversized metadata, malformed JSON/text, case variants, prohibited internal paths, and content-nonleak assertions.
+
+---
+
 ## 9.5 First-party vs community definitions
 
 A useful architecture is:
@@ -2663,7 +2683,7 @@ An invalid selected plugin must block the update rather than silently dropping i
 - v1 plugins still load unchanged;
 - v2 plugin schema is strict;
 - executable-style fields remain impossible;
-- detector DSL cannot execute code/network;
+- detector DSL cannot execute code/network, escape selected-root path confinement, follow authority-granting symlinks, exceed resource budgets, or leak matched content;
 - capability detection requires explicit selection/grant for community bundles;
 - first-party/community profiles normalize into deterministic internal data;
 - invalid/tampered/incompatible profile state fails before lifecycle mutation;
