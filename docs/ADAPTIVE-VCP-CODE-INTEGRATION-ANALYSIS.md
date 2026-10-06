@@ -3098,16 +3098,21 @@ Do not wait for full vcp gate to stop fresh npm-workflow installation.
 
 Do not immediately remove install.includeGitHub because existing manifests and update/manage code use it.
 
-For the transition release, reinterpret it narrowly as GitHub hygiene/scaffolding:
+Interpret it through install.assetSet during the transition:
 
 ~~~text
-issue templates
-PR template
+legacy-full-v1
+→ retain historical desired-state behavior until the explicit old-workflow migration
+
+greenfield-safe-v1 / brownfield-minimal-v1
+→ GitHub hygiene/scaffolding only
+→ issue templates / PR template
+→ no implied VCP CI
 ~~~
 
 CI integration becomes a separate decision/state.
 
-A future major version may rename the field.
+A future major version may rename/retire the field after legacy compatibility is removed.
 
 ---
 
@@ -5148,7 +5153,7 @@ Implement the minimum foundations for trustworthy **read-only brownfield init pl
 7. reserved `.vcp` collision/recovery inspection;
 8. brownfield stack-ambiguity inspection while retaining the current Stage-11-compatible stack API;
 9. minimal brownfield adoption-surface planner;
-10. persisted assetSet design: legacy-full vs brownfield-minimal;
+10. persisted assetSet design: legacy-full vs greenfield-safe vs brownfield-minimal;
 11. agent request provenance plus persisted explicit adapter intent / managed adapter surface;
 12. tri-state GitHub request provenance;
 13. shared verification-command authority inspection;
@@ -5257,11 +5262,11 @@ After Checkpoint A:
 
 ## Phase 3 — provider-neutral CI detection + legacy workflow migration
 
-1. stop hardcoded npm workflow installation;
-2. split GitHub hygiene from CI policy;
-3. provider-neutral CI inspector;
-4. Doctor CI reporting;
-5. migrate old managed validate.yml.
+1. provider-neutral CI inspector;
+2. Doctor CI/gate reporting with explicit coverage limits;
+3. explicit lifecycle migration/detach of old legacy-managed validate.yml;
+4. preserve GitHub hygiene as a separate surface;
+5. keep generated CI deferred to Phase 8 after gate stabilization.
 
 ## Phase 4 — Capability foundation
 
