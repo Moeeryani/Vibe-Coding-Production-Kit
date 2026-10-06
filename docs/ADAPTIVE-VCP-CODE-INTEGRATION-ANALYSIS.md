@@ -7,6 +7,16 @@
 
 ---
 
+## Interpretation rule — observed code vs proposed integration
+
+Sections labeled as current/observed describe current main at the inspected runtime baseline. Workstream recommendations describe future Adaptive behavior.
+
+- Current public docs remain authoritative until the corresponding Adaptive stage is implemented.
+- A current-vs-proposed difference is intentional when explicitly labeled; it is not permission to claim the proposed CLI/state already exists.
+- Each implementation stage must synchronize current-behavior docs/tests with the newly landed contract.
+- `.vcp/manifest.json` lifecycle schema versions and community profile/plugin manifest schema versions are independent version domains; never infer compatibility between them because both may use the number 2.
+
+
 # 1. Why this document exists
 
 The higher-level adaptive plan describes what VCP should become.
@@ -2231,17 +2241,16 @@ Conceptually:
   "install": {
     "stack": "typescript",
     "requestedStack": "auto",
-    "capabilities": [
+    "appliedCapabilities": [
       "language.typescript",
       "runtime.node",
       "package-manager.pnpm"
-    ],
-    "capabilityMode": "auto"
+    ]
   }
 }
 ~~~
 
-The exact schema can differ; the key separation is:
+The exact schema can differ; do not introduce another generic `capabilityMode=auto` control that can be confused with workflowMode or requestedStack. The key separation is:
 
 - current repository detection;
 - capabilities currently applied to VCP-managed content;
@@ -2478,15 +2487,15 @@ This is a strong foundation.
 
 Do not simply add permissive optional fields to the existing exact-key parser without a version contract.
 
-Prefer a versioned profile schema.
+Prefer a versioned **community profile/plugin manifest schema**, independent of the VCP lifecycle manifest schema.
 
 For example:
 
 ~~~text
-schemaVersion 1
+community profile schemaVersion 1
 → current guidance/proposal behavior unchanged
 
-schemaVersion 2
+community profile schemaVersion 2
 → adds bounded declarative detection/capability contributions
 ~~~
 
