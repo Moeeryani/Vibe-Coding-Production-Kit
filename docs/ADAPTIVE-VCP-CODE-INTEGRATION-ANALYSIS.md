@@ -3043,6 +3043,23 @@ No durable Task Pack.
 
 Use only for explicitly eligible low-risk changed surfaces.
 
+**Default is not eligible.** The first release requires explicit selected-project L0 policy state before Core can authorize this lane.
+
+Do not derive eligibility from an extension such as `.md`, `.txt`, or `.json` alone. Custom repositories may use any of those as governing contracts.
+
+Policy model:
+
+~~~text
+explicit project trivial-surface allowlist
++ built-in VCP protected-surface deny rules
++ exact final Git diff
+→ L0 pass or promote
+~~~
+
+The exact persisted surface (lifecycle metadata vs a later dedicated config) can be chosen in Phase 7, but it must be deterministic, inspectable, version-compatible, and must raise minimumReaderVersion if it changes lifecycle/gate semantics.
+
+No configured policy → Core minimum is L1.
+
 The final diff/gate remains authoritative. If protected/material surface appears, promote before completion.
 
 ### L1 — compact bounded engineering
@@ -3329,7 +3346,7 @@ Do not change current canonical docs ahead of implementation in a way that false
 
 ## 12.13 Definition of done
 
-- L0 remains mechanically narrow;
+- L0 remains mechanically narrow, policy-explicit, and disabled by default when no safe trivial-surface policy exists;
 - common small engineering fixtures use compact L1 rather than full L2;
 - L1 preserves applicable Source of Truth, verification, restartability, and fresh review;
 - L2 current guarantees remain intact;
@@ -3598,11 +3615,15 @@ Implementation:
 
 1. resolve explicit base/head;
 2. enumerate exact changed surface using existing Git helpers;
-3. apply deterministic L0 allow/protected rules;
-4. block if the worktree/ref state prevents a trustworthy comparison;
-5. promote if executable project verification is required.
+3. load/validate the explicit selected-project L0 policy;
+4. if policy is absent, block/promote to L1;
+5. apply project allowlist plus built-in protected-surface deny rules;
+6. block if the worktree/ref state prevents a trustworthy comparison;
+7. promote if executable project verification is required.
 
 Do not add a second shell-command resolver for L0.
+
+Policy tests must include a custom Markdown governing document to prove `.md` is not globally trivial, plus a configured non-governing documentation path that can pass.
 
 ### L1/L2/L3
 
@@ -4951,7 +4972,7 @@ Result:
 
 ## Scenario D — Auto trivial change
 
-Only an eligible documentation typo changes.
+Only a documentation typo inside an explicitly configured trivial-surface allowlist changes; a custom governing Markdown document is outside that allowlist.
 
 Result:
 
