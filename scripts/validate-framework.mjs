@@ -167,7 +167,7 @@ let failed = false;
 const providerRuntimePresent = await existsNonEmpty('lib/prompt-eval.mjs');
 const providerReleasePresent = await existsNonEmpty('lib/release-check.mjs');
 const providerPluginPresent = await existsNonEmpty('lib/community-plugins.mjs');
-const providerMobilePresent = await existsNonEmpty('docs/MOBILE-PROFILES.md');
+const providerMobilePresent = await existsNonEmpty('lib/stack-provenance.mjs');
 const effectiveRequiredFiles = [
   ...requiredFiles,
   ...(providerRuntimePresent ? providerRuntimeRequiredFiles : []),
