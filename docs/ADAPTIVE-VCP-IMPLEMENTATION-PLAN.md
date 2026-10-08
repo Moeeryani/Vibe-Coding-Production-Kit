@@ -1250,12 +1250,11 @@ PRESERVE
 NOOP
 → no mutation and no ownership change
 
-SKIP (report-only filter, not an ownership/mutation action)
-→ outside the selected adoption surface; record the path and reason in `skippedPaths`
-
 CONFLICT
 → block atomic apply
 ~~~
+
+Paths outside the selected adoption surface are reported only in `skippedPaths` with a reason: **SKIP is not an init action, not an ownership transition, and cannot execute.**
 
 Public `--json` reports carry `planVersion: 1`, `planKind: "init"`, ordered actions, reason, ownershipBefore/ownershipAfter, separate `skippedPaths`, conflicts and decisions. Reports remain content-free, nonexecutable and version-rejected by consumers on unknown major version. Preview is speculative; apply must re-inspect/replan under the approved lock. This public shape remains PROPOSED until D-04 is accepted.
 
