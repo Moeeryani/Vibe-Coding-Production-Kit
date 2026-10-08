@@ -6040,6 +6040,12 @@ Conversely, do not remove a packaged legacy asset merely because fresh installs 
 
 The Adaptive documents are umbrella design. Numbered implementation stages are bounded slices, and each validation checkpoint may simplify or stop later work.
 
+## Interim no-Actions verification contract (proposed, not remote enforcement)
+
+For this repository/account, GitHub Actions results are not trustworthy evidence of passing required gates. Stage12.0 requires the **local exact-head runner** `scripts/run-adaptive-local-gates.mjs`, whose offline document guard checks unique D-01–D-12 entries, records for formally ACCEPTED decisions, and 14 current S/T regression anchors; the runner also executes `npm ci`, `npm run validate` and `npm run pack:check` with raw log files and SHA-bound JSON receipt outside the source checkout. The maintainer compares those receipts with the **current PR HEAD** and explicitly records the review, re-running if the HEAD changes.
+
+This is not a branch-protection/remote CI substitute. A Git pre-push hook is advisory and bypassable; a locally generated receipt can be forged. Provider-neutral protected merge-grade gate work stays OPEN/BLOCKED until Phase 8 or another trusted remote runner with actual branch enforcement is available. Do not silently weaken G-ENTRY, G-DOCS, D-01 G-FENCE, review/finalization rerun or supported-OS evidence requirements. See `docs/ADAPTIVE-VCP-LOCAL-GATES.md`.
+
 ## Precondition — reconcile merged Stage 11 closeout
 
 PR #85 is merged and React Native runtime support is present on main.
