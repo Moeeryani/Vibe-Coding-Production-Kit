@@ -111,8 +111,9 @@ async function verifyAcceptedRecord(id) {
     try { data = await readFile(path.join(root, entry.path), 'utf8'); }
     catch { errors.push(id + ': cannot read ' + entry.path); continue; }
     const section = sectionText(data, entry.heading);
-    if (!section || !section.includes(entry.requiredText)) {
-      errors.push(id + ': missing clause at ' + entry.path + ' / ' + entry.heading);
+    if (!section || !section.includes(entry.requiredText) || !section.includes(id) ||
+        entry.requiredText.trim() === id) {
+      errors.push(id + ': missing accepted-ID and substantive clause at ' + entry.path + ' / ' + entry.heading);
     }
   }
   return errors;
