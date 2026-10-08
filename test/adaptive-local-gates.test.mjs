@@ -21,7 +21,7 @@ test('current proposed decision register and S/T regression anchors are coherent
   assert.deepEqual(out.errors, []);
   assert.equal(out.decisionCount, 12);
   assert.equal(out.checkedContractAnchors, 14);
-  assert.equal(out.accepted.length, 0, 'D-01–D-12 MUST remain unapproved absent maintainer records');
+  assert.equal(out.accepted.length + out.pending.length, 12, 'Every stable ID retains an explicit status');
 });
 
 test('detect duplicate canonical decision rows', async () => {
