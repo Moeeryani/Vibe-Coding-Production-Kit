@@ -3826,6 +3826,12 @@ Backward-compatible migration still applies.
 
 The Adaptive VCP plan is the umbrella roadmap. The numbered implementation stages are bounded execution slices of that roadmap.
 
+## Interim exact-HEAD verification when GitHub Actions is unavailable (D-06 proposal)
+
+GitHub Actions currently cannot be relied on as an execution gate for this account. Until an independently controlled remote gate is installed and protected, **do not report CI PASS or mechanically enforced merges**. The immediate, reviewable procedure is `node scripts/run-adaptive-local-gates.mjs --expected-sha <exact-PR-head-SHA> --evidence-dir <fresh-absolute-path-outside-repo>`. It performs `scripts/check-adaptive-contracts.mjs` (canonical D-01–D-12 uniqueness, accepted-ID records and 14 focused S/T regression anchors), `npm ci`, `npm run validate` and `npm run pack:check`, with complete raw logs, exit codes, before/after Git state and a versioned local receipt.
+
+Maintainer must review every **final PR HEAD** and local receipt before merge, then repeat at a changed finalization head. The receipt is cooperative evidence, **not** cryptographically independent attestation; pre-push hooks are optional UX only and can be bypassed. A release/phase requiring trusted remote enforcement remains BLOCKED until an actual independent protected gate is deployed (Phase 8). No reduced guarantee or acceptance of D-01/D-06 follows from a green local receipt. See `docs/ADAPTIVE-VCP-LOCAL-GATES.md`.
+
 ## Precondition — reconcile merged Stage 11 closeout and re-baseline current main
 
 Stage 11 React Native implementation is already merged on PR #85 and present on current main.
