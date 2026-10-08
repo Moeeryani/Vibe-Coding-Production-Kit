@@ -1230,7 +1230,6 @@ CLAIM
 COMPOSE
 PRESERVE
 NOOP
-SKIP (report-only filter; not a mutation action)
 CONFLICT
 ```
 
@@ -1255,7 +1254,7 @@ equivalent unmarked integration
 → otherwise COMPOSE explicitly
 ```
 
-Public init JSON MUST have `planVersion:1`, `planKind:"init"`, stable ordered actions with `ownershipBefore`, `ownershipAfter`, `reason`, and separate `skippedPaths`. `CLAIM` is init-only ownership establishment; update `ADOPT` continues to mean matching canonical content. `SKIP` is a reported filter, not a mutation. Unknown plan versions are rejected. The plan is content-free, nonexecutable and speculative; apply re-plans under lock.
+Public init JSON MUST have `planVersion:1`, `planKind:"init"`, stable ordered actions with `ownershipBefore`, `ownershipAfter`, `reason`, and separate `skippedPaths`. `CLAIM` is init-only ownership establishment; update `ADOPT` continues to mean matching canonical content. `SKIP` is a reported filter, not a mutation. Unknown plan versions are rejected. The plan is content-free, nonexecutable and speculative; apply re-plans under lock. Paths excluded from the assetSet are **only** in `skippedPaths`; SKIP is neither a planner action nor a mutation/ownership transition.
 
 It may carry private in-memory desired content needed by apply, but public reports must not echo project file contents.
 
@@ -1662,7 +1661,7 @@ Must prove:
 - plan action ordering is deterministic;
 - public JSON omits file contents;
 - success/preview reporting is repository-class and assetSet aware and never instructs brownfield-minimal to create starter truth it intentionally preserved;
-- broad framework/CI assets are SKIP/PRESERVE in brownfield plans;
+- broad framework/CI assets are listed in `skippedPaths` when excluded, or PRESERVE actions only for applicable project-owned paths; SKIP is not an executable action;
 - malformed existing VCP markers produce CONFLICT;
 - planner detects existing equivalent Claude/Copilot integration without duplicate insertion.
 
