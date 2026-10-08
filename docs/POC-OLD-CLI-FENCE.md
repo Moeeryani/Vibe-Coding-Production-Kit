@@ -69,7 +69,7 @@ The v2 fixtures and backups are synthetic and deliberately constructed from the 
 - **2:** A protected mutation was observed. This is useful reproduction evidence but **NO-GO for migration**.
 - **3:** Missing/tampered release identity, setup error, or unexpected behavior. Investigate and keep **NO-GO**.
 
-Inspect the saved JSON: actual command exit/stdout/stderr; before/after content and modes (excluding transient legacy update.lock); resulting schema; whether a later user edit survived; archive identity; platform and unresolved cases. No mutation on one fixture does not prove permanent old/new mutual exclusion.
+Inspect the saved JSON: actual command exit/stdout/stderr; before/after content and modes (excluding transient legacy update.lock bytes); **legacyLockBefore/legacyLockAfter kind** (directory sentinel must still exist); resulting schema; whether a later user edit survived; archive identity; platform and unresolved cases. No mutation on one fixture does not prove permanent old/new mutual exclusion.
 
 ## Required evidence NOT provided by this initial POC
 
