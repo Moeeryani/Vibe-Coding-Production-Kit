@@ -1388,9 +1388,9 @@ Conceptual v2 managed entry:
   "policy": "merge",
   "ownership": {
     "kind": "section",
-    "sectionId": "vcp-agent-integration",
+    "sectionId": "agent-routing",
     "beginMarker": "<!-- VCP:BEGIN:agent-routing -->",
-    "endMarker": "<!-- VCP:END -->"
+    "endMarker": "<!-- VCP:END:agent-routing -->"
   },
   "baselineHash": "...",
   "baselinePath": "...",
@@ -2245,12 +2245,12 @@ For small generated adapter blocks, a stricter generated policy may conflict ins
 
 ### [AUDIT 2026-10-06 — PRE-IMPLEMENTATION] Marker presence is not authorship
 
-ADOPT must not treat "an already well-formed marked VCP section" as VCP-owned on the
+CLAIM must not treat "an already well-formed marked VCP section" as VCP-owned on the
 strength of marker presence alone. A project-authored `<!-- VCP:BEGIN:agent-routing -->` block —
 including one inside a fenced code example documenting VCP itself — would otherwise be
 adopted as VCP-owned and later overwritten by update. Required:
 
-- ADOPT accepts a pre-existing marked section only when its content is empty or
+- CLAIM accepts a pre-existing marked section only when its content is empty or
   byte-identical to the canonical VCP section for the current package version.
   Anything else → HUMAN DECISION, never silent adoption.
 - Marker scanning must be code-fence-aware: markers inside fenced code blocks
@@ -5714,8 +5714,7 @@ Smart Init Apply should preserve this ordering.
 Needs:
 
 - first-adoption-aware lock bootstrap metadata/cleanup before backup exists;
-- schema-aware lock selection: legacy lock for schema-v1 operations, new lifecycle
-  lock for schema-v2, with persistent old-CLI blocker after successful migration;
+- version-aware lock/recovery design for managed migration, with **no claimed old-CLI fence** until published v0.9.3 G-FENCE passes; a proposed new lifecycle lock must be proven to coordinate with old lock holders or migration remains disabled;
 - reusable transaction/apply primitives for initial adoption;
 - section-replacement actions;
 - first-install backup semantics where no prior manifest exists;
