@@ -979,7 +979,7 @@ For an init collision:
 
 ~~~text
 safe composition/adoption possible
-→ COMPOSE / ADOPT / NOOP
+→ COMPOSE / CLAIM / NOOP
 
 not safely resolvable
 → CONFLICT
@@ -3919,7 +3919,7 @@ Implement:
 3. block on conflicts/precondition changes;
 4. if blocking/failure occurs before backup creation, release the lock and remove only empty operation-created lock bootstrap state;
 5. backup every path that may change plus explicit prior lifecycle-state presence/absence;
-6. transactional COMPOSE/ADD/ADOPT behavior;
+6. transactional COMPOSE/ADD/CLAIM behavior;
 7. write section-aware baselines and manifest, including the adopted asset set, explicit adapter intent, and VCP-managed adapter surface;
 8. make `vcp task` / Task Pack Source-of-Truth scaffolding respect the persisted assetSet so brownfield-minimal never generates absent canonical starter paths;
 9. post-apply verification;
