@@ -11,21 +11,44 @@ const paths = {
   T: 'docs/ADAPTIVE-VCP-CODE-INTEGRATION-ANALYSIS.md'
 };
 // These are regression anchors, NOT an exhaustive audit of every normative clause.
+// Anchor derivation (independent map, 2026-10-09): each token was verified to sit
+// in normative S/T text for its correction, not in examples or passing mentions:
+//  C-01 G-FENCE ................ old-CLI fence open decision + POC gate (S §3.5, T §4.8)
+//  C-02 installHealth.checks ... Doctor-minimum split + D-02 strict truth table
+//  C-03 re-screen .............. v1→v2 migration MUST re-screen adopted commands (not just the verify--run boundary)
+//  C-04 content digest ......... fingerprint is SHA-256 over resolved guidance bytes, package version excluded
+//  C-05 [a-z0-9-]{1,64} ........ normative marker ID grammar (example presence alone proves nothing)
+//  C-06 CLAIM .................. init action vocabulary + versioned plan JSON
+//  C-07 E_ASSETSET_UNKNOWN ..... fail-closed unknown assetSet before mutation
+//  C-08 INERT_MANIFEST_FIELDS .. reader-guard allowlist (minimumReaderVersion/default-raise/enumeration nearby)
+//  C-09 assetSet-aware ......... prompt resolver takes assetSet (bare 'assetSet' passes trivially)
+//  C-10 T §14.9 / relevant worktree ... S normatively cites T §14.9 as authoritative
+//  C-11 safePath ................ single hardened path helper (three copies consolidated)
+//  C-12 Dependency order ....... normative intra-Stage-12 implementation order
+//  C-13 docs/ADAPTIVE-VCP-DECISIONS.md ... canonical registry cited from both docs
+//  C-14 (forbidden \\bA15\\b) .. hygiene: the phantom amendment ID must never reappear
+//     in either normative doc (positive 'historical' matched 18/19 unrelated hits).
 const contractAnchors = [
   ['C-01', 'G-FENCE', 'G-FENCE'],
   ['C-02', 'installHealth.checks', 'installHealth.checks'],
-  ['C-03', 'verify --run', 'verify --run'],
+  ['C-03', 're-screen', 're-screen'],
   ['C-04', 'content digest', 'content digest'],
-  ['C-05', 'VCP:BEGIN:agent-routing', 'VCP:BEGIN:agent-routing'],
+  ['C-05', '[a-z0-9-]{1,64}', '[a-z0-9-]{1,64}'],
   ['C-06', 'CLAIM', 'CLAIM'],
   ['C-07', 'E_ASSETSET_UNKNOWN', 'E_ASSETSET_UNKNOWN'],
   ['C-08', 'INERT_MANIFEST_FIELDS', 'INERT_MANIFEST_FIELDS'],
-  ['C-09', 'assetSet', 'assetSet'],
+  ['C-09', 'assetSet-aware', 'assetSet-aware'],
   ['C-10', 'T §14.9', 'relevant worktree'],
   ['C-11', 'safePath', 'safePath'],
   ['C-12', 'Dependency order', 'Dependency order'],
   ['C-13', paths.register, paths.register],
-  ['C-14', 'historical', 'historical']
+  ['C-14', null, null],
+];
+// Tokens that must NOT appear in either normative doc. C-14 is a hygiene
+// correction (dangling refs, the A15→A12 slip); its regression mode is
+// reintroduction, so it is guarded negatively.
+const forbiddenAnchors = [
+  ['C-14', /\bA15\b/],
 ];
 
 export function parseRegister(markdown) {
@@ -70,8 +93,12 @@ export function evaluateStatic({ register, S, T }) {
     if (counts.get(id) !== 1) errors.push('Duplicate decision row: ' + id);
   }
   for (const [id, anchorS, anchorT] of contractAnchors) {
-    if (!S.includes(anchorS)) errors.push(id + ': missing S regression anchor');
-    if (!T.includes(anchorT)) errors.push(id + ': missing T regression anchor');
+    if (anchorS !== null && !S.includes(anchorS)) errors.push(id + ': missing S regression anchor');
+    if (anchorT !== null && !T.includes(anchorT)) errors.push(id + ': missing T regression anchor');
+  }
+  for (const [id, pattern] of forbiddenAnchors) {
+    if (pattern.test(S)) errors.push(id + ': forbidden token reappeared in S: ' + pattern);
+    if (pattern.test(T)) errors.push(id + ': forbidden token reappeared in T: ' + pattern);
   }
   const accepted = rows.filter(row => row.status === 'ACCEPTED').map(row => row.id);
   return { errors, accepted, pending: rows.filter(row => row.status !== 'ACCEPTED').map(row => row.id),

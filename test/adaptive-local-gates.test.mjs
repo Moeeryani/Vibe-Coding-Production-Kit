@@ -57,3 +57,27 @@ test('local gate runner refuses relative evidence directory', () => {
   assert.equal(r.status, 2);
   assert.match(r.stderr, /absolute path/);
 });
+
+test('strengthened anchors fail when normative text is removed', async () => {
+  const input = await docs();
+  // C-05 guards the marker ID grammar, not the example block
+  assert.match(evaluateStatic({ ...input, T: input.T.replaceAll('[a-z0-9-]{1,64}', 'ID') })
+    .errors.join('\n'), /C-05/);
+  // C-09 requires the assetSet-aware resolver, not the bare token
+  assert.match(evaluateStatic({ ...input, S: input.S.replaceAll('assetSet-aware', 'assetSet') })
+    .errors.join('\n'), /C-09/);
+  // C-03 requires migration re-screening language
+  assert.match(evaluateStatic({ ...input, S: input.S.replaceAll('re-screen', 'review') })
+    .errors.join('\n'), /C-03/);
+});
+
+test('C-14 hygiene forbids the phantom A15 amendment ID in either doc', async () => {
+  const input = await docs();
+  assert.match(evaluateStatic({ ...input, S: input.S + '\nSee amendment A15.\n' })
+    .errors.join('\n'), /C-14.*A15/);
+  assert.match(evaluateStatic({ ...input, T: input.T + '\nSee amendment A15.\n' })
+    .errors.join('\n'), /C-14.*A15/);
+  // ...but the fixed A12 reference is fine
+  assert.deepEqual(evaluateStatic({ ...input, S: input.S + '\nSee amendment A12.\n' })
+    .errors.filter(e => e.startsWith('C-14')), []);
+});
