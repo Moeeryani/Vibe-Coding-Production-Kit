@@ -58,6 +58,16 @@ function execute(bin, args, cwd, timeout = 20000) {
   };
 }
 
+async function lockKind(root) {
+  try {
+    const stat = await lstat(path.join(root, '.vcp', 'update.lock'));
+    return stat.isDirectory() ? 'directory' : stat.isFile() ? 'regular-file' : stat.isSymbolicLink() ? 'symlink' : 'other';
+  } catch (error) {
+    if (error?.code === 'ENOENT') return 'absent';
+    throw error;
+  }
+}
+
 async function snapshot(root) {
   const result = new Map();
   async function walk(dir, parent = '') {
@@ -171,12 +181,14 @@ async function fixture(bin, scratch, name) {
 async function observe(bin, scratch, name) {
   const root = await fixture(bin, scratch, name);
   const before = await snapshot(root);
+  const lockBefore = await lockKind(root);
   let args = ['rollback', root];
   if (name === 'directory-sentinel-update') args = ['update', root, '--offline'];
   if (name === 'directory-sentinel-manage') args = ['manage', 'ignore', 'AGENTS.md', '--dir', root];
   if (name.endsWith('old-init')) args = ['init', root, '--yes', '--no-github', '--force'];
   const command = execute(bin, args, root, 40000);
   const after = await snapshot(root);
+  const lockAfter = await lockKind(root);
   const changes = changed(before, after);
   const expectedMutation = ![
     'directory-sentinel-rollback', 'directory-sentinel-update', 'directory-sentinel-manage',
@@ -189,7 +201,10 @@ async function observe(bin, scratch, name) {
   const postBackupEditSurvived = (await readFile(path.join(root, 'AGENTS.md'), 'utf8')).includes('USER_POST_BACKUP_EDIT_MUST_SURVIVE=true');
   return {
     scenario: name, command, expectedMutation,
-    observedMutation: changes.length > 0, expectedObservationMatched: (changes.length > 0) === expectedMutation,
+    observedMutation: changes.length > 0,
+    expectedObservationMatched: (changes.length > 0) === expectedMutation &&
+      (!name.startsWith('directory-sentinel-') || lockAfter === 'directory'),
+    legacyLockBefore: lockBefore, legacyLockAfter: lockAfter,
     resultingSchema, postBackupEditSurvived, changes,
     conclusion: changes.length ? 'LEGACY_MUTATION_OBSERVED__NOT_SAFE' : 'NO_PROTECTED_BYTES_CHANGED_IN_ONE_FIXTURE_ONLY'
   };
@@ -207,6 +222,7 @@ async function selfTest() {
     await mkdir(path.join(root, '.vcp', 'update.lock'));
     const ignored = await snapshot(root);
     assert.deepEqual(changed(after, ignored).map(x => x.path), ['.vcp/']);
+    assert.equal(await lockKind(root), 'directory');
     console.log('HARNESS_SELF_TEST_PASS (no published CLI executed)');
   } finally {
     await rm(root, { recursive: true, force: true });
@@ -236,7 +252,7 @@ async function main() {
       baseline: '8ccb276545fdb3cc301ce7ce324812eb4c314586',
       release: release.package, tarballSha256: release.tarballSha256, node: process.version,
       platform: process.platform, arch: process.arch, recordedUtc: new Date().toISOString(),
-      snapshotScope: 'all fixture files and modes except ephemeral update.lock; byte SHA256, no mtimes',
+      snapshotScope: 'all fixture files and modes except update.lock bytes; legacy lock path kind separately recorded; byte SHA256, no mtimes',
       results, expectedObservationsMatched: results.length - unexpected.length, unexpected: unexpected.length,
       unsafeMutationCount: unsafe.length,
       gate: unsafe.length ? 'NO_GO__LEGACY_MUTATION_DEMONSTRATED' : 'UNPROVEN__TESTED_CASES_ONLY',
