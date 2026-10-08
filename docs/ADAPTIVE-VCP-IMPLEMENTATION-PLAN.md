@@ -1626,8 +1626,7 @@ is malformed or partially written. Therefore the new rollback design validates t
 Do not require successful parsing of the damaged current manifest as an unconditional
 precondition for recovery.
 
-The persistent legacy-CLI mutation fence above protects against an old CLI attempting
-this recovery with semantics it cannot understand.
+**No published-old-CLI recovery fence has yet been proven.** Until D-01 passes on the real released binary, new reader/recovery code cannot prevent v0.9.3 rollback from mutating restored state; do not enable live v2 migration or claim old-version recovery safety.
 
 ---
 
@@ -1762,7 +1761,7 @@ Phase 2 "unifies the catalog and lifecycle rules", not the installed path set ac
 
 Replace broad template roots such as `docs` and `prompts` with an explicit consumer asset manifest.
 
-Before removing project-local prompt copies, first add a **canonical prompt resolver**.
+Before removing project-local prompt copies, first add a **canonical prompt resolver**. **Stage-12 API requirement (C-09):** it takes the persisted `install.assetSet` as a required input, and cannot reference starter paths not installed by that assetSet; a per-surface fixture must prove this. AssetSet creation precedes the resolver in implementation order.
 
 Sequencing note: the resolver itself, project-override precedence, and the minimum Doctor prompt-source compatibility land in Stage 12 because brownfield adoption already relies on packaged fallback. The broader consumer-asset removal, framework-validator cleanup, and remaining Doctor asset/CI cleanup stay in Phase 2/3.
 
@@ -2053,6 +2052,8 @@ Today some legacy stack markers are tested with `access()`, which can follow sym
 - evidence records the exact detector/path that matched.
 
 Use the same underlying safe evidence primitives for core/first-party detectors and community DSL where practical so the trust model does not vary by provenance.
+
+**Common path trust primitive (C-11):** Stage 12 introduces one leaf resolver for selected-project-root reads and writes, with separate read-existing/write-new/managed-state policies. Validate canonical parent path components with no-follow checks; do not trust `path.resolve().startsWith(root)` to exclude symlink/junction escapes. For untrusted evidence, default to rejecting symlinks (including in-root links) pending D-03 approval; purpose-specific exceptions require explicit provenance and tests. Replace duplicated `safePath` copies in Context, Readiness and Verify. Re-inspect before mutation under the actual lock; no impossible TOCTOU-free guarantee is implied.
 
 ## 5.5 Project-root semantics remain important
 
@@ -3400,6 +3401,8 @@ Gate validates that required human approvals/reviews exist; it does not manufact
 
 The future gate must enforce, not replace, the current Task Pack completion rule.
 
+**Normative precision (C-10):** Technical document T §14.9 is authoritative for the byte-exact *relevant worktree* definition (allowing only declared `verification.outputs`), append-only evidence semantics and the versioned CI-consumable gate receipt. This strategic section states policy/rationale and must not create a second inconsistent gate-receipt specification.
+
 For L1/L2/L3:
 
 ~~~text
@@ -4348,8 +4351,7 @@ external ecosystem research, per-point 23-element audits (33 points), interactio
 / second-order / scenario analysis (23 scenarios A–W), and test design
 (255 tests). Product code was not modified.
 
-**Audit verdict: READY WITH MINOR CONDITIONS** (see §16 of the final report at
-`docs/ADAPTIVE-VCP-FINAL-PREIMPLEMENTATION-AUDIT.md` in this repository).
+**Historical 2026-10-06 audit verdict: READY WITH MINOR CONDITIONS.** Background source: `docs/ADAPTIVE-VCP-FINAL-PREIMPLEMENTATION-AUDIT.md`. This historical statement does **not** accept current D-01 migration safety, Stage12 design repairs or live product implementation.
 The conditions are discharged by the amendments below, which are now part of
 this document. Inline amendments are tagged `[AUDIT 2026-10-06 —
 PRE-IMPLEMENTATION]` at their sections.
@@ -4367,7 +4369,7 @@ PRE-IMPLEMENTATION]` at their sections.
 | 5 | §8.5 (L3) | Security-review fingerprint = content digest only; package version is metadata, not fingerprint input (breaks the upgrade-aversion loop) |
 | 6 | §7/Phase 8 | PR↔task selection resolved for first release: one explicit material Task Pack per PR; absent selector attempts L0 then blocks on material work; full-history refs, non-skippable stable gate job, and merge-group support where applicable |
 | 7 | §9/Phase 9 | Resolved: Task Packs remain durable Core artifacts; SKILL.md is only for reusable Skill UX/procedure packaging |
-| 8 | §13 (Stage 12) | Retired the misleading "read-only" shorthand; precise boundary stated; v1→v2 migration stays in Stage 12 via the existing transactional update path (adjudicated against a worker's SPLIT proposal — see final report) with tightened exit criteria |
+| 8 | §13 (Stage 12) | Retired the misleading "read-only" shorthand; precise boundary stated; v1→v2 migration stays in Stage 12 via the existing transactional update path (adjudicated historically against a proposed stage split; current G-FENCE is a separate unresolved blocker) with tightened exit criteria |
 | 9 | §13 (checkpoints) | Every checkpoint needs a mechanical DONE signal (checkable artifact); Checkpoint E must record deletions |
 
 ## Z.2 Ownership analysis (§9 of the audit brief)
