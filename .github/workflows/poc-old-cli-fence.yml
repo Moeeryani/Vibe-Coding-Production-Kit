@@ -1,0 +1,80 @@
+name: Adaptive POC - Published Old CLI Fence (Investigative)
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/poc-old-cli-fence.mjs'
+      - 'test/poc-old-cli-fence-harness.test.mjs'
+      - 'docs/POC-OLD-CLI-FENCE.md'
+      - '.github/workflows/poc-old-cli-fence.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  old-cli-fence-observation:
+    name: Investigate v0.9.3 on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Capture runner and Git identity
+        shell: pwsh
+        run: |
+          $PSVersionTable.PSVersion.ToString()
+          node --version
+          npm --version
+          git --version
+          git rev-parse HEAD
+          git status --porcelain
+      - name: Offline harness smoke (not old CLI safety)
+        shell: pwsh
+        run: |
+          node --check scripts/poc-old-cli-fence.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Syntax check failed' }
+          node --test test/poc-old-cli-fence-harness.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Harness smoke failed' }
+      - name: Fetch authentic npm v0.9.3 and collect old-binary observations
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $integrityOutput = npm view vibe-coding-production@0.9.3 dist.integrity --registry=https://registry.npmjs.org
+          if ($LASTEXITCODE -ne 0) { throw 'Registry metadata lookup failed' }
+          $integrity = ($integrityOutput | Out-String).Trim()
+          if ($integrity -notmatch '^sha512-[A-Za-z0-9+/]{86}==$') { throw 'Missing authentic sha512 npm integrity' }
+          npm pack vibe-coding-production@0.9.3 --pack-destination "$env:RUNNER_TEMP" --registry=https://registry.npmjs.org
+          if ($LASTEXITCODE -ne 0) { throw 'Published tarball fetch failed' }
+          $tarball = Join-Path $env:RUNNER_TEMP 'vibe-coding-production-0.9.3.tgz'
+          $receipt = Join-Path $env:RUNNER_TEMP ('vcp-fence-' + $env:RUNNER_OS + '.json')
+          if (Test-Path $receipt) { throw 'Receipt path already exists; no overwrite' }
+          Get-FileHash -Path $tarball -Algorithm SHA256 | Format-List
+          node scripts/poc-old-cli-fence.mjs --tarball $tarball --expected-integrity $integrity --scenario all --evidence $receipt
+          $pocExit = $LASTEXITCODE
+          Write-Host "POC_EXIT=$pocExit"
+          if (-not (Test-Path $receipt)) { throw 'POC execution did not produce evidence' }
+          $result = Get-Content $receipt -Raw | ConvertFrom-Json
+          Write-Host "POC_GATE=$($result.gate) CASES=$($result.results.Count) MUTATIONS=$($result.unsafeMutationCount) UNEXPECTED=$($result.unexpected)"
+          if ($result.results.Count -ne 12) { throw 'Expected 12 observed scenarios' }
+          if ($result.unexpected -ne 0) { throw 'Unexpected old-CLI observation; inspect receipt' }
+          if ($pocExit -ne 0 -and $pocExit -ne 2) { throw "Harness failed with exit $pocExit" }
+          if ($result.gate -ne 'NO_GO__LEGACY_MUTATION_DEMONSTRATED' -and $result.gate -ne 'UNPROVEN__TESTED_CASES_ONLY') { throw 'Invalid safety conclusion' }
+          if ($result.gate -eq 'NO_GO__LEGACY_MUTATION_DEMONSTRATED') {
+            Write-Warning 'Legacy mutation proven. Migration safety is NO-GO even though evidence collection succeeded.'
+          } else {
+            Write-Warning 'No mutations observed on this fixture subset; G-FENCE remains UNPROVEN.'
+          }
+      - name: Upload investigative observation receipts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: published-v093-fence-${{ matrix.os }}
+          path: ${{ runner.temp }}/vcp-fence-*.json
+          if-no-files-found: warn
+          retention-days: 30
