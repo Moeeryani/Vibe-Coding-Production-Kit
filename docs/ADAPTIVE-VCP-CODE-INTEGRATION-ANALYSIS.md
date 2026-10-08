@@ -1389,7 +1389,7 @@ Conceptual v2 managed entry:
   "ownership": {
     "kind": "section",
     "sectionId": "vcp-agent-integration",
-    "beginMarker": "<!-- VCP:BEGIN -->",
+    "beginMarker": "<!-- VCP:BEGIN:agent-routing -->",
     "endMarker": "<!-- VCP:END -->"
   },
   "baselineHash": "...",
@@ -2246,7 +2246,7 @@ For small generated adapter blocks, a stricter generated policy may conflict ins
 ### [AUDIT 2026-10-06 — PRE-IMPLEMENTATION] Marker presence is not authorship
 
 ADOPT must not treat "an already well-formed marked VCP section" as VCP-owned on the
-strength of marker presence alone. A project-authored `<!-- VCP:BEGIN -->` block —
+strength of marker presence alone. A project-authored `<!-- VCP:BEGIN:agent-routing -->` block —
 including one inside a fenced code example documenting VCP itself — would otherwise be
 adopted as VCP-owned and later overwritten by update. Required:
 
@@ -2711,7 +2711,7 @@ vcp:prompts/02-plan-task.md
 
 Resolver safety contract:
 
-- a project override is still a selected-root project file; resolve it through the same confinement and symlink-safety rules used for trusted project context;
+- a project override is still a selected-root project file; resolve it through the shared `resolveProjectPath` (or equivalently named) Stage-12 leaf helper. The present `lib/context.mjs`, `lib/readiness.mjs`, and `lib/verify.mjs` each have a duplicated `safePath` prefix-only implementation; none proves no symlink escape. One purpose-aware helper must canonicalize existing parent components, reject traversal/symlink/junction escape, default to no-follow for untrusted evidence (D-03), and re-inspect before writes under lock. In-root symlinks require explicit policy, not accidental acceptance. No impossible TOCTOU-freedom guarantee is claimed;
 - package fallback is chosen only from the fixed MODE_PROMPTS/canonical prompt allowlist for the requested contextMode;
 - do not expose a generic "read any vcp:<path>" escape hatch;
 - the packaged prompt is typed as execution-prompt context, never Source of Truth;
@@ -3438,7 +3438,7 @@ The v2 detector evaluator must reuse the security posture already proven by the 
 
 Required detector-evaluation invariants:
 
-- every declared evidence path is portable, selected-project-root-relative, and passed through root-confinement/symlink protections;
+- every declared evidence path is portable, selected-project-root-relative, and passed through the **same central Stage-12 selected-root path resolver** used by Context/Readiness/Verify, not an inlined prefix-only `safePath`; read-existing and write-new intents remain distinct;
 - parent/sibling/workspace/URL/absolute path escape is rejected;
 - symlink targets cannot confer capability evidence outside the selected root;
 - JSON/text predicates have per-file and aggregate byte limits; directory/predicate counts have deterministic limits;
@@ -5646,7 +5646,7 @@ Needs:
 
 - manifest schema v2 support;
 - top-level minimumReaderVersion validation before normal lifecycle mutation;
-- schema-v2 persistent legacy `.vcp/update.lock` blocker plus a new actual runtime lock path;
+- schema-v2 writes gated on D-01 real released-0.9.3 mutation-safety proof; directory sentinel is a candidate only, newest-v2-backup a mitigation only (neither is assumed proven), and the migration writer remains disabled if proof is absent;
 - versioned backup/transaction metadata and compatibility validation for recovery;
 - recovery path that can validate a backup even when the active manifest is damaged;
 - running CLI version lookup through the existing version helper;
@@ -6083,7 +6083,7 @@ Implement:
 18. assetSet-aware Task Pack Source-of-Truth scaffold design for immediate post-adoption usability;
 19. previous-release → schema-v2 lifecycle/release smoke, including old-reader fail-closed coverage.
 
-The read-only boundary applies specifically to **unmanaged EXISTING repositories through vcp init**.
+The **zero-write inspection/planning boundary** applies specifically to **unmanaged EXISTING repositories through `vcp init`**; already managed updates may write only after accepted D-01 G-FENCE and managed recovery.
 
 Already MANAGED schema-v1 repositories may migrate via `vcp update` in Stage 12 **only after D-01 published-0.9.3 G-FENCE and managed recovery pass**. Otherwise the schema-v2 writer stays disabled and the migration exit is BLOCKED. `vcp init` redirects to update/status and does not perform managed migration.
 
@@ -6649,8 +6649,7 @@ external ecosystem research, per-point 23-element audits (33 points), interactio
 / second-order / scenario analysis (23 scenarios A–W: 17 PASS, 6 GAP), and test
 design (255 tests). Product code was not modified.
 
-**Audit verdict: READY WITH MINOR CONDITIONS** (see §16 of the final report at
-`docs/ADAPTIVE-VCP-FINAL-PREIMPLEMENTATION-AUDIT.md` in this repository).
+**Historical 2026-10-06 audit verdict: READY WITH MINOR CONDITIONS.** See `docs/ADAPTIVE-VCP-FINAL-PREIMPLEMENTATION-AUDIT.md` for historical context. This is not current acceptance of D-01 or authorization to enable schema-v2 migration.
 Inline amendments are tagged `[AUDIT 2026-10-06 — PRE-IMPLEMENTATION]` at their
 sections. The strategic companion holds the ownership analysis (§9) and
 sequencing decisions; this appendix registers the technical amendments.
