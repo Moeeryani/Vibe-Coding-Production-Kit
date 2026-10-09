@@ -24,7 +24,7 @@ On Windows native PowerShell, use an absolute path such as `D:\vcp-evidence\pr-9
 
 **D-06 (PROPOSED):** The canonical decision policy requires an independent, maintainer-reviewed complete location inventory plus an exact-head local receipt and maintainer inspection; local receipts are cooperative evidence, never trusted remote enforcement or automatic decision approval.
 
-`node scripts/check-adaptive-contracts.mjs` enforces unique registered D-01–D-12 IDs and 14 **focused regression anchors** in both strategic S and technical T. These 14 tokens are a safety net, **not** a complete proof that all C-01–C-14 correction semantics are accepted. Only when an ID is set to ACCEPTED in the canonical Markdown register does the guard require a corresponding machine-readable `docs/decisions/D-XX.json` record with named owner, UTC date, chosen option, rationale, evidence IDs, PR URL and exact section-anchored affected locations. It verifies affected location sections on disk. Decisions without maintainer acceptance remain PROPOSED and cannot become approval through a passing guard.
+`node scripts/check-adaptive-contracts.mjs` enforces unique registered D-01–D-12 IDs and 14 **focused regression anchors** in both strategic S and technical T. These 14 tokens are a safety net, **not** a complete proof that all C-01–C-14 correction semantics are accepted. Only when an ID is set to ACCEPTED in the canonical Markdown register does the guard require a corresponding machine-readable `docs/decisions/D-XX.json` record with named owner, UTC date, chosen option, rationale, evidence IDs, PR URL and exact section-anchored affected locations. It verifies affected location sections on disk. Decisions remain in their explicit canonical states (PROPOSED, ACCEPTED, DEFERRED or REJECTED); the guard never promotes a status or turns a deferral into pending approval. The accepted record also requires an explicit maintainer approval reference and rejected-alternative rationales.
 
 **Proposed acceptance JSON shape** (for future acceptance only; do not create it to infer signoff):
 
@@ -35,6 +35,8 @@ On Windows native PowerShell, use an absolute path such as `D:\vcp-evidence\pr-9
   "owner": "actual-maintainer",
   "decidedAtUtc": "2026-10-09T00:00:00Z",
   "chosenOption": "specific accepted contract",
+  "approvalEvidence": "reference to explicit human sign-off (not a passing test)",
+  "rejectedAlternatives": [{ "option": "another considered choice", "reason": "why rejected" }],
   "rationale": "recorded decision rationale",
   "implementationPR": "https://github.com/owner/repo/pull/number",
   "provingTests": ["named-test-and-receipt-ID"],
@@ -50,7 +52,7 @@ The acceptance record must match the Markdown register status; the JSON is *evid
 
 ## Independent accepted-decision completeness review
 
-The focused C-01–C-14 token anchors cannot determine whether an accepted decision omitted a normative location. The separate versioned inventory `docs/decisions/required-anchors.json` lists **31 draft section-level anchors across seven Stage12-relevant decisions (D-01–D-06, D-12)** on this decision-ratification branch. They cover S/T, Stage12 Task Pack, ROADMAP, CLI, UPDATES and this local-gates policy. This count is a **branch-level, unapproved inventory**; PR #90 alone retains its earlier 23-anchor snapshot. They do **not** automatically prove that every affected Roadmap/CLI/Task location was discovered; this is a **draft coverage inventory pending maintainer review**.
+The focused C-01–C-14 token anchors cannot determine whether an accepted decision omitted a normative location. The separate versioned inventory `docs/decisions/required-anchors.json` lists **38 draft section-level anchors across seven Stage12-relevant decisions (D-01–D-06, D-12)** on the current integration candidate (D-01: 6, D-02: 5, D-03: 7, D-04: 4, D-05: 4, D-06: 6, D-12: 6). They cover S/T, Stage12 Task Pack, ROADMAP, CLI, UPDATES and this local-gates policy. This count is a **branch-level, unapproved inventory**; PR #90 alone retains its earlier 23-anchor snapshot. They do **not** automatically prove that every affected Roadmap/CLI/Task location was discovered; this is a **draft coverage inventory pending maintainer review**.
 
 Before any acceptance record is created, the reviewer must (1) audit the source-to-destination coverage, adding missing Roadmap/CLI/Task anchors or explicit applicability rationale; (2) explicitly switch that decision's `coverageReview` from `PENDING` to `APPROVED` only after documentary review; (3) record actual selected/rejected options, reviewer, UTC, evidence and location references in the canonical ledger; and (4) re-run all guard tests and local gates against the resulting exact final SHA. `check-adaptive-contracts.mjs` now rejects a decision marked ACCEPTED whenever its independent map is absent, unreviewed, or a required location is omitted from the accepted record; the record cannot redefine its own expected clause. D-07–D-11 lack approved inventories and intentionally fail closed if prematurely set ACCEPTED.
 
