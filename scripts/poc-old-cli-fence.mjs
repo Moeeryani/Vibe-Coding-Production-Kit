@@ -164,7 +164,8 @@ async function fixture(bin, scratch, name) {
   if (name === 'dead-pid-file-lock') {
     await writeFile(lock, JSON.stringify({ host: os.hostname(), pid: 2147483647, startedAt: new Date().toISOString() }));
   }
-  if (name.startsWith('directory-sentinel')) await mkdir(lock);
+  if (name.startsWith('directory-sentinel') ||
+      name === 'deleted-manifest-directory-sentinel-old-init') await mkdir(lock);
   if (name === 'fresh-malformed-lock' || name === 'aged-malformed-lock') {
     await writeFile(lock, 'not-json\n');
     if (name === 'aged-malformed-lock') {
