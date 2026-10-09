@@ -166,6 +166,10 @@ A plan containing any `CONFLICT` is blocked before project files are changed.
 
 If apply fails after backup creation, VCP attempts an automatic rollback and reports if rollback itself cannot complete.
 
+### Legacy-release rollback is not a future schema-v2 fence (D-01)
+
+This page describes the released **0.9.3 / schema-v1** lifecycle. Real published-v0.9.3 adversarial experiments recorded in PR #89 showed that old `rollback` can restore even the newest *schema-v2* backup and still erase user edits made **after** that backup; a stale transaction may select an older backup. A separate `lifecycle.lock` is ignored by the old CLI. Accordingly, these v1 backup and lock contracts must never be cited as proof that a future v1→v2 migration is safe against the published old CLI. **G-FENCE = NO-GO and managed v1→v2 writes remain disabled** until D-01's Windows, atomic transition, old/new concurrency, all old entrypoints including manifest-absent `init`, and crash-safety evidence is reviewed and explicitly accepted. No current CLI behavior is changed by this warning.
+
 ## Roll back
 
 Restore the newest VCP backup:
