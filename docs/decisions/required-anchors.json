@@ -160,6 +160,16 @@
           "path": "docs/ADAPTIVE-VCP-LOCAL-GATES.md",
           "heading": "## Scope of local static guard",
           "requiredText": "unique registered D-01–D-12"
+        },
+        {
+          "path": "docs/ADAPTIVE-VCP-DECISIONS.md",
+          "heading": "## Normative register rules",
+          "requiredText": "D-06 (PROPOSED):"
+        },
+        {
+          "path": "docs/ROADMAP.md",
+          "heading": "### Stage 12 — Safe Adoption Planning",
+          "requiredText": "D-03 path trust and D-06 review governance remain PROPOSED"
         }
       ]
     },
@@ -197,6 +207,7 @@
     "Do not set coverageReview APPROVED or an ID to ACCEPTED automatically. Future-phase decisions D-07..D-11 lack inventories and MUST fail closed on acceptance.",
     "Do not infer accepted contract from status or snippets; review selected alternatives, rejected alternatives, tests, provenance and all normative surfaces.",
     "D-01 and D-03 user-facing ROADMAP/CLI/UPDATES anchors added on the Stage12 ratification branch; they describe proposed future contracts and explicitly preserve v0.9.3 current behavior. All reviews stay PENDING.",
-    "A check of listed source-text identity does not prove semantic sufficiency or exhaustiveness. Reviewer must separately determine D-02/04/05/06/12 applicability to DOCTOR/CLI/ROADMAP/UPDATES."
+    "A check of listed source-text identity does not prove semantic sufficiency or exhaustiveness. Reviewer must separately determine D-02/04/05/06/12 applicability to DOCTOR/CLI/ROADMAP/UPDATES.",
+    "D-06 governance applicability: CLI.md and UPDATES.md describe released command behavior, not maintainer record/review authority, and are NOT required D-06 anchors unless they begin asserting the Stage12 gate contract. The canonical register and ROADMAP Stage12 contract are directly applicable and included."
   ]
 }
