@@ -100,8 +100,11 @@ export function evaluateStatic({ register, S, T }) {
     if (pattern.test(S)) errors.push(id + ': forbidden token reappeared in S: ' + pattern);
     if (pattern.test(T)) errors.push(id + ': forbidden token reappeared in T: ' + pattern);
   }
-  const accepted = rows.filter(row => row.status === 'ACCEPTED').map(row => row.id);
-  return { errors, accepted, pending: rows.filter(row => row.status !== 'ACCEPTED').map(row => row.id),
+  const statuses = ['PROPOSED', 'ACCEPTED', 'DEFERRED', 'REJECTED'];
+  const byStatus = Object.fromEntries(statuses.map(status => [
+    status.toLowerCase(), rows.filter(row => row.status === status).map(row => row.id)
+  ]));
+  return { errors, ...byStatus,
     checkedContractAnchors: contractAnchors.length, decisionCount: rows.length };
 }
 
@@ -148,8 +151,8 @@ export function checkRequiredCoverage(id, declaredLocations, inventory) {
   return errors;
 }
 
-async function verifyAcceptedRecord(id, inventory) {
-  const filepath = path.join(root, 'docs', 'decisions', id + '.json');
+export async function verifyAcceptedRecord(id, inventory, repositoryRoot = root) {
+  const filepath = path.join(repositoryRoot, 'docs', 'decisions', id + '.json');
   let record;
   try { record = JSON.parse(await readFile(filepath, 'utf8')); }
   catch { return [id + ': ACCEPTED requires parseable docs/decisions/' + id + '.json']; }
@@ -179,7 +182,7 @@ async function verifyAcceptedRecord(id, inventory) {
       continue;
     }
     let data;
-    try { data = await readFile(path.join(root, entry.path), 'utf8'); }
+    try { data = await readFile(path.join(repositoryRoot, entry.path), 'utf8'); }
     catch { errors.push(id + ': cannot read ' + entry.path); continue; }
     const section = sectionText(data, entry.heading);
     if (!section || !section.includes(entry.requiredText) || !section.includes(id) ||
@@ -217,7 +220,8 @@ async function main() {
   } else {
     console.log('DOC-CONTRACT-STATIC-PASS: ' + summary.checkedContractAnchors + ' focused anchors, ' +
       summary.decisionCount + ' uniquely registered decisions');
-    console.log('ACCEPTED=' + summary.accepted.length + ' PENDING=' + summary.pending.length +
+    console.log('PROPOSED=' + summary.proposed.length + ' ACCEPTED=' + summary.accepted.length +
+      ' DEFERRED=' + summary.deferred.length + ' REJECTED=' + summary.rejected.length +
       ' ; G-DOCS NOT AUTOMATICALLY APPROVED; human and exact-head gates remain required.');
   }
 }
