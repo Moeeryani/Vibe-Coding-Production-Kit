@@ -8,6 +8,7 @@ This file records questions and proposed recommendations, **not** maintainer acc
 
 - IDs `D-01` through `D-12` are stable and must never be reassigned.
 - For every newly accepted correction, record each affected file/section and tests. A correction is complete only after all anchors are updated.
+- **D-06 (PROPOSED):** this canonical register is the authoritative status ledger, but its entries are not approvals. Before a status becomes ACCEPTED, review the independent per-ID mandatory affected-location inventory, complete actual source-document applicability (S/T/Roadmap/CLI/Task), record maintainer identity/UTC and evidence, and run the exact-final-HEAD cooperative gate. Current local receipts do not constitute protected remote merge enforcement.
 - Existing S Appendix Z and T Appendix Z are historical and **need not have identical rows**. CI should check canonical decision references/coverage rather than historical row equality.
 - D-01 is an explicit **NO-GO** for enabling v1→v2 migration until a real released-v0.9.3 cross-platform safety mechanism is proven.
 - D-07–D-10 may be decided at their dependent phase; they do not block preparatory Stage12 documentation work.
