@@ -5,6 +5,12 @@ Readiness: BLOCKED for implementation until documentation contract decisions, ex
 Slug: `stage12-safe-adoption-planning`
 Audited baseline: `8ccb276545fdb3cc301ce7ce324812eb4c314586`
 
+## Stage12.0 gate triage — execution started, migration deliberately deferred
+
+The first preparatory PR12.1a **characterization-only** work is in draft PR #91 (no product-code changes). PR #89's authentic published old-CLI Linux POC found 7 unsafe protected-file mutations; default **D-01 option C: keep live managed schema-v2 migration BLOCKED**. Directory sentinel is only a Linux-isolated candidate and lacks native Windows, old init with deleted manifest, atomic installation, concurrent old/new writers and crash validation.
+
+Decision-ratification packet: `docs/decisions/stage12-d01-d03-d06-ratification-packet.md`. **D-03 / D-06 remain PROPOSED** pending an actual maintainer decision. PR #90's focused regression checks and Linux cooperative receipt are not remotely trusted merge enforcement or completed G-DOCS; a final-HEAD local evidence run and independently complete accepted-ID reference coverage are required. This is a status of **preparatory test work started**, not a product-code GO or Stage12 Task Pack Ready/Done transition.
+
 ## Outcome
 
 Enable trustworthy, bounded, zero-write adoption *planning* for unmanaged existing repositories, while keeping v1 lifecycle compatibility and implementing managed schema-v2 migration ONLY after real previous-release CLI mutation-safety proof. First mutating unmanaged brownfield adoption and rollback-to-absence belong to Stage 13.
