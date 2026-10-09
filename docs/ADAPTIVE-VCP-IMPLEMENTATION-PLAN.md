@@ -1204,6 +1204,8 @@ Rules:
 
 ### Migration re-screening and bounded enforcement (C-03 / D-12)
 
+**D-12 proposed execution invariant:** before VCP-controlled `vcp verify --run` executes, the **exact Task Pack command bytes**, key and provenance must be reauthorized at the real execution boundary, including legacy/manually edited Task Packs; stale or conflicting authority blocks, and `--yes` never waives HUMAN DECISION. This does not intercept execution by external agents.
+
 During a managed v1→v2 migration, re-screen all adopted executable verification commands for explicitly enumerated destructive patterns. A legacy approval cannot be silently promoted to current authority: mark any provisional receipt `grandfathered: true` with versioned identity, and require explicit confirmation before first later VCP-controlled execution. Bind an allowlist decision to exact command bytes/fingerprint, command key and provenance with a recorded rationale; a changed fingerprint invalidates it. A change only to policy version must trigger compatible re-evaluation, not automatic mass reapproval. `--yes` cannot bypass HUMAN DECISION. Preserved project text or commands run by external agents are **outside VCP enforcement**; Doctor may report patterns there as non-install-health governance information.
 
 ### Task snapshot and command-contract freshness

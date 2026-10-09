@@ -32,6 +32,10 @@ vcp doctor . --strict
 
 Default mode exits non-zero only when a `FAIL` exists. `--strict` also exits non-zero when warnings remain.
 
+### Proposed Stage12 applicable-install-health boundary (D-02 — NOT IMPLEMENTED)
+
+The existing commands above document the released v0.9.3 behavior. Proposed D-02 changes future Stage12 Doctor semantics only **after a separate decision and tests**: classify `installHealth.checks` by selected `assetSet`, with intentionally omitted starter templates reported `NOT_APPLICABLE` or informational, never WARN/FAIL. Keep `governance` in a distinct informational JSON section. Proposed non-strict exit is nonzero only for **applicable install-health FAIL**, and `--strict` for applicable install-health FAIL **or WARN**. Informational, absent or unknown governance alone never fails either mode. Require synthetic brownfield-minimal and legacy-full success/failure fixtures; none are claimed to run against released v0.9.3.
+
 ## What it checks
 
 The doctor currently inspects:

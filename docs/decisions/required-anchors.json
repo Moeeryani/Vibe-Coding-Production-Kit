@@ -55,6 +55,16 @@
           "path": "docs/tasks/stage12-safe-adoption-planning.md",
           "heading": "## Acceptance criteria",
           "requiredText": "AC-013:"
+        },
+        {
+          "path": "docs/DOCTOR.md",
+          "heading": "### Proposed Stage12 applicable-install-health boundary (D-02 — NOT IMPLEMENTED)",
+          "requiredText": "Proposed non-strict exit is nonzero only for"
+        },
+        {
+          "path": "docs/CLI.md",
+          "heading": "## Audit an existing repository",
+          "requiredText": "Future D-02 proposal (not a current CLI guarantee)"
         }
       ]
     },
@@ -115,6 +125,11 @@
           "path": "docs/tasks/stage12-safe-adoption-planning.md",
           "heading": "## Acceptance criteria",
           "requiredText": "AC-015 (D-04 PROPOSED): Init planner JSON"
+        },
+        {
+          "path": "docs/CLI.md",
+          "heading": "## Initialize once, then update",
+          "requiredText": "Future D-04 init planner proposal (not enabled in v0.9.3)"
         }
       ]
     },
@@ -135,6 +150,11 @@
           "path": "docs/tasks/stage12-safe-adoption-planning.md",
           "heading": "## Acceptance criteria",
           "requiredText": "AC-007 (D-05 PROPOSED): Markdown section parser"
+        },
+        {
+          "path": "docs/UPDATES.md",
+          "heading": "### Current ownership boundary",
+          "requiredText": "D-05 / D-01 warning"
         }
       ]
     },
@@ -179,17 +199,32 @@
         {
           "path": "docs/ADAPTIVE-VCP-IMPLEMENTATION-PLAN.md",
           "heading": "### Migration re-screening and bounded enforcement (C-03 / D-12)",
-          "requiredText": "Migration"
+          "requiredText": "exact Task Pack command bytes"
         },
         {
           "path": "docs/ADAPTIVE-VCP-CODE-INTEGRATION-ANALYSIS.md",
           "heading": "### Migration command re-screen and execution-time authority (C-03 / D-12)",
-          "requiredText": "Migration"
+          "requiredText": "Stage 12 must authorize exact executed strings there"
         },
         {
           "path": "docs/tasks/stage12-safe-adoption-planning.md",
           "heading": "## Acceptance criteria",
           "requiredText": "AC-011 (D-12 PROPOSED): Command authority"
+        },
+        {
+          "path": "docs/VERIFICATION-EVIDENCE.md",
+          "heading": "### Proposed D-12 execute-time gate (NOT IMPLEMENTED)",
+          "requiredText": "exact Task Pack shell command bytes"
+        },
+        {
+          "path": "docs/CLI.md",
+          "heading": "## Turn verification into evidence",
+          "requiredText": "Future D-12 execution authorization (not yet implemented)"
+        },
+        {
+          "path": "docs/TASK-PACKS.md",
+          "heading": "### Proposed D-12 Task Pack execution boundary (NOT IMPLEMENTED)",
+          "requiredText": "exact bytes actually executed"
         }
       ]
     }
@@ -208,6 +243,7 @@
     "Do not infer accepted contract from status or snippets; review selected alternatives, rejected alternatives, tests, provenance and all normative surfaces.",
     "D-01 and D-03 user-facing ROADMAP/CLI/UPDATES anchors added on the Stage12 ratification branch; they describe proposed future contracts and explicitly preserve v0.9.3 current behavior. All reviews stay PENDING.",
     "A check of listed source-text identity does not prove semantic sufficiency or exhaustiveness. Reviewer must separately determine D-02/04/05/06/12 applicability to DOCTOR/CLI/ROADMAP/UPDATES.",
-    "D-06 governance applicability: CLI.md and UPDATES.md describe released command behavior, not maintainer record/review authority, and are NOT required D-06 anchors unless they begin asserting the Stage12 gate contract. The canonical register and ROADMAP Stage12 contract are directly applicable and included."
+    "D-06 governance applicability: CLI.md and UPDATES.md describe released command behavior, not maintainer record/review authority, and are NOT required D-06 anchors unless they begin asserting the Stage12 gate contract. The canonical register and ROADMAP Stage12 contract are directly applicable and included.",
+    "D-02/D-04/D-05/D-12 consumer-document anchors are now tracked as prospective Stage12 contracts, not present v0.9.3 behavior. This inventory remains PENDING pending independent maintainer review."
   ]
 }

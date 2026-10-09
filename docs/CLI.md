@@ -38,6 +38,8 @@ Preview initialization before writing:
 vcp init . --agent all --dry-run
 ```
 
+**Future D-04 init planner proposal (not enabled in v0.9.3):** Stage12 preview JSON has `planVersion:1`, `planKind:"init"`, init-only `CLAIM` distinct from lifecycle-update `ADOPT`, and non-executable separate `skippedPaths`. Unknown plan versions fail closed, the JSON contains no project source content, and unmanaged EXISTING-root planning performs **zero writes**. Stage12 non-dry-run brownfield apply remains disabled; D-04 is PROPOSED, not an implemented current-release contract.
+
 ## Safe lifecycle updates
 
 Check whether the project, running CLI, or an eligible auto-selected stack profile has lifecycle work available:
@@ -125,6 +127,8 @@ vcp doctor .
 In addition to engineering-system checks, v0.9 validates lifecycle state, manifest compatibility, baseline integrity, and interrupted/corrupt update transactions.
 
 See [`DOCTOR.md`](DOCTOR.md) for JSON output, strict CI behavior, and the exact coverage boundary of starter-template checks.
+
+**Future D-02 proposal (not a current CLI guarantee):** Stage12 Doctor will separate assetSet-applicable `installHealth.checks` from informational `governance`; `--strict` will fail on applicable installation WARN/FAIL only. Intentionally omitted brownfield starter files will not trigger install-health failures. Decision and synthetic fixtures remain pending.
 
 ## Interactive setup
 
@@ -232,6 +236,8 @@ vcp verify accept-invite --run --output .vcp/evidence/accept-invite.json
 ```
 
 See [`VERIFICATION-EVIDENCE.md`](VERIFICATION-EVIDENCE.md).
+
+**Future D-12 execution authorization (not yet implemented):** before any VCP-controlled `verify --run`, Stage12 must check the **exact Task Pack command bytes**, key and provenance at execution time, including manually edited and legacy Task Packs. A changed, destructive or unapproved command cannot inherit an older approval; grandfathered commands need HUMAN DECISION, and `--yes` never waives that decision. External agent execution is outside VCP's claimed enforcement.
 
 ## Evaluate prompt behavior without embedding a model
 

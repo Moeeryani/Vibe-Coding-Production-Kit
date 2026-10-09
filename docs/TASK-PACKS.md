@@ -315,6 +315,10 @@ weak checks + AFK = high risk
 clear contract + strong checks + bounded task = good AFK candidate
 ```
 
+### Proposed D-12 Task Pack execution boundary (NOT IMPLEMENTED)
+
+For the Stage12 D-12 proposal, Task Packs record each **exact approved executable command string**, key, fingerprint and source/provenance; manually edited or legacy Task Pack commands do not automatically inherit authorization. `vcp verify --run` must reauthorize **the exact bytes actually executed**, not trust an old human acknowledgment or only AGENTS text. Changed/conflicting/stale command fingerprints block until explicit HUMAN DECISION, which `--yes` cannot bypass. This scope covers only VCP-controlled command execution; independent shell commands run by external agents are not intercepted. The released 0.9.3 task format is unchanged by this proposal.
+
 ## Durable independent-review evidence
 
 Fresh review is only restartable when its **material outcome** survives beyond the reviewer conversation. The canonical Task Pack therefore includes `## Independent review evidence` as the durable handoff location.
