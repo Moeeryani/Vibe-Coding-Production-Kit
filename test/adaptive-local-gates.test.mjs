@@ -188,3 +188,30 @@ test('D-06: canonical ledger and Stage12 roadmap anchors stay mandatory', async 
   assert.match(checkRequiredCoverage('D-06', incomplete, approvedFixture).join('\n'),
     /required anchor omitted or repeated/);
 });
+
+test('Stage12 reconciliation: T preserves final #87 checkpoint DONE and polyglot blocks', async () => {
+  const T = await readFile(path.join(root, 'docs/ADAPTIVE-VCP-CODE-INTEGRATION-ANALYSIS.md'), 'utf8');
+  const blocks = [
+    { heading: '### Mechanical checkpoint DONE signals', clauses: [
+      "Every checkpoint's Task Pack must define its DONE signal as a checkable",
+      'GO/SIMPLIFY/STOP-DEFER decision must be',
+      'Checkpoint E) must additionally record deletions made'
+    ] },
+    { heading: '### Polyglot fallback requirements', clauses: [
+      'classify `stack: generic`',
+      'record the competing evidence list',
+      'install only stack-neutral assets',
+      'require an explicit HUMAN DECISION',
+      'does not exist until Phase 4'
+    ] }
+  ];
+  for (const block of blocks) {
+    const start = T.indexOf(block.heading);
+    assert.ok(start >= 0, 'Missing final #87 block: ' + block.heading);
+    const end = T.indexOf('\n## ', start + block.heading.length);
+    const section = T.slice(start, end >= 0 ? end : T.length);
+    for (const clause of block.clauses) {
+      assert.ok(section.includes(clause), block.heading + ': absent clause: ' + clause);
+    }
+  }
+});
