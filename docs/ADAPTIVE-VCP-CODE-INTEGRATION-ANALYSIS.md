@@ -1212,6 +1212,8 @@ Implementation notes:
 
 ### init-plan
 
+**D-04 (PROPOSED):** Init uses its own versioned content-free plan vocabulary: `CLAIM` establishes permissioned ownership, while existing update `ADOPT` retains its distinct meaning; `skippedPaths` is not a mutation action. This requirement awaits a maintainer decision.
+
 One deterministic planner is shared by preview and later apply.
 
 Inputs include:
@@ -3432,6 +3434,8 @@ lib/profile-dsl.mjs
 ---
 
 ## 9.4A Detector DSL resource and path contract
+
+**D-03 (PROPOSED):** New detector evidence may not follow untrusted symlinks or Windows junctions, including in-root aliases, unless a purpose-specific exception is explicitly approved and tested; this is an unapproved future path-trust contract, not a claim about the released v0.9.3 implementation.
 
 The v2 detector evaluator must reuse the security posture already proven by the v1 bundle loader rather than introducing a looser path reader.
 
@@ -6660,7 +6664,7 @@ sequencing decisions; this appendix registers the technical amendments.
 
 ## Z.1 Amendments register (technical)
 
-**Historical appendix, not an identical-row twin of strategic Z.1.** The proposed canonical `docs/ADAPTIVE-VCP-DECISIONS.md` records new stable IDs, owner, selected option and accepted status. A correction is applied only when every affected S/T/roadmap/CLI/Task anchor changes and CI verifies accepted-reference coverage (C-13).
+**D-06 (PROPOSED): Historical appendix, not an identical-row twin of strategic Z.1.** The proposed canonical `docs/ADAPTIVE-VCP-DECISIONS.md` records new stable IDs, owner, selected option and accepted status. A correction is applied only when every affected S/T/roadmap/CLI/Task anchor changes and CI verifies accepted-reference coverage (C-13).
 
 | # | Section | Change |
 |---|---------|--------|
