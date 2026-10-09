@@ -23,7 +23,8 @@ const cases = [
   'fresh-malformed-lock',
   'aged-malformed-lock',
   'intact-v2-old-init',
-  'deleted-manifest-old-init'
+  'deleted-manifest-old-init',
+  'deleted-manifest-directory-sentinel-old-init'
 ];
 
 function parse(argv) {
@@ -163,7 +164,8 @@ async function fixture(bin, scratch, name) {
   if (name === 'dead-pid-file-lock') {
     await writeFile(lock, JSON.stringify({ host: os.hostname(), pid: 2147483647, startedAt: new Date().toISOString() }));
   }
-  if (name.startsWith('directory-sentinel')) await mkdir(lock);
+  if (name.startsWith('directory-sentinel') ||
+      name === 'deleted-manifest-directory-sentinel-old-init') await mkdir(lock);
   if (name === 'fresh-malformed-lock' || name === 'aged-malformed-lock') {
     await writeFile(lock, 'not-json\n');
     if (name === 'aged-malformed-lock') {
@@ -174,7 +176,8 @@ async function fixture(bin, scratch, name) {
   if (name === 'separate-lifecycle-lock') {
     await writeFile(path.join(root, '.vcp', 'lifecycle.lock'), JSON.stringify({ pid: process.pid, host: os.hostname() }));
   }
-  if (name === 'deleted-manifest-old-init') await rm(mf);
+  if (name === 'deleted-manifest-old-init' ||
+      name === 'deleted-manifest-directory-sentinel-old-init') await rm(mf);
   return root;
 }
 
@@ -192,7 +195,8 @@ async function observe(bin, scratch, name) {
   const changes = changed(before, after);
   const expectedMutation = ![
     'directory-sentinel-rollback', 'directory-sentinel-update', 'directory-sentinel-manage',
-    'fresh-malformed-lock', 'intact-v2-old-init'
+    'fresh-malformed-lock', 'intact-v2-old-init',
+    'deleted-manifest-directory-sentinel-old-init'
   ].includes(name);
   let resultingSchema = null;
   try {
@@ -203,7 +207,9 @@ async function observe(bin, scratch, name) {
     scenario: name, command, expectedMutation,
     observedMutation: changes.length > 0,
     expectedObservationMatched: (changes.length > 0) === expectedMutation &&
-      (!name.startsWith('directory-sentinel-') || lockAfter === 'directory'),
+      (!name.startsWith('directory-sentinel-') &&
+       name!=='deleted-manifest-directory-sentinel-old-init' ||
+       lockAfter === 'directory'),
     legacyLockBefore: lockBefore, legacyLockAfter: lockAfter,
     resultingSchema, postBackupEditSurvived, changes,
     conclusion: changes.length ? 'LEGACY_MUTATION_OBSERVED__NOT_SAFE' : 'NO_PROTECTED_BYTES_CHANGED_IN_ONE_FIXTURE_ONLY'
