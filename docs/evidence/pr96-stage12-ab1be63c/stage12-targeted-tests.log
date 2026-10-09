@@ -1,0 +1,38 @@
+✔ inspect: completely empty root is NEW and has zero side effects (22.747777ms)
+✔ inspect: existing unmanaged files remain byte-identical and unclaimed (11.25486ms)
+✔ inspect: valid managed schema-v1 root returns only approved metadata (6.653155ms)
+✔ inspect CLI: JSON and human output, blocked states return nonzero (734.108551ms)
+✔ inspect: partial, corrupt, future and ambiguous managed states fail closed (29.187022ms)
+✔ inspect: non-directory and oversized manifest fail closed (7.70292ms)
+✔ inspect: linked root, .vcp state and manifest are never trusted (5.13064ms)
+✔ inspect: symlinked parent component is rejected even for in-root target (3.021194ms)
+✔ inspect: mutating CLI flags are rejected before touching files (776.719447ms)
+✔ new root yields zero-write greenfield plan with unapproved CLAIM actions (16.789747ms)
+✔ existing unmanaged content is only skipped, never adopted or overwritten (10.295261ms)
+✔ ambiguous JS/Python root reports generic and competing evidence (9.464793ms)
+✔ JS/TS marker family resolves TypeScript deterministically (3.561986ms)
+✔ symlinked source evidence fails closed without reading outside root (3.036116ms)
+✔ managed v1 root blocks init plan and remains intact (4.700334ms)
+✔ managed sections preserve outside bytes: BOM, CRLF, LF and Unicode (3.275245ms)
+✔ ignore marker-shaped text inside triple fenced Markdown (0.571137ms)
+✔ reject orphan, nested, repeated, mismatched and malformed markers (0.860842ms)
+✔ refuse unknown region and marker injection (0.443515ms)
+✔ migrations remain bounded to existing released Schema-v1 chain (3.078049ms)
+✔ legacy compareVersions delegates to strict new comparator (0.376876ms)
+✔ purposes enforce read/write/state separation and reserved paths (14.174732ms)
+✔ reject traversal, alternate separators, absolute and reserved components (2.529526ms)
+✔ reject external and internal symlinks, linked parent and linked selected root (4.25777ms)
+✔ reject nonregular paths and keep project bytes and paths unchanged (11.972497ms)
+✔ SemVer pre-release chain and release precedence (1.991148ms)
+✔ SemVer build metadata does not influence ordering (0.235213ms)
+✔ SemVer numeric precision and lexical alphanumeric identifiers (0.34652ms)
+✔ SemVer malformed or leading-zero versions fail closed (0.834833ms)
+✔ SemVer minimum-reader compatibility is explicit (0.262955ms)
+ℹ tests 30
+ℹ suites 0
+ℹ pass 30
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2414.570479
