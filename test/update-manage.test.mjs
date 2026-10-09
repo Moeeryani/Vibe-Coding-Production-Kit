@@ -27,7 +27,7 @@ test('track is a no-op for an already managed path', async () => {
         policy: 'managed',
         origin: 'template',
         mode: 420,
-        baselineHash: 'unchanged-for-noop-test',
+        baselineHash: '948c69c10315a69b585e79dd4757c4b5fea80ac116d8d2b48017e9e06e9caa6c',
         baselinePath: baseline,
         templateVersion: '0.9.0'
       }
@@ -38,7 +38,7 @@ test('track is a no-op for an already managed path', async () => {
   assert.equal(result.changed, false);
   assert.equal(result.alreadyTracked, true);
   const manifest = JSON.parse(await readFile(path.join(root, '.vcp/manifest.json'), 'utf8'));
-  assert.equal(manifest.managedFiles['docs.md'].baselineHash, 'unchanged-for-noop-test');
+  assert.equal(manifest.managedFiles['docs.md'].baselineHash, '948c69c10315a69b585e79dd4757c4b5fea80ac116d8d2b48017e9e06e9caa6c');
 });
 
 test('ignore commits detachment before a baseline cleanup failure', async () => {
@@ -58,7 +58,7 @@ test('ignore commits detachment before a baseline cleanup failure', async () => 
         policy: 'managed',
         origin: 'template',
         mode: 420,
-        baselineHash: 'irrelevant',
+        baselineHash: '2c2d0a88283e1971b993499a69c18fdae57573cb492ee62174573a0401d0e1bf',
         baselinePath: '.vcp/baselines/docs/file.md',
         templateVersion: '0.9.0'
       }
