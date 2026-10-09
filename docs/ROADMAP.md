@@ -321,7 +321,7 @@ Prove cross-OS/hosted conformance when an authorized environment with Node >=22 
 
 #### #73 — Concurrent local filesystem replacement TOCTOU
 
-Investigate a portable root-anchored/no-follow confinement design for concurrently replaced local paths. Current static traversal/symlink/digest contracts remain valid; do not claim an atomic filesystem snapshot.
+**D-03 (PROPOSED):** Investigate a portable root-anchored/no-follow confinement design for concurrently replaced local paths, rejecting untrusted symlinks and Windows junctions by default (including in-root links) unless a reviewed purpose-specific exception applies. Current static traversal/symlink/digest contracts remain valid; no native Windows guarantee or atomic filesystem snapshot is claimed before evidence.
 
 ### Intentionally deferred design
 
