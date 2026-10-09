@@ -3,6 +3,7 @@
 // A passing consistency audit can PROVE A NEGATIVE WITNESS, never G-FENCE GO.
 import {readFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
 const DEFAULT='docs/evidence/stage12-old-cli-fence/linux-observations-20261009.json';
 const EXPECTED=[
   'rollback-v1-backup','rollback-v2-erases-user-edit','rollback-stale-transaction',
@@ -98,6 +99,6 @@ async function main(){
   // Exit 2 intentionally signals a demonstrated unsafe compatibility witness.
   process.exitCode=2;
 }
-if(process.argv[1]&&resolve(process.argv[1])===new URL(import.meta.url).pathname){
+if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   main().catch(e=>{console.error(e.message);process.exitCode=e.exitCode??3;});
 }
