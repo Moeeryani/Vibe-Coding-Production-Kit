@@ -1,0 +1,2217 @@
+✔ fixture journey remains deterministic without a device (1.007082ms)
+✔ keeps Android and iOS behavior explicit (1.004187ms)
+✔ normalizes trusted deep-link scheme and rejects other inputs (1.042385ms)
+✔ accept and revoke racing from the same pending snapshot allow exactly one terminal transition (3.540122ms)
+✔ organization query returns only records owned by that organization across statuses (2.477287ms)
+✔ organization query returns detached copies instead of mutable repository state (0.403706ms)
+✔ organization query is status-neutral and does not define active-list expiry policy (0.273911ms)
+✔ active listing requires an authenticated actor with members.invite (1.797838ms)
+✔ active listing is tenant-scoped, excludes terminal records, and returns only administration-safe fields (3.914695ms)
+✔ expiry at exactly now remains visible and is projected as expired (0.486951ms)
+✔ active listing returns an empty list for an organization with no invitations (0.207872ms)
+✔ authorized admin issues an invite and repository stores only its hash (2.520954ms)
+✔ issuer must belong to target org (0.728704ms)
+✔ issuer must have members.invite permission (0.251868ms)
+✔ reissuing for same org and email revokes previous pending invitation (0.518098ms)
+✔ intended verified user can accept exactly once (0.79276ms)
+✔ acceptance rejects verified-email mismatch (0.37272ms)
+✔ acceptance rejects expired invitation (0.491948ms)
+✔ reissued invitation makes old token unusable while new token works (0.451969ms)
+✔ unknown token fails with coarse application error (0.276745ms)
+✔ authorized admin revokes a pending invitation in their own org (1.699601ms)
+✔ revoked invitation token can no longer be accepted (0.428603ms)
+✔ actor without members.invite cannot revoke (1.823747ms)
+✔ cross-org admin and unknown id fail indistinguishably and leave the invitation pending (0.381583ms)
+✔ accepted invitation cannot be revoked and stays accepted (0.276765ms)
+✔ revocation is not repeatable and revoked stays terminal (0.625688ms)
+✔ expired-but-pending invitation can still be revoked (0.255974ms)
+✔ domain revocation only accepts pending invitations (0.263395ms)
+✔ repository compare-and-set refuses to revoke non-pending or unknown records (0.19299ms)
+✔ formats a valid order id with the shared workspace prefix (1.244668ms)
+✔ trims caller whitespace before formatting (0.203756ms)
+✔ rejects empty identifiers after trimming (0.636535ms)
+✔ rejects non-string identifiers (0.227952ms)
+✔ inspect: completely empty root is NEW and has zero side effects (14.397466ms)
+✔ inspect: existing unmanaged files remain byte-identical and unclaimed (6.636419ms)
+✔ inspect: valid managed schema-v1 root returns only approved metadata (7.895579ms)
+✔ inspect: unrecognized v1 metadata is blocked, never silently tolerated (4.726042ms)
+✔ inspect: v1 install.assetSet is refused (never a released-0.9.3 field) (7.176319ms)
+✔ inspect CLI: JSON and human output, blocked states return nonzero (700.894386ms)
+✔ inspect: partial, corrupt, future and ambiguous managed states fail closed (13.626179ms)
+✔ inspect: non-directory and oversized manifest fail closed (7.552955ms)
+✔ inspect: linked root, .vcp state and manifest are never trusted (8.08952ms)
+✔ inspect: symlinked parent component is rejected even for in-root target (2.39173ms)
+✔ inspect: mutating CLI flags are rejected before touching files (659.717541ms)
+✔ new root yields zero-write greenfield plan with unapproved CLAIM actions (43.6332ms)
+✔ existing unmanaged content is only skipped, never adopted or overwritten (15.99286ms)
+✔ ambiguous JS/Python root reports generic and competing evidence (9.367598ms)
+✔ JS/TS marker family resolves TypeScript deterministically (6.269509ms)
+✔ symlinked source evidence fails closed without reading outside root (4.388696ms)
+✔ managed v1 root blocks init plan and remains intact (8.967227ms)
+✔ fitness CLI passes the reference SaaS and exposes deterministic JSON (173.606152ms)
+✔ fitness CLI human report exposes module ownership and dependency direction (154.455913ms)
+✔ fitness CLI returns non-zero JSON report for a public-contract violation (202.164479ms)
+✔ fitness CLI refuses to invent architecture when config is absent (146.61071ms)
+✔ fitness --config accepts an explicit project-relative configuration path (190.265452ms)
+✔ fitness requires project root through --dir instead of ambiguous positional semantics (145.716057ms)
+✔ fitness CLI help advertises the Stage 8 command and config option (137.501419ms)
+✔ fitness CLI rejects config traversal outside the selected project (210.936072ms)
+✔ fitness --config cannot leak onto unrelated commands (154.865728ms)
+✔ reference SaaS passes explicit Stage 8 architecture fitness (30.744108ms)
+✔ missing config fails instead of inferring architecture (1.720863ms)
+✔ config validation rejects overlapping roots, unknown dependencies, and invalid public entries (2.623927ms)
+✔ unowned configured source file turns ownership lane red (57.282964ms)
+✔ forbidden dependency direction turns dependency lane red (38.970282ms)
+✔ cross-module deep import bypassing public entrypoint turns public-contract lane red (43.577698ms)
+✔ realized module cycle turns cycle lane red even when both directions are allowed (54.702783ms)
+✔ missing exact local import target fails visibly (35.544221ms)
+✔ local import outside configured source roots fails visibly (32.622997ms)
+✔ non-literal dynamic dependency expressions are not silently treated as safe (47.296559ms)
+✔ architecture contract marker regression turns governing-contract lane red (54.124405ms)
+✔ governing ADR must remain Accepted (26.986589ms)
+✔ duplicate governing marker is a regression rather than an implicit pass (25.81445ms)
+✔ unsupported static import syntax fails instead of disappearing from analysis (28.152409ms)
+✔ missing declared module roots and public entries fail visibly (43.548183ms)
+✔ governing ADR must have exactly one status section (26.310995ms)
+✔ canonical VCP ADR metadata status format is accepted (25.370053ms)
+✔ empty configured source roots cannot produce a vacuous green result (18.106353ms)
+✔ same-line second import cannot hide a forbidden dependency (40.554641ms)
+✔ dense cyclic module graph reports one bounded strongly connected component (7.101247ms)
+✔ architecture source roots refuse symlinked path components (29.388623ms)
+✔ compact static re-export syntax still contributes dependency edges and cycles (29.954453ms)
+✔ dependency lookalikes in comments strings and template raw text do not create false edges (30.434623ms)
+✔ dynamic import inside a template expression remains visible to the analyzer (42.614392ms)
+✔ comment trivia cannot hide non-literal dynamic dependency expressions (34.094316ms)
+✔ import.meta usage is valid analyzer syntax and does not create dependency evidence (61.412212ms)
+✔ architecture contract markers inside fenced examples do not satisfy governing contracts (95.270633ms)
+✔ Accepted text inside a fenced ADR example does not create governing status authority (27.860791ms)
+✔ regex-literal quote cannot mask a later forbidden dependency (35.579354ms)
+✔ escaped runtime-relative module specifier cannot bypass architecture boundaries (28.129674ms)
+✖ JavaScript package check script is represented as CHECK_COMMAND in generated tasks (9.050322ms)
+✖ JavaScript profile keeps lint unresolved when neither lint nor general check is configured (5.743629ms)
+✖ verify executes and persists CHECK_COMMAND alongside unit tests (3.730087ms)
+✖ installs the core framework and GitHub assets (25.746778ms)
+✖ adds thin adapters only when the selected tool needs them (5.305542ms)
+✖ refuses to overwrite existing managed paths without --force (5.338161ms)
+✔ dry-run performs no writes (30.267342ms)
+✖ merges into existing directories when individual framework files do not conflict (2.121854ms)
+✖ auto-detects TypeScript and fills commands proven by package scripts (2.921134ms)
+✖ auto-detects JavaScript package projects and imports existing check/test scripts (2.088304ms)
+✖ Go stack installs stable verification commands (2.258138ms)
+✖ auto-detects Python tooling only when configuration provides evidence (2.29227ms)
+✔ doctor fails when the framework is not installed (10.834129ms)
+✖ doctor warns for untouched templates but passes structural checks after init (1.177317ms)
+✖ doctor reports explicit stack commands as resolved (1.844718ms)
+✖ task generator creates a bounded task and imports configured verification commands (1.720903ms)
+✖ task generator does not turn reasoned n/a decisions into executable commands (1.201583ms)
+✖ task generator refuses overwrite and supports dry-run (1.190196ms)
+✔ task generator validates kebab-case slugs (1.273471ms)
+✔ CLI help advertises plugin inspection and digest authoring (149.171833ms)
+✔ plugins CLI inspects the pinned reference fixture as JSON without applying proposals (144.769506ms)
+✔ plugins CLI human report preserves the HUMAN DECISION boundary (147.940735ms)
+✔ plugins --digest reproduces the canonical fixture pin without selecting or mutating trust (180.960468ms)
+✔ plugins rejects positional project roots and keeps --digest scoped to the plugins command (284.422144ms)
+✔ reference community profile fixture is pinned, deterministic, and inspection-only (23.870943ms)
+✔ bundle presence alone never grants plugin authority and nested projects do not inherit parent selection (12.644176ms)
+✔ canonical plugin digest is stable across CRLF and LF text checkouts (7.989299ms)
+✖ context composes selected guidance and labels verification commands as proposals without mutating AGENTS (2.587202ms)
+✖ built-in React Native profile and Stage 10 community plugin remain separate additive authorities (10.498154ms)
+✖ guidance is mode-bounded while plugin identity and proposals remain visible (1.530797ms)
+✖ plugin guidance participates in the normal context budget and manifest (1.443496ms)
+✖ Doctor passes old projects with no declaration and passes valid pinned selections (1.537608ms)
+✖ Doctor fails tampered selected plugins instead of silently dropping them (1.391128ms)
+✖ init and update lifecycle do not invent or manage project plugin declarations/bundles (2.061935ms)
+✔ digest mismatch detects any reviewed bundle edit (8.797924ms)
+✔ selection rejects traversal, URLs, and Windows drive-style paths before loading (5.563309ms)
+✔ selection and digest authoring are confined to the project-owned community-plugins namespace (5.704852ms)
+✔ plugin paths use portable ASCII segments and reject Windows-reserved names (25.213889ms)
+✔ every bundle entry path is portable even when the file is not a declared contribution (5.356438ms)
+✔ plugin schema strings and text files reject terminal/control characters (13.238157ms)
+✔ selection requires canonical lowercase digest text (7.297001ms)
+✔ selection cannot grant a capability the plugin manifest does not declare (8.04335ms)
+✔ selected plugins are returned in deterministic id order independent of declaration order (10.182702ms)
+✔ plugin ids and versions reject leading or trailing Unicode whitespace instead of trimming exact pins (8.683892ms)
+✔ selection rejects duplicate ids, paths, and grants deterministically (9.893087ms)
+✔ declaration schema and unknown selection keys are rejected before plugin loading (2.887994ms)
+✔ manifest rejects duplicate guidance paths and verification proposal keys (16.371809ms)
+✔ missing declared guidance fails instead of silently dropping plugin context (11.559377ms)
+✔ manifest rejects unsupported schema, kind, capability, executable-style keys, and empty guidance modes (63.906174ms)
+✔ manifest id/version/VCP compatibility must match the explicit project selection (33.718962ms)
+✔ verification proposals require an explicit project capability grant (9.683623ms)
+✔ verification proposals reject unknown slots, placeholders, and multi-line commands (25.545196ms)
+✔ case-insensitive path collision contract is host-independent (0.615023ms)
+✔ authoritative bundle path casing must match the filesystem exactly (2.887363ms)
+✔ plugin declaration treats case-only path variants as duplicate selections (4.957049ms)
+✔ plugin declaration rejects mismatched bundle-root casing for a single selection (4.0581ms)
+✔ plugin bundles reject excessive file count and normalized text size before context rendering (33.285051ms)
+✔ community plugin declaration is size-bounded before JSON parsing (3.918681ms)
+✔ bundle traversal is entry-bounded even when excess entries are empty directories (9.077763ms)
+✔ community plugin declaration caps selected plugin count (3.396927ms)
+✔ v1 rejects invalid UTF-8 even when a file uses an allowed text extension (6.524351ms)
+✔ v1 rejects executable or binary-style files anywhere in a plugin bundle (5.189437ms)
+✔ bundle and nested symlinks are refused when the host permits symlinks (6.934206ms)
+✖ context pack bundles task, repository rules, mode prompt, and source-of-truth documents (8.631083ms)
+✖ context pack supports explicit includes and safe repository-local output (4.532943ms)
+✖ implement context supports explicit planned paths for greenfield files (3.383307ms)
+✖ planned paths are implement-only and must not already exist (1.646471ms)
+✖ context pack rejects repository escape paths and enforces the context budget (2.000372ms)
+✖ context pack exposes portable slash-separated paths on every OS (2.599361ms)
+✖ context CLI emits a usable bounded pack with planned paths (1.536596ms)
+✔ historical published-v0.9.3 Linux receipt proves seven unsafe old-CLI witnesses, never GO (5.7838ms)
+✔ historical receipt tampering cannot turn missing old-CLI negative witness into approval (3.901605ms)
+✖ doctor strict can be green while explicitly reporting unassessed decision templates (8.510652ms)
+✖ doctor reports auto-selected generic profile as eligible when concrete evidence appears (7.625674ms)
+✖ doctor explains that explicit generic provenance preserves the installed profile (3.950859ms)
+✖ doctor explains that legacy unknown provenance preserves generic conservatively (3.916077ms)
+✖ review context binds task and Source of Truth to an explicit Git base/head surface (9.547218ms)
+✖ review context surfaces dirty working-tree state separately from the committed comparison (5.430009ms)
+✖ Git comparison options are review-only, non-blank, and head requires an explicit base (3.342557ms)
+✖ invalid Git base fails visibly instead of producing an incomplete review surface (2.497989ms)
+✖ Git-aware review fails clearly outside a Git worktree (3.332471ms)
+✖ Git review evidence counts against the existing context byte budget (1.858199ms)
+✖ binary changes are identified by Git rather than represented as complete text content (1.780381ms)
+✖ committed gitlink changes remain visible when repository config ignores submodules (1.510016ms)
+✖ context CLI forwards explicit Git base/head into review mode (2.635765ms)
+✔ CLI rejects explicitly blank equals-form Git refs before command dispatch (275.75087ms)
+✔ managed sections preserve outside bytes: BOM, CRLF, LF and Unicode (2.844489ms)
+✔ ignore marker-shaped text inside triple fenced Markdown (0.686981ms)
+✔ reject orphan, nested, repeated, mismatched and malformed markers (0.993631ms)
+✔ refuse unknown region and marker injection (0.453591ms)
+✔ 0.9.0 projects have an explicit migration path to 0.9.1 (2.635705ms)
+✔ older 0.8.0 projects can compose through 0.9.0 to 0.9.1 (0.323526ms)
+✔ 0.9.1 projects have an explicit migration path to 0.9.2 (3.316687ms)
+✔ 0.9.0 projects compose through 0.9.1 to 0.9.2 (0.285939ms)
+✔ older 0.8.0 projects compose through the full migration chain to 0.9.2 (0.234001ms)
+✔ 0.9.2 projects have an explicit migration path to 0.9.3 (2.478279ms)
+✔ 0.9.1 projects compose through 0.9.2 to 0.9.3 (0.307702ms)
+✔ 0.8.0 projects compose through the complete retained chain to 0.9.3 (0.2197ms)
+✔ migrations remain bounded to existing released Schema-v1 chain (3.056767ms)
+✔ legacy compareVersions delegates to strict new comparator (0.363656ms)
+✔ published-old-CLI POC harness file hashing self-test (not old binary) (107.083161ms)
+✔ published-old-CLI POC refuses to claim evidence without npm tarball/integrity (78.706956ms)
+✔ published-old-CLI POC documents observation scenarios (81.890303ms)
+✔ prompt-eval list exposes canonical scenarios and all Stage 7 properties as JSON (162.061477ms)
+✔ prompt-eval evaluates one canonical reference record through the public CLI (134.373015ms)
+✔ prompt-eval all evaluates the complete canonical reference suite through the public CLI (158.521654ms)
+✔ prompt-eval CLI returns non-zero and structured failure for false verification reporting (144.932742ms)
+✔ prompt-eval all returns non-zero when a required canonical response is missing (157.777197ms)
+✔ prompt-eval human failure output includes the failed property and assertion detail (148.941567ms)
+✔ canonical Stage 7 suite covers every roadmap behavior property (13.148662ms)
+✔ reference prompt behavior suite passes every scenario, property, and assertion (12.275812ms)
+✔ verification behavior can pass while accurately reporting an executed failed check (3.099181ms)
+✔ free-form wording is ignored by deterministic behavior evaluation (2.627574ms)
+✔ every Stage 7 property has a mutation fixture that turns that property red (5.633584ms)
+✔ missing required observation fields fail visibly instead of defaulting to pass (4.037369ms)
+✔ scenario id and prompt identity mismatches fail visibly (2.062145ms)
+✔ canonical scenario listing is deterministic and exposes property coverage (1.957137ms)
+✔ single-scenario evaluation rejects unknown ids and reports unsafe response paths as failure evidence (3.109346ms)
+✔ suite reports missing response files as failed scenarios and properties (3.889538ms)
+✔ duplicate structured observation identities are rejected as ambiguous evidence (2.226922ms)
+✔ unexpected plan slices and verification checks cannot hide inside an otherwise passing record (2.21248ms)
+✔ required vertical slices need explicit non-empty scope (4.587585ms)
+✔ unresolved human decisions cannot be relabeled as discovered facts or negative decisions (2.448164ms)
+✔ approved and negative decisions cannot be reopened into the wrong decision class (2.320052ms)
+✔ bounded vertical plan rejects over-broad scope and extra acceptance evidence (4.660885ms)
+✔ follow-up evaluation rejects silently implemented or unknown follow-up work (2.728996ms)
+✔ prompt response paths reject traversal even when normalization would return inside the project (1.7924ms)
+✔ canonical reference records are bound to the current suite and prompt blobs (2.246721ms)
+✔ scenario ground truth is internally consistent and exact for bounded slices (1.389825ms)
+✔ canonical stimuli and evaluator ground truth agree on decision identities (1.328794ms)
+✔ canonical scenario prompt paths cannot traverse or escape the prompts root (2.318128ms)
+✖ react-native is an explicit supported stack and generates its first-party profile without Go fallthrough (10.406887ms)
+✖ explicit JavaScript selection is preserved even when React Native evidence is present (3.74494ms)
+✔ React Native detection accepts every canonical application marker (13.681722ms)
+✔ TypeScript React Native specializes before TypeScript and maps configured fixture verification (5.452603ms)
+✔ marker-only projects remain in the Node family (2.488204ms)
+✔ peer/dev dependency references do not activate React Native application detection (1.37921ms)
+✔ runtime dependency without an application marker remains Node-family (1.567662ms)
+✔ malformed package.json never activates React Native detection (1.861374ms)
+✔ Go and Python precedence remains above React Native (4.436148ms)
+✔ symlinked package.json cannot grant React Native authority but preserves historical Node fallback (2.703006ms)
+✔ React Native app markers must be real selected-root files/directories, not symlinks (1.825991ms)
+✔ selected-root detection never recursively inherits parent or sibling mobile evidence (3.353723ms)
+✔ React Native TypeScript/build/E2E applicability stays explicit when scripts are missing (2.510497ms)
+✔ obvious sensitive-effect mobile scripts are not imported into general verification (2.492902ms)
+✖ first-party React Native fixture dogfoods init, task verification, and bounded context without plugins (10.092346ms)
+✖ Doctor reports auto-selected JavaScript as React Native specialization and lifecycle-transition eligible (1.742916ms)
+✖ Doctor reports auto-selected TypeScript and generic profiles as React Native specialization eligible (1.899571ms)
+✖ Doctor withholds specialization for explicit and legacy-unknown lifecycle choices (1.469426ms)
+✖ fresh generated task is not ready for planning (8.665635ms)
+✖ core-complete task can enter planning while operational gaps remain warnings (5.822387ms)
+✖ implementation-ready task passes but warns when referenced source docs are still starter templates (4.052391ms)
+✖ customized source docs remove starter-template readiness warnings (2.144117ms)
+✖ implementation readiness fails when verify cannot build an executable plan (2.929056ms)
+✖ readiness rejects duplicate task sections instead of parsing an ambiguous first copy (2.93918ms)
+✖ ready detects unsafe source references and CLI supports JSON output (1.988584ms)
+✔ reference SaaS prompt snapshots stay identical to canonical prompts (12.27462ms)
+✔ reference SaaS builds plan, implement, and review context from its checked-in canonical Task Pack (537.796093ms)
+✖ release-check preview is exposed through the public CLI as structured evidence (311.372689ms)
+✖ release-check human output states that release approval remains a human decision (270.848854ms)
+✔ release-check requires an explicit candidate version (155.489865ms)
+✔ release-check rejects a non-numeric timeout instead of silently using a default (148.720927ms)
+✔ --policy is scoped to release-check (141.621873ms)
+✖ preview validates a clean candidate while retaining tag/publish HUMAN_DECISION boundaries (133.546645ms)
+✔ repository policy locks the immutable v0.9.2 tag object and release commit identities (3.575576ms)
+✔ dirty candidate worktree fails exact-revision evidence (99.602825ms)
+✔ package version mismatch fails even when other candidate metadata is coherent (107.298344ms)
+✔ fenced changelog headings cannot satisfy release authority (118.552112ms)
+✔ duplicate Unreleased headings fail release authority (112.0404ms)
+✔ Unreleased bullets block a prepared release candidate (125.073939ms)
+✔ release notes require candidate version identity in the top-level title (112.257115ms)
+✔ candidate release marker inside a fenced example is not release authority (112.44728ms)
+✔ missing candidate migration chain fails rather than defaulting release-ready (173.490438ms)
+✔ existing candidate tag at a different commit fails and is never moved (127.848613ms)
+✔ retained previous tag identity mismatch fails visibly (103.095076ms)
+✔ release evidence output is preflighted, overwrite-protected, and excludes command logs (100.151178ms)
+✔ custom release policy symlinks are refused when the host supports symlinks (75.830008ms)
+✔ release policy previous tag must exactly match the declared previous version (73.878059ms)
+✔ lockfile root package name must match the release package identity (176.36388ms)
+✔ release-authority file symlinks are refused when the host supports symlinks (124.103353ms)
+﹣ Windows alias execution succeeds through cmd.exe when the .cmd path contains spaces (0.720712ms) # Windows cmd.exe execution contract.
+✔ Windows alias command preserves a spaced .cmd path behind the /s outer quote pair (0.525289ms)
+✔ package-surface validator turns red when a required packed file is missing (1.252009ms)
+✔ install evidence validator turns red on missing CLI alias and wrong version output (0.434722ms)
+✔ lifecycle evidence validator turns red on conflicts, blocked apply, Doctor failure, and non-idempotence (0.577636ms)
+✔ published shell entrypoint is LF-only and has a portable shebang (8.199575ms)
+✔ template text normalization canonicalizes CRLF before hashing or installation (0.511457ms)
+✔ repository attributes force text files to LF checkouts (3.352682ms)
+✖ task creation reports a portable repository-relative path (3.545641ms)
+✖ readiness and verification reports expose slash-separated task paths (3.020172ms)
+✖ task and ready CLIs print slash-separated paths on every host OS (148.175228ms)
+✔ generated Task Packs provide a bounded durable review-evidence contract (1.552981ms)
+✔ fresh review context reconstructs persisted findings without prior reviewer chat (28.726109ms)
+✔ purposes enforce read/write/state separation and reserved paths (14.405809ms)
+✔ reject traversal, alternate separators, absolute and reserved components (3.592381ms)
+✔ reject external and internal symlinks, linked parent and linked selected root (5.144901ms)
+✔ reject nonregular paths and keep project bytes and paths unchanged (4.45812ms)
+✔ security profile parser composes baseline before explicit profiles (2.726492ms)
+✔ security profile parser keeps baseline mandatory for an explicit empty selection (0.309245ms)
+✔ security profile parser rejects unknown, duplicate, malformed, and missing-section declarations (0.68625ms)
+✖ security context includes baseline plus selected project-sensitive profiles and manifest identities (7.952905ms)
+✖ missing profile declaration remains backward compatible and still applies baseline (2.432411ms)
+✖ packaged baseline fallback works when an older project lacks Stage 6 local assets (1.833511ms)
+✖ security profiles are not auto-included outside security mode (1.970687ms)
+✖ explicit invalid profile state fails security context instead of silently falling back (1.717397ms)
+✔ lifecycle ownership preserves project selection and merge-manages canonical guidance (23.171734ms)
+✔ reference SaaS selects all project-sensitive Stage 6 profiles explicitly (1.687752ms)
+✖ draft security profile declaration cannot govern security review (1.130577ms)
+✖ security profile document identity must match the selected profile (1.473241ms)
+✔ reference SaaS security context dogfoods all Stage 6 profiles (29.995324ms)
+✖ doctor exposes active profiles and baseline fallback without warning old projects (1.227042ms)
+✖ doctor fails visibly for invalid explicit security profile state (1.573131ms)
+✖ invalid security declaration remains isolated from non-security context modes (1.386681ms)
+✖ update planning adds Stage 6 assets to a simulated pre-Stage-6 project (1.454583ms)
+✖ update planning preserves project-owned security profile selection (1.420282ms)
+✔ canonical profiles retain the Stage 6 security coverage contract (2.176226ms)
+✔ SemVer pre-release chain and release precedence (1.815745ms)
+✔ SemVer build metadata does not influence ordering (0.228233ms)
+✔ SemVer numeric precision and lexical alphanumeric identifiers (0.340581ms)
+✔ SemVer malformed or leading-zero versions fail closed (1.378078ms)
+✔ SemVer minimum-reader compatibility is explicit (0.272118ms)
+✔ authority examples below the document preamble do not become metadata (2.103447ms)
+✔ authority parser keeps legacy compatibility and rejects ambiguous explicit markers (2.451028ms)
+✔ legacy and ACCEPTED documents remain implementation-ready (27.2135ms)
+✔ DRAFT is plan-usable but cannot authorize implementation (16.889586ms)
+✔ SUPERSEDED and ARCHIVED material cannot silently govern current execution (11.579518ms)
+✔ invalid explicit authority fails visibly instead of falling back to legacy behavior (10.064694ms)
+✔ accepted negative decisions stay in context while historical material requires deliberate include (8.210631ms)
+✔ reference SaaS reconstructs accepted current policy and keeps superseded policy historical (28.634922ms)
+✔ parser ignores ordinary code spans and reads explicit table/labeled references (3.195045ms)
+✔ parser supports plain or linked values in the canonical Reference column (0.521392ms)
+✔ parser preserves malformed explicit references for readiness diagnostics and ignores reasoned n/a (0.626501ms)
+✖ readiness does not interpret Source-of-Truth prose code spans as repository paths (10.780648ms)
+✖ context includes only explicit Source-of-Truth files from mixed prose (3.301585ms)
+✔ brownfield minimal excludes fictional starter truth and consumer CI (2.131178ms)
+✔ brownfield plan leaves original nested project documents byte-identical (45.019521ms)
+✔ unclaimed compatible Claude file remains project-owned NOOP (15.988844ms)
+✔ code-fenced routing example is not enough to prove compatible Claude authority (2.920943ms)
+✔ unclaimed VCP markers are a conflict, not permission to replace sections (20.108107ms)
+✔ initial section insertion preserves BOM and all user bytes outside new region (1.785389ms)
+✔ optional missing parents are absent while linked ancestors remain forbidden (12.523624ms)
+✔ rollback inventory recognizes strictly enumerated nested files only (22.431313ms)
+✔ unexpected project-owned nested file prevents rollback proposal (10.173117ms)
+✔ unexpected empty folder is still foreign state (6.349669ms)
+✔ symlinks anywhere in initial rollback tree refuse ownership (4.773624ms)
+✔ staging quarantine proposal preserves bytes and has no destructive actions (9.233447ms)
+✔ unknown transaction staging names cannot be implicitly quarantined (2.727443ms)
+✔ unproved committed journal is not a cleanup candidate (2.735455ms)
+✔ staging and committed cleanup writers are hard gated before any writes (2.051418ms)
+✔ legacy v1 is strictly enumerable and preserves installed whole-file ownership (4.196468ms)
+✔ legacy manifest refuses unrecognized behavior fields and redirected baseline (0.815324ms)
+✔ v2 validator rejects unknown fields at root, install, file and ownership (0.864277ms)
+✔ v2 reader blocks older reader and missing or malformed ownership metadata (0.515634ms)
+✔ explicit adapter provenance is a separate owner claim, never mere observation (0.867251ms)
+✔ schema migration backup identity and prior-state must match operation (0.924026ms)
+✔ schema update transaction requires one exact target manifest digest (0.804687ms)
+✔ new versioned writers remain disabled before any filesystem interaction (22.118373ms)
+✔ workspace fixture prompt snapshots remain canonical (8.544393ms)
+✔ fresh workspace checkout reconstructs bounded package context, verification evidence, and root-aware review (1720.036778ms)
+✔ realistic nested project path boundaries reject sibling, root-output, and workspace traversal escapes (940.963579ms)
+✔ reference example exposes one canonical machine-readable Task Pack (7.51691ms)
+✔ canonical reference Task Pack passes readiness and produces verification plan (407.825245ms)
+✔ legacy delivery paths are explicit compatibility inputs, not a second slug namespace (336.523823ms)
+✔ shipped delivery TASK-TEMPLATE is a compatibility pointer, not a competing template (2.234363ms)
+✔ generated Task Packs define a bounded finalization contract (2.108865ms)
+✔ Slice C dogfood tasks are finalized without stale pending verification text (8.664913ms)
+✔ CLI help advertises --dir for context and verification (153.735892ms)
+✔ task, ready, context, and verify share one selected project root (1440.928248ms)
+✖ CLI init creates versioned update state (213.280831ms)
+✖ CLI update check works offline without registry access (149.675909ms)
+✖ CLI update check reports eligible automatic stack profile changes (145.963909ms)
+✖ CLI update dry-run is machine-readable and write-free (164.92238ms)
+✖ CLI dry-run exits non-zero on conflicts without repairing them silently (145.139672ms)
+✖ CLI manage ignore and track preserve local content (166.692125ms)
+✖ CLI update and rollback restore the previous manifest version (147.083348ms)
+✔ a second updater cannot plan against stale state while the first updater holds the lock (22.731243ms)
+✔ manage mutations are rejected while an updater holds the lifecycle lock (6.652794ms)
+✖ init refuses to replace an already initialized VCP project even with --force (5.432072ms)
+✖ fresh auto install records requested stack separately from resolved stack (9.749732ms)
+✖ fresh v0.9 install is update-idempotent (4.226793ms)
+✖ proven automatic generic install re-profiles when deterministic evidence appears (2.178119ms)
+✖ automatic re-profiling does not overwrite a local verification-command decision (2.744228ms)
+✖ explicit generic install stays generic when new stack evidence appears (1.821874ms)
+✖ legacy generic install with unknown stack provenance stays generic (8.011162ms)
+✖ auto-selected generic specializes transactionally to React Native and is idempotent (2.238048ms)
+✖ auto-selected JavaScript and TypeScript specialize to React Native while retaining auto provenance (3.359972ms)
+✖ explicit and legacy-unknown concrete selections do not specialize to React Native (2.817559ms)
+✖ auto-selected Go and Python profiles are not generalized into React Native specialization (4.469297ms)
+✖ React Native specialization respects local AGENTS verification decisions and blocks on conflict (3.433092ms)
+✖ local AGENTS edits are preserved on same-version planning (2.282075ms)
+✖ manage ignore and track change ownership without deleting local content (2.01242ms)
+✖ doctor fails when an existing VCP manifest is corrupted (2.01236ms)
+✖ doctor fails when update transaction state is corrupted (2.508925ms)
+✖ doctor fails when an interrupted update transaction is present (2.131299ms)
+✖ 0.8 manifest migrates transactionally to the current 0.9 release and can roll back (2.3525ms)
+✔ track is a no-op for an already managed path (31.441144ms)
+✔ ignore commits detachment before a baseline cleanup failure (13.908472ms)
+✔ untouched managed files update directly when upstream changes (23.871865ms)
+✔ local-only edits are preserved when upstream is unchanged (5.906674ms)
+✔ independent local and upstream edits auto-merge (6.51041ms)
+✔ overlapping local and upstream edits become conflicts (9.426877ms)
+✔ customized preserve-owned documents are never overwritten (6.391492ms)
+✔ generated files conflict when both local and upstream change (4.968997ms)
+✔ deleted managed files conflict instead of being silently recreated (7.257722ms)
+✔ new missing target files are added (3.019151ms)
+✔ matching pre-existing new files are adopted (3.903608ms)
+✔ different pre-existing new files become conflicts (4.265501ms)
+✔ explicit migration removal deletes untouched managed files (4.738821ms)
+✔ explicit migration removal detaches locally modified files (3.760273ms)
+✔ explicit migration renames tracked files (9.913988ms)
+✔ tampered baseline snapshots block planning (5.527285ms)
+✔ running CLI refuses a target version it does not contain (8.771944ms)
+✔ downgrades are rejected (3.437198ms)
+✔ planner leaves project files unchanged (4.389447ms)
+✔ three-way merge preserves a local final-newline removal while merging unrelated upstream edits (1.629846ms)
+✔ three-way merge preserves an upstream final-newline removal with unrelated local edits (0.334472ms)
+✔ update check delegates to the project that was actually checked (17.310377ms)
+✔ managed files cannot disappear from a template without an explicit migration removal (18.666543ms)
+✔ rollback refuses an older historical backup and accepts the newest recovery point (39.674911ms)
+✔ semantic versions compare deterministically (1.820082ms)
+✔ migration resolver finds the supported 0.8 -> 0.9 path (1.212049ms)
+✔ migration metadata composes chained renames and removals (0.588143ms)
+✔ three-way merge preserves independent local and upstream edits (1.078178ms)
+✔ three-way merge reports overlapping edits as conflicts (2.921975ms)
+✔ three-way merge handles an empty baseline without crashing (0.31308ms)
+✔ three-way merge refuses unbounded quadratic work (1.016035ms)
+✔ planner refuses implicit managed-file removal without migration metadata (22.926676ms)
+✔ public update JSON never exposes desired or file content (0.984227ms)
+✔ stable releases sort after prereleases with the same core version (1.689645ms)
+✔ SemVer prerelease identifiers use numeric and lexical precedence (0.471518ms)
+✔ build metadata does not affect precedence (0.176184ms)
+✔ invalid numeric prerelease identifiers are rejected (0.600611ms)
+✖ successful update removes its stage subtree and the empty stage directory (8.485264ms)
+✖ interrupted-update rollback removes its staged subtree and empty stage directory (5.554465ms)
+✖ stage cleanup never sweeps unrelated non-empty stage content (4.60432ms)
+✖ update check exits zero and reports no-work when nothing is pending (154.793199ms)
+✖ update check exits zero and reports available when lifecycle work is pending (150.976501ms)
+✖ dry-run reports available without changing the existing zero exit contract (146.968156ms)
+✖ blocked dry-run exits one with a valid blocked lifecycle report (152.552506ms)
+✖ successful apply reports applied and exits zero (144.596897ms)
+✖ execution failure exits one through the error channel, not a normal lifecycle report (162.929739ms)
+✔ update lock prevents a second live updater (17.001574ms)
+✔ dead same-host update locks are reclaimed immediately (6.74373ms)
+✔ fresh foreign-host locks are not reclaimed (3.365671ms)
+✔ rollback refuses to race a live update lock (8.075509ms)
+✔ future manifest schemas are rejected (2.494463ms)
+✔ corrupt transaction state is rejected explicitly (2.903838ms)
+✔ managed path traversal is rejected (0.660041ms)
+✔ baseline reads refuse symlink traversal inside VCP state (2.32526ms)
+✔ backup identifiers cannot escape .vcp/backups (1.270207ms)
+✔ backup ids are unique even for adjacent backups (3.84498ms)
+✔ agent verification parser includes project check and excludes reasoned non-applicable values (2.79145ms)
+✔ task verification parser includes arbitrary configured keys and excludes reasoned non-applicable values (0.965118ms)
+✖ non-Git verification preserves execution and reports project-only scope (8.967127ms)
+✖ Git provenance remains deterministic under a localized caller environment (2.681725ms)
+✖ Git workspace root project is represented by portable dot project path (2.677238ms)
+✖ nested project verification runs in selected project root and persists workspace-relative evidence (2.342305ms)
+✖ symlinked project paths canonicalize for Git provenance without changing the selected target (1.824658ms)
+✖ Git-backed evidence records dirty state before verification without blocking execution (2.249996ms)
+✖ preview refuses active external clean filters before Git status can execute them (1.995986ms)
+✖ dirty submodule is visible even when .gitmodules requests ignore=all (2.177859ms)
+✖ verify preview does not execute repository commands (8.767047ms)
+✖ verify run records passing evidence and can write JSON inside the repo (4.25828ms)
+✖ verify stops after the first failed command (3.75846ms)
+✖ verify CLI supports explicit execution and JSON output (2.27869ms)
+✖ verify refuses an existing evidence path before executing commands (2.031378ms)
+✖ verify refuses to run a task that has not passed implementation readiness (2.296587ms)
+✖ workspace qualifier is rejected for planned project-local paths (7.860917ms)
+✖ leading whitespace cannot bypass workspace qualifier rejection for planned paths (5.112052ms)
+✖ workspace qualifier is rejected for project-local output paths (5.210739ms)
+✖ leading whitespace cannot bypass workspace qualifier rejection for output paths (2.791379ms)
+✖ leading whitespace preserves the dedicated workspace include refusal (2.533462ms)
+✖ project-local references preserve existing selected-project behavior (9.151624ms)
+✖ nested project can explicitly use accepted workspace authority without inheriting unrelated root or sibling files (4.34485ms)
+✖ workspace-qualified starter templates still trigger the existing readiness warning (2.960863ms)
+✖ workspace freshness rules match project-local governing authority rules (2.960713ms)
+✖ workspace reference fails clearly when selected project is outside Git (2.916056ms)
+✖ workspace references reject traversal and filesystem symlink or junction escape (1.945439ms)
+✖ workspace root discovery ignores ambient Git directory/worktree overrides (2.015054ms)
+✖ workspace qualifier is not a general cross-root include escape hatch (2.982436ms)
+ℹ tests 469
+ℹ suites 0
+ℹ pass 331
+ℹ fail 137
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 27698.625457
+
+✖ failing tests:
+
+test at test/check-command.test.mjs:20:1
+✖ JavaScript package check script is represented as CHECK_COMMAND in generated tasks (9.050322ms)
+  Error: Stage12 Existing-repository Smart Init is zero-write preview only; Stage13 owns first adoption apply.
+      at initProject (file:///tmp/pr96d/lib/init.mjs:37:11)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/check-command.test.mjs:31:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at test/check-command.test.mjs:44:1
+✖ JavaScript profile keeps lint unresolved when neither lint nor general check is configured (5.743629ms)
+  Error: Stage12 Existing-repository Smart Init is zero-write preview only; Stage13 owns first adoption apply.
+      at initProject (file:///tmp/pr96d/lib/init.mjs:37:11)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/check-command.test.mjs:54:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7)
+
+test at test/check-command.test.mjs:60:1
+✖ verify executes and persists CHECK_COMMAND alongside unit tests (3.730087ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/check-command.test.mjs:62:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/cli.test.mjs:18:1
+✖ installs the core framework and GitHub assets (25.746778ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/cli.test.mjs:20:18)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/cli.test.mjs:41:1
+✖ adds thin adapters only when the selected tool needs them (5.305542ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/cli.test.mjs:43:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/cli.test.mjs:49:1
+✖ refuses to overwrite existing managed paths without --force (5.338161ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /Refusing to overwrite/. Input:
+  
+  'Error: Stage12 Existing-repository Smart Init is zero-write preview only; Stage13 owns first adoption apply.'
+  
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/cli.test.mjs:53:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: Error: Stage12 Existing-repository Smart Init is zero-write preview only; Stage13 owns first adoption apply.
+        at initProject (file:///tmp/pr96d/lib/init.mjs:37:11)
+        at async waitForActual (node:assert:646:5)
+        at async strict.rejects (node:assert:769:25)
+        at async TestContext.<anonymous> (file:///tmp/pr96d/test/cli.test.mjs:53:3)
+        at async Test.run (node:internal/test_runner/test:1404:7)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:969:7),
+    expected: /Refusing to overwrite/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at test/cli.test.mjs:69:1
+✖ merges into existing directories when individual framework files do not conflict (2.121854ms)
+  Error: Stage12 Existing-repository Smart Init is zero-write preview only; Stage13 owns first adoption apply.
+      at initProject (file:///tmp/pr96d/lib/init.mjs:37:11)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/cli.test.mjs:74:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7)
+
+test at test/cli.test.mjs:80:1
+✖ auto-detects TypeScript and fills commands proven by package scripts (2.921134ms)
+  Error: Stage12 Existing-repository Smart Init is zero-write preview only; Stage13 owns first adoption apply.
+      at initProject (file:///tmp/pr96d/lib/init.mjs:37:11)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/cli.test.mjs:93:18)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7)
+
+test at test/cli.test.mjs:102:1
+✖ auto-detects JavaScript package projects and imports existing check/test scripts (2.088304ms)
+  Error: Stage12 Existing-repository Smart Init is zero-write preview only; Stage13 owns first adoption apply.
+      at initProject (file:///tmp/pr96d/lib/init.mjs:37:11)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/cli.test.mjs:112:18)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7)
+
+test at test/cli.test.mjs:126:1
+✖ Go stack installs stable verification commands (2.258138ms)
+  Error: Stage12 Existing-repository Smart Init is zero-write preview only; Stage13 owns first adoption apply.
+      at initProject (file:///tmp/pr96d/lib/init.mjs:37:11)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/cli.test.mjs:130:18)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7)
+
+test at test/cli.test.mjs:139:1
+✖ auto-detects Python tooling only when configuration provides evidence (2.29227ms)
+  Error: Stage12 Existing-repository Smart Init is zero-write preview only; Stage13 owns first adoption apply.
+      at initProject (file:///tmp/pr96d/lib/init.mjs:37:11)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/cli.test.mjs:144:18)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7)
+
+test at test/cli.test.mjs:164:1
+✖ doctor warns for untouched templates but passes structural checks after init (1.177317ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/cli.test.mjs:166:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/cli.test.mjs:176:1
+✖ doctor reports explicit stack commands as resolved (1.844718ms)
+  Error: Stage12 Existing-repository Smart Init is zero-write preview only; Stage13 owns first adoption apply.
+      at initProject (file:///tmp/pr96d/lib/init.mjs:37:11)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/cli.test.mjs:191:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7)
+
+test at test/cli.test.mjs:199:1
+✖ task generator creates a bounded task and imports configured verification commands (1.720903ms)
+  Error: Stage12 Existing-repository Smart Init is zero-write preview only; Stage13 owns first adoption apply.
+      at initProject (file:///tmp/pr96d/lib/init.mjs:37:11)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/cli.test.mjs:211:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7)
+
+test at test/cli.test.mjs:228:1
+✖ task generator does not turn reasoned n/a decisions into executable commands (1.201583ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/cli.test.mjs:230:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/cli.test.mjs:255:1
+✖ task generator refuses overwrite and supports dry-run (1.190196ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/cli.test.mjs:257:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/community-plugins.test.mjs:132:1
+✖ context composes selected guidance and labels verification commands as proposals without mutating AGENTS (2.587202ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async selectedProject (file:///tmp/pr96d/test/community-plugins.test.mjs:63:5)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/community-plugins.test.mjs:133:22)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/community-plugins.test.mjs:161:1
+✖ built-in React Native profile and Stage 10 community plugin remain separate additive authorities (10.498154ms)
+  Error: Stage12 Existing-repository Smart Init is zero-write preview only; Stage13 owns first adoption apply.
+      at initProject (file:///tmp/pr96d/lib/init.mjs:37:11)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/community-plugins.test.mjs:176:23)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7)
+
+test at test/community-plugins.test.mjs:212:1
+✖ guidance is mode-bounded while plugin identity and proposals remain visible (1.530797ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async selectedProject (file:///tmp/pr96d/test/community-plugins.test.mjs:63:5)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/community-plugins.test.mjs:213:22)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/community-plugins.test.mjs:227:1
+✖ plugin guidance participates in the normal context budget and manifest (1.443496ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/community-plugins.test.mjs:229:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/community-plugins.test.mjs:244:1
+✖ Doctor passes old projects with no declaration and passes valid pinned selections (1.537608ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/community-plugins.test.mjs:246:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/community-plugins.test.mjs:258:1
+✖ Doctor fails tampered selected plugins instead of silently dropping them (1.391128ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async selectedProject (file:///tmp/pr96d/test/community-plugins.test.mjs:63:5)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/community-plugins.test.mjs:259:22)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/community-plugins.test.mjs:268:1
+✖ init and update lifecycle do not invent or manage project plugin declarations/bundles (2.061935ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/community-plugins.test.mjs:270:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/context.test.mjs:18:1
+✖ context pack bundles task, repository rules, mode prompt, and source-of-truth documents (8.631083ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/context.test.mjs:20:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/context.test.mjs:36:1
+✖ context pack supports explicit includes and safe repository-local output (4.532943ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/context.test.mjs:38:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/context.test.mjs:68:1
+✖ implement context supports explicit planned paths for greenfield files (3.383307ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/context.test.mjs:70:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/context.test.mjs:87:1
+✖ planned paths are implement-only and must not already exist (1.646471ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/context.test.mjs:89:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/context.test.mjs:115:1
+✖ context pack rejects repository escape paths and enforces the context budget (2.000372ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/context.test.mjs:117:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/context.test.mjs:136:1
+✖ context pack exposes portable slash-separated paths on every OS (2.599361ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/context.test.mjs:138:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/context.test.mjs:154:1
+✖ context CLI emits a usable bounded pack with planned paths (1.536596ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/context.test.mjs:156:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/doctor-coverage.test.mjs:13:1
+✖ doctor strict can be green while explicitly reporting unassessed decision templates (8.510652ms)
+  Error: Stage12 Existing-repository Smart Init is zero-write preview only; Stage13 owns first adoption apply.
+      at initProject (file:///tmp/pr96d/lib/init.mjs:37:11)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/doctor-coverage.test.mjs:23:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at test/doctor-stack-profile.test.mjs:24:1
+✖ doctor reports auto-selected generic profile as eligible when concrete evidence appears (7.625674ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/doctor-stack-profile.test.mjs:26:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/doctor-stack-profile.test.mjs:45:1
+✖ doctor explains that explicit generic provenance preserves the installed profile (3.950859ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/doctor-stack-profile.test.mjs:47:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/doctor-stack-profile.test.mjs:64:1
+✖ doctor explains that legacy unknown provenance preserves generic conservatively (3.916077ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/doctor-stack-profile.test.mjs:66:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/git-review-context.test.mjs:47:1
+✖ review context binds task and Source of Truth to an explicit Git base/head surface (9.547218ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async fixture (file:///tmp/pr96d/test/git-review-context.test.mjs:29:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/git-review-context.test.mjs:48:34)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/git-review-context.test.mjs:74:1
+✖ review context surfaces dirty working-tree state separately from the committed comparison (5.430009ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async fixture (file:///tmp/pr96d/test/git-review-context.test.mjs:29:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/git-review-context.test.mjs:75:34)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/git-review-context.test.mjs:91:1
+✖ Git comparison options are review-only, non-blank, and head requires an explicit base (3.342557ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async fixture (file:///tmp/pr96d/test/git-review-context.test.mjs:29:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/git-review-context.test.mjs:92:28)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/git-review-context.test.mjs:120:1
+✖ invalid Git base fails visibly instead of producing an incomplete review surface (2.497989ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async fixture (file:///tmp/pr96d/test/git-review-context.test.mjs:29:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/git-review-context.test.mjs:121:22)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/git-review-context.test.mjs:134:1
+✖ Git-aware review fails clearly outside a Git worktree (3.332471ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/git-review-context.test.mjs:136:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/git-review-context.test.mjs:150:1
+✖ Git review evidence counts against the existing context byte budget (1.858199ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async fixture (file:///tmp/pr96d/test/git-review-context.test.mjs:29:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/git-review-context.test.mjs:151:28)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/git-review-context.test.mjs:166:1
+✖ binary changes are identified by Git rather than represented as complete text content (1.780381ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async fixture (file:///tmp/pr96d/test/git-review-context.test.mjs:29:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/git-review-context.test.mjs:167:28)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/git-review-context.test.mjs:183:1
+✖ committed gitlink changes remain visible when repository config ignores submodules (1.510016ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async fixture (file:///tmp/pr96d/test/git-review-context.test.mjs:29:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/git-review-context.test.mjs:184:40)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/git-review-context.test.mjs:205:1
+✖ context CLI forwards explicit Git base/head into review mode (2.635765ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async fixture (file:///tmp/pr96d/test/git-review-context.test.mjs:29:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/git-review-context.test.mjs:206:34)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/react-native-detection.test.mjs:63:1
+✖ react-native is an explicit supported stack and generates its first-party profile without Go fallthrough (10.406887ms)
+  Error: Stage12 Existing-repository Smart Init is zero-write preview only; Stage13 owns first adoption apply.
+      at initProject (file:///tmp/pr96d/lib/init.mjs:37:11)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/react-native-detection.test.mjs:74:18)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at test/react-native-detection.test.mjs:93:1
+✖ explicit JavaScript selection is preserved even when React Native evidence is present (3.74494ms)
+  Error: Stage12 Existing-repository Smart Init is zero-write preview only; Stage13 owns first adoption apply.
+      at initProject (file:///tmp/pr96d/lib/init.mjs:37:11)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/react-native-detection.test.mjs:97:18)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7)
+
+test at test/react-native-detection.test.mjs:293:1
+✖ first-party React Native fixture dogfoods init, task verification, and bounded context without plugins (10.092346ms)
+  Error: Stage12 Existing-repository Smart Init is zero-write preview only; Stage13 owns first adoption apply.
+      at initProject (file:///tmp/pr96d/lib/init.mjs:37:11)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/react-native-detection.test.mjs:298:23)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7)
+
+test at test/react-native-detection.test.mjs:359:1
+✖ Doctor reports auto-selected JavaScript as React Native specialization and lifecycle-transition eligible (1.742916ms)
+  Error: Stage12 Existing-repository Smart Init is zero-write preview only; Stage13 owns first adoption apply.
+      at initProject (file:///tmp/pr96d/lib/init.mjs:37:11)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/react-native-detection.test.mjs:362:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7)
+
+test at test/react-native-detection.test.mjs:380:1
+✖ Doctor reports auto-selected TypeScript and generic profiles as React Native specialization eligible (1.899571ms)
+  Error: Stage12 Existing-repository Smart Init is zero-write preview only; Stage13 owns first adoption apply.
+      at initProject (file:///tmp/pr96d/lib/init.mjs:37:11)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/react-native-detection.test.mjs:387:5)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7)
+
+test at test/react-native-detection.test.mjs:399:1
+✖ Doctor withholds specialization for explicit and legacy-unknown lifecycle choices (1.469426ms)
+  Error: Stage12 Existing-repository Smart Init is zero-write preview only; Stage13 owns first adoption apply.
+      at initProject (file:///tmp/pr96d/lib/init.mjs:37:11)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/react-native-detection.test.mjs:402:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7)
+
+test at test/readiness.test.mjs:40:1
+✖ fresh generated task is not ready for planning (8.665635ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/readiness.test.mjs:42:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/readiness.test.mjs:51:1
+✖ core-complete task can enter planning while operational gaps remain warnings (5.822387ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/readiness.test.mjs:53:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/readiness.test.mjs:63:1
+✖ implementation-ready task passes but warns when referenced source docs are still starter templates (4.052391ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/readiness.test.mjs:65:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/readiness.test.mjs:78:1
+✖ customized source docs remove starter-template readiness warnings (2.144117ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/readiness.test.mjs:80:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/readiness.test.mjs:90:1
+✖ implementation readiness fails when verify cannot build an executable plan (2.929056ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/readiness.test.mjs:92:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/readiness.test.mjs:102:1
+✖ readiness rejects duplicate task sections instead of parsing an ambiguous first copy (2.93918ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/readiness.test.mjs:104:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/readiness.test.mjs:113:1
+✖ ready detects unsafe source references and CLI supports JSON output (1.988584ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/readiness.test.mjs:115:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/release-check-cli.test.mjs:87:1
+✖ release-check preview is exposed through the public CLI as structured evidence (311.372689ms)
+  Error: Command failed: /usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs release-check 0.9.3 --dir /tmp/vcp-release-cli-fixture-wFRBGl --json
+  
+      at genericNodeError (node:internal/errors:986:15)
+      at wrappedFn (node:internal/errors:540:14)
+      at ChildProcess.exithandler (node:child_process:417:12)
+      at ChildProcess.emit (node:events:514:28)
+      at maybeClose (node:internal/child_process:1141:16)
+      at ChildProcess._handle.onexit (node:internal/child_process:306:5) {
+    code: 1,
+    killed: false,
+    signal: null,
+    cmd: '/usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs release-check 0.9.3 --dir /tmp/vcp-release-cli-fixture-wFRBGl --json',
+    stdout: '{\n  "schemaVersion": 1,\n  "kind": "release-candidate",\n  "mode": "preview",\n  "createdAt": "2026-10-09T05:42:58.847Z",\n  "packageName": "vibe-coding-production",\n  "version": "0.9.3",\n  "candidateTag": {\n    "tag": "v0.9.3",\n    "state": "missing"\n  },\n  "scope": {\n    "kind": "git-worktree",\n    "projectPath": "."\n  },\n  "revision": {\n    "system": "git",\n    "headSha": "f5ec99ba593fcdb3f1317a8f5810e907147b40c0",\n    "dirty": false\n  },\n  "policy": ".github/release-policy.json",\n  "previousRelease": {\n    "version": "0.9.2",\n    "tag": "v0.9.2",\n    "tagObjectSha": "393684ce18348cea80cfa4fd1c1a024c9ea47c19",\n    "commitSha": "233fa7cb7f9a4b7cd83602a004db1e47d0c20ee0"\n  },\n  "mechanics": [\n    {\n      "id": "package-inspection",\n      "command": "npm pack --json --pack-destination <temp>"\n    },\n    {\n      "id": "publish-dry-run",\n      "command": "npm publish --dry-run --json"\n    },\n    {\n      "id": "install-smoke",\n      "command": "npm install <candidate-tarball> --ignore-scripts --no-audit --no-fund --package-lock=false --save=false; vcp --version; vibe-coding-production --version"\n    },\n    {\n      "id": "lifecycle-smoke",\n      "command": "git worktree add --detach <temp> <previous-tag>; npm pack <previous-release>; previous CLI init; candidate CLI update --dry-run/--apply --offline --to <version>; doctor; validate-framework; idempotence preview"\n    }\n  ],\n  "checks": [\n    {\n      "id": "adaptive-managed-migration-safety",\n      "status": "fail",\n      "detail": "D-01/G-FENCE NO-GO: no release acceptance while published-old-CLI managed schema safety proof is deferred."\n    },\n    {\n      "id": "clean-revision",\n      "status": "pass",\n      "detail": "Release evidence is bound to clean revision f5ec99ba593fcdb3f1317a8f5810e907147b40c0."\n    },\n    {\n      "id": "package-name",\n      "status": "pass",\n      "detail": "package.json name matches vibe-coding-production."\n    },\n    {\n      "id": "package-version",\n      "status": "pass",\n      "detail": "package.json version matches candidate 0.9.3."\n    },\n    {\n      "id": "lockfile-version",\n      "status": "pass",\n      "detail": "package-lock.json root identity matches the candidate."\n    },\n    {\n      "id": "changelog-version",\n      "status": "pass",\n      "detail": "CHANGELOG has exactly one dated 0.9.3 release heading (2026-10-04).",\n      "date": "2026-10-04"\n    },\n    {\n      "id": "changelog-unreleased",\n      "status": "pass",\n      "detail": "CHANGELOG [Unreleased] contains no release bullets."\n    },\n    {\n      "id": "release-notes",\n      "status": "pass",\n      "detail": "Candidate release notes exist at docs/releases/v0.9.3.md and preserve the HUMAN DECISION boundary."\n    },\n    {\n      "id": "migration-chain",\n      "status": "pass",\n      "detail": "Migration chain 0.9.2 -> 0.9.3: 0.9.2-to-0.9.3-control-plane-evidence.",\n      "migrationIds": [\n        "0.9.2-to-0.9.3-control-plane-evidence"\n      ]\n    },\n    {\n      "id": "version-order",\n      "status": "pass",\n      "detail": "Candidate 0.9.3 is newer than retained previous release 0.9.2."\n    },\n    {\n      "id": "previous-tag-object",\n      "status": "pass",\n      "detail": "v0.9.2 tag object matches retained immutable identity 393684ce18348cea80cfa4fd1c1a024c9ea47c19.",\n      "expected": "393684ce18348cea80cfa4fd1c1a024c9ea47c19",\n      "actual": "393684ce18348cea80cfa4fd1c1a024c9ea47c19"\n    },\n    {\n      "id": "previous-tag-commit",\n      "status": "pass",\n      "detail": "v0.9.2 peels to retained release commit 233fa7cb7f9a4b7cd83602a004db1e47d0c20ee0.",\n      "expected": "233fa7cb7f9a4b7cd83602a004db1e47d0c20ee0",\n      "actual": "233fa7cb7f9a4b7cd83602a004db1e47d0c20ee0"\n    },\n    {\n      "id": "candidate-tag",\n      "status": "human-decision",\n      "detail": "Candidate tag v0.9.3 does not exist. Creating the immutable tag remains a HUMAN DECISION after evidence review."\n    },\n    {\n      "id": "npm-publish",\n      "status": "human-decision",\n      "detail": "Actual npm publication of vibe-coding-production@0.9.3 remains a HUMAN DECISION and is never executed by release-check."\n    },\n    {\n      "id": "package-inspection",\n      "status": "planned",\n      "detail": "Not executed in preview mode. Re-run with --run after reviewing static release contracts."\n    },\n    {\n      "id": "publish-dry-run",\n      "status": "planned",\n      "detail": "Not executed in preview mode. Re-run with --run after reviewing static release contracts."\n    },\n    {\n      "id": "install-smoke",\n      "status": "planned",\n      "detail": "Not executed in preview mode. Re-run with --run after reviewing static release contracts."\n    },\n    {\n      "id": "lifecycle-smoke",\n      "status": "planned",\n      "detail": "Not executed in preview mode. Re-run with --run after reviewing static release contracts."\n    }\n  ],\n  "humanDecisions": [\n    {\n      "id": "candidate-tag",\n      "detail": "Candidate tag v0.9.3 does not exist. Creating the immutable tag remains a HUMAN DECISION after evidence review."\n    },\n    {\n      "id": "npm-publish",\n      "detail": "Actual npm publication of vibe-coding-production@0.9.3 remains a HUMAN DECISION and is never executed by release-check."\n    }\n  ],\n  "package": null,\n  "lifecycle": null,\n  "success": false,\n  "releaseApproved": false,\n  "published": false,\n  "summary": {\n    "pass": 11,\n    "fail": 1,\n    "planned": 4,\n    "skipped": 0,\n    "humanDecision": 2\n  }\n}\n',
+    stderr: ''
+  }
+
+test at test/release-check-cli.test.mjs:111:1
+✖ release-check human output states that release approval remains a human decision (270.848854ms)
+  Error: Command failed: /usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs release-check 0.9.3 --dir /tmp/vcp-release-cli-fixture-56nsL1
+  
+      at genericNodeError (node:internal/errors:986:15)
+      at wrappedFn (node:internal/errors:540:14)
+      at ChildProcess.exithandler (node:child_process:417:12)
+      at ChildProcess.emit (node:events:514:28)
+      at maybeClose (node:internal/child_process:1141:16)
+      at ChildProcess._handle.onexit (node:internal/child_process:306:5) {
+    code: 1,
+    killed: false,
+    signal: null,
+    cmd: '/usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs release-check 0.9.3 --dir /tmp/vcp-release-cli-fixture-56nsL1',
+    stdout: 'VCP Release Candidate Plan\nPackage: vibe-coding-production@0.9.3\nRevision: f5ec99ba593fcdb3f1317a8f5810e907147b40c0 (clean worktree)\n\n[FAIL] adaptive-managed-migration-safety: D-01/G-FENCE NO-GO: no release acceptance while published-old-CLI managed schema safety proof is deferred.\n[PASS] clean-revision: Release evidence is bound to clean revision f5ec99ba593fcdb3f1317a8f5810e907147b40c0.\n[PASS] package-name: package.json name matches vibe-coding-production.\n[PASS] package-version: package.json version matches candidate 0.9.3.\n[PASS] lockfile-version: package-lock.json root identity matches the candidate.\n[PASS] changelog-version: CHANGELOG has exactly one dated 0.9.3 release heading (2026-10-04).\n[PASS] changelog-unreleased: CHANGELOG [Unreleased] contains no release bullets.\n[PASS] release-notes: Candidate release notes exist at docs/releases/v0.9.3.md and preserve the HUMAN DECISION boundary.\n[PASS] migration-chain: Migration chain 0.9.2 -> 0.9.3: 0.9.2-to-0.9.3-control-plane-evidence.\n[PASS] version-order: Candidate 0.9.3 is newer than retained previous release 0.9.2.\n[PASS] previous-tag-object: v0.9.2 tag object matches retained immutable identity 393684ce18348cea80cfa4fd1c1a024c9ea47c19.\n[PASS] previous-tag-commit: v0.9.2 peels to retained release commit 233fa7cb7f9a4b7cd83602a004db1e47d0c20ee0.\n[HUMAN_DECISION] candidate-tag: Candidate tag v0.9.3 does not exist. Creating the immutable tag remains a HUMAN DECISION after evidence review.\n[HUMAN_DECISION] npm-publish: Actual npm publication of vibe-coding-production@0.9.3 remains a HUMAN DECISION and is never executed by release-check.\n[PLANNED] package-inspection: Not executed in preview mode. Re-run with --run after reviewing static release contracts.\n[PLANNED] publish-dry-run: Not executed in preview mode. Re-run with --run after reviewing static release contracts.\n[PLANNED] install-smoke: Not executed in preview mode. Re-run with --run after reviewing static release contracts.\n[PLANNED] lifecycle-smoke: Not executed in preview mode. Re-run with --run after reviewing static release contracts.\n\nSummary: 11 pass, 1 fail, 4 planned, 0 skipped, 2 HUMAN_DECISION\nRelease approval: HUMAN DECISION — this command never publishes npm packages or creates/moves tags.\n',
+    stderr: ''
+  }
+
+test at test/release-check.test.mjs:110:1
+✖ preview validates a clean candidate while retaining tag/publish HUMAN_DECISION boundaries (133.546645ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///tmp/pr96d/test/release-check.test.mjs:115:10)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/release-portability.test.mjs:33:1
+✖ task creation reports a portable repository-relative path (3.545641ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/release-portability.test.mjs:35:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/release-portability.test.mjs:43:1
+✖ readiness and verification reports expose slash-separated task paths (3.020172ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/release-portability.test.mjs:45:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/release-portability.test.mjs:57:1
+✖ task and ready CLIs print slash-separated paths on every host OS (148.175228ms)
+  Error: Command failed: /usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs init /tmp/vcp-portable-cli-WxbBgM --agent generic --stack generic --yes
+  
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+  
+      at genericNodeError (node:internal/errors:986:15)
+      at wrappedFn (node:internal/errors:540:14)
+      at ChildProcess.exithandler (node:child_process:417:12)
+      at ChildProcess.emit (node:events:514:28)
+      at maybeClose (node:internal/child_process:1141:16)
+      at ChildProcess._handle.onexit (node:internal/child_process:306:5) {
+    code: 1,
+    killed: false,
+    signal: null,
+    cmd: '/usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs init /tmp/vcp-portable-cli-WxbBgM --agent generic --stack generic --yes',
+    stdout: '',
+    stderr: '\nError: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.\n'
+  }
+
+test at test/security-profiles.test.mjs:56:1
+✖ security context includes baseline plus selected project-sensitive profiles and manifest identities (7.952905ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async project (file:///tmp/pr96d/test/security-profiles.test.mjs:16:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/security-profiles.test.mjs:57:18)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/security-profiles.test.mjs:79:1
+✖ missing profile declaration remains backward compatible and still applies baseline (2.432411ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async project (file:///tmp/pr96d/test/security-profiles.test.mjs:16:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/security-profiles.test.mjs:80:18)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/security-profiles.test.mjs:90:1
+✖ packaged baseline fallback works when an older project lacks Stage 6 local assets (1.833511ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async project (file:///tmp/pr96d/test/security-profiles.test.mjs:16:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/security-profiles.test.mjs:91:18)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/security-profiles.test.mjs:102:1
+✖ security profiles are not auto-included outside security mode (1.970687ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async project (file:///tmp/pr96d/test/security-profiles.test.mjs:16:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/security-profiles.test.mjs:103:18)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/security-profiles.test.mjs:118:1
+✖ explicit invalid profile state fails security context instead of silently falling back (1.717397ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async project (file:///tmp/pr96d/test/security-profiles.test.mjs:16:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/security-profiles.test.mjs:119:18)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/security-profiles.test.mjs:154:1
+✖ draft security profile declaration cannot govern security review (1.130577ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async project (file:///tmp/pr96d/test/security-profiles.test.mjs:16:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/security-profiles.test.mjs:155:18)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/security-profiles.test.mjs:168:1
+✖ security profile document identity must match the selected profile (1.473241ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async project (file:///tmp/pr96d/test/security-profiles.test.mjs:16:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/security-profiles.test.mjs:169:18)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/security-profiles.test.mjs:203:1
+✖ doctor exposes active profiles and baseline fallback without warning old projects (1.227042ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async project (file:///tmp/pr96d/test/security-profiles.test.mjs:16:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/security-profiles.test.mjs:204:18)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/security-profiles.test.mjs:215:1
+✖ doctor fails visibly for invalid explicit security profile state (1.573131ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async project (file:///tmp/pr96d/test/security-profiles.test.mjs:16:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/security-profiles.test.mjs:216:18)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/security-profiles.test.mjs:232:1
+✖ invalid security declaration remains isolated from non-security context modes (1.386681ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async project (file:///tmp/pr96d/test/security-profiles.test.mjs:16:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/security-profiles.test.mjs:233:18)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/security-profiles.test.mjs:246:1
+✖ update planning adds Stage 6 assets to a simulated pre-Stage-6 project (1.454583ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async project (file:///tmp/pr96d/test/security-profiles.test.mjs:16:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/security-profiles.test.mjs:247:18)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/security-profiles.test.mjs:274:1
+✖ update planning preserves project-owned security profile selection (1.420282ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async project (file:///tmp/pr96d/test/security-profiles.test.mjs:16:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/security-profiles.test.mjs:275:18)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/source-truth-references.test.mjs:43:1
+✖ readiness does not interpret Source-of-Truth prose code spans as repository paths (10.780648ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/source-truth-references.test.mjs:45:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/source-truth-references.test.mjs:55:1
+✖ context includes only explicit Source-of-Truth files from mixed prose (3.301585ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/source-truth-references.test.mjs:57:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/update-cli.test.mjs:34:1
+✖ CLI init creates versioned update state (213.280831ms)
+  Error: Command failed: /usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs init /tmp/vcp-update-cli-MW0EbC --agent generic --stack generic --no-github --yes
+  
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+  
+      at genericNodeError (node:internal/errors:986:15)
+      at wrappedFn (node:internal/errors:540:14)
+      at ChildProcess.exithandler (node:child_process:417:12)
+      at ChildProcess.emit (node:events:514:28)
+      at maybeClose (node:internal/child_process:1141:16)
+      at ChildProcess._handle.onexit (node:internal/child_process:306:5) {
+    code: 1,
+    killed: false,
+    signal: null,
+    cmd: '/usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs init /tmp/vcp-update-cli-MW0EbC --agent generic --stack generic --no-github --yes',
+    stdout: '',
+    stderr: '\nError: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.\n'
+  }
+
+test at test/update-cli.test.mjs:43:1
+✖ CLI update check works offline without registry access (149.675909ms)
+  Error: Command failed: /usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs init /tmp/vcp-update-cli-OsGH5N --agent generic --stack generic --no-github --yes
+  
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+  
+      at genericNodeError (node:internal/errors:986:15)
+      at wrappedFn (node:internal/errors:540:14)
+      at ChildProcess.exithandler (node:child_process:417:12)
+      at ChildProcess.emit (node:events:514:28)
+      at maybeClose (node:internal/child_process:1141:16)
+      at ChildProcess._handle.onexit (node:internal/child_process:306:5) {
+    code: 1,
+    killed: false,
+    signal: null,
+    cmd: '/usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs init /tmp/vcp-update-cli-OsGH5N --agent generic --stack generic --no-github --yes',
+    stdout: '',
+    stderr: '\nError: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.\n'
+  }
+
+test at test/update-cli.test.mjs:56:1
+✖ CLI update check reports eligible automatic stack profile changes (145.963909ms)
+  Error: Command failed: /usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs init /tmp/vcp-update-cli-eCaXGK --agent generic --stack auto --no-github --yes
+  
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+  
+      at genericNodeError (node:internal/errors:986:15)
+      at wrappedFn (node:internal/errors:540:14)
+      at ChildProcess.exithandler (node:child_process:417:12)
+      at ChildProcess.emit (node:events:514:28)
+      at maybeClose (node:internal/child_process:1141:16)
+      at ChildProcess._handle.onexit (node:internal/child_process:306:5) {
+    code: 1,
+    killed: false,
+    signal: null,
+    cmd: '/usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs init /tmp/vcp-update-cli-eCaXGK --agent generic --stack auto --no-github --yes',
+    stdout: '',
+    stderr: '\nError: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.\n'
+  }
+
+test at test/update-cli.test.mjs:77:1
+✖ CLI update dry-run is machine-readable and write-free (164.92238ms)
+  Error: Command failed: /usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs init /tmp/vcp-update-cli-meyd0x --agent generic --stack generic --no-github --yes
+  
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+  
+      at genericNodeError (node:internal/errors:986:15)
+      at wrappedFn (node:internal/errors:540:14)
+      at ChildProcess.exithandler (node:child_process:417:12)
+      at ChildProcess.emit (node:events:514:28)
+      at maybeClose (node:internal/child_process:1141:16)
+      at ChildProcess._handle.onexit (node:internal/child_process:306:5) {
+    code: 1,
+    killed: false,
+    signal: null,
+    cmd: '/usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs init /tmp/vcp-update-cli-meyd0x --agent generic --stack generic --no-github --yes',
+    stdout: '',
+    stderr: '\nError: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.\n'
+  }
+
+test at test/update-cli.test.mjs:88:1
+✖ CLI dry-run exits non-zero on conflicts without repairing them silently (145.139672ms)
+  Error: Command failed: /usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs init /tmp/vcp-update-cli-M8TiIb --agent generic --stack generic --no-github --yes
+  
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+  
+      at genericNodeError (node:internal/errors:986:15)
+      at wrappedFn (node:internal/errors:540:14)
+      at ChildProcess.exithandler (node:child_process:417:12)
+      at ChildProcess.emit (node:events:514:28)
+      at maybeClose (node:internal/child_process:1141:16)
+      at ChildProcess._handle.onexit (node:internal/child_process:306:5) {
+    code: 1,
+    killed: false,
+    signal: null,
+    cmd: '/usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs init /tmp/vcp-update-cli-M8TiIb --agent generic --stack generic --no-github --yes',
+    stdout: '',
+    stderr: '\nError: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.\n'
+  }
+
+test at test/update-cli.test.mjs:105:1
+✖ CLI manage ignore and track preserve local content (166.692125ms)
+  Error: Command failed: /usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs init /tmp/vcp-update-cli-uFAEEU --agent generic --stack generic --no-github --yes
+  
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+  
+      at genericNodeError (node:internal/errors:986:15)
+      at wrappedFn (node:internal/errors:540:14)
+      at ChildProcess.exithandler (node:child_process:417:12)
+      at ChildProcess.emit (node:events:514:28)
+      at maybeClose (node:internal/child_process:1141:16)
+      at ChildProcess._handle.onexit (node:internal/child_process:306:5) {
+    code: 1,
+    killed: false,
+    signal: null,
+    cmd: '/usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs init /tmp/vcp-update-cli-uFAEEU --agent generic --stack generic --no-github --yes',
+    stdout: '',
+    stderr: '\nError: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.\n'
+  }
+
+test at test/update-cli.test.mjs:123:1
+✖ CLI update and rollback restore the previous manifest version (147.083348ms)
+  Error: Command failed: /usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs init /tmp/vcp-update-cli-qYiUHD --agent generic --stack generic --no-github --yes
+  
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+  
+      at genericNodeError (node:internal/errors:986:15)
+      at wrappedFn (node:internal/errors:540:14)
+      at ChildProcess.exithandler (node:child_process:417:12)
+      at ChildProcess.emit (node:events:514:28)
+      at maybeClose (node:internal/child_process:1141:16)
+      at ChildProcess._handle.onexit (node:internal/child_process:306:5) {
+    code: 1,
+    killed: false,
+    signal: null,
+    cmd: '/usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs init /tmp/vcp-update-cli-qYiUHD --agent generic --stack generic --no-github --yes',
+    stdout: '',
+    stderr: '\nError: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.\n'
+  }
+
+test at test/update-init-guard.test.mjs:8:1
+✖ init refuses to replace an already initialized VCP project even with --force (5.432072ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/update-init-guard.test.mjs:10:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/update-lifecycle.test.mjs:23:1
+✖ fresh auto install records requested stack separately from resolved stack (9.749732ms)
+  Error: Stage12 Existing-repository Smart Init is zero-write preview only; Stage13 owns first adoption apply.
+      at initProject (file:///tmp/pr96d/lib/init.mjs:37:11)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/update-lifecycle.test.mjs:26:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at test/update-lifecycle.test.mjs:33:1
+✖ fresh v0.9 install is update-idempotent (4.226793ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/update-lifecycle.test.mjs:35:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/update-lifecycle.test.mjs:43:1
+✖ proven automatic generic install re-profiles when deterministic evidence appears (2.178119ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/update-lifecycle.test.mjs:45:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/update-lifecycle.test.mjs:80:1
+✖ automatic re-profiling does not overwrite a local verification-command decision (2.744228ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/update-lifecycle.test.mjs:82:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/update-lifecycle.test.mjs:110:1
+✖ explicit generic install stays generic when new stack evidence appears (1.821874ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/update-lifecycle.test.mjs:112:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/update-lifecycle.test.mjs:125:1
+✖ legacy generic install with unknown stack provenance stays generic (8.011162ms)
+  Error: Stage12 Existing-repository Smart Init is zero-write preview only; Stage13 owns first adoption apply.
+      at initProject (file:///tmp/pr96d/lib/init.mjs:37:11)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/update-lifecycle.test.mjs:128:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7)
+
+test at test/update-lifecycle.test.mjs:156:1
+✖ auto-selected generic specializes transactionally to React Native and is idempotent (2.238048ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/update-lifecycle.test.mjs:158:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/update-lifecycle.test.mjs:192:1
+✖ auto-selected JavaScript and TypeScript specialize to React Native while retaining auto provenance (3.359972ms)
+  Error: Stage12 Existing-repository Smart Init is zero-write preview only; Stage13 owns first adoption apply.
+      at initProject (file:///tmp/pr96d/lib/init.mjs:37:11)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/update-lifecycle.test.mjs:197:5)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7)
+
+test at test/update-lifecycle.test.mjs:222:1
+✖ explicit and legacy-unknown concrete selections do not specialize to React Native (2.817559ms)
+  Error: Stage12 Existing-repository Smart Init is zero-write preview only; Stage13 owns first adoption apply.
+      at initProject (file:///tmp/pr96d/lib/init.mjs:37:11)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/update-lifecycle.test.mjs:225:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7)
+
+test at test/update-lifecycle.test.mjs:242:1
+✖ auto-selected Go and Python profiles are not generalized into React Native specialization (4.469297ms)
+  Error: Stage12 Existing-repository Smart Init is zero-write preview only; Stage13 owns first adoption apply.
+      at initProject (file:///tmp/pr96d/lib/init.mjs:37:11)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/update-lifecycle.test.mjs:260:5)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7)
+
+test at test/update-lifecycle.test.mjs:277:1
+✖ React Native specialization respects local AGENTS verification decisions and blocks on conflict (3.433092ms)
+  Error: Stage12 Existing-repository Smart Init is zero-write preview only; Stage13 owns first adoption apply.
+      at initProject (file:///tmp/pr96d/lib/init.mjs:37:11)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/update-lifecycle.test.mjs:280:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7)
+
+test at test/update-lifecycle.test.mjs:300:1
+✖ local AGENTS edits are preserved on same-version planning (2.282075ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/update-lifecycle.test.mjs:302:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/update-lifecycle.test.mjs:311:1
+✖ manage ignore and track change ownership without deleting local content (2.01242ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/update-lifecycle.test.mjs:313:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/update-lifecycle.test.mjs:324:1
+✖ doctor fails when an existing VCP manifest is corrupted (2.01236ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/update-lifecycle.test.mjs:326:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/update-lifecycle.test.mjs:335:1
+✖ doctor fails when update transaction state is corrupted (2.508925ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/update-lifecycle.test.mjs:337:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/update-lifecycle.test.mjs:346:1
+✖ doctor fails when an interrupted update transaction is present (2.131299ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/update-lifecycle.test.mjs:348:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/update-lifecycle.test.mjs:365:1
+✖ 0.8 manifest migrates transactionally to the current 0.9 release and can roll back (2.3525ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/update-lifecycle.test.mjs:367:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/update-stage-cleanup.test.mjs:37:1
+✖ successful update removes its stage subtree and the empty stage directory (8.485264ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async appliedFixture (file:///tmp/pr96d/test/update-stage-cleanup.test.mjs:25:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/update-stage-cleanup.test.mjs:38:20)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/update-stage-cleanup.test.mjs:42:1
+✖ interrupted-update rollback removes its staged subtree and empty stage directory (5.554465ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async appliedFixture (file:///tmp/pr96d/test/update-stage-cleanup.test.mjs:25:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/update-stage-cleanup.test.mjs:43:29)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/update-stage-cleanup.test.mjs:62:1
+✖ stage cleanup never sweeps unrelated non-empty stage content (4.60432ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async appliedFixture (file:///tmp/pr96d/test/update-stage-cleanup.test.mjs:25:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/update-stage-cleanup.test.mjs:63:29)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/update-status.test.mjs:29:1
+✖ update check exits zero and reports no-work when nothing is pending (154.793199ms)
+  Error: Command failed: /usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs init /tmp/vcp-update-status-kabQjQ --agent generic --stack generic --no-github --yes
+  
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+  
+      at genericNodeError (node:internal/errors:986:15)
+      at wrappedFn (node:internal/errors:540:14)
+      at ChildProcess.exithandler (node:child_process:417:12)
+      at ChildProcess.emit (node:events:514:28)
+      at maybeClose (node:internal/child_process:1141:16)
+      at ChildProcess._handle.onexit (node:internal/child_process:306:5) {
+    code: 1,
+    killed: false,
+    signal: null,
+    cmd: '/usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs init /tmp/vcp-update-status-kabQjQ --agent generic --stack generic --no-github --yes',
+    stdout: '',
+    stderr: '\nError: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.\n'
+  }
+
+test at test/update-status.test.mjs:39:1
+✖ update check exits zero and reports available when lifecycle work is pending (150.976501ms)
+  Error: Command failed: /usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs init /tmp/vcp-update-status-bOWbbA --agent generic --stack auto --no-github --yes
+  
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+  
+      at genericNodeError (node:internal/errors:986:15)
+      at wrappedFn (node:internal/errors:540:14)
+      at ChildProcess.exithandler (node:child_process:417:12)
+      at ChildProcess.emit (node:events:514:28)
+      at maybeClose (node:internal/child_process:1141:16)
+      at ChildProcess._handle.onexit (node:internal/child_process:306:5) {
+    code: 1,
+    killed: false,
+    signal: null,
+    cmd: '/usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs init /tmp/vcp-update-status-bOWbbA --agent generic --stack auto --no-github --yes',
+    stdout: '',
+    stderr: '\nError: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.\n'
+  }
+
+test at test/update-status.test.mjs:50:1
+✖ dry-run reports available without changing the existing zero exit contract (146.968156ms)
+  Error: Command failed: /usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs init /tmp/vcp-update-status-LWFndL --agent generic --stack auto --no-github --yes
+  
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+  
+      at genericNodeError (node:internal/errors:986:15)
+      at wrappedFn (node:internal/errors:540:14)
+      at ChildProcess.exithandler (node:child_process:417:12)
+      at ChildProcess.emit (node:events:514:28)
+      at maybeClose (node:internal/child_process:1141:16)
+      at ChildProcess._handle.onexit (node:internal/child_process:306:5) {
+    code: 1,
+    killed: false,
+    signal: null,
+    cmd: '/usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs init /tmp/vcp-update-status-LWFndL --agent generic --stack auto --no-github --yes',
+    stdout: '',
+    stderr: '\nError: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.\n'
+  }
+
+test at test/update-status.test.mjs:62:1
+✖ blocked dry-run exits one with a valid blocked lifecycle report (152.552506ms)
+  Error: Command failed: /usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs init /tmp/vcp-update-status-eYZMB2 --agent generic --stack generic --no-github --yes
+  
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+  
+      at genericNodeError (node:internal/errors:986:15)
+      at wrappedFn (node:internal/errors:540:14)
+      at ChildProcess.exithandler (node:child_process:417:12)
+      at ChildProcess.emit (node:events:514:28)
+      at maybeClose (node:internal/child_process:1141:16)
+      at ChildProcess._handle.onexit (node:internal/child_process:306:5) {
+    code: 1,
+    killed: false,
+    signal: null,
+    cmd: '/usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs init /tmp/vcp-update-status-eYZMB2 --agent generic --stack generic --no-github --yes',
+    stdout: '',
+    stderr: '\nError: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.\n'
+  }
+
+test at test/update-status.test.mjs:79:1
+✖ successful apply reports applied and exits zero (144.596897ms)
+  Error: Command failed: /usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs init /tmp/vcp-update-status-E1xDyV --agent generic --stack generic --no-github --yes
+  
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+  
+      at genericNodeError (node:internal/errors:986:15)
+      at wrappedFn (node:internal/errors:540:14)
+      at ChildProcess.exithandler (node:child_process:417:12)
+      at ChildProcess.emit (node:events:514:28)
+      at maybeClose (node:internal/child_process:1141:16)
+      at ChildProcess._handle.onexit (node:internal/child_process:306:5) {
+    code: 1,
+    killed: false,
+    signal: null,
+    cmd: '/usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs init /tmp/vcp-update-status-E1xDyV --agent generic --stack generic --no-github --yes',
+    stdout: '',
+    stderr: '\nError: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.\n'
+  }
+
+test at test/update-status.test.mjs:94:1
+✖ execution failure exits one through the error channel, not a normal lifecycle report (162.929739ms)
+  Error: Command failed: /usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs init /tmp/vcp-update-status-8hPMpx --agent generic --stack generic --no-github --yes
+  
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+  
+      at genericNodeError (node:internal/errors:986:15)
+      at wrappedFn (node:internal/errors:540:14)
+      at ChildProcess.exithandler (node:child_process:417:12)
+      at ChildProcess.emit (node:events:514:28)
+      at maybeClose (node:internal/child_process:1141:16)
+      at ChildProcess._handle.onexit (node:internal/child_process:306:5) {
+    code: 1,
+    killed: false,
+    signal: null,
+    cmd: '/usr/bin/node /tmp/pr96d/bin/vibe-coding-production.mjs init /tmp/vcp-update-status-8hPMpx --agent generic --stack generic --no-github --yes',
+    stdout: '',
+    stderr: '\nError: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.\n'
+  }
+
+test at test/verification-scope.test.mjs:131:1
+✖ non-Git verification preserves execution and reports project-only scope (8.967127ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async initializedProject (file:///tmp/pr96d/test/verification-scope.test.mjs:127:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/verification-scope.test.mjs:133:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/verification-scope.test.mjs:144:1
+✖ Git provenance remains deterministic under a localized caller environment (2.681725ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async initializedProject (file:///tmp/pr96d/test/verification-scope.test.mjs:127:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/verification-scope.test.mjs:146:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/verification-scope.test.mjs:171:1
+✖ Git workspace root project is represented by portable dot project path (2.677238ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async initializedProject (file:///tmp/pr96d/test/verification-scope.test.mjs:127:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/verification-scope.test.mjs:173:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/verification-scope.test.mjs:184:1
+✖ nested project verification runs in selected project root and persists workspace-relative evidence (2.342305ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async initializedProject (file:///tmp/pr96d/test/verification-scope.test.mjs:127:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/verification-scope.test.mjs:188:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/verification-scope.test.mjs:211:1
+✖ symlinked project paths canonicalize for Git provenance without changing the selected target (1.824658ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async initializedProject (file:///tmp/pr96d/test/verification-scope.test.mjs:127:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/verification-scope.test.mjs:215:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/verification-scope.test.mjs:231:1
+✖ Git-backed evidence records dirty state before verification without blocking execution (2.249996ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async initializedProject (file:///tmp/pr96d/test/verification-scope.test.mjs:127:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/verification-scope.test.mjs:234:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/verification-scope.test.mjs:247:1
+✖ preview refuses active external clean filters before Git status can execute them (1.995986ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async initializedProject (file:///tmp/pr96d/test/verification-scope.test.mjs:127:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/verification-scope.test.mjs:249:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/verification-scope.test.mjs:263:1
+✖ dirty submodule is visible even when .gitmodules requests ignore=all (2.177859ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async initializedProject (file:///tmp/pr96d/test/verification-scope.test.mjs:127:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/verification-scope.test.mjs:265:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/verify.test.mjs:29:1
+✖ verify preview does not execute repository commands (8.767047ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/verify.test.mjs:31:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/verify.test.mjs:42:1
+✖ verify run records passing evidence and can write JSON inside the repo (4.25828ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/verify.test.mjs:44:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/verify.test.mjs:65:1
+✖ verify stops after the first failed command (3.75846ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/verify.test.mjs:67:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/verify.test.mjs:80:1
+✖ verify CLI supports explicit execution and JSON output (2.27869ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/verify.test.mjs:82:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/verify.test.mjs:94:1
+✖ verify refuses an existing evidence path before executing commands (2.031378ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/verify.test.mjs:96:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/verify.test.mjs:110:1
+✖ verify refuses to run a task that has not passed implementation readiness (2.296587ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/verify.test.mjs:112:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/workspace-path-reservation.test.mjs:23:1
+✖ workspace qualifier is rejected for planned project-local paths (7.860917ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async fixture (file:///tmp/pr96d/test/workspace-path-reservation.test.mjs:11:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/workspace-path-reservation.test.mjs:24:18)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/workspace-path-reservation.test.mjs:36:1
+✖ leading whitespace cannot bypass workspace qualifier rejection for planned paths (5.112052ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async fixture (file:///tmp/pr96d/test/workspace-path-reservation.test.mjs:11:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/workspace-path-reservation.test.mjs:37:18)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/workspace-path-reservation.test.mjs:49:1
+✖ workspace qualifier is rejected for project-local output paths (5.210739ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async fixture (file:///tmp/pr96d/test/workspace-path-reservation.test.mjs:11:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/workspace-path-reservation.test.mjs:50:18)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/workspace-path-reservation.test.mjs:63:1
+✖ leading whitespace cannot bypass workspace qualifier rejection for output paths (2.791379ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async fixture (file:///tmp/pr96d/test/workspace-path-reservation.test.mjs:11:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/workspace-path-reservation.test.mjs:64:18)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/workspace-path-reservation.test.mjs:77:1
+✖ leading whitespace preserves the dedicated workspace include refusal (2.533462ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async fixture (file:///tmp/pr96d/test/workspace-path-reservation.test.mjs:11:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/workspace-path-reservation.test.mjs:78:18)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/workspace-source-truth.test.mjs:48:1
+✖ project-local references preserve existing selected-project behavior (9.151624ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async workspaceFixture (file:///tmp/pr96d/test/workspace-source-truth.test.mjs:27:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/workspace-source-truth.test.mjs:49:23)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/workspace-source-truth.test.mjs:62:1
+✖ nested project can explicitly use accepted workspace authority without inheriting unrelated root or sibling files (4.34485ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async workspaceFixture (file:///tmp/pr96d/test/workspace-source-truth.test.mjs:27:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/workspace-source-truth.test.mjs:63:29)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/workspace-source-truth.test.mjs:82:1
+✖ workspace-qualified starter templates still trigger the existing readiness warning (2.960863ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async workspaceFixture (file:///tmp/pr96d/test/workspace-source-truth.test.mjs:27:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/workspace-source-truth.test.mjs:83:29)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/workspace-source-truth.test.mjs:96:1
+✖ workspace freshness rules match project-local governing authority rules (2.960713ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async workspaceFixture (file:///tmp/pr96d/test/workspace-source-truth.test.mjs:27:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/workspace-source-truth.test.mjs:97:29)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/workspace-source-truth.test.mjs:120:1
+✖ workspace reference fails clearly when selected project is outside Git (2.916056ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/workspace-source-truth.test.mjs:122:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/workspace-source-truth.test.mjs:134:1
+✖ workspace references reject traversal and filesystem symlink or junction escape (1.945439ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async workspaceFixture (file:///tmp/pr96d/test/workspace-source-truth.test.mjs:27:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/workspace-source-truth.test.mjs:135:29)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/workspace-source-truth.test.mjs:151:1
+✖ workspace root discovery ignores ambient Git directory/worktree overrides (2.015054ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async workspaceFixture (file:///tmp/pr96d/test/workspace-source-truth.test.mjs:27:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/workspace-source-truth.test.mjs:152:29)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/workspace-source-truth.test.mjs:175:1
+✖ workspace qualifier is not a general cross-root include escape hatch (2.982436ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///tmp/pr96d/lib/managed-migration.mjs:43:15)
+      at applyAdaptiveGreenfield (file:///tmp/pr96d/lib/greenfield-apply-v2.mjs:27:3)
+      at initProject (file:///tmp/pr96d/lib/init.mjs:39:10)
+      at async workspaceFixture (file:///tmp/pr96d/test/workspace-source-truth.test.mjs:27:3)
+      at async TestContext.<anonymous> (file:///tmp/pr96d/test/workspace-source-truth.test.mjs:176:23)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
