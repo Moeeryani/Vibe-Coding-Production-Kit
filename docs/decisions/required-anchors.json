@@ -20,6 +20,21 @@
           "path": "docs/tasks/stage12-safe-adoption-planning.md",
           "heading": "## Acceptance criteria",
           "requiredText": "AC-004:"
+        },
+        {
+          "path": "docs/ROADMAP.md",
+          "heading": "### Stage 12 — Safe Adoption Planning",
+          "requiredText": "Already-managed schema-v1 repositories must remain on schema v1 while D-01/G-FENCE is NO-GO"
+        },
+        {
+          "path": "docs/CLI.md",
+          "heading": "### Stage12 schema-v2 migration is not enabled (D-01 G-FENCE NO-GO)",
+          "requiredText": "Managed schema-v1 → schema-v2 migration remains disabled / NO-GO"
+        },
+        {
+          "path": "docs/UPDATES.md",
+          "heading": "### Legacy-release rollback is not a future schema-v2 fence (D-01)",
+          "requiredText": "G-FENCE = NO-GO and managed v1→v2 writes remain disabled"
         }
       ]
     },
@@ -65,6 +80,21 @@
           "path": "docs/tasks/stage12-safe-adoption-planning.md",
           "heading": "## Acceptance criteria",
           "requiredText": "AC-010:"
+        },
+        {
+          "path": "docs/ROADMAP.md",
+          "heading": "#### #73 — Concurrent local filesystem replacement TOCTOU",
+          "requiredText": "D-03 (PROPOSED):"
+        },
+        {
+          "path": "docs/CLI.md",
+          "heading": "## Safety behavior",
+          "requiredText": "D-03 (PROPOSED future Stage12 path contract)"
+        },
+        {
+          "path": "docs/UPDATES.md",
+          "heading": "## Safety boundaries",
+          "requiredText": "D-03 (PROPOSED future Stage12 trust policy)"
         }
       ]
     },
@@ -165,6 +195,8 @@
     "Locations were read independently from the current Stage12 strategic/technical and Task Pack documents and require human review. Listing existing text does not prove complete or correct acceptance semantics.",
     "ROADMAP.md and CLI.md use the current v0.9.3 contract; applicability and any mandatory new accepted anchors must be reviewed and added before changing coverageReview to APPROVED.",
     "Do not set coverageReview APPROVED or an ID to ACCEPTED automatically. Future-phase decisions D-07..D-11 lack inventories and MUST fail closed on acceptance.",
-    "Do not infer accepted contract from status or snippets; review selected alternatives, rejected alternatives, tests, provenance and all normative surfaces."
+    "Do not infer accepted contract from status or snippets; review selected alternatives, rejected alternatives, tests, provenance and all normative surfaces.",
+    "D-01 and D-03 user-facing ROADMAP/CLI/UPDATES anchors added on the Stage12 ratification branch; they describe proposed future contracts and explicitly preserve v0.9.3 current behavior. All reviews stay PENDING.",
+    "A check of listed source-text identity does not prove semantic sufficiency or exhaustiveness. Reviewer must separately determine D-02/04/05/06/12 applicability to DOCTOR/CLI/ROADMAP/UPDATES."
   ]
 }
