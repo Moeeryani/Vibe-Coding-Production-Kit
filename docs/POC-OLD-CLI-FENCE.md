@@ -60,6 +60,7 @@ These merely exercise parser, snapshot and fail-closed mechanics, NOT old-binary
 | `aged-malformed-lock` | Old malformed lock stale-removal/rollback |
 | `intact-v2-old-init` | Old init --force with intact schema2 manifest |
 | `deleted-manifest-old-init` | Old init --force with deleted manifest and residual VCP files |
+| `deleted-manifest-directory-sentinel-old-init` | **NEW, UNEXECUTED:** old init --force after deleting live Manifest while keeping a directory-shaped lock sentinel |
 
 The v2 fixtures and backups are synthetic and deliberately constructed from the published v1 state. Their layout is an adversarial test input, NOT proof that the eventual new migration engine writes the same bytes.
 
