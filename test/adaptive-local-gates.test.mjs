@@ -6,6 +6,7 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { checkRequiredCoverage, evaluateStatic, parseRegister, verifyAcceptedRecord } from '../scripts/check-adaptive-contracts.mjs';
+import { sha256Utf8 } from '../scripts/run-adaptive-local-gates.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 async function docs() {
@@ -127,6 +128,12 @@ test('detect missing D-12 and regression of explicit old CLI fence', async () =>
   assert.match(evaluateStatic({ ...input, register: without12 }).errors.join('\n'), /D-12/);
   assert.match(evaluateStatic({ ...input, S: input.S.replaceAll('G-FENCE', 'HIDDEN-FENCE') })
     .errors.join('\n'), /C-01/);
+});
+
+test('local evidence receipt SHA-256 matches retained UTF-8 log bytes', () => {
+  assert.equal(sha256Utf8('abc'),
+    'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad');
+  assert.notEqual(sha256Utf8('stdout\n'), sha256Utf8('stdout'));
 });
 
 test('local gate runner refuses missing exact SHA/evidence directory before running npm', () => {
