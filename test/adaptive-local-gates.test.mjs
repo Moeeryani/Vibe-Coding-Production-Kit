@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { evaluateStatic, parseRegister } from '../scripts/check-adaptive-contracts.mjs';
+import { checkRequiredCoverage, evaluateStatic, parseRegister } from '../scripts/check-adaptive-contracts.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 async function docs() {
@@ -80,4 +80,50 @@ test('C-14 hygiene forbids the phantom A15 amendment ID in either doc', async ()
   // ...but the fixed A12 reference is fine
   assert.deepEqual(evaluateStatic({ ...input, S: input.S + '\nSee amendment A12.\n' })
     .errors.filter(e => e.startsWith('C-14')), []);
+});
+
+
+test('D-06: independent required-anchor inventory catches missing S/T/Task/Local Gates coverage', async () => {
+  const inventory = JSON.parse(await readFile(path.join(root, 'docs/decisions/required-anchors.json'), 'utf8'));
+  const anchors = inventory.decisions['D-06'].anchors;
+  assert.ok(anchors.length >= 4, 'D-06 must include independently required S, T, task and local gate anchors');
+  const approvedFixture = {
+    schemaVersion: 1,
+    decisions: { 'D-06': { coverageReview: 'APPROVED', anchors } }
+  };
+  assert.deepEqual(checkRequiredCoverage('D-06', anchors, approvedFixture), []);
+  for (const required of anchors) {
+    const incomplete = anchors.filter(x => x !== required);
+    const defects = checkRequiredCoverage('D-06', incomplete, approvedFixture);
+    assert.match(defects.join('\n'), /required anchor omitted or repeated/);
+  }
+});
+
+test('D-06: acceptance cannot bypass independent coverage review or amend its own expected clause', async () => {
+  const inventory = JSON.parse(await readFile(path.join(root, 'docs/decisions/required-anchors.json'), 'utf8'));
+  const anchors = inventory.decisions['D-06'].anchors;
+  const notReviewed = checkRequiredCoverage('D-06', anchors, inventory);
+  assert.match(notReviewed.join('\n'), /NOT maintainer-reviewed/);
+  const fakeApproved = {
+    schemaVersion: 1,
+    decisions: { 'D-06': { coverageReview: 'APPROVED', anchors } }
+  };
+  const swapped = anchors.map((x, i) => i === 0 ? { ...x, requiredText: 'vague keyword' } : x);
+  assert.match(checkRequiredCoverage('D-06', swapped, fakeApproved).join('\n'),
+    /differs from independently required clause/);
+  assert.match(checkRequiredCoverage('D-06', anchors, { schemaVersion: 1, decisions: {} }).join('\n'),
+    /no independently declared required-anchor map/);
+  assert.match(checkRequiredCoverage('D-07', [], inventory).join('\n'),
+    /no independently declared required-anchor map/);
+});
+
+test('D-06: accepted location duplicates cannot count as separate coverage', async () => {
+  const inventory = JSON.parse(await readFile(path.join(root, 'docs/decisions/required-anchors.json'), 'utf8'));
+  const anchors = inventory.decisions['D-06'].anchors;
+  const fakeApproved = {
+    schemaVersion: 1,
+    decisions: { 'D-06': { coverageReview: 'APPROVED', anchors } }
+  };
+  assert.match(checkRequiredCoverage('D-06', [...anchors, anchors[0]], fakeApproved).join('\n'),
+    /duplicate declared anchor|repeated/);
 });
