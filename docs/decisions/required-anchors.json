@@ -199,7 +199,7 @@
         {
           "path": "docs/ADAPTIVE-VCP-IMPLEMENTATION-PLAN.md",
           "heading": "### Migration re-screening and bounded enforcement (C-03 / D-12)",
-          "requiredText": "Stage 12 must place a deterministic authority/approval check at the actual"
+          "requiredText": "exact Task Pack command bytes"
         },
         {
           "path": "docs/ADAPTIVE-VCP-CODE-INTEGRATION-ANALYSIS.md",
