@@ -46,6 +46,14 @@ On Windows native PowerShell, use an absolute path such as `D:\vcp-evidence\pr-9
 
 The acceptance record must match the Markdown register status; the JSON is *evidence of an acceptance already decided by a maintainer*, not a second decision authority. Historical S Appendix Z and T Appendix Z have independent rows and are not required to match.
 
+## Independent accepted-decision completeness review
+
+The focused C-01–C-14 token anchors cannot determine whether an accepted decision omitted a normative location. The separate versioned inventory `docs/decisions/required-anchors.json` lists **23 independently derived draft section-level anchors across seven Stage12-relevant decisions (D-01–D-06, D-12)**. These anchors were extracted from S/T and the Stage12 Task Pack, plus the local-gate policy for D-06. They do **not** automatically prove that every affected Roadmap/CLI/Task location was discovered; this is a **draft coverage inventory pending maintainer review**.
+
+Before any acceptance record is created, the reviewer must (1) audit the source-to-destination coverage, adding missing Roadmap/CLI/Task anchors or explicit applicability rationale; (2) explicitly switch that decision's `coverageReview` from `PENDING` to `APPROVED` only after documentary review; (3) record actual selected/rejected options, reviewer, UTC, evidence and location references in the canonical ledger; and (4) re-run all guard tests and local gates against the resulting exact final SHA. `check-adaptive-contracts.mjs` now rejects a decision marked ACCEPTED whenever its independent map is absent, unreviewed, or a required location is omitted from the accepted record; the record cannot redefine its own expected clause. D-07–D-11 lack approved inventories and intentionally fail closed if prematurely set ACCEPTED.
+
+The map itself is code-reviewable governance configuration, not a self-authenticating third-party authority. A maintainer must separately review its completeness and any changes to `coverageReview`. **No recorded decision is made ACCEPTED just by adding the inventory.**
+
 ## Three boundaries that must not be conflated
 
 | Boundary | Interim status | Meaning |
