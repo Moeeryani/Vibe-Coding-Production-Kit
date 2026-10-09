@@ -832,6 +832,21 @@ deterministic fixtures / negative tests
 → broader adoption evidence
 ~~~
 
+### Mechanical checkpoint DONE signals
+
+Checkpoint DONE signals must be mechanical, not vibes. Unit-test greenness
+alone must never declare a checkpoint passed — several checkpoints (notably
+B/C/D and the capability audit) currently have no automated DONE signal,
+which risks declaring phases complete on test counts.
+
+Every checkpoint's Task Pack must define its DONE signal as a checkable
+artifact (conformance-matrix run, dogfood adoption log, user-study notes,
+gate-receipt sample), and the GO/SIMPLIFY/STOP-DEFER decision must be
+recorded against that artifact.
+
+The capability audit (Checkpoint E) must additionally record deletions made,
+not just additions considered.
+
 ### Checkpoint A — adoption
 
 Collect bounded facts such as:
@@ -3187,6 +3202,25 @@ In the first transition release, prefer an already-supported summary such as `ge
 Do **not** invent a new legacy stack value such as `mixed` unless every stack consumer, manifest validator, CLI selector/report, migration, Doctor path, update/manage path, and compatibility test is migrated together.
 
 Do not choose one language merely because old precedence did.
+
+### Polyglot fallback requirements
+
+For a genuine polyglot monorepo root where no single stack family dominates,
+Smart Init must NOT silently pick by precedence and must NOT block `--yes`
+adoption outright. Required behavior:
+
+- classify `stack: generic`;
+- record the competing evidence list in the (non-persisted) plan output for
+  human visibility;
+- install only stack-neutral assets;
+- require an explicit HUMAN DECISION (interactive or an explicit
+  Stage-12-supported `--stack` / selected-project-root choice) before
+  installing any stack-specific assets.
+
+Capability-specific CLI/configuration does not exist until Phase 4 and must
+not be referenced as a Stage-12 escape hatch. Capability composition itself
+stays in Phase 4; this fallback only guarantees the flagship capabilities
+case never dead-ends adoption.
 
 ---
 
