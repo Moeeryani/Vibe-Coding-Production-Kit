@@ -2,6 +2,26 @@
 
 **Status: FAIL-CLOSED / COVERAGE NOT APPROVED.** This is an independent documentation review of the draft `docs/decisions/required-anchors.json` published in PR #90 at `9efc501ac1ef98d5b22cee4efb0fba1bb7b0755d`, and the D-01/D-03/D-06 ratification packet in this PR. It is **not** a maintainer approval, a Stage12 G-DOCS PASS, or a code-test receipt.
 
+## Additional D-06 authority audit — current draft branch, not maintainer approval
+
+The current #92 branch adds **two mandatory D-06 governance locations** to the original remediation inventory: `docs/ADAPTIVE-VCP-DECISIONS.md` `## Normative register rules` and `docs/ROADMAP.md` `### Stage 12 — Safe Adoption Planning`. The registry now has **31 draft anchors** (D-01: 6, D-02: 3, D-03: 7, D-04: 3, D-05: 3, D-06: 6, D-12: 3). A separate targeted unit test prevents either D-06 authority location from silently disappearing.
+
+**Fresh independent text/source check for this branch:** 31/31 map entries have the exact declared heading, substantive token and literal decision ID. All seven coverageReview values are `PENDING`, and all canonical D-01..D-12 statuses are `PROPOSED`. This is **not** a Node/npm execution result, approved semantic completeness, or a signed maintainer decision.
+
+### Source-surface applicability dispositions (proposals for maintainer review)
+
+| Decision | Source surface / why it applies | Remaining action |
+|---|---|---|
+| D-01 | S/T, Stage12 Task, ROADMAP, CLI and UPDATES all have direct managed-migration/legacy-CLI safety implications | Six mandatory anchors mapped; native Windows, combined legacy-init, atomic transition and old/new concurrency still unverified; no migration GO |
+| D-02 | `docs/DOCTOR.md` and CLI Doctor paragraph describe the **released v0.9.3** general WARN/FAIL semantics | **Affected in future Stage12 Doctor implementation**: propose conditional update to these docs alongside D-02 adoption, not rewrite current published behavior now; DOCTOR/CLI location inventory incomplete for an ACCEPTED future D-02 |
+| D-03 | ROADMAP #73 TOCTOU, CLI Safety behavior and UPDATES Safety boundaries govern symlink/path trust | Seven mapped anchors; confirm native Windows junction semantics and any approved purpose-specific exceptions |
+| D-04 | CLI `## Initialize once, then update` describes **current v0.9.3** init and `--dry-run` flags, while S/T Stage12 planner adds CLAІM/plan JSON semantics | CLI and other consumer docs require scoped update when the *public new planner* is authorized; currently D-04 pending |
+| D-05 | UPDATES `### Current ownership boundary` explicitly says Markdown-section ownership is NOT current v0.9 behavior | Ensure the new D-05 section-ownership contract is documented at actual implementation/enablement time; current release statement must remain truthful |
+| D-06 | Canonical register, S/T Appendix Z, Stage12 Task, local-gates policy and ROADMAP explicitly carry decision/governance authority | **Six mandatory anchors mapped.** CLI and UPDATES are command/lifecycle user documentation rather than governance authority: presently `NOT_APPLICABLE` to D-06 *unless* they later claim Stage12 merge protection or accepted registry status; still requires maintainer completeness review |
+| D-12 | CLI `verify` and Task verification/readiness docs describe **current** execution capability; future accepted D-12 must constrain actual `verify --run` execution | Review CLI Verify/Task authority locations and add affected mandatory anchors when D-12 contract is ratified; no false universal protection claim |
+
+These dispositions are **review candidates**, not assertions that D-02/D-04/D-05/D-12 are mechanically complete. A future maintainer decision must specify actual affected anchors and reconcile selected semantics before any map's `coverageReview` switches to APPROVED.
+
 ## Follow-up remediation in this draft branch — static consistency verified, approval remains pending
 
 The findings below describe the **original 23-anchor snapshot on #90** and explain why this work was necessary. Since that audit, the #92 draft branch has integrated the exact #90 local-gate code without touching its validated branch HEAD, and proposed these fixes:
