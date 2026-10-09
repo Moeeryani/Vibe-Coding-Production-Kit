@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { readFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { checkRequiredCoverage, evaluateStatic, parseRegister } from '../scripts/check-adaptive-contracts.mjs';
+import { checkRequiredCoverage, evaluateStatic, parseRegister, verifyAcceptedRecord } from '../scripts/check-adaptive-contracts.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 async function docs() {
@@ -21,7 +22,78 @@ test('current proposed decision register and S/T regression anchors are coherent
   assert.deepEqual(out.errors, []);
   assert.equal(out.decisionCount, 12);
   assert.equal(out.checkedContractAnchors, 14);
-  assert.equal(out.accepted.length + out.pending.length, 12, 'Every stable ID retains an explicit status');
+  assert.equal(out.accepted.length + out.proposed.length + out.deferred.length + out.rejected.length,
+    12, 'Every stable ID retains an explicit status');
+});
+
+test('D-06: DEFERRED is not PROPOSED, and the executable checker reports every state', async () => {
+  const current = await docs();
+  const summary = evaluateStatic(current);
+  assert.deepEqual(summary.deferred, ['D-01']);
+  assert.ok(!summary.proposed.includes('D-01'));
+  const result = spawnSync(process.execPath, ['scripts/check-adaptive-contracts.mjs'], {
+    cwd: root, encoding: 'utf8', timeout: 10000
+  });
+  assert.equal(result.status, 0, result.stderr);
+  for (const status of ['proposed', 'accepted', 'deferred', 'rejected']) {
+    assert.match(result.stdout, new RegExp(status.toUpperCase() + '=' + summary[status].length));
+  }
+  assert.doesNotMatch(result.stdout, /PENDING=\d+/);
+
+  const changed = current.register
+    .replace('| D-02 | **PROPOSED** |', '| D-02 | **ACCEPTED** |')
+    .replace('| D-03 | **PROPOSED** |', '| D-03 | **REJECTED** |');
+  const mixed = evaluateStatic({ ...current, register: changed });
+  assert.deepEqual(mixed.errors, []);
+  assert.deepEqual(mixed.accepted, ['D-02']);
+  assert.deepEqual(mixed.rejected, ['D-03']);
+  assert.deepEqual(mixed.deferred, ['D-01']);
+  assert.equal(mixed.proposed.length, 9);
+});
+
+test('D-06: complete ACCEPTED-record validator checks independent map, metadata and document', async () => {
+  const folder = await mkdtemp(path.join(os.tmpdir(), 'vcp-d06-accepted-'));
+  try {
+    await mkdir(path.join(folder, 'docs/decisions'), { recursive: true });
+    await mkdir(path.join(folder, 'docs/fixtures'), { recursive: true });
+    const anchor = {
+      path: 'docs/fixtures/decision-policy.md',
+      heading: '## D-06 policy fixture',
+      requiredText: 'Independent affected-location review is required'
+    };
+    const docFile = path.join(folder, anchor.path);
+    const recordFile = path.join(folder, 'docs/decisions/D-06.json');
+    const inventory = { schemaVersion: 1,
+      decisions: { 'D-06': { coverageReview: 'APPROVED', anchors: [anchor] } } };
+    const record = {
+      id: 'D-06', status: 'ACCEPTED', owner: 'Test Maintainer',
+      decidedAtUtc: '2026-10-09T02:00:00Z',
+      chosenOption: 'Require independent affected-location review',
+      rationale: 'Maintain decision accountability',
+      implementationPR: 'https://github.com/Moeeryani/Vibe-Coding-Production-Kit/pull/94',
+      provingTests: ['exact-head-test-receipt-fixture'],
+      affectedLocations: [anchor]
+    };
+    await writeFile(docFile, '# Fixture\n\n## D-06 policy fixture\n\nD-06: Independent affected-location review is required.\n');
+    await writeFile(recordFile, JSON.stringify(record));
+    assert.deepEqual(await verifyAcceptedRecord('D-06', inventory, folder), []);
+    const pending = { schemaVersion: 1,
+      decisions: { 'D-06': { coverageReview: 'PENDING', anchors: [anchor] } } };
+    assert.match((await verifyAcceptedRecord('D-06', pending, folder)).join('\n'),
+      /NOT maintainer-reviewed/);
+    await writeFile(recordFile, JSON.stringify({ ...record, owner: 'PENDING' }));
+    assert.match((await verifyAcceptedRecord('D-06', inventory, folder)).join('\n'),
+      /missing acceptance field owner/);
+    await writeFile(recordFile, JSON.stringify({ ...record, affectedLocations: [] }));
+    assert.match((await verifyAcceptedRecord('D-06', inventory, folder)).join('\n'),
+      /required anchor omitted or repeated/);
+    await writeFile(recordFile, JSON.stringify(record));
+    await writeFile(docFile, '## D-06 policy fixture\n\nD-06: weakened clause\n');
+    assert.match((await verifyAcceptedRecord('D-06', inventory, folder)).join('\n'),
+      /missing accepted-ID and substantive clause/);
+  } finally {
+    await rm(folder, { recursive: true, force: true });
+  }
 });
 
 test('detect duplicate canonical decision rows', async () => {
@@ -208,6 +280,8 @@ test('Stage12 reconciliation: T preserves final #87 checkpoint DONE and polyglot
   for (const block of blocks) {
     const start = T.indexOf(block.heading);
     assert.ok(start >= 0, 'Missing final #87 block: ' + block.heading);
+    assert.equal(T.split(block.heading).length - 1, 1,
+      'Duplicate final #87 block: ' + block.heading);
     const end = T.indexOf('\n## ', start + block.heading.length);
     const section = T.slice(start, end >= 0 ? end : T.length);
     for (const clause of block.clauses) {
