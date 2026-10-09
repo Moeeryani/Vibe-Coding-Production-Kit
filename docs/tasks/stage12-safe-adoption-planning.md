@@ -17,6 +17,9 @@ Enable trustworthy, bounded, zero-write adoption *planning* for unmanaged existi
 
 ## Source of truth
 
+**D-06 (PROPOSED):** The canonical decision register and separately reviewed required-anchor inventory are review controls; neither a Draft PR nor a passing local smoke guard implies that any decision is accepted. The register must remain authoritative over historical S/T Appendix Z rows.
+
+
 - `docs/ADAPTIVE-VCP-IMPLEMENTATION-PLAN.md` (strategic S; current text must be reconciled)
 - `docs/ADAPTIVE-VCP-CODE-INTEGRATION-ANALYSIS.md` (technical T; current text must be reconciled)
 - `docs/ADAPTIVE-VCP-DECISIONS.md` (all choices currently **PROPOSED**, none accepted)
@@ -38,15 +41,15 @@ Inspect existing repositories without writing to them, distinguish new/unmanaged
 - [ ] AC-004: Real v0.9.3 package test proves D-01 safety invariant before any live v1→v2 mutation (old update/manage/rollback/init; POSIX/Windows; dead/aged/foreign lock; concurrency; no changed user edits).
 - [ ] AC-005: Versioned managed backup/journal, stale journal quarantine and crash recovery available **in Stage12**, independent of Stage13 first-adoption recovery.
 - [ ] AC-006: Guarded v1→v2 migration retains old installed surface as legacy-full-v1, whole-file ownership and all project changes; idempotent and recoverable.
-- [ ] AC-007: Markdown section parser with owned-region authorship, malformed-marker conflict and byte-identical outside text, including BOM/CRLF/mixed endings.
+- [ ] AC-007 (D-05 PROPOSED): Markdown section parser with owned-region authorship, malformed-marker conflict and byte-identical outside text, including BOM/CRLF/mixed endings.
 - [ ] AC-008: assetSet values legacy-full-v1 / greenfield-safe-v1 / brownfield-minimal-v1 retained by every writer; update never re-adds intentionally omitted assets.
 - [ ] AC-009: Selected-root and VCP-state classification before guessing maturity; explicit agent/GitHub/stack provenance; nested and polyglot cases covered.
-- [ ] AC-010: Common purpose-aware path policy refuses traversal/symlink escape and handles Windows junctions; no false race-freedom promise.
-- [ ] AC-011: Command authority handles duplicate/conflicting commands, migrated destructive-command reconfirmation and execution-time `verify --run` guard; `--yes` cannot waive HUMAN DECISION.
+- [ ] AC-010 (D-03 PROPOSED): Common purpose-aware path policy refuses traversal/symlink escape and handles Windows junctions; no false race-freedom promise.
+- [ ] AC-011 (D-12 PROPOSED): Command authority handles duplicate/conflicting commands, migrated destructive-command reconfirmation and execution-time `verify --run` guard; `--yes` cannot waive HUMAN DECISION.
 - [ ] AC-012: assetSet-aware prompt resolver and packaged fallback do not reference omitted starter paths; generated Task Pack does not invent governance docs.
 - [ ] AC-013: Doctor install-health and governance separated, approved D-02 `--strict` truth table, green synthetic minimal fixture and legacy fixture regressions.
 - [ ] AC-014: Greenfield-safe consumer surface excludes source-only npm validation CI while legacy-full compatibility remains intact.
-- [ ] AC-015: Init planner JSON planVersion=1, planKind=init, CLAIM, separate skippedPaths, no file contents, determinism and zero writes for EXISTING unmanaged; non-dry-run apply refuses in Stage12.
+- [ ] AC-015 (D-04 PROPOSED): Init planner JSON planVersion=1, planKind=init, CLAIM, separate skippedPaths, no file contents, determinism and zero writes for EXISTING unmanaged; non-dry-run apply refuses in Stage12.
 - [ ] AC-016: Golden negative fixtures, `npm run validate` / `npm run pack:check`, package smoke, review/finalization exact-head rerun, supported-platform evidence; Stage12 exit is not adoption Checkpoint A.
 
 ## Scope
