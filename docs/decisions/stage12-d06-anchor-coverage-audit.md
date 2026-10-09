@@ -2,6 +2,20 @@
 
 **Status: FAIL-CLOSED / COVERAGE NOT APPROVED.** This is an independent documentation review of the draft `docs/decisions/required-anchors.json` published in PR #90 at `9efc501ac1ef98d5b22cee4efb0fba1bb7b0755d`, and the D-01/D-03/D-06 ratification packet in this PR. It is **not** a maintainer approval, a Stage12 G-DOCS PASS, or a code-test receipt.
 
+## Follow-up remediation in this draft branch — static consistency verified, approval remains pending
+
+The findings below describe the **original 23-anchor snapshot on #90** and explain why this work was necessary. Since that audit, the #92 draft branch has integrated the exact #90 local-gate code without touching its validated branch HEAD, and proposed these fixes:
+
+- All **10 missing literal D-IDs** were added to the named normative S/T, Stage12 Task Pack and Local Gates sections. No decision status was changed.
+- The independent required-location inventory now contains **29 anchors** (the original 23 plus D-01 ROADMAP/CLI/UPDATES and D-03 ROADMAP/CLI/UPDATES).
+- The D-03, D-04, D-05 and D-12 Task Pack map strings were synchronized with the now explicit `AC-XXX (D-XX PROPOSED)` contractual references.
+- The released-v0.9.3 user documentation differentiates current schema-v1 behavior from proposed schema-v2 safety; old-CLI loss-of-post-backup-edits remains **NO-GO**.
+- The Stage12 test suite now includes mapped-heading/required-text/decision-ID checks and independently enumerates the three mandatory user-facing source files for D-01 and D-03.
+
+**Independent static GitHub-source check on the combined draft branch: 29/29 required sections contain their exact declared substantive snippet and corresponding D-ID; no failures.** This is a **textual inventory-consistency result**, *not* evidence that all affected documents have been discovered, that semantic requirements are correct, or that any Node/npm suite has run on the new #92 HEAD. All seven `coverageReview` values remain **PENDING**. The PR will need a fresh exact-HEAD external local-gate receipt; #90's Linux result for `9efc501a...` does not validate this modified branch.
+
+**Remaining before any D-06 acceptance:** exhaustive human applicability decisions for D-02/04/05/06/12 against DOCTOR.md, CLI, ROADMAP, UPDATES and other source-of-truth documents; independently reviewed chosen-option clauses and owner/UTC; raw evidence inspection; complete guard rerun; and a recorded maintainer decision. In particular, no `APPROVED` map marker or `ACCEPTED` status is justified by 29/29 static coverage alone.
+
 ## Findings tied to actual source content
 
 1. **The 23 listed section/snippet pairs exist** in the #90 source branch and are scoped under the exact heading. They represent seven Stage12-relevant decision IDs (D-01..D-06 and D-12). All seven `coverageReview` values correctly remain `PENDING`; other D-07..D-11 must fail closed if prematurely set ACCEPTED.
