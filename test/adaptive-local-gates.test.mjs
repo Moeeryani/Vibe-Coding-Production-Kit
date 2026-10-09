@@ -70,6 +70,8 @@ test('D-06: complete ACCEPTED-record validator checks independent map, metadata 
       decidedAtUtc: '2026-10-09T02:00:00Z',
       chosenOption: 'Require independent affected-location review',
       rationale: 'Maintain decision accountability',
+      approvalEvidence: 'Synthetic fixture only, never a real approval',
+      rejectedAlternatives: [{ option: 'Unreviewed coverage', reason: 'Cannot prove completeness' }],
       implementationPR: 'https://github.com/Moeeryani/Vibe-Coding-Production-Kit/pull/94',
       provingTests: ['exact-head-test-receipt-fixture'],
       affectedLocations: [anchor]
@@ -84,6 +86,12 @@ test('D-06: complete ACCEPTED-record validator checks independent map, metadata 
     await writeFile(recordFile, JSON.stringify({ ...record, owner: 'PENDING' }));
     assert.match((await verifyAcceptedRecord('D-06', inventory, folder)).join('\n'),
       /missing acceptance field owner/);
+    await writeFile(recordFile, JSON.stringify({ ...record, approvalEvidence: 'PENDING' }));
+    assert.match((await verifyAcceptedRecord('D-06', inventory, folder)).join('\n'),
+      /missing explicit maintainer approvalEvidence/);
+    await writeFile(recordFile, JSON.stringify({ ...record, rejectedAlternatives: [] }));
+    assert.match((await verifyAcceptedRecord('D-06', inventory, folder)).join('\n'),
+      /rejectedAlternatives must name reviewed options/);
     await writeFile(recordFile, JSON.stringify({ ...record, affectedLocations: [] }));
     assert.match((await verifyAcceptedRecord('D-06', inventory, folder)).join('\n'),
       /required anchor omitted or repeated/);
@@ -94,6 +102,15 @@ test('D-06: complete ACCEPTED-record validator checks independent map, metadata 
   } finally {
     await rm(folder, { recursive: true, force: true });
   }
+});
+
+test('D-03: selected no-follow contract also rejects in-root links and linked parents', async () => {
+  const T = await readFile(path.join(root, 'docs/ADAPTIVE-VCP-CODE-INTEGRATION-ANALYSIS.md'), 'utf8');
+  const task = await readFile(path.join(root, 'docs/tasks/stage12-safe-adoption-planning.md'), 'utf8');
+  assert.match(T, /D-03 no-follow policy rejects in-root symlinks/);
+  assert.match(T, /reject untrusted symlink\/junction\/reparse traversal by default even when its target stays inside/);
+  assert.match(task, /AC-010 \(D-03 PROPOSED\):[^\n]*even for in-root targets/);
+  assert.match(task, /native Windows fixtures required/);
 });
 
 test('detect duplicate canonical decision rows', async () => {
