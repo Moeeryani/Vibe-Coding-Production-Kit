@@ -15,8 +15,12 @@ test('new root yields zero-write greenfield plan with unapproved CLAIM actions',
   assert.equal(plan.planVersion, 1);
   assert.equal(plan.planKind, 'init');
   assert.equal(plan.assetSet, 'greenfield-safe-v1');
-  assert.equal(plan.actions.length, 3);
-  assert.ok(plan.actions.every(a => a.action === 'CLAIM' && !a.executionAuthorized));
+  assert.equal(plan.zeroWrite, true);
+  assert.equal(plan.blocked, false);
+  // The candidate set grows with the asset catalog; the invariant is that
+  // every action is an unapproved CLAIM and nothing is written.
+  assert.ok(plan.actions.length > 0);
+  assert.ok(plan.actions.every(a => a.action === 'CLAIM' && a.executionAuthorized === false));
   assert.deepEqual(await readdir(root), []);
 });
 
@@ -71,7 +75,9 @@ test('symlinked source evidence fails closed without reading outside root', asyn
 test('managed v1 root blocks init plan and remains intact', async t => {
   const root = await fixture(t);
   await mkdir(path.join(root, '.vcp'));
-  const bytes = JSON.stringify({ schemaVersion: 1, installedVersion: '0.9.3', install: {}, managedFiles: {} });
+  // Genuine released-0.9.3 shape: install carries agent/stack/includeGitHub.
+  const bytes = JSON.stringify({ schemaVersion: 1, installedVersion: '0.9.3',
+    install: { agent: 'generic', stack: 'generic', includeGitHub: false }, managedFiles: {} });
   await writeFile(path.join(root, '.vcp/manifest.json'), bytes);
   const plan = await planSmartInit(root);
   assert.equal(plan.blocked, true);

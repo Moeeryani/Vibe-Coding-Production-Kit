@@ -58,13 +58,34 @@ test('inspect: existing unmanaged files remain byte-identical and unclaimed', as
 
 test('inspect: valid managed schema-v1 root returns only approved metadata', async t => {
   const root = await fixture(t);
-  const original = v1({ userSecretField: 'DO_NOT_LEAK', install: { agent: 'generic', stack: 'generic', includeGitHub: false, assetSet: 'legacy-full-v1' } });
+  // Genuine released-0.9.3 shape: enumerated fields only. The report must
+  // contain exactly the approved metadata keys — nothing else.
+  const original = v1();
   await manifest(root, original);
   const report = await inspectProject(root);
   assert.deepEqual(report, { root, classification: 'MANAGED', readOnly: true,
-    reason: null, schemaVersion: 1, installedVersion: '0.9.3', assetSet: 'legacy-full-v1' });
-  assert.doesNotMatch(JSON.stringify(report), /DO_NOT_LEAK/);
+    reason: null, schemaVersion: 1, installedVersion: '0.9.3', assetSet: null });
+  assert.deepEqual(Object.keys(report).sort(),
+    ['assetSet', 'classification', 'installedVersion', 'readOnly', 'reason', 'root', 'schemaVersion']);
   assert.deepEqual(JSON.parse(await readFile(path.join(root, '.vcp/manifest.json'), 'utf8')), original);
+});
+
+test('inspect: unrecognized v1 metadata is blocked, never silently tolerated', async t => {
+  const root = await fixture(t);
+  const original = v1({ userSecretField: 'DO_NOT_LEAK' });
+  await manifest(root, original);
+  const report = await inspectProject(root);
+  assert.equal(report.classification, 'BLOCKED');
+  assert.doesNotMatch(JSON.stringify(report), /DO_NOT_LEAK/);
+});
+
+test('inspect: v1 install.assetSet is refused (never a released-0.9.3 field)', async t => {
+  const root = await fixture(t);
+  const original = v1({ install: { agent: 'generic', stack: 'generic', includeGitHub: false, assetSet: 'legacy-full-v1' } });
+  await manifest(root, original);
+  const report = await inspectProject(root);
+  assert.equal(report.classification, 'BLOCKED');
+  assert.equal(report.reason, 'METADATA_UNSUPPORTED');
 });
 
 test('inspect CLI: JSON and human output, blocked states return nonzero', async t => {
@@ -89,7 +110,9 @@ test('inspect: partial, corrupt, future and ambiguous managed states fail closed
   assert.equal((await inspectProject(root)).reason, 'MANIFEST_MISSING');
   for (const [value, reason] of [
     ['[1]', 'MANIFEST_INVALID'],
-    [v1({ schemaVersion: 2 }), 'SCHEMA_UNSUPPORTED'],
+    // v1-shaped document claiming schemaVersion 2 fails v2 field validation
+    // with its specific code; still fail-closed.
+    [v1({ schemaVersion: 2 }), 'E_MANIFEST_VERSION'],
     [v1({ schemaVersion: 0 }), 'MANIFEST_INVALID'],
     [v1({ installedVersion: '01.2.3' }), 'MANIFEST_INVALID'],
     [v1({ install: { assetSet: 'from-unknown-plugin' } }), 'ASSETSET_UNKNOWN'],
