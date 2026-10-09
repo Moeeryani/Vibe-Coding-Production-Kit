@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Local receipt producer. Cooperative, not a trusted remote merge gate.
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { mkdir, realpath, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -35,6 +36,9 @@ function command(name, args) {
     error: result.error?.message ?? null,
     stdout: result.stdout ?? '', stderr: result.stderr ?? ''
   };
+}
+export function sha256Utf8(value) {
+  return createHash('sha256').update(value, 'utf8').digest('hex');
 }
 function successful(r) { return r.exitCode === 0 && !r.signal && !r.error; }
 function singleLine(r) { return r.stdout.trim().split(/\r?\n/)[0] || ''; }
@@ -73,7 +77,8 @@ async function main() {
     results.push({
       step: slug, invocation: r.invocation, startedAtUtc: r.startedAtUtc,
       completedAtUtc: r.completedAtUtc, exitCode: r.exitCode, signal: r.signal,
-      error: r.error, stdoutFile, stderrFile
+      error: r.error, stdoutFile, stderrFile,
+      stdoutSha256: sha256Utf8(r.stdout), stderrSha256: sha256Utf8(r.stderr)
     });
   }
   const shaAfter = command('git', ['rev-parse', '--verify', 'HEAD']);
@@ -104,4 +109,6 @@ async function main() {
   console.log(receipt.result + ' SHA=' + expected + ' EVIDENCE=' + path.join(out, 'receipt.json'));
   if (!passed) process.exitCode = 1;
 }
-main().catch(e => { console.error('LOCAL_GATE_NO_RECEIPT: ' + e.message); process.exitCode = 2; });
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch(e => { console.error('LOCAL_GATE_NO_RECEIPT: ' + e.message); process.exitCode = 2; });
+}
