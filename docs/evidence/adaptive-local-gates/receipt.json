@@ -1,0 +1,94 @@
+{
+  "receiptSchemaVersion": 1,
+  "evidenceKind": "cooperative-local-PR-gate",
+  "result": "LOCAL_GATE_PASS_NOT_REMOTE_ENFORCEMENT",
+  "verificationLimitations": [
+    "Not independently attested; maintainer must review raw logs and final PR head",
+    "No GitHub Actions checks or trusted remote status guarantees",
+    "Does not approve D-01, G-DOCS, G-FENCE, schema-v2 migration, or merges",
+    "A passing Linux run is not a Windows native run"
+  ],
+  "git": {
+    "expectedHeadSha": "a865d941c7c3dca384912c360ce9f881dcb01e19",
+    "before": "a865d941c7c3dca384912c360ce9f881dcb01e19",
+    "after": "a865d941c7c3dca384912c360ce9f881dcb01e19",
+    "cleanBefore": true,
+    "cleanAfter": true,
+    "statusAfter": ""
+  },
+  "platform": {
+    "name": "linux",
+    "architecture": "x64",
+    "release": "7.0.0-39-generic",
+    "node": "v24.20.0",
+    "npm": "10.9.4",
+    "git": "git version 2.43.0"
+  },
+  "runner": {
+    "host": "LOCAL_COMPUTER",
+    "recordedAtUtc": "2026-10-08T23:57:16.792Z",
+    "evidenceDirectory": "/tmp/pr90ev2"
+  },
+  "steps": [
+    {
+      "step": "check-adaptive-contracts",
+      "invocation": [
+        "/usr/bin/node",
+        "/tmp/pr90work/scripts/check-adaptive-contracts.mjs"
+      ],
+      "startedAtUtc": "2026-10-08T23:56:08.025Z",
+      "completedAtUtc": "2026-10-08T23:56:08.155Z",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutFile": "check-adaptive-contracts.stdout.log",
+      "stderrFile": "check-adaptive-contracts.stderr.log"
+    },
+    {
+      "step": "npm-ci",
+      "invocation": [
+        "npm",
+        "ci",
+        "--no-audit",
+        "--no-fund"
+      ],
+      "startedAtUtc": "2026-10-08T23:56:08.157Z",
+      "completedAtUtc": "2026-10-08T23:56:08.573Z",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutFile": "npm-ci.stdout.log",
+      "stderrFile": "npm-ci.stderr.log"
+    },
+    {
+      "step": "npm-validate",
+      "invocation": [
+        "npm",
+        "run",
+        "validate"
+      ],
+      "startedAtUtc": "2026-10-08T23:56:08.574Z",
+      "completedAtUtc": "2026-10-08T23:57:15.415Z",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutFile": "npm-validate.stdout.log",
+      "stderrFile": "npm-validate.stderr.log"
+    },
+    {
+      "step": "npm-pack-check",
+      "invocation": [
+        "npm",
+        "run",
+        "pack:check"
+      ],
+      "startedAtUtc": "2026-10-08T23:57:15.429Z",
+      "completedAtUtc": "2026-10-08T23:57:16.618Z",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutFile": "npm-pack-check.stdout.log",
+      "stderrFile": "npm-pack-check.stderr.log"
+    }
+  ]
+}
