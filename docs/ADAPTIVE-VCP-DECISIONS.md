@@ -1,8 +1,8 @@
-# Adaptive VCP — Canonical decision register (PROPOSED)
+# Adaptive VCP — Canonical decision register (maintainer decisions and proposals)
 
-**Status: DRAFT / ALL DECISIONS PROPOSED.** Baseline: `8ccb276545fdb3cc301ce7ce324812eb4c314586` (VCP 0.9.3).
+**Status: DRAFT documents; D-01 DEFERRED by maintainer selection, D-02..D-12 PROPOSED pending independent coverage review and/or separate decision sign-off.** Baseline: `8ccb276545fdb3cc301ce7ce324812eb4c314586` (VCP 0.9.3).
 
-This file records questions and proposed recommendations, **not** maintainer acceptance. Stage12 product-code work is not authorized by this document. Any decision becomes accepted only with explicit maintainer acknowledgement, owner, UTC date, selected alternative, documented rationale, affected S/T/roadmap/task locations and proving fixtures.
+This file records explicit deferrals and proposed choices; **only D-01 has been explicitly selected as DEFERRED**. This status does not approve the fence or any schema-v2 writer. D-03's no-follow policy choice was affirmed in the same maintainer conversation, but its structured acceptance coverage is pending and the canonical row remains PROPOSED. Stage12 product-code work is not automatically authorized by this document. Any decision becomes accepted only with explicit maintainer acknowledgement, owner, UTC date, selected alternative, documented rationale, affected S/T/roadmap/task locations and proving fixtures.
 
 ## Normative register rules
 
@@ -17,9 +17,9 @@ This file records questions and proposed recommendations, **not** maintainer acc
 
 | ID | Status | Topic | Deadline | Affected anchors | Proposed outcome | Required evidence |
 |---|---|---|---|---|---|---|
-| D-01 | **PROPOSED** | Old 0.9.3 mutation fence | Before any managed schema-v2 write | S §3.5; T §4.8 | **Recommend candidate C: DEFER LIVE MIGRATION** based on #89 Linux NO-GO; backup-only and distinct lifecycle lock empirically fail; directory sentinel remains UNPROVEN as a complete fence | Actual published 0.9.3 Linux result #89 (7 unsafe mutations); native Windows, old init + absent manifest + sentinel, atomic conversion, old/new concurrency and crash tests still REQUIRED before any re-open |
+| D-01 | **DEFERRED** | Old 0.9.3 mutation fence | Before any managed schema-v2 write | S §3.5; T §4.8; ROADMAP Stage12; CLI/UPDATES legacy warnings | **Maintainer-selected Option C: defer live managed v1→v2 migration**. No writer, rollback/recovery migration or release assertion until a separately proved and accepted old-CLI safety fence. Backup-only and lifecycle-lock separation are empirically insufficient; directory sentinel is unproven beyond tested Linux entrypoints | PR #89 released 0.9.3 Linux POC: 7/12 unsafe protected mutations, 3 Linux sentinel blocks; required future proofs: native Windows, manifest-absent old init + sentinel, atomic transition, concurrent old/new processes, crash and byte-for-byte user edit preservation |
 | D-02 | **PROPOSED** | Doctor --strict scope | Before Stage12 Doctor implementation | S §3.11; T §7.4 | Recommend applicable install-health WARN/FAIL only; governance informational | Synthetic brownfield-minimal/legacy-full strict and nonstrict exit matrix |
-| D-03 | **PROPOSED** | Untrusted symlink policy | Before new project path helper | T §7.2; T §9.4A | Recommend default no-follow INCLUDING in-root symlinks/junctions for untrusted paths; allow only explicit purpose-specific, reviewed exceptions | Selected-root read/write/managed-state tests; traversal, in/out-root symlinks, native Windows junctions; byte-preservation and TOCTOU caveats |
+| D-03 | **PROPOSED** | Untrusted symlink policy | Before new project path helper | S §5.4; T §7.2/§9.4A; ROADMAP #73; CLI/UPDATES path warnings | **Maintainer confirmed the design choice**: no-follow for untrusted selected-root paths, including in-root symlinks and native junctions; only separately reviewed purpose-specific exceptions. Canonical acceptance and product implementation remain PENDING complete coverage-map review and native-platform tests | Record of design choice in docs/decisions/D-03-policy-selection.md; exact selected-root read/write/managed-state conformance, native Windows junction tests and TOCTOU risk audit required before security claims |
 | D-04 | **PROPOSED** | Init action vocabulary and JSON | Before public planner | S §3.7; T §4.5 | Recommend CLAIM, update ADOPT unchanged, planVersion=1, skippedPaths separate | Content-free zero-write JSON conformance and unknown-version rejection |
 | D-05 | **PROPOSED** | Markdown managed-section grammar | Before section-ownership writes | S §3.5; T §5.2–5.3 | Recommend exact markers, [a-z0-9-]{1,64}, outside bytes immutable | Malformed/fenced/duplicate markers, Unicode BOM mixed-line-ending fixtures |
 | D-06 | **PROPOSED** | Canonical decisions and amendments | Before corrected S/T marked accepted | S Appendix Z; T Appendix Z | Recommend one canonical register; historical Z tables need not match; require independent per-ID required-anchor coverage and cooperative exact-HEAD local receipts while Actions unavailable (NOT trusted merge protection) | Independently reviewed per-ID S/T/Roadmap/CLI/Task coverage map, negative omitted-anchor test, exact-final-HEAD raw receipts + maintainer review; Phase8 enforcement remains BLOCKED |
@@ -44,11 +44,11 @@ provingTests: [<test IDs and recorded evidence>]
 implementationPR: <URL or pending>
 ```
 
-## D-01 operational deferral (PROPOSED ledger status unchanged)
+## D-01 — maintainer-selected Option C: deferred managed schema-v2 migration
 
 The actual published v0.9.3 Linux POC in #89 observed **7/12 unsafe mutations**; newest-v2 backups erased user changes after backup, and an independent `lifecycle.lock` did not prevent the legacy CLI from mutating. Therefore **G-FENCE = NO-GO and live managed schema-v2 migration is BLOCKED NOW**. The recommended option is **C: defer**; no schema-v2 write, migrator, automatic restore or release claim may rely on a directory sentinel merely blocking three isolated Linux cases. Native Windows, old init against absent manifest with directory sentinel, atomic conversion, old/new concurrency and crash recovery are unverified.
 
-**This paragraph records an operational safety stop and a recommended selection, NOT a maintainer-accepted status transition.** D-01 remains PROPOSED in the canonical register until an actual owner expressly approves a DEFERRED/other decision record with UTC, evidence and re-entry conditions. See `docs/decisions/stage12-d01-d03-d06-ratification-packet.md`.
+**Maintainer decision recorded:** Option C (defer), owner `Moeeryani` (authenticated repository maintainer), approval conveyed in the project conversation at `2026-10-09T01:25:54Z`; structured record `docs/decisions/D-01.json`. No cross-platform safety proof or migration authorization is implied. Reopen only after documented D-01 fence evidence and an additional explicit maintainer decision. D-03 design approval is documented separately but its canonical coverage gate remains PENDING.
 
 ## D-01 compatibility safeguard
 

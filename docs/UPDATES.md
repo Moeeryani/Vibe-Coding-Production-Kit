@@ -47,7 +47,7 @@ ownership.kind = file | section
 policy         = managed | merge | generated | preserve
 ~~~
 
-That section-ownership model is not current v0.9 behavior. When implemented, it requires a versioned manifest migration so older CLIs fail closed rather than misinterpreting section baselines.
+That section-ownership model is not current v0.9 behavior. When implemented, it requires a versioned manifest and reader guard for commands that actually read the active manifest. **D-05 / D-01 warning:** this cannot make the published 0.9.3 CLI fail closed universally: old `rollback` can restore a backup without first reading the live manifest and erase post-backup user edits. Therefore no section-ownership migration or schema-v2 write is permitted while D-01 is DEFERRED / G-FENCE NO-GO.
 
 ## Check for lifecycle changes
 

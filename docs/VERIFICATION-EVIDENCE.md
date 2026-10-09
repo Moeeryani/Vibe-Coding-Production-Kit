@@ -47,6 +47,10 @@ If implementation readiness has blocking failures, verification execution is ref
 
 Commands run sequentially. After the first failure, later commands are marked `skipped` instead of pretending the verification set completed.
 
+### Proposed D-12 execute-time gate (NOT IMPLEMENTED)
+
+The current published `vcp verify --run` executes repository-controlled shell strings once explicit run/readiness controls pass. Under future Stage12 D-12, **exact Task Pack shell command bytes** must be authorized immediately before VCP launches each command, including hand-edited or legacy packs. Validate command key + normalized fingerprint + provenance against current approved authority; altered or conflicting values fail closed. Migration-adopted destructive commands are `grandfathered:true` only as provisional records and require an explicit HUMAN DECISION; `--yes` cannot waive this requirement. No protection is asserted for command execution by external agents. This design is PROPOSED and the new gate is not shipped in v0.9.3.
+
 ## Project root and workspace root
 
 Verification keeps two scopes distinct:
