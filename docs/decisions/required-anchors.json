@@ -89,7 +89,7 @@
         {
           "path": "docs/tasks/stage12-safe-adoption-planning.md",
           "heading": "## Acceptance criteria",
-          "requiredText": "AC-010 (D-03 PROPOSED): Common purpose-aware path policy"
+          "requiredText": "AC-010 (D-03 PROPOSED): Common purpose-aware read-existing/write-new/managed-state path policy"
         },
         {
           "path": "docs/ROADMAP.md",
