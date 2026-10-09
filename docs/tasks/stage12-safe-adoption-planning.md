@@ -44,7 +44,7 @@ Inspect existing repositories without writing to them, distinguish new/unmanaged
 - [ ] AC-007 (D-05 PROPOSED): Markdown section parser with owned-region authorship, malformed-marker conflict and byte-identical outside text, including BOM/CRLF/mixed endings.
 - [ ] AC-008: assetSet values legacy-full-v1 / greenfield-safe-v1 / brownfield-minimal-v1 retained by every writer; update never re-adds intentionally omitted assets.
 - [ ] AC-009: Selected-root and VCP-state classification before guessing maturity; explicit agent/GitHub/stack provenance; nested and polyglot cases covered.
-- [ ] AC-010 (D-03 PROPOSED): Common purpose-aware path policy refuses traversal/symlink escape and handles Windows junctions; no false race-freedom promise.
+- [ ] AC-010 (D-03 PROPOSED): Common purpose-aware read-existing/write-new/managed-state path policy refuses traversal, linked parents and symlink/junction/reparse traversal by default even for in-root targets; only reviewed purpose-specific exceptions; native Windows fixtures required and no false race-freedom promise.
 - [ ] AC-011 (D-12 PROPOSED): Command authority handles duplicate/conflicting commands, migrated destructive-command reconfirmation and execution-time `verify --run` guard; `--yes` cannot waive HUMAN DECISION.
 - [ ] AC-012: assetSet-aware prompt resolver and packaged fallback do not reference omitted starter paths; generated Task Pack does not invent governance docs.
 - [ ] AC-013: Doctor install-health and governance separated, approved D-02 `--strict` truth table, green synthetic minimal fixture and legacy fixture regressions.
