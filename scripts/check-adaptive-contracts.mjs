@@ -105,7 +105,50 @@ export function evaluateStatic({ register, S, T }) {
     checkedContractAnchors: contractAnchors.length, decisionCount: rows.length };
 }
 
-async function verifyAcceptedRecord(id) {
+// An accepted record does not get to define its own completeness boundary.
+// The independent map is maintained and reviewed separately from record JSON.
+export function checkRequiredCoverage(id, declaredLocations, inventory) {
+  const errors = [];
+  const spec = inventory?.decisions?.[id];
+  if (!spec || !Array.isArray(spec.anchors) || spec.anchors.length === 0) {
+    return [id + ': no independently declared required-anchor map (fail closed)'];
+  }
+  if (spec.coverageReview !== 'APPROVED') {
+    errors.push(id + ': independent anchor map is NOT maintainer-reviewed (coverageReview must be APPROVED)');
+  }
+  if (!Array.isArray(declaredLocations)) {
+    return [...errors, id + ': acceptance affectedLocations must be an array'];
+  }
+  const identities = new Set();
+  for (const item of declaredLocations) {
+    const key = typeof item?.path === 'string' && typeof item?.heading === 'string'
+      ? item.path + '\0' + item.heading : null;
+    if (key === null) continue;
+    if (identities.has(key)) errors.push(id + ': duplicate declared anchor: ' + item.path + ' / ' + item.heading);
+    identities.add(key);
+  }
+  const expectedIdentities = new Set();
+  for (const anchor of spec.anchors) {
+    if (!anchor || !safeDocPath(anchor.path) || typeof anchor.heading !== 'string' ||
+        !/^#{1,6} /.test(anchor.heading) ||
+        typeof anchor.requiredText !== 'string' || !anchor.requiredText.trim()) {
+      errors.push(id + ': invalid independently required anchor entry');
+      continue;
+    }
+    const key = anchor.path + '\0' + anchor.heading;
+    if (expectedIdentities.has(key)) errors.push(id + ': duplicate required anchor: ' + anchor.path + ' / ' + anchor.heading);
+    expectedIdentities.add(key);
+    const matches = declaredLocations.filter(item => item?.path === anchor.path && item?.heading === anchor.heading);
+    if (matches.length !== 1) {
+      errors.push(id + ': required anchor omitted or repeated: ' + anchor.path + ' / ' + anchor.heading);
+    } else if (matches[0].requiredText !== anchor.requiredText) {
+      errors.push(id + ': accepted record differs from independently required clause: ' + anchor.path + ' / ' + anchor.heading);
+    }
+  }
+  return errors;
+}
+
+async function verifyAcceptedRecord(id, inventory) {
   const filepath = path.join(root, 'docs', 'decisions', id + '.json');
   let record;
   try { record = JSON.parse(await readFile(filepath, 'utf8')); }
@@ -124,6 +167,7 @@ async function verifyAcceptedRecord(id) {
       record.provingTests.some(x => typeof x !== 'string' || !x.trim())) {
     errors.push(id + ': provingTests must list concrete evidence IDs');
   }
+  errors.push(...checkRequiredCoverage(id, record.affectedLocations, inventory));
   if (!Array.isArray(record.affectedLocations) || !record.affectedLocations.length) {
     errors.push(id + ': affectedLocations must have concrete documentation anchors');
     return errors;
@@ -152,7 +196,21 @@ async function main() {
     [paths.register, paths.S, paths.T].map(p => readFile(path.join(root, p), 'utf8'))
   );
   const summary = evaluateStatic({ register, S, T });
-  for (const id of summary.accepted) summary.errors.push(...await verifyAcceptedRecord(id));
+  // No accepted ID can pass with a missing, unreviewed or self-declared-only map.
+  let inventory;
+  try {
+    inventory = JSON.parse(await readFile(path.join(root, 'docs/decisions/required-anchors.json'), 'utf8'));
+  } catch (error) {
+    console.error('DOC-CONTRACT-FAIL Cannot load required-anchor inventory: ' + error.message);
+    process.exitCode = 1;
+    return;
+  }
+  if (inventory?.schemaVersion !== 1 || !inventory.decisions || Array.isArray(inventory.decisions)) {
+    console.error('DOC-CONTRACT-FAIL Invalid independent required-anchor inventory');
+    process.exitCode = 1;
+    return;
+  }
+  for (const id of summary.accepted) summary.errors.push(...await verifyAcceptedRecord(id, inventory));
   if (summary.errors.length) {
     for (const issue of summary.errors) console.error('DOC-CONTRACT-FAIL ' + issue);
     process.exitCode = 1;
