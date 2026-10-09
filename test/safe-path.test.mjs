@@ -24,7 +24,7 @@ test('purposes enforce read/write/state separation and reserved paths',async t=>
 });
 test('reject traversal, alternate separators, absolute and reserved components',async t=>{
  const root=await fixture(t);
- for(const rel of ['../outside','foo/../outside','./a','a//b','/etc/passwd','C:/Windows/win.ini','a\\b','','.git/config','foo/.git/config']){
+ for(const rel of ['../outside','foo/../outside','./a','a//b','/etc/passwd','C:/Windows/win.ini','a\\b','','.git/config','foo/.git/config','x:stream','aux.txt','LPT1','trailing.','space ']){
   await assert.rejects(()=>resolveProjectPath(root,rel,{purpose:'write-new'}));
  }
 });
