@@ -1,5 +1,15 @@
 # CLI
 
+
+> **Draft Stage 12, not yet released:** Read-only `vcp inspect`,
+> `vcp init . --dry-run [--json]` and `vcp recovery-plan` are authored on
+> the Stage12 development branch. Unmanaged EXISTING apply is Stage13-only.
+> NEW schema-v2 init and MANAGED v1→v2 migration are currently disabled by
+> D-01/G-FENCE **NO-GO**. Do not use the draft as a replacement for the
+> published v0.9.3 CLI. The following published CLI usage remains historical
+> released behavior unless specifically labeled Stage12 draft.
+
+
 The CLI bootstraps the Vibe Coding Production Kit into a new or existing repository, manages its lifecycle state, and provides task/readiness/context/verification workflows without replacing unrelated files.
 
 The preferred human experience is agent-first: let the coding agent inspect the repository, draft VCP artifacts, run these commands, and ask the developer only for unresolved decisions that require human intent.
@@ -38,8 +48,6 @@ Preview initialization before writing:
 vcp init . --agent all --dry-run
 ```
 
-**Future D-04 init planner proposal (not enabled in v0.9.3):** Stage12 preview JSON has `planVersion:1`, `planKind:"init"`, init-only `CLAIM` distinct from lifecycle-update `ADOPT`, and non-executable separate `skippedPaths`. Unknown plan versions fail closed, the JSON contains no project source content, and unmanaged EXISTING-root planning performs **zero writes**. Stage12 non-dry-run brownfield apply remains disabled; D-04 is PROPOSED, not an implemented current-release contract.
-
 ## Safe lifecycle updates
 
 Check whether the project, running CLI, or an eligible auto-selected stack profile has lifecycle work available:
@@ -77,12 +85,6 @@ The updater uses persistent baselines, ownership policies, explicit migrations, 
 A newer npm version is never applied by an older CLI. `--check` returns a version-pinned `npx` command targeting the same project path so the migration code and templates come from the version being installed.
 
 See [`UPDATES.md`](UPDATES.md) for the full lifecycle contract.
-
-### Stage12 schema-v2 migration is not enabled (D-01 G-FENCE NO-GO)
-
-The commands above describe the **currently released v0.9.3 schema-v1 lifecycle**, not proof that a future schema-v2 project is protected against commands from older binaries. Published-v0.9.3 Linux adversarial testing in PR #89 observed unsafe older-CLI mutations, including restoring a backup that **erases project edits made after that backup**. The older CLI ignores a separate `lifecycle.lock` and can stale-reap a legacy regular lock. Therefore a newer-version backup and a separate lock path must **not** be represented as a zero-write compatibility fence.
-
-**Managed schema-v1 → schema-v2 migration remains disabled / NO-GO** until D-01 explicitly records an accepted cross-platform safety contract, including native Windows, old `init` with missing manifest, atomic conversion, old/new concurrent access and interrupted recovery. A directory sentinel blocked three isolated Linux legacy commands but does not yet prove this full barrier. Read-only planning and testing may proceed independently; the released CLI's current command syntax and behavior have not been changed by these documentation proposals.
 
 ## Roll back the newest recovery point
 
@@ -127,8 +129,6 @@ vcp doctor .
 In addition to engineering-system checks, v0.9 validates lifecycle state, manifest compatibility, baseline integrity, and interrupted/corrupt update transactions.
 
 See [`DOCTOR.md`](DOCTOR.md) for JSON output, strict CI behavior, and the exact coverage boundary of starter-template checks.
-
-**Future D-02 proposal (not a current CLI guarantee):** Stage12 Doctor will separate assetSet-applicable `installHealth.checks` from informational `governance`; `--strict` will fail on applicable installation WARN/FAIL only. Intentionally omitted brownfield starter files will not trigger install-health failures. Decision and synthetic fixtures remain pending.
 
 ## Interactive setup
 
@@ -237,8 +237,6 @@ vcp verify accept-invite --run --output .vcp/evidence/accept-invite.json
 
 See [`VERIFICATION-EVIDENCE.md`](VERIFICATION-EVIDENCE.md).
 
-**Future D-12 execution authorization (not yet implemented):** before any VCP-controlled `verify --run`, Stage12 must check the **exact Task Pack command bytes**, key and provenance at execution time, including manually edited and legacy Task Packs. A changed, destructive or unapproved command cannot inherit an older approval; grandfathered commands need HUMAN DECISION, and `--yes` never waives that decision. External agent execution is outside VCP's claimed enforcement.
-
 ## Evaluate prompt behavior without embedding a model
 
 Stage 7 adds deterministic evaluation of normalized external-agent behavior records.
@@ -338,12 +336,10 @@ See [`COMMUNITY-PLUGINS.md`](COMMUNITY-PLUGINS.md).
 
 ## Safety behavior
 
-**D-03 (PROPOSED future Stage12 path contract):** Selected-root evidence and future managed-state access default to no-follow for untrusted symlinks, including in-root links and native Windows junction/reparse points, subject only to reviewed purpose-specific exceptions. Existing v0.9.3 path checks are not evidence that this new contract or race-free filesystem confinement already ships. Windows native verification remains UNVERIFIED.
-
 The CLI is intentionally conservative:
 
 - it merges into existing directories instead of deleting unrelated files;
-- initial bootstrap refuses framework-file overwrite unless `--force` is explicit;
+- Stage12 draft init refuses destructive `--force` and never applies unmanaged brownfield files;
 - initialized VCP projects cannot be re-initialized over existing lifecycle state;
 - `update --dry-run` computes the full plan without writing project files;
 - any update conflict blocks apply before project-file writes;
@@ -355,7 +351,7 @@ The CLI is intentionally conservative:
 - repository and `.vcp` paths reject traversal and symlink escapes;
 - `--no-github` skips GitHub-specific templates and workflow files during initialization.
 
-Before using bootstrap `--force`, inspect the reported conflicts. The CLI never treats an overwrite as implicit approval.
+Stage12 draft init `--force` is disabled. The published legacy CLI contract above remains version-specific.
 
 ## Common options
 
@@ -364,7 +360,8 @@ Before using bootstrap `--force`, inspect the reported conflicts. The CLI never 
 --stack <name>     auto | generic | javascript | typescript | python | go | react-native
 --yes, -y          non-interactive initialization
 --force            explicit overwrite where that command supports it
---no-github        skip GitHub issue/PR/workflow files during init
+--github           explicitly include optional GitHub issue/PR scaffolding (Stage12 draft)
+--no-github        explicitly omit optional GitHub issue/PR scaffolding (Stage12 draft)
 --dry-run          preview without writing; update computes the full plan
 --check            update: check version/profile lifecycle state
 --offline          update --check/apply: do not query npm
