@@ -86,6 +86,18 @@ A newer npm version is never applied by an older CLI. `--check` returns a versio
 
 See [`UPDATES.md`](UPDATES.md) for the full lifecycle contract.
 
+
+### Stage12 draft: management ownership preview
+
+Use `vcp manage track <path> --dir . --dry-run --json` or
+`vcp manage ignore <path> --dir . --dry-run --json` to inspect a proposed
+ownership change without writing. A compatible schema-v2 project reports
+managed-section versus whole-file ownership and preserves unowned user files;
+**actual schema-v2 manage mutations remain disabled under D-01/G-FENCE**.
+Legacy schema-v1 manage behavior remains separate. Neither `--yes` nor
+`--force` approves a schema-v2 ownership change. This is draft source behavior,
+not an instruction for the published v0.9.3 CLI.
+
 ## Roll back the newest recovery point
 
 ```bash
