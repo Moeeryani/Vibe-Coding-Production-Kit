@@ -162,6 +162,18 @@ export async function verifyAcceptedRecord(id, inventory, repositoryRoot = root)
       errors.push(id + ': missing acceptance field ' + field);
     }
   }
+  // A decision receipt must describe rejected options and where the human approval
+  // was recorded; a green local gate cannot manufacture either fact.
+  if (typeof record.approvalEvidence !== 'string' || !record.approvalEvidence.trim() ||
+      /^(pending|todo|tbd)$/i.test(record.approvalEvidence.trim())) {
+    errors.push(id + ': missing explicit maintainer approvalEvidence');
+  }
+  if (!Array.isArray(record.rejectedAlternatives) || record.rejectedAlternatives.length === 0 ||
+      record.rejectedAlternatives.some(item => !item ||
+        typeof item.option !== 'string' || !item.option.trim() ||
+        typeof item.reason !== 'string' || !item.reason.trim())) {
+    errors.push(id + ': rejectedAlternatives must name reviewed options and reasons');
+  }
   if (record.id !== id || record.status !== 'ACCEPTED') errors.push(id + ': incorrect accepted record identity');
   if (!Number.isFinite(Date.parse(record.decidedAtUtc)) || !/(Z|[+-]\d\d:\d\d)$/.test(record.decidedAtUtc)) {
     errors.push(id + ': decidedAtUtc must include a time zone');
