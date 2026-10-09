@@ -332,6 +332,8 @@ See [`COMMUNITY-PLUGINS.md`](COMMUNITY-PLUGINS.md).
 
 ## Safety behavior
 
+**D-03 (PROPOSED future Stage12 path contract):** Selected-root evidence and future managed-state access default to no-follow for untrusted symlinks, including in-root links and native Windows junction/reparse points, subject only to reviewed purpose-specific exceptions. Existing v0.9.3 path checks are not evidence that this new contract or race-free filesystem confinement already ships. Windows native verification remains UNVERIFIED.
+
 The CLI is intentionally conservative:
 
 - it merges into existing directories instead of deleting unrelated files;
