@@ -27,4 +27,5 @@ test('published-old-CLI POC documents observation scenarios', () => {
   assert.equal(r.status, 0, r.stderr);
   assert.match(r.stdout, /rollback-v2-erases-user-edit/);
   assert.match(r.stdout, /directory-sentinel-rollback/);
+  assert.match(r.stdout, /deleted-manifest-directory-sentinel-old-init/);
 });
