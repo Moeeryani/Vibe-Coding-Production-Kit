@@ -1,0 +1,5 @@
+
+> vibe-coding-production@0.9.3 pack:check
+> npm pack --dry-run
+
+vibe-coding-production-0.9.3.tgz
