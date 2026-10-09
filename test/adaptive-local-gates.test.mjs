@@ -168,3 +168,23 @@ test('D-06: critical D-01 and D-03 roadmap/CLI/update-doc anchors cannot vanish 
     }
   }
 });
+
+
+test('D-06: canonical ledger and Stage12 roadmap anchors stay mandatory', async () => {
+  const inventory = JSON.parse(await readFile(path.join(root, 'docs/decisions/required-anchors.json'), 'utf8'));
+  const anchors = inventory.decisions['D-06'].anchors;
+  for (const [file, heading] of [
+    ['docs/ADAPTIVE-VCP-DECISIONS.md', '## Normative register rules'],
+    ['docs/ROADMAP.md', '### Stage 12 — Safe Adoption Planning']
+  ]) {
+    assert.ok(anchors.some(a => a.path === file && a.heading === heading),
+      'D-06 must map independent normative authority at ' + file + ' / ' + heading);
+  }
+  const approvedFixture = { schemaVersion: 1, decisions: {
+    'D-06': { coverageReview: 'APPROVED', anchors }
+  } };
+  assert.deepEqual(checkRequiredCoverage('D-06', anchors, approvedFixture), []);
+  const incomplete = anchors.filter(a => a.path !== 'docs/ADAPTIVE-VCP-DECISIONS.md');
+  assert.match(checkRequiredCoverage('D-06', incomplete, approvedFixture).join('\n'),
+    /required anchor omitted or repeated/);
+});
