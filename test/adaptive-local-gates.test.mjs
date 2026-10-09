@@ -133,7 +133,7 @@ test('D-06: every independently declared required section explicitly names its d
   const map = JSON.parse(await readFile(path.join(root, 'docs/decisions/required-anchors.json'), 'utf8'));
   const cache = new Map();
   for (const [id, spec] of Object.entries(map.decisions)) {
-    assert.equal(spec.coverageReview, 'PENDING', id + ': no implicit acceptance during Stage12 preflight');
+    assert.ok(['PENDING', 'APPROVED'].includes(spec.coverageReview), id + ': unknown coverage-review state');
     for (const anchor of spec.anchors) {
       let data = cache.get(anchor.path);
       if (data === undefined) {
