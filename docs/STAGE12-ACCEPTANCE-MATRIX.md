@@ -19,7 +19,7 @@ Old individual-branch green receipts cannot be borrowed.
 | AC-001 | Contract-lineage local gate runner | Fresh combined SHA, clean tree, OS/Node/npm/Git receipts |
 | AC-002 | Canonical decision ledger and S/T contract PR #95 | Independent full-anchor review and actual decision ratification |
 | AC-003 | manifest-v1-guard, manifest-v2, schema contract fixtures | Reader/writer minVersion and unknown-field cases on exact head |
-| AC-004 | POC harness copied from draft PR #89 | Published 0.9.3 checksum provenance, cross-OS mutation fence, maintainer D-01 signoff |
+| AC-004 | PR #89 historical 12-case Linux evidence; `scripts/audit-d01-evidence.mjs` confirms internal 7-witness NO-GO; 13th missing-Manifest+sentinel fixture authored | Independent published 0.9.3 SHA512 provenance, native Windows, concurrency, crash, atomic transition and maintainer D-01 acceptance remain UNVERIFIED |
 | AC-005 | managed-recovery-v2, versioned-journal, stale-journal-plan, committed-cleanup-plan | Crash by phase, exact byte proof, quarantine and native durability |
 | AC-006 | managed-schema-migrator, managed-recovery-plan and versioned recovery | v1-to-v2 normal update, rollback/idempotence, G-FENCE release |
 | AC-007 | managed-markdown, section-lifecycle | BOM/CRLF/mixed EOL, malformed markers, outside bytes unchanged |
