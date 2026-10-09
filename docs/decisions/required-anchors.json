@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 1,
+  "status": "DRAFT_REQUIRES_MAINTAINER_COVERAGE_REVIEW",
+  "purpose": "Independent required-anchor coverage proposals for prospective ACCEPTED decisions. Maintainer must verify exhaustive normative S/T/Roadmap/CLI/Task coverage; not yet approval.",
+  "decisions": {
+    "D-01": {
+      "coverageReview": "PENDING",
+      "anchors": [
+        {
+          "path": "docs/ADAPTIVE-VCP-IMPLEMENTATION-PLAN.md",
+          "heading": "### Published-old-CLI compatibility: D-01 remains UNPROVEN",
+          "requiredText": "G-FENCE is a hard stop"
+        },
+        {
+          "path": "docs/ADAPTIVE-VCP-CODE-INTEGRATION-ANALYSIS.md",
+          "heading": "#### Published 0.9.3 compatibility is an unproven hard safety gate (D-01)",
+          "requiredText": "G-FENCE blocks any live managed"
+        },
+        {
+          "path": "docs/tasks/stage12-safe-adoption-planning.md",
+          "heading": "## Acceptance criteria",
+          "requiredText": "AC-004:"
+        }
+      ]
+    },
+    "D-02": {
+      "coverageReview": "PENDING",
+      "anchors": [
+        {
+          "path": "docs/ADAPTIVE-VCP-IMPLEMENTATION-PLAN.md",
+          "heading": "## 3.11 Minimal brownfield adoption surface and Doctor compatibility",
+          "requiredText": "Proposed D-02 strict truth table"
+        },
+        {
+          "path": "docs/ADAPTIVE-VCP-CODE-INTEGRATION-ANALYSIS.md",
+          "heading": "### Phase 2/3 broader cleanup",
+          "requiredText": "Doctor minimum (D-02 proposal)"
+        },
+        {
+          "path": "docs/tasks/stage12-safe-adoption-planning.md",
+          "heading": "## Acceptance criteria",
+          "requiredText": "AC-013:"
+        }
+      ]
+    },
+    "D-03": {
+      "coverageReview": "PENDING",
+      "anchors": [
+        {
+          "path": "docs/ADAPTIVE-VCP-IMPLEMENTATION-PLAN.md",
+          "heading": "### Core detector filesystem trust",
+          "requiredText": "Common path trust primitive (C-11)"
+        },
+        {
+          "path": "docs/ADAPTIVE-VCP-CODE-INTEGRATION-ANALYSIS.md",
+          "heading": "## 7.2 Prompt resolution must change first",
+          "requiredText": "resolveProjectPath"
+        },
+        {
+          "path": "docs/ADAPTIVE-VCP-CODE-INTEGRATION-ANALYSIS.md",
+          "heading": "## 9.4A Detector DSL resource and path contract",
+          "requiredText": "symlink targets cannot confer capability evidence"
+        },
+        {
+          "path": "docs/tasks/stage12-safe-adoption-planning.md",
+          "heading": "## Acceptance criteria",
+          "requiredText": "AC-010:"
+        }
+      ]
+    },
+    "D-04": {
+      "coverageReview": "PENDING",
+      "anchors": [
+        {
+          "path": "docs/ADAPTIVE-VCP-IMPLEMENTATION-PLAN.md",
+          "heading": "## 3.7 Init action semantics",
+          "requiredText": "Init planner vocabulary is distinct"
+        },
+        {
+          "path": "docs/ADAPTIVE-VCP-CODE-INTEGRATION-ANALYSIS.md",
+          "heading": "### init-plan",
+          "requiredText": "Public init JSON MUST"
+        },
+        {
+          "path": "docs/tasks/stage12-safe-adoption-planning.md",
+          "heading": "## Acceptance criteria",
+          "requiredText": "AC-015:"
+        }
+      ]
+    },
+    "D-05": {
+      "coverageReview": "PENDING",
+      "anchors": [
+        {
+          "path": "docs/ADAPTIVE-VCP-IMPLEMENTATION-PLAN.md",
+          "heading": "## 3.5 Managed-section ownership for existing agent files",
+          "requiredText": "Stage-12 Markdown marker grammar"
+        },
+        {
+          "path": "docs/ADAPTIVE-VCP-CODE-INTEGRATION-ANALYSIS.md",
+          "heading": "## 5.2 Recommended ownership model",
+          "requiredText": "Stage-12 Markdown marker grammar"
+        },
+        {
+          "path": "docs/tasks/stage12-safe-adoption-planning.md",
+          "heading": "## Acceptance criteria",
+          "requiredText": "AC-007:"
+        }
+      ]
+    },
+    "D-06": {
+      "coverageReview": "PENDING",
+      "anchors": [
+        {
+          "path": "docs/ADAPTIVE-VCP-IMPLEMENTATION-PLAN.md",
+          "heading": "## Z.1 Amendments register (strategic)",
+          "requiredText": "Historical register — do not enforce byte-identical"
+        },
+        {
+          "path": "docs/ADAPTIVE-VCP-CODE-INTEGRATION-ANALYSIS.md",
+          "heading": "## Z.1 Amendments register (technical)",
+          "requiredText": "Historical appendix, not an identical-row twin"
+        },
+        {
+          "path": "docs/tasks/stage12-safe-adoption-planning.md",
+          "heading": "## Source of truth",
+          "requiredText": "docs/ADAPTIVE-VCP-DECISIONS.md"
+        },
+        {
+          "path": "docs/ADAPTIVE-VCP-LOCAL-GATES.md",
+          "heading": "## Scope of local static guard",
+          "requiredText": "unique registered D-01–D-12"
+        }
+      ]
+    },
+    "D-12": {
+      "coverageReview": "PENDING",
+      "anchors": [
+        {
+          "path": "docs/ADAPTIVE-VCP-IMPLEMENTATION-PLAN.md",
+          "heading": "### Migration re-screening and bounded enforcement (C-03 / D-12)",
+          "requiredText": "Migration"
+        },
+        {
+          "path": "docs/ADAPTIVE-VCP-CODE-INTEGRATION-ANALYSIS.md",
+          "heading": "### Migration command re-screen and execution-time authority (C-03 / D-12)",
+          "requiredText": "Migration"
+        },
+        {
+          "path": "docs/tasks/stage12-safe-adoption-planning.md",
+          "heading": "## Acceptance criteria",
+          "requiredText": "AC-011:"
+        }
+      ]
+    }
+  },
+  "deferredIds": [
+    "D-07",
+    "D-08",
+    "D-09",
+    "D-10",
+    "D-11"
+  ],
+  "coverageNotes": [
+    "Locations were read independently from the current Stage12 strategic/technical and Task Pack documents and require human review. Listing existing text does not prove complete or correct acceptance semantics.",
+    "ROADMAP.md and CLI.md use the current v0.9.3 contract; applicability and any mandatory new accepted anchors must be reviewed and added before changing coverageReview to APPROVED.",
+    "Do not set coverageReview APPROVED or an ID to ACCEPTED automatically. Future-phase decisions D-07..D-11 lack inventories and MUST fail closed on acceptance.",
+    "Do not infer accepted contract from status or snippets; review selected alternatives, rejected alternatives, tests, provenance and all normative surfaces."
+  ]
+}
