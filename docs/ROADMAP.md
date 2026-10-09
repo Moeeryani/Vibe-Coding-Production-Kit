@@ -526,14 +526,14 @@ Dependency Graph Engine / Slice D remains deferred.
 
 **Status:** 🔵 Next designed execution stage — implementation must begin from a reconciled current-main baseline. Canonical design: docs/ADAPTIVE-VCP-IMPLEMENTATION-PLAN.md with code authority in docs/ADAPTIVE-VCP-CODE-INTEGRATION-ANALYSIS.md.
 
-Stage 12 is intentionally read-only for **unmanaged brownfield Smart Init**. Already-managed repositories may still migrate through the normal transactional `vcp update` lifecycle.
+Stage 12 is intentionally read-only for **unmanaged brownfield Smart Init**. **Already-managed schema-v1 repositories must remain on schema v1 while D-01/G-FENCE is NO-GO**; managed v1→v2 migration via transactional `vcp update` is a **conditional future capability**, not an enabled or approved current migration path.
 
 It establishes:
 
 - VCP-state readability before NEW / EXISTING / MANAGED classification, including fail-closed newer/malformed/recovery states;
 - project-override / packaged canonical prompt resolution with inspectable source provenance;
 - lifecycle manifest schema v2 for whole-file vs section ownership plus a minimum-reader compatibility guard;
-- schema-v1 → schema-v2 managed-update migration and previous-release lifecycle smoke;
+- **conditionally gated** schema-v1 → schema-v2 managed-update migration only after explicit D-01 acceptance, real published-old-CLI cross-platform zero-user-edit-loss proof, atomic/concurrency/crash recovery and native Windows coverage; **otherwise migration disabled**, with old 0.9.3 lifecycle findings preserved as NO-GO evidence;
 - section-composition/baseline/update primitives;
 - classified install-surface planning for migrated legacy-full, fresh greenfield-safe, and brownfield-minimal projects; fresh Adaptive installs no longer receive the source-repository npm validation workflow; Doctor understands intentionally absent assets;
 - inspect-before-prompt option resolution; preserved agent-selector provenance, explicit adapter intent, and VCP-managed adapter ownership without claiming merely observed-compatible project files;
@@ -544,6 +544,8 @@ It establishes:
 - removal of destructive init `--force` behavior.
 
 Stage 12 does not mutate unmanaged EXISTING repositories through Smart Init; `vcp init` on MANAGED state redirects to lifecycle update/status.
+
+**Interim Stage12 decision boundary (D-01 / D-03 / D-06):** the real published `vibe-coding-production@0.9.3` Linux POC in PR #89 demonstrated seven unsafe old-CLI mutations, including erased post-backup user edits; G-FENCE = **NO-GO**. An isolated Linux directory-sentinel refusal is **not** a proven atomic migration fence. `docs/ADAPTIVE-VCP-DECISIONS.md` is the proposed canonical D-01–D-12 register, with ratification packet `docs/decisions/stage12-d01-d03-d06-ratification-packet.md` (draft PR #92). D-03 path trust and D-06 review governance remain PROPOSED, so reader-only foundations require their own accepted contracts and verified gates; Phase8 protected remote merge enforcement is not implemented. **No Stage12 product migration GO is implied by the roadmap.**
 
 ### Stage 13 — Smart Init Apply
 
