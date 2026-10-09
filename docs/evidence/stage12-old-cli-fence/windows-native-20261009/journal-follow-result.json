@@ -1,0 +1,13 @@
+{
+  "scenario": "rollback following a v2 journal to an existing v2 backup",
+  "harnessExitNotCaptured": false,
+  "exitCode": 0,
+  "stderr": "",
+  "stdout": "Restored VCP backup op-2026-0002. Project state returned to undefined.\n",
+  "resultingSchema": 1,
+  "userEditSurvived": false,
+  "stalePreMigrationContentWritten": true,
+  "journalStillPresent": null,
+  "lockAfter": "absent",
+  "verdict": "OLD_CLI_FOLLOWED_V2_JOURNAL_AND_ERASED_USER_EDIT"
+}

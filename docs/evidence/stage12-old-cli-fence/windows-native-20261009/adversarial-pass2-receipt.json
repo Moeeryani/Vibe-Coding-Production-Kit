@@ -1,0 +1,357 @@
+{
+  "type": "d01-windows-adversarial-pass2",
+  "status": "NOT_A_MIGRATION_APPROVAL",
+  "platform": "win32",
+  "arch": "x64",
+  "node": "v24.5.0",
+  "recordedUtc": "2026-10-09T07:41:40.105Z",
+  "cliBin": "<WIN-TEMP>/d01-win-20261009b/package/bin/vibe-coding-production.mjs",
+  "repo": "<REPO-CLONE>",
+  "scratch": "D:\\<SCRATCH-ROOT>\\d01-pass2-x7aL8Y",
+  "manifestMatrix": [
+    {
+      "case": "intact-v1__initforce",
+      "command": [
+        "init",
+        "D:\\<SCRATCH-ROOT>\\d01-pass2-x7aL8Y\\projects\\manifest-intact-v1__initforce",
+        "--yes",
+        "--no-github",
+        "--force"
+      ],
+      "exitCode": 1,
+      "stderr": "\nError: This project is already initialized with VCP. Use `vcp update` for lifecycle upgrades; `vcp init --force` will not replace existing VCP state.\n",
+      "protectedChanged": 0,
+      "changedSample": [],
+      "lockKindAfter": "absent",
+      "resultingSchema": 1,
+      "postBackupEditSurvived": true,
+      "manifestStillAbsent": false,
+      "journalSurvived": false,
+      "v2BackupSurvived": false,
+      "verdict": "REFUSED_OR_NO_CHANGE"
+    },
+    {
+      "case": "intact-v1__rollback",
+      "command": [
+        "rollback",
+        "D:\\<SCRATCH-ROOT>\\d01-pass2-x7aL8Y\\projects\\manifest-intact-v1__rollback"
+      ],
+      "exitCode": 0,
+      "stderr": "",
+      "protectedChanged": 1,
+      "changedSample": [
+        "AGENTS.md"
+      ],
+      "lockKindAfter": "absent",
+      "resultingSchema": 1,
+      "postBackupEditSurvived": false,
+      "manifestStillAbsent": false,
+      "journalSurvived": false,
+      "v2BackupSurvived": false,
+      "verdict": "LEGACY_MUTATION"
+    },
+    {
+      "case": "missing__initforce",
+      "command": [
+        "init",
+        "D:\\<SCRATCH-ROOT>\\d01-pass2-x7aL8Y\\projects\\manifest-missing__initforce",
+        "--yes",
+        "--no-github",
+        "--force"
+      ],
+      "exitCode": 0,
+      "stderr": "",
+      "protectedChanged": 2,
+      "changedSample": [
+        ".vcp/manifest.json",
+        "AGENTS.md"
+      ],
+      "lockKindAfter": "absent",
+      "resultingSchema": 1,
+      "postBackupEditSurvived": false,
+      "manifestStillAbsent": false,
+      "journalSurvived": false,
+      "v2BackupSurvived": false,
+      "verdict": "LEGACY_MUTATION"
+    },
+    {
+      "case": "missing__rollback",
+      "command": [
+        "rollback",
+        "D:\\<SCRATCH-ROOT>\\d01-pass2-x7aL8Y\\projects\\manifest-missing__rollback"
+      ],
+      "exitCode": 0,
+      "stderr": "",
+      "protectedChanged": 2,
+      "changedSample": [
+        ".vcp/manifest.json",
+        "AGENTS.md"
+      ],
+      "lockKindAfter": "absent",
+      "resultingSchema": 1,
+      "postBackupEditSurvived": false,
+      "manifestStillAbsent": false,
+      "journalSurvived": false,
+      "v2BackupSurvived": false,
+      "verdict": "LEGACY_MUTATION"
+    },
+    {
+      "case": "corrupt__initforce",
+      "command": [
+        "init",
+        "D:\\<SCRATCH-ROOT>\\d01-pass2-x7aL8Y\\projects\\manifest-corrupt__initforce",
+        "--yes",
+        "--no-github",
+        "--force"
+      ],
+      "exitCode": 1,
+      "stderr": "\nError: This project is already initialized with VCP. Use `vcp update` for lifecycle upgrades; `vcp init --force` will not replace existing VCP state.\n",
+      "protectedChanged": 0,
+      "changedSample": [],
+      "lockKindAfter": "absent",
+      "resultingSchema": null,
+      "postBackupEditSurvived": true,
+      "manifestStillAbsent": false,
+      "journalSurvived": false,
+      "v2BackupSurvived": false,
+      "verdict": "REFUSED_OR_NO_CHANGE"
+    },
+    {
+      "case": "corrupt__rollback",
+      "command": [
+        "rollback",
+        "D:\\<SCRATCH-ROOT>\\d01-pass2-x7aL8Y\\projects\\manifest-corrupt__rollback"
+      ],
+      "exitCode": 0,
+      "stderr": "",
+      "protectedChanged": 2,
+      "changedSample": [
+        ".vcp/manifest.json",
+        "AGENTS.md"
+      ],
+      "lockKindAfter": "absent",
+      "resultingSchema": 1,
+      "postBackupEditSurvived": false,
+      "manifestStillAbsent": false,
+      "journalSurvived": false,
+      "v2BackupSurvived": false,
+      "verdict": "LEGACY_MUTATION"
+    },
+    {
+      "case": "higher-version-3__initforce",
+      "command": [
+        "init",
+        "D:\\<SCRATCH-ROOT>\\d01-pass2-x7aL8Y\\projects\\manifest-higher-version-3__initforce",
+        "--yes",
+        "--no-github",
+        "--force"
+      ],
+      "exitCode": 1,
+      "stderr": "\nError: This project is already initialized with VCP. Use `vcp update` for lifecycle upgrades; `vcp init --force` will not replace existing VCP state.\n",
+      "protectedChanged": 0,
+      "changedSample": [],
+      "lockKindAfter": "absent",
+      "resultingSchema": 3,
+      "postBackupEditSurvived": true,
+      "manifestStillAbsent": false,
+      "journalSurvived": false,
+      "v2BackupSurvived": false,
+      "verdict": "REFUSED_OR_NO_CHANGE"
+    },
+    {
+      "case": "higher-version-3__rollback",
+      "command": [
+        "rollback",
+        "D:\\<SCRATCH-ROOT>\\d01-pass2-x7aL8Y\\projects\\manifest-higher-version-3__rollback"
+      ],
+      "exitCode": 0,
+      "stderr": "",
+      "protectedChanged": 2,
+      "changedSample": [
+        ".vcp/manifest.json",
+        "AGENTS.md"
+      ],
+      "lockKindAfter": "absent",
+      "resultingSchema": 1,
+      "postBackupEditSurvived": false,
+      "manifestStillAbsent": false,
+      "journalSurvived": false,
+      "v2BackupSurvived": false,
+      "verdict": "LEGACY_MUTATION"
+    },
+    {
+      "case": "missing-with-v2-journal__initforce",
+      "command": [
+        "init",
+        "D:\\<SCRATCH-ROOT>\\d01-pass2-x7aL8Y\\projects\\manifest-missing-with-v2-journal__initforce",
+        "--yes",
+        "--no-github",
+        "--force"
+      ],
+      "exitCode": 0,
+      "stderr": "",
+      "protectedChanged": 2,
+      "changedSample": [
+        ".vcp/manifest.json",
+        "AGENTS.md"
+      ],
+      "lockKindAfter": "absent",
+      "resultingSchema": 1,
+      "postBackupEditSurvived": false,
+      "manifestStillAbsent": false,
+      "journalSurvived": true,
+      "v2BackupSurvived": true,
+      "verdict": "LEGACY_MUTATION"
+    },
+    {
+      "case": "missing-with-v2-journal__rollback",
+      "command": [
+        "rollback",
+        "D:\\<SCRATCH-ROOT>\\d01-pass2-x7aL8Y\\projects\\manifest-missing-with-v2-journal__rollback"
+      ],
+      "exitCode": 1,
+      "stderr": "\nError: ENOENT: no such file or directory, lstat 'D:\\<SCRATCH-ROOT>\\d01-pass2-x7aL8Y\\projects\\manifest-missing-with-v2-journal__rollback\\.vcp\\backups\\op-2026-0001\\files\\AGENTS.md'\n",
+      "protectedChanged": 0,
+      "changedSample": [],
+      "lockKindAfter": "absent",
+      "resultingSchema": null,
+      "postBackupEditSurvived": true,
+      "manifestStillAbsent": true,
+      "journalSurvived": true,
+      "v2BackupSurvived": true,
+      "verdict": "REFUSED_OR_NO_CHANGE"
+    },
+    {
+      "case": "missing-with-directory-sentinel__initforce",
+      "command": [
+        "init",
+        "D:\\<SCRATCH-ROOT>\\d01-pass2-x7aL8Y\\projects\\manifest-missing-with-directory-sentinel__initforce",
+        "--yes",
+        "--no-github",
+        "--force"
+      ],
+      "exitCode": 0,
+      "stderr": "",
+      "protectedChanged": 2,
+      "changedSample": [
+        ".vcp/manifest.json",
+        "AGENTS.md"
+      ],
+      "lockKindAfter": "directory",
+      "resultingSchema": 1,
+      "postBackupEditSurvived": false,
+      "manifestStillAbsent": false,
+      "journalSurvived": false,
+      "v2BackupSurvived": false,
+      "verdict": "LEGACY_MUTATION"
+    },
+    {
+      "case": "missing-with-directory-sentinel__rollback",
+      "command": [
+        "rollback",
+        "D:\\<SCRATCH-ROOT>\\d01-pass2-x7aL8Y\\projects\\manifest-missing-with-directory-sentinel__rollback"
+      ],
+      "exitCode": 1,
+      "stderr": "\nError: Another VCP update appears to be running. If it was interrupted, use `vcp rollback` or remove a confirmed stale .vcp/update.lock.\n",
+      "protectedChanged": 0,
+      "changedSample": [],
+      "lockKindAfter": "directory",
+      "resultingSchema": null,
+      "postBackupEditSurvived": true,
+      "manifestStillAbsent": true,
+      "journalSurvived": false,
+      "v2BackupSurvived": false,
+      "verdict": "REFUSED_OR_NO_CHANGE"
+    },
+    {
+      "case": "missing-with-v2-journal-and-sentinel__initforce",
+      "command": [
+        "init",
+        "D:\\<SCRATCH-ROOT>\\d01-pass2-x7aL8Y\\projects\\manifest-missing-with-v2-journal-and-sentinel__initforce",
+        "--yes",
+        "--no-github",
+        "--force"
+      ],
+      "exitCode": 0,
+      "stderr": "",
+      "protectedChanged": 2,
+      "changedSample": [
+        ".vcp/manifest.json",
+        "AGENTS.md"
+      ],
+      "lockKindAfter": "directory",
+      "resultingSchema": 1,
+      "postBackupEditSurvived": false,
+      "manifestStillAbsent": false,
+      "journalSurvived": true,
+      "v2BackupSurvived": true,
+      "verdict": "LEGACY_MUTATION"
+    },
+    {
+      "case": "missing-with-v2-journal-and-sentinel__rollback",
+      "command": [
+        "rollback",
+        "D:\\<SCRATCH-ROOT>\\d01-pass2-x7aL8Y\\projects\\manifest-missing-with-v2-journal-and-sentinel__rollback"
+      ],
+      "exitCode": 1,
+      "stderr": "\nError: Another VCP update appears to be running. If it was interrupted, use `vcp rollback` or remove a confirmed stale .vcp/update.lock.\n",
+      "protectedChanged": 0,
+      "changedSample": [],
+      "lockKindAfter": "directory",
+      "resultingSchema": null,
+      "postBackupEditSurvived": true,
+      "manifestStillAbsent": true,
+      "journalSurvived": true,
+      "v2BackupSurvived": true,
+      "verdict": "REFUSED_OR_NO_CHANGE"
+    }
+  ],
+  "otherTests": {
+    "agedEmptySentinelReclaim": {
+      "status": "EXECUTED",
+      "lockKindAfter": "directory",
+      "exitCode": 1,
+      "stderr": "\nError: Path is a directory: rm returned EISDIR (is a directory) D:\\<SCRATCH-ROOT>\\d01-pass2-x7aL8Y\\projects\\aged-empty-sentinel\\.vcp\\update.lock\n",
+      "postBackupEditSurvived": true,
+      "verdict": "SENTINEL_SURVIVED_WINDOWS_RMDIR"
+    },
+    "caseVariant": {
+      "status": "EXECUTED",
+      "requested": "D:\\<SCRATCH-ROOT>\\d01-pass2-x7al8y\\projects\\case-variant",
+      "actual": "D:\\<SCRATCH-ROOT>\\d01-pass2-x7aL8Y\\projects\\case-variant",
+      "exitCode": 0,
+      "stderr": "",
+      "protectedChanged": 2,
+      "postBackupEditSurvived": false,
+      "verdict": "OBSERVED"
+    },
+    "junctionProbe": {
+      "status": "EXECUTED",
+      "mklinkStdout": "Junction created for D:\\<SCRATCH-ROOT>\\d01-pass2-x7aL8Y\\projects\\junction-probe\\.vcp\\backups\\2026-01-01T00-00-00-000Z-a0000000\\files <<===>> D:\\<SCRATCH-ROOT>",
+      "mklinkStderr": "",
+      "junctionResolvesToOutside": true,
+      "lstatLooksLikeReparse": false,
+      "exitCode": 1,
+      "stderr": "\nError: Refusing to follow symlink in VCP state path: .vcp/backups/2026-01-01T00-00-00-000Z-a0000000/files/AGENTS.md\n",
+      "injectedContentReachedProject": false,
+      "outsideVictimAfter": "DO_NOT_TOUCH\n",
+      "verdict": "JUNCTION_NOT_USED_FOR_WRITE"
+    },
+    "symlinkManagedFile": {
+      "status": "EXECUTED",
+      "reason": null,
+      "exitCode": 1,
+      "stderr": "\nError: Refusing to follow symlink in managed path: AGENTS.md\n",
+      "outsideVictimAfter": "DO_NOT_TOUCH\n",
+      "projectAGentsAfter": "DO_NOT_TOUCH\n",
+      "verdict": "SYMLINK_REFUSED_OR_UNTOUCHED"
+    },
+    "v2LockHolder": {
+      "status": "EXECUTED",
+      "exitCode": 0,
+      "output": "{\"acquired\":false,\"code\":\"E_DIRECTORY_SYNC_UNPROVEN\",\"message\":\"Lifecycle directory durability is unproven: directory metadata sync unsupported\"}",
+      "stderr": "",
+      "verdict": "PRODUCTION_LOCK_OUTCOME"
+    }
+  }
+}

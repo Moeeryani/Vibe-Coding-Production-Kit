@@ -1,0 +1,380 @@
+{
+  "type": "d01-windows-adversarial",
+  "status": "NOT_A_MIGRATION_APPROVAL",
+  "platform": "win32",
+  "arch": "x64",
+  "node": "v24.5.0",
+  "cliBin": "<WIN-TEMP>/d01-win-20261009b/package/bin/vibe-coding-production.mjs",
+  "repo": "<REPO-CLONE>",
+  "scratch": "D:\\<SCRATCH-ROOT>\\d01-adversarial-sWbHdU",
+  "recordedUtc": "2026-10-09T07:33:22.137Z",
+  "results": [
+    {
+      "id": "A1",
+      "title": "aged directory sentinel (mtime > 1h) vs old rollback",
+      "status": "EXECUTED",
+      "verdict": "SENTINEL_HELD",
+      "detail": {
+        "status": "EXECUTED",
+        "aged": true,
+        "withToken": false,
+        "lockKindBefore": "directory",
+        "lockKindAfter": "directory",
+        "sentinelContentsAfter": [],
+        "tokenFileDestroyed": null,
+        "exitCode": 1,
+        "stderr": "\nError: Path is a directory: rm returned EISDIR (is a directory) D:\\<SCRATCH-ROOT>\\d01-adversarial-sWbHdU\\projects\\aged-dir-sentinel\\.vcp\\update.lock\n",
+        "changes": [],
+        "resultingSchema": 2,
+        "postBackupEditSurvived": true,
+        "verdict": "SENTINEL_HELD"
+      },
+      "durationMs": 316
+    },
+    {
+      "id": "A2",
+      "title": "fresh directory sentinel holding a token file",
+      "status": "EXECUTED",
+      "verdict": "SENTINEL_HELD",
+      "detail": {
+        "status": "EXECUTED",
+        "aged": false,
+        "withToken": true,
+        "lockKindBefore": "directory",
+        "lockKindAfter": "directory",
+        "sentinelContentsAfter": [
+          "owner.json"
+        ],
+        "tokenFileDestroyed": false,
+        "exitCode": 1,
+        "stderr": "\nError: Another VCP update appears to be running. If it was interrupted, use `vcp rollback` or remove a confirmed stale .vcp/update.lock.\n",
+        "changes": [],
+        "resultingSchema": 2,
+        "postBackupEditSurvived": true,
+        "verdict": "SENTINEL_HELD"
+      },
+      "durationMs": 262
+    },
+    {
+      "id": "A3",
+      "title": "live same-host PID lock vs old rollback",
+      "status": "EXECUTED",
+      "verdict": "REFUSED",
+      "detail": {
+        "status": "EXECUTED",
+        "holderPid": 30040,
+        "holderAlive": false,
+        "exitCode": 1,
+        "stderr": "\nError: Another VCP update appears to be running (pid 30040 on <HOST>). If it was interrupted, use `vcp rollback` or remove a confirmed stale .vcp/update.lock.\n",
+        "changes": [],
+        "lockKindAfter": "regular-file",
+        "resultingSchema": 2,
+        "postBackupEditSurvived": true,
+        "verdict": "REFUSED"
+      },
+      "durationMs": 562
+    },
+    {
+      "id": "A4",
+      "title": "foreign-host PID (locally live) fresh lock",
+      "status": "EXECUTED",
+      "verdict": "REFUSED",
+      "detail": {
+        "status": "EXECUTED",
+        "foreignPidThatIsLocallyLive": 49616,
+        "aged": false,
+        "exitCode": 1,
+        "stderr": "\nError: Another VCP update appears to be running (pid 49616 on OTHER_HOST_9f2c). If it was interrupted, use `vcp rollback` or remove a confirmed stale .vcp/update.lock.\n",
+        "changes": [],
+        "resultingSchema": 2,
+        "postBackupEditSurvived": true,
+        "verdict": "REFUSED",
+        "note": "pid is live on THIS host but claimed on another host, so liveness proves nothing cross-host"
+      },
+      "durationMs": 573
+    },
+    {
+      "id": "A5",
+      "title": "foreign-host PID (locally live) aged lock",
+      "status": "EXECUTED",
+      "verdict": "LEGACY_MUTATION_ON_UNVERIFIABLE_FOREIGN_OWNER",
+      "detail": {
+        "status": "EXECUTED",
+        "foreignPidThatIsLocallyLive": 12152,
+        "aged": true,
+        "exitCode": 0,
+        "stderr": "",
+        "changes": [
+          {
+            "path": ".vcp/manifest.json",
+            "before": "file:5eee948ba8eccd8c8d665626902e74c53793791dd5a887464fc5129e60f988b4",
+            "after": "file:933c107a4683c2f20cff6f0ef8fcd04fd2132573104124431c7a345f804ec3e7"
+          },
+          {
+            "path": "AGENTS.md",
+            "before": "file:86b39f0885f3cd6cf6a28809894cddf03c64235bceaf94fce3e0839a9ac587a8",
+            "after": "file:637efb62ff1c12b7d921c5d10068d7a2e57936ef5504db7a2edaff4794d59926"
+          }
+        ],
+        "resultingSchema": 1,
+        "postBackupEditSurvived": false,
+        "verdict": "LEGACY_MUTATION_ON_UNVERIFIABLE_FOREIGN_OWNER",
+        "note": "pid is live on THIS host but claimed on another host, so liveness proves nothing cross-host"
+      },
+      "durationMs": 570
+    },
+    {
+      "id": "A6",
+      "title": "malformed lock payload variants",
+      "status": "EXECUTED",
+      "verdict": "LEGACY_MUTATION_ON_MALFORMED_VARIANTS",
+      "detail": {
+        "status": "EXECUTED",
+        "variants": {
+          "empty": {
+            "exitCode": 1,
+            "changes": 0,
+            "lockKindAfter": "regular-file",
+            "postBackupEditSurvived": true
+          },
+          "not-json": {
+            "exitCode": 1,
+            "changes": 0,
+            "lockKindAfter": "regular-file",
+            "postBackupEditSurvived": true
+          },
+          "json-no-pid": {
+            "exitCode": 0,
+            "changes": 2,
+            "lockKindAfter": "absent",
+            "postBackupEditSurvived": false
+          },
+          "json-pid-null": {
+            "exitCode": 0,
+            "changes": 2,
+            "lockKindAfter": "absent",
+            "postBackupEditSurvived": false
+          },
+          "json-array": {
+            "exitCode": 1,
+            "changes": 0,
+            "lockKindAfter": "regular-file",
+            "postBackupEditSurvived": true
+          }
+        },
+        "mutatingWithin1Hour": [
+          "json-no-pid",
+          "json-pid-null"
+        ],
+        "verdict": "LEGACY_MUTATION_ON_MALFORMED_VARIANTS"
+      },
+      "durationMs": 1396
+    },
+    {
+      "id": "A7",
+      "title": "two old CLI processes racing the same lock",
+      "status": "EXECUTED",
+      "verdict": "SERIALIZED_OR_REFUSED",
+      "detail": {
+        "status": "EXECUTED",
+        "A": {
+          "code": 0,
+          "signal": null,
+          "stderr": ""
+        },
+        "B": {
+          "code": 1,
+          "signal": null,
+          "stderr": "\nError: Another VCP update appears to be running (pid 45752 on <HOST>). If it was interrupted, use `vcp rollback` or remove a confirmed stale .vcp/update.lock.\n"
+        },
+        "changes": 2,
+        "resultingSchema": 1,
+        "postBackupEditSurvived": false,
+        "verdict": "SERIALIZED_OR_REFUSED"
+      },
+      "durationMs": 305
+    },
+    {
+      "id": "B1",
+      "title": "published restoreBackup() over a lock held by another writer",
+      "status": "EXECUTED",
+      "verdict": "FOREIGN_LOCK_STOLEN_BY_OLD_RESTORE",
+      "detail": {
+        "status": "EXECUTED",
+        "entrypoint": "published lib/state.mjs restoreBackup()",
+        "thrown": null,
+        "lockStillHeldByOther": null,
+        "foreignLockDeleted": true,
+        "changes": [
+          {
+            "path": ".vcp/manifest.json",
+            "before": "file:d3a4c6572eff9ebf2bcdcb908d30d7538c63b92dbf586505a350b8feba4faa23",
+            "after": "file:1178d1b6278c66c08c9047df5f7c62d9c8de9da600594d0ff86e50e58e456865"
+          },
+          {
+            "path": "AGENTS.md",
+            "before": "file:86b39f0885f3cd6cf6a28809894cddf03c64235bceaf94fce3e0839a9ac587a8",
+            "after": "file:637efb62ff1c12b7d921c5d10068d7a2e57936ef5504db7a2edaff4794d59926"
+          }
+        ],
+        "resultingSchema": 1,
+        "postBackupEditSurvived": false,
+        "verdict": "FOREIGN_LOCK_STOLEN_BY_OLD_RESTORE"
+      },
+      "durationMs": 258
+    },
+    {
+      "id": "C1",
+      "title": "old CLI vs simulated v2 lock holder release/reacquire window",
+      "status": "BLOCKED",
+      "verdict": null,
+      "detail": {
+        "status": "BLOCKED",
+        "reason": "v2 lock holder never acquired",
+        "holderEvents": [
+          {
+            "stage": "error",
+            "code": "E_DIRECTORY_SYNC_UNPROVEN",
+            "message": "Lifecycle directory durability is unproven: directory metadata sync unsupported"
+          }
+        ],
+        "holderStderr": ""
+      },
+      "durationMs": 204
+    },
+    {
+      "id": "D1",
+      "title": "SIGKILL mid-rollback and old CLI retry",
+      "status": "EXECUTED",
+      "verdict": "OBSERVED",
+      "detail": {
+        "status": "EXECUTED",
+        "killResult": {
+          "code": 0,
+          "signal": null,
+          "stdout": "Restored VCP backup 2026-01-01T00-00-00-000Z-a0000000. Project state returned to 0.9.3.\n",
+          "stderr": ""
+        },
+        "interrupted": {
+          "lockKind": "absent",
+          "lockContent": null,
+          "transaction": null,
+          "stageDirExists": false,
+          "resultingSchema": 1,
+          "postBackupEditSurvived": false
+        },
+        "retryExitCode": 0,
+        "retryChanges": 0,
+        "afterRetry": {
+          "lockKind": "absent",
+          "resultingSchema": 1,
+          "postBackupEditSurvived": false
+        },
+        "changesByKill": 2,
+        "verdict": "OBSERVED"
+      },
+      "durationMs": 526
+    },
+    {
+      "id": "D2",
+      "title": "write failure simulation (deep path / ENAMETOOLONG)",
+      "status": "EXECUTED",
+      "verdict": "OBSERVED",
+      "detail": {
+        "status": "EXECUTED",
+        "note": "mkdir succeeded, depth not a failure trigger on this path",
+        "guard": null,
+        "exitCode": 1,
+        "changes": 0,
+        "stderr": "\nError: This project is already initialized with VCP. Use `vcp update` for lifecycle upgrades; `vcp init --force` will not replace existing VCP state.\n",
+        "verdict": "OBSERVED"
+      },
+      "durationMs": 282
+    },
+    {
+      "id": "D3",
+      "title": "lock removed mid-run then released by old CLI",
+      "status": "EXECUTED",
+      "verdict": "OLD_CLI_STOLE_REPLACEMENT_LOCK",
+      "detail": {
+        "status": "EXECUTED",
+        "sawOldCliOwnLock": true,
+        "swapLanded": true,
+        "swapError": null,
+        "exitCode": 1,
+        "signal": null,
+        "stderr": "\nError: VCP update failed before project changes were applied: Manifest schema 2 is newer than this CLI supports (1).\n",
+        "foreignLockSurvivedOldRun": false,
+        "foreignLockDeleted": true,
+        "changes": 0,
+        "postBackupEditSurvived": true,
+        "verdict": "OLD_CLI_STOLE_REPLACEMENT_LOCK"
+      },
+      "durationMs": 294
+    },
+    {
+      "id": "E1",
+      "title": "junction on restore source dir + managed symlink to outside file",
+      "status": "EXECUTED",
+      "verdict": "OUTSIDE_UNTOUCHED",
+      "detail": {
+        "status": "EXECUTED",
+        "junctionOnBackups": true,
+        "managedSymlinkCreated": true,
+        "mklinkError": null,
+        "exitCode": 1,
+        "changes": [],
+        "outsideFileBefore": "DO_NOT_TOUCH\n",
+        "outsideFileAfter": "DO_NOT_TOUCH\n",
+        "verdict": "OUTSIDE_UNTOUCHED"
+      },
+      "durationMs": 331
+    },
+    {
+      "id": "E2",
+      "title": "symlinked manifest + old init --force",
+      "status": "EXECUTED",
+      "verdict": "SYMLINK_FOLLOWED",
+      "detail": {
+        "status": "EXECUTED",
+        "reason": null,
+        "exitCode": 1,
+        "changes": 0,
+        "outsideManifestRewritten": "{\"schemaVersion\":1,\"installedVersion\":\"0.9.3\",\"managedFiles\":[]}",
+        "verdict": "SYMLINK_FOLLOWED"
+      },
+      "durationMs": 301
+    },
+    {
+      "id": "E3",
+      "title": "case-variant project path",
+      "status": "ERROR",
+      "error": "The \"cb\" argument must be of type function. Received undefined",
+      "stack": [
+        "TypeError [ERR_INVALID_ARG_TYPE]: The \"cb\" argument must be of type function. Received undefined",
+        "    at realpath (node:fs:2854:5)",
+        "    at caseVariantPath (file:///<WIN-TEMP>/d01-win-20261009b/adversarial-d01.mjs:492:65)",
+        "    at async test (file:///<WIN-TEMP>/d01-win-20261009b/adversarial-d01.mjs:119:20)"
+      ],
+      "durationMs": 313
+    },
+    {
+      "id": "E4",
+      "title": "backup removed while rollback runs",
+      "status": "EXECUTED",
+      "verdict": "OBSERVED",
+      "detail": {
+        "status": "EXECUTED",
+        "backupDeletedMidRun": true,
+        "exitCode": 0,
+        "signal": null,
+        "stderr": "",
+        "resultingSchema": 1,
+        "postBackupEditSurvived": false,
+        "fileCount": 157,
+        "verdict": "OBSERVED"
+      },
+      "durationMs": 329
+    }
+  ]
+}

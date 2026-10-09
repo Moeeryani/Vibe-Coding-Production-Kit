@@ -1,0 +1,40 @@
+[
+ {
+  "id": "G1",
+  "setup": "intact schema-2 manifest, minimumReaderVersion 999.0.0, no lock",
+  "command": "init --force",
+  "exitCode": 1,
+  "stderr": "\nError: This project is already initialized with VCP. Use `vcp update` for lifecycle upgrades; `vcp init --force` will not replace existing VCP state.\n",
+  "resultingSchema": 2,
+  "postBackupEditSurvived": true
+ },
+ {
+  "id": "G2",
+  "setup": "intact schema-2 manifest + fresh directory sentinel",
+  "command": "init --force",
+  "exitCode": 1,
+  "stderr": "\nError: This project is already initialized with VCP. Use `vcp update` for lifecycle upgrades; `vcp init --force` will not replace existing VCP state.\n",
+  "sentinelAfter": "directory",
+  "resultingSchema": 2,
+  "postBackupEditSurvived": true
+ },
+ {
+  "id": "G3",
+  "setup": "intact schema-2 manifest + v2-shaped lock held by a live pid",
+  "command": "init --force",
+  "exitCode": 1,
+  "stderr": "\nError: This project is already initialized with VCP. Use `vcp update` for lifecycle upgrades; `vcp init --force` will not replace existing VCP state.\n",
+  "lockAfterInit": "{\"version\":2,\"mode\":\"update\",\"pid\":48016,\"host\":\"<HOST>\",\"token\":\"dddddddddddddddddddddddddddddddddddddddddddddddd\",\"startedAt\":\"2026-10-09T07:45:51.105Z\"}",
+  "resultingSchema": 2,
+  "postBackupEditSurvived": true
+ },
+ {
+  "id": "G4",
+  "setup": "intact schema-2 manifest",
+  "command": "rollback",
+  "exitCode": 0,
+  "stderr": "",
+  "resultingSchema": 1,
+  "postBackupEditSurvived": false
+ }
+]
