@@ -58,7 +58,7 @@ test('inspect: existing unmanaged files remain byte-identical and unclaimed', as
 
 test('inspect: valid managed schema-v1 root returns only approved metadata', async t => {
   const root = await fixture(t);
-  const original = v1({ userSecretField: 'DO_NOT_LEAK', assetSet: 'legacy-full-v1' });
+  const original = v1({ userSecretField: 'DO_NOT_LEAK', install: { agent: 'generic', stack: 'generic', includeGitHub: false, assetSet: 'legacy-full-v1' } });
   await manifest(root, original);
   const report = await inspectProject(root);
   assert.deepEqual(report, { root, classification: 'MANAGED', readOnly: true,
@@ -92,8 +92,9 @@ test('inspect: partial, corrupt, future and ambiguous managed states fail closed
     [v1({ schemaVersion: 2 }), 'SCHEMA_UNSUPPORTED'],
     [v1({ schemaVersion: 0 }), 'MANIFEST_INVALID'],
     [v1({ installedVersion: '01.2.3' }), 'MANIFEST_INVALID'],
-    [v1({ assetSet: 'from-unknown-plugin' }), 'ASSETSET_UNKNOWN'],
+    [v1({ install: { assetSet: 'from-unknown-plugin' } }), 'ASSETSET_UNKNOWN'],
     [v1({ minimumReaderVersion: '2.0.0' }), 'METADATA_UNSUPPORTED'],
+    [v1({ assetSet: 'legacy-full-v1' }), 'METADATA_UNSUPPORTED'],
     [v1({ managedFiles: [] }), 'MANIFEST_INVALID'],
   ]) {
     await manifest(root, value);
