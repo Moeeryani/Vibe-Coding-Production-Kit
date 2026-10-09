@@ -979,7 +979,7 @@ For an init collision:
 
 ~~~text
 safe composition/adoption possible
-→ COMPOSE / ADOPT / NOOP
+→ COMPOSE / CLAIM / NOOP
 
 not safely resolvable
 → CONFLICT
@@ -996,9 +996,9 @@ Example:
 ~~~markdown
 existing user instructions
 
-<!-- VCP:BEGIN -->
+<!-- VCP:BEGIN:agent-routing -->
 VCP-owned integration block
-<!-- VCP:END -->
+<!-- VCP:END:agent-routing -->
 
 more user instructions
 ~~~
@@ -1010,6 +1010,8 @@ For an adopted existing file:
 - the baseline represents the VCP-owned section;
 - lifecycle update compares only the owned section;
 - malformed, missing, duplicate, nested, or reversed markers fail safely.
+
+**Stage-12 Markdown marker grammar (proposed for D-05 approval):** VCP owns only exact full-line `<!-- VCP:BEGIN:<id> -->` / `<!-- VCP:END:<id> -->` pairs, where `<id>` matches `[a-z0-9-]{1,64}`. Parse Markdown code fences (backticks and tildes, variable lengths) before recognizing markers; marker-looking lines inside fences are project prose. Duplicate, nested, mismatched, reversed, or incomplete pairs are CONFLICT, never implicit whole-file ownership. Authorship additionally requires a compatible manifest ownership record, not marker presence alone. Store per-section baselines and restore whole-file transaction snapshots; outside-region bytes (BOM, mixed line endings and Unicode included) MUST remain byte-identical on update. No shell/YAML marker language is promised by Stage 12 without a declared consumer.
 
 When a brownfield repository has no AGENTS.md, Smart Init should still create the **thin brownfield routing/invariant form**, not today's full always-on manual. Brownfield integration files use the marked section-ownership form even when VCP creates the file from scratch; the file may contain only the managed block initially. This keeps later user-added surrounding text outside VCP ownership and makes detach/re-track ownership recoverable. Greenfield legacy/full-file behavior may remain temporarily until the later consumer/standing-context migration.
 
@@ -1082,66 +1084,21 @@ Rules:
 - all manifest writers, migrations, manage operations, backups, and restores preserve or deliberately raise the guard;
 - merely spreading unknown install fields forward is data preservation, not semantic compatibility.
 
+**Normative reader/field discipline (C-08, review proposed):** `readManifest()` is the fail-closed semantic compatibility choke point for all normal lifecycle readers. Every newly persisted behavior-bearing field (including `install.*`) raises `minimumReaderVersion` to the first compatible writer unless it is individually justified in `INERT_MANIFEST_FIELDS`; when in doubt raise. A Stage-12 field-enumeration test covers every persisted manifest field and fails for unlisted fields, before any additional behavior-bearing fields land. Names/meanings are not recycled. Backups and transaction journals have independently versioned validated envelopes; recovery from a corrupt active manifest may use a verified compatible backup without semantically interpreting an unsupported active schema. An explicit byte-copy-only recovery exception must never permit normal mutation under unknown semantics.
+
 Use a schema bump when the structural representation itself changes incompatibly. The reader-version guard avoids unnecessary schema churn for additive but behavior-bearing semantics.
 
-### Published-old-CLI mutation fence
+### Published-old-CLI compatibility: D-01 remains UNPROVEN
 
-`minimumReaderVersion` protects **new code that reads the manifest**. It cannot
-retroactively change an already-published CLI path that mutates without reading the
-manifest first.
+**This replaces the former ordinary-file `.vcp/update.lock` sentinel promise.** Published 0.9.3 `acquireUpdateLock` can stale-delete a dead-PID/aged regular-file lock, and old `rollbackProject` restores backups without validating the active manifest first. A persistent normal file is NOT a proven mutation fence, and future reader checks do not protect old binaries.
 
-Current v0.9.3 `rollback` is such a path: it acquires `.vcp/update.lock`, selects
-a backup, and restores it without first calling `readManifest()`.
+**G-FENCE is a hard stop before any actual managed v1→v2 schema write.** Record the intended guarantee and use the actual released 0.9.3 package in cross-platform tests of `update`, `manage`, `rollback`, `init`, concurrent old/new commands, stale/malformed/foreign locks, stale transaction targeting, interrupted migration, and subsequent user edits. Compare complete protected file-tree bytes, not merely `schemaVersion`.
 
-Therefore schema-v2 needs an on-disk compatibility fence that old mutating CLIs
-already respect:
+Candidate A is a **directory** at `.vcp/update.lock`: its interaction with the published binary's exclusive file creation and nonrecursive stale reaper is only a hypothesis until the transition from a held file lock is proven gap-free on Windows and POSIX. Candidate B is lock-path separation plus a newest post-migration v2 backup; this is **risk reduction, not a zero-write fence**, because old rollback can restore older v2 bytes, overwrite post-backup edits, and select a stale transaction backup. Neither candidate is selected without explicit maintainer D-01 approval and execution receipts.
 
-~~~text
-schema-v1 managed project
-→ actual lifecycle lock remains .vcp/update.lock
+The fail-safe default is **defer live schema-v2 migration** while allowing reader/planner/test work. No automatic migration, safe-rollback, or old-version compatibility claim may be shipped if G-FENCE remains unproven. Managed migration recovery (validated backup and journal schema, committed-state detection, stale-journal disposition) belongs to Stage 12, not deferred to Stage-13 first-adoption recovery.
 
-successful schema-v1 → schema-v2 migration
-→ leave .vcp/update.lock present as a persistent legacy-CLI blocker/sentinel
-→ schema-v2-capable VCP uses a new actual lifecycle lock path
-   (for example .vcp/lifecycle.lock)
-~~~
-
-Requirements:
-
-- v0.9.x update/manage/rollback sees the legacy lock path occupied and fails before mutation;
-- new schema-v2 lifecycle code recognizes the sentinel as compatibility state, not an active new-CLI lock;
-- schema-v1 operations performed by the new CLI continue to coordinate through the legacy lock until migration commits;
-- if migration rolls back to schema-v1, the persistent sentinel is not left behind;
-- schema-v2 `.vcp/.gitignore` ignores both the persistent legacy blocker and the new runtime lock;
-- release smoke must run the actual previous released CLI against a migrated fixture and prove its mutating lifecycle commands fail before changing project files.
-
-This is stronger than assuming future code changes can make old binaries call a new reader guard.
-
-### Compatibility-fence scope
-
-The legacy blocker can only mechanically stop old commands that already participate in
-the old lifecycle lock protocol. It cannot retroactively teach a published binary's
-unrelated commands to read a future manifest.
-
-Therefore:
-
-- previous-release **lifecycle mutators** (update/manage/rollback) are the commands
-  Stage 12 must mechanically fence and release-smoke;
-- once a current command's behavior depends on lifecycle semantics such as
-  `assetSet`, section ownership, workflowMode, or capabilities, the **new**
-  implementation must route that command through the shared lifecycle reader/reader
-  guard before mutation or authoritative output;
-- Stage 13 task creation is one example: the new task renderer reads assetSet before
-  rendering brownfield Source-of-Truth scaffolding;
-- an old pre-guard `vcp task` binary cannot be made universally fail-closed by a
-  future repository file if that old code never checks it. Running a CLI older than
-  the manifest's minimumReaderVersion is therefore unsupported outside the
-  mechanically fenced lifecycle-mutator surface;
-- onboarding/Doctor/status should recommend the compatible project/current CLI and
-  report the manifest's minimum reader version clearly.
-
-Do not claim that minimumReaderVersion is a time machine. Its enforceable guarantee is
-for compatible readers plus the explicit old-lifecycle mutation fence above.
+**Compatibility scope:** only the specific legacy commands and transitions actually covered by released-binary tests may be claimed protected. Old `init` with a deleted manifest, old-CLI rollback to a retained backup, foreign lock states, and concurrent writers require explicit observed outcomes. The schema-v2-capable CLI must itself fail closed on incompatible manifest/transaction/backup and section-state regression rather than silently treating downgrade residue as schema v1.
 
 ## 3.6 Verification-command authority in brownfield AGENTS.md
 
@@ -1245,6 +1202,10 @@ Rules:
 - behavior-bearing approval receipts participate in `minimumReaderVersion` compatibility;
 - rollback restores the exact prior receipt state.
 
+### Migration re-screening and bounded enforcement (C-03 / D-12)
+
+During a managed v1→v2 migration, re-screen all adopted executable verification commands for explicitly enumerated destructive patterns. A legacy approval cannot be silently promoted to current authority: mark any provisional receipt `grandfathered: true` with versioned identity, and require explicit confirmation before first later VCP-controlled execution. Bind an allowlist decision to exact command bytes/fingerprint, command key and provenance with a recorded rationale; a changed fingerprint invalidates it. A change only to policy version must trigger compatible re-evaluation, not automatic mass reapproval. `--yes` cannot bypass HUMAN DECISION. Preserved project text or commands run by external agents are **outside VCP enforcement**; Doctor may report patterns there as non-install-health governance information.
+
 ### Task snapshot and command-contract freshness
 
 Task Packs remain the executable verification contract.
@@ -1256,20 +1217,20 @@ For new provenance-aware tasks:
 - before merge-authoritative verification/gate, VCP resolves current command authority again and compares it with the Task Pack snapshot;
 - a changed/missing/conflicting effective command makes the task verification contract stale and requires an explicit task refresh/re-plan before gate can pass;
 - approval-required commands must still match a current valid receipt;
-- legacy Task Packs without command-provenance metadata retain their historical behavior until the Phase-7 parser/gate migration defines the compatibility path.
+- legacy Task Packs without command-provenance metadata retain historical metadata for backward compatibility, but this MUST NOT be portrayed as pre-authorized execution. Stage 12 must place a deterministic authority/approval check at the actual `vcp verify --run` execution boundary, including manually edited task strings; if the command cannot be matched to accepted authority or explicit HUMAN DECISION, it blocks with actionable guidance. Phase 7 adds merge-authoritative freshness and gate evidence, not the first protection against uncontrolled shell execution.
 
 This prevents a Task Pack from silently verifying against an obsolete project command policy while also preventing a later AGENTS edit from swapping in a new dangerous command under an old approval.
 
 Moving verification configuration to another structured file remains a separate future migration.
 ## 3.7 Init action semantics
 
-Use familiar planner action names, but make post-action ownership explicit so init actions cannot be confused with update actions.
+**Init planner vocabulary is distinct from update-planner vocabulary.** The new init action `CLAIM` establishes ownership of explicitly permissible existing content; the existing update-plan `ADOPT` continues to mean identical-template reconciliation. These meanings MUST NOT share the same action identifier.
 
 ~~~text
 ADD
 → create content; establish declared file/section ownership
 
-ADOPT
+CLAIM
 → establish ownership only when the ownership boundary is already explicit and safe:
    - an exact whole-file canonical artifact whose catalog/asset policy permits whole-file adoption, or
    - an already well-formed marked VCP section whose content is empty or byte-identical to the canonical VCP section for the current package version [AUDIT 2026-10-06: marker presence alone is not authorship — a project-authored marker block, including one inside a fenced code example, must never be silently adopted as VCP-owned; anything else → HUMAN DECISION; marker scanning must be code-fence-aware]
@@ -1289,14 +1250,13 @@ PRESERVE
 NOOP
 → no mutation and no ownership change
 
-SKIP
-→ outside the selected adoption surface
-
 CONFLICT
 → block atomic apply
 ~~~
 
-Public --json reports remain content-free.
+Paths outside the selected adoption surface are reported only in `skippedPaths` with a reason: **SKIP is not an init action, not an ownership transition, and cannot execute.**
+
+Public `--json` reports carry `planVersion: 1`, `planKind: "init"`, ordered actions, reason, ownershipBefore/ownershipAfter, separate `skippedPaths`, conflicts and decisions. Reports remain content-free, nonexecutable and version-rejected by consumers on unknown major version. Preview is speculative; apply must re-inspect/replan under the approved lock. This public shape remains PROPOSED until D-04 is accepted.
 
 ## 3.8 Persist the adopted asset surface
 
@@ -1334,6 +1294,8 @@ Rules:
 - update/manage/Doctor desired-state logic respects the stored surface;
 - Phase 2 may migrate these install profiles onto a newer classified catalog version while preserving greenfield/brownfield asset-selection semantics;
 - Phase 3 owns provider-neutral CI inspection and the deliberate migration/detach decision for old `legacy-full-v1` managed `.github/workflows/validate.yml`.
+
+**Fail-closed state (C-07):** In schema-v2 any missing, malformed or unknown `install.assetSet` raises `E_ASSETSET_UNKNOWN` before lifecycle mutation; never infer `legacy-full-v1` from current paths or auto-repair it. Every manifest writer preserves this identity (writer-audit test). Desired-file builders must filter by assetSet **before** comparison so subsequent update/manage never silently re-add deliberately omitted assets; `ignoredFiles` is not asset identity and `manage ignore` cannot accept never-managed paths.
 
 Without this state, Smart Init would be non-destructive on day one and the next update could expand or mutate the installed surface unexpectedly.
 
@@ -1572,7 +1534,7 @@ project-governance coverage
 
 Missing VCP starter documents that were never part of the adopted asset set are **not install corruption**.
 
-Doctor may report governance coverage as informational/unknown when no explicit governing document is configured, but that absence is not a warning/strict failure merely because a brownfield-minimal install lacks VCP starter files. It becomes blocking only when an actual task/readiness/policy contract requires governing truth that is missing. Doctor must not manufacture equivalence between arbitrary existing docs and VCP canonical roles.
+Doctor reports `installHealth.checks` separately from `governance`. Every install-health check declares applicable assetSet(s); intentionally absent starter files are NOT_APPLICABLE/INFO, not WARN/FAIL. **Proposed D-02 strict truth table:** default Doctor fails only on applicable install-health FAIL; `doctor --strict` fails on applicable installation FAIL or WARN, but never on informational/unknown governance. Missing governing truth becomes blocking only under a separate actual task/readiness/policy/verification contract, not by creating fake Doctor installation failures. This proposal requires D-02 acceptance and a synthetic brownfield-minimal exit-0 fixture; legacy-full behavior remains tested.
 
 Broader provider-neutral CI cleanup remains Phase 3.
 
@@ -1663,8 +1625,7 @@ is malformed or partially written. Therefore the new rollback design validates t
 Do not require successful parsing of the damaged current manifest as an unconditional
 precondition for recovery.
 
-The persistent legacy-CLI mutation fence above protects against an old CLI attempting
-this recovery with semantics it cannot understand.
+**No published-old-CLI recovery fence has yet been proven.** Until D-01 passes on the real released binary, new reader/recovery code cannot prevent v0.9.3 rollback from mutating restored state; do not enable live v2 migration or claim old-version recovery safety.
 
 ---
 
@@ -1691,7 +1652,7 @@ Smart adoption is complete only when:
 - packaged prompt fallback, Context, and Doctor agree without widening project authority;
 - brownfield standing instructions, init success messaging, and generated Task Packs never require/fabricate starter paths absent from the adopted assetSet;
 - schema migration makes legacy entries explicit whole-file ownership;
-- schema-v2 migration establishes a real old-CLI mutation fence, and previous-release update/manage/rollback fail before mutation;
+- no schema-v2 migration is enabled until D-01 proves the accepted legacy-CLI safety guarantee on the actual previous release and supported platforms; if G-FENCE fails, migration is BLOCKED rather than declared protected;
 - lock bootstrap leaves no stray VCP state when Stage 13 blocks before backup;
 - rollback restores both prior content **and prior absence of lifecycle state**, including removal of operation-created first-adoption backup/internal scaffolding after successful restore;
 - first post-adoption `vcp task` produces an assetSet-appropriate Source-of-Truth scaffold rather than nonexistent canonical starter paths;
@@ -1799,7 +1760,7 @@ Phase 2 "unifies the catalog and lifecycle rules", not the installed path set ac
 
 Replace broad template roots such as `docs` and `prompts` with an explicit consumer asset manifest.
 
-Before removing project-local prompt copies, first add a **canonical prompt resolver**.
+Before removing project-local prompt copies, first add a **canonical prompt resolver**. **Stage-12 API requirement (C-09):** it takes the persisted `install.assetSet` as a required input, and cannot reference starter paths not installed by that assetSet; a per-surface fixture must prove this. AssetSet creation precedes the resolver in implementation order.
 
 Sequencing note: the resolver itself, project-override precedence, and the minimum Doctor prompt-source compatibility land in Stage 12 because brownfield adoption already relies on packaged fallback. The broader consumer-asset removal, framework-validator cleanup, and remaining Doctor asset/CI cleanup stay in Phase 2/3.
 
@@ -2090,6 +2051,8 @@ Today some legacy stack markers are tested with `access()`, which can follow sym
 - evidence records the exact detector/path that matched.
 
 Use the same underlying safe evidence primitives for core/first-party detectors and community DSL where practical so the trust model does not vary by provenance.
+
+**Common path trust primitive (C-11):** Stage 12 introduces one leaf resolver for selected-project-root reads and writes, with separate read-existing/write-new/managed-state policies. Validate canonical parent path components with no-follow checks; do not trust `path.resolve().startsWith(root)` to exclude symlink/junction escapes. For untrusted evidence, default to rejecting symlinks (including in-root links) pending D-03 approval; purpose-specific exceptions require explicit provenance and tests. Replace duplicated `safePath` copies in Context, Readiness and Verify. Re-inspect before mutation under the actual lock; no impossible TOCTOU-free guarantee is implied.
 
 ## 5.5 Project-root semantics remain important
 
@@ -3437,6 +3400,8 @@ Gate validates that required human approvals/reviews exist; it does not manufact
 
 The future gate must enforce, not replace, the current Task Pack completion rule.
 
+**Normative precision (C-10):** Technical document T §14.9 is authoritative for the byte-exact *relevant worktree* definition (allowing only declared `verification.outputs`), append-only evidence semantics and the versioned CI-consumable gate receipt. This strategic section states policy/rationale and must not create a second inconsistent gate-receipt specification.
+
 For L1/L2/L3:
 
 ~~~text
@@ -3895,6 +3860,8 @@ smart adoption.
 > including the same-schema `minimumReaderVersion` fixture test and the old-CLI
 > rollback release-smoke case.
 
+**Dependency order is normative (C-09/C-12):** semver + common selected-root path helper → centralized manifest metadata → schema-v2 reader guard + INERT field-enumeration test → versioned managed backup/journal recovery → G-FENCE proof → (only if proven) managed v1→v2 migration → sections → assetSet/asset catalog → inspection and raw CLI provenance → command authority + `verify --run` execution boundary → assetSet-aware packaged prompt resolver → safe consumer CI filters → Doctor minimum → init planner → release smoke. The numbered inventory below is a scope list, NOT permission to implement consumers before their dependencies. Prompt resolution explicitly takes assetSet and may never refer to starter files absent from the selected surface.
+
 Implement:
 
 1. centralized install/manifest metadata construction;
@@ -3918,7 +3885,7 @@ Implement:
 
 Stage 12 must **not** perform Smart Init mutation into unmanaged EXISTING repositories.
 
-The no-mutation boundary above applies to the **init/adoption path**, not to already-managed lifecycle updates (see the audit note at the top of this section for why the "read-only" shorthand was retired). The Stage-12 release may and should migrate a MANAGED schema-v1 repository to the new lifecycle manifest/schema through the existing transactional `vcp update` path, with normal preview/conflict/backup/rollback guarantees.
+The no-mutation boundary above applies to the **init/adoption path**, not to already-managed lifecycle updates (see the audit note at the top of this section for why the "read-only" shorthand was retired). The Stage-12 release MAY migrate a MANAGED schema-v1 repository through `vcp update` **only after the actual published-v0.9.3 G-FENCE and managed-recovery contract pass and D-01 is accepted**. Until then, schema-v2 mutations remain disabled and the Stage-12 managed-migration exit is BLOCKED, even if read-only planning work passes.
 
 `vcp init` on that MANAGED repository still performs no migration itself; it redirects to lifecycle update/status.
 
@@ -3951,7 +3918,7 @@ Implement:
 3. block on conflicts/precondition changes;
 4. if blocking/failure occurs before backup creation, release the lock and remove only empty operation-created lock bootstrap state;
 5. backup every path that may change plus explicit prior lifecycle-state presence/absence;
-6. transactional COMPOSE/ADD/ADOPT behavior;
+6. transactional COMPOSE/ADD/CLAIM behavior;
 7. write section-aware baselines and manifest, including the adopted asset set, explicit adapter intent, and VCP-managed adapter surface;
 8. make `vcp task` / Task Pack Source-of-Truth scaffolding respect the persisted assetSet so brownfield-minimal never generates absent canonical starter paths;
 9. post-apply verification;
@@ -4383,13 +4350,14 @@ external ecosystem research, per-point 23-element audits (33 points), interactio
 / second-order / scenario analysis (23 scenarios A–W), and test design
 (255 tests). Product code was not modified.
 
-**Audit verdict: READY WITH MINOR CONDITIONS** (see §16 of the final report at
-`docs/ADAPTIVE-VCP-FINAL-PREIMPLEMENTATION-AUDIT.md` in this repository).
+**Historical 2026-10-06 audit verdict: READY WITH MINOR CONDITIONS.** Background source: `docs/ADAPTIVE-VCP-FINAL-PREIMPLEMENTATION-AUDIT.md`. This historical statement does **not** accept current D-01 migration safety, Stage12 design repairs or live product implementation.
 The conditions are discharged by the amendments below, which are now part of
 this document. Inline amendments are tagged `[AUDIT 2026-10-06 —
 PRE-IMPLEMENTATION]` at their sections.
 
 ## Z.1 Amendments register (strategic)
+
+**Historical register — do not enforce byte-identical row sets against T Z.1.** Proposed canonical `docs/ADAPTIVE-VCP-DECISIONS.md` (D-01–D-12) records new decisions/owners/statuses/affected locations. After maintainer acceptance, every correction is applied at ALL S/T/roadmap/CLI/Task anchors, and CI validates accepted-ID reference coverage; this historical appendix stays as an audit trail, not a second normative decision database (C-13).
 
 | # | Section | Change |
 |---|---------|--------|
@@ -4400,7 +4368,7 @@ PRE-IMPLEMENTATION]` at their sections.
 | 5 | §8.5 (L3) | Security-review fingerprint = content digest only; package version is metadata, not fingerprint input (breaks the upgrade-aversion loop) |
 | 6 | §7/Phase 8 | PR↔task selection resolved for first release: one explicit material Task Pack per PR; absent selector attempts L0 then blocks on material work; full-history refs, non-skippable stable gate job, and merge-group support where applicable |
 | 7 | §9/Phase 9 | Resolved: Task Packs remain durable Core artifacts; SKILL.md is only for reusable Skill UX/procedure packaging |
-| 8 | §13 (Stage 12) | Retired the misleading "read-only" shorthand; precise boundary stated; v1→v2 migration stays in Stage 12 via the existing transactional update path (adjudicated against a worker's SPLIT proposal — see final report) with tightened exit criteria |
+| 8 | §13 (Stage 12) | Retired the misleading "read-only" shorthand; precise boundary stated; v1→v2 migration stays in Stage 12 via the existing transactional update path (adjudicated historically against a proposed stage split; current G-FENCE is a separate unresolved blocker) with tightened exit criteria |
 | 9 | §13 (checkpoints) | Every checkpoint needs a mechanical DONE signal (checkable artifact); Checkpoint E must record deletions |
 
 ## Z.2 Ownership analysis (§9 of the audit brief)
