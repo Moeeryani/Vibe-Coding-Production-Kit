@@ -4363,7 +4363,7 @@ PRE-IMPLEMENTATION]` at their sections.
 
 ## Z.1 Amendments register (strategic)
 
-**Historical register — do not enforce byte-identical row sets against T Z.1.** Proposed canonical `docs/ADAPTIVE-VCP-DECISIONS.md` (D-01–D-12) records new decisions/owners/statuses/affected locations. After maintainer acceptance, every correction is applied at ALL S/T/roadmap/CLI/Task anchors, and CI validates accepted-ID reference coverage; this historical appendix stays as an audit trail, not a second normative decision database (C-13).
+**D-06 (PROPOSED): Historical register — do not enforce byte-identical row sets against T Z.1.** Proposed canonical `docs/ADAPTIVE-VCP-DECISIONS.md` (D-01–D-12) records new decisions/owners/statuses/affected locations. After maintainer acceptance, every correction is applied at ALL S/T/roadmap/CLI/Task anchors, and CI validates accepted-ID reference coverage; this historical appendix stays as an audit trail, not a second normative decision database (C-13).
 
 | # | Section | Change |
 |---|---------|--------|

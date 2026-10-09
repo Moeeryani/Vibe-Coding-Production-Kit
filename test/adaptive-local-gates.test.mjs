@@ -127,3 +127,64 @@ test('D-06: accepted location duplicates cannot count as separate coverage', asy
   assert.match(checkRequiredCoverage('D-06', [...anchors, anchors[0]], fakeApproved).join('\n'),
     /duplicate declared anchor|repeated/);
 });
+
+
+test('D-06: every independently declared required section explicitly names its decision and normative clause', async () => {
+  const map = JSON.parse(await readFile(path.join(root, 'docs/decisions/required-anchors.json'), 'utf8'));
+  const cache = new Map();
+  for (const [id, spec] of Object.entries(map.decisions)) {
+    assert.ok(['PENDING', 'APPROVED'].includes(spec.coverageReview), id + ': unknown coverage-review state');
+    for (const anchor of spec.anchors) {
+      let data = cache.get(anchor.path);
+      if (data === undefined) {
+        data = await readFile(path.join(root, anchor.path), 'utf8');
+        cache.set(anchor.path, data);
+      }
+      const lines = data.split(/\r?\n/);
+      const start = lines.findIndex(line => line.trim() === anchor.heading);
+      assert.ok(start >= 0, id + ': missing declared heading ' + anchor.path + ' / ' + anchor.heading);
+      const level = anchor.heading.match(/^#+/)[0].length;
+      let end = lines.length;
+      for (let n = start + 1; n < lines.length; n++) {
+        const next = lines[n].match(/^(#{1,6}) /);
+        if (next && next[1].length <= level) { end = n; break; }
+      }
+      const section = lines.slice(start, end).join('\n');
+      assert.ok(section.includes(anchor.requiredText),
+        id + ': missing substantive requirement at ' + anchor.path + ' / ' + anchor.heading);
+      assert.ok(section.includes(id),
+        id + ': missing explicit decision reference at ' + anchor.path + ' / ' + anchor.heading);
+    }
+  }
+});
+
+test('D-06: critical D-01 and D-03 roadmap/CLI/update-doc anchors cannot vanish from coverage map', async () => {
+  const map = JSON.parse(await readFile(path.join(root, 'docs/decisions/required-anchors.json'), 'utf8'));
+  const mustCover = ['docs/ROADMAP.md', 'docs/CLI.md', 'docs/UPDATES.md'];
+  for (const id of ['D-01', 'D-03']) {
+    const declared = new Set(map.decisions[id].anchors.map(anchor => anchor.path));
+    for (const file of mustCover) {
+      assert.ok(declared.has(file), id + ': required user-facing contract absent from independent inventory: ' + file);
+    }
+  }
+});
+
+
+test('D-06: canonical ledger and Stage12 roadmap anchors stay mandatory', async () => {
+  const inventory = JSON.parse(await readFile(path.join(root, 'docs/decisions/required-anchors.json'), 'utf8'));
+  const anchors = inventory.decisions['D-06'].anchors;
+  for (const [file, heading] of [
+    ['docs/ADAPTIVE-VCP-DECISIONS.md', '## Normative register rules'],
+    ['docs/ROADMAP.md', '### Stage 12 — Safe Adoption Planning']
+  ]) {
+    assert.ok(anchors.some(a => a.path === file && a.heading === heading),
+      'D-06 must map independent normative authority at ' + file + ' / ' + heading);
+  }
+  const approvedFixture = { schemaVersion: 1, decisions: {
+    'D-06': { coverageReview: 'APPROVED', anchors }
+  } };
+  assert.deepEqual(checkRequiredCoverage('D-06', anchors, approvedFixture), []);
+  const incomplete = anchors.filter(a => a.path !== 'docs/ADAPTIVE-VCP-DECISIONS.md');
+  assert.match(checkRequiredCoverage('D-06', incomplete, approvedFixture).join('\n'),
+    /required anchor omitted or repeated/);
+});

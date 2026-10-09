@@ -76,6 +76,12 @@ A newer npm version is never applied by an older CLI. `--check` returns a versio
 
 See [`UPDATES.md`](UPDATES.md) for the full lifecycle contract.
 
+### Stage12 schema-v2 migration is not enabled (D-01 G-FENCE NO-GO)
+
+The commands above describe the **currently released v0.9.3 schema-v1 lifecycle**, not proof that a future schema-v2 project is protected against commands from older binaries. Published-v0.9.3 Linux adversarial testing in PR #89 observed unsafe older-CLI mutations, including restoring a backup that **erases project edits made after that backup**. The older CLI ignores a separate `lifecycle.lock` and can stale-reap a legacy regular lock. Therefore a newer-version backup and a separate lock path must **not** be represented as a zero-write compatibility fence.
+
+**Managed schema-v1 → schema-v2 migration remains disabled / NO-GO** until D-01 explicitly records an accepted cross-platform safety contract, including native Windows, old `init` with missing manifest, atomic conversion, old/new concurrent access and interrupted recovery. A directory sentinel blocked three isolated Linux legacy commands but does not yet prove this full barrier. Read-only planning and testing may proceed independently; the released CLI's current command syntax and behavior have not been changed by these documentation proposals.
+
 ## Roll back the newest recovery point
 
 ```bash
@@ -325,6 +331,8 @@ Selected plugin guidance may appear additively in bounded context packs. Verific
 See [`COMMUNITY-PLUGINS.md`](COMMUNITY-PLUGINS.md).
 
 ## Safety behavior
+
+**D-03 (PROPOSED future Stage12 path contract):** Selected-root evidence and future managed-state access default to no-follow for untrusted symlinks, including in-root links and native Windows junction/reparse points, subject only to reviewed purpose-specific exceptions. Existing v0.9.3 path checks are not evidence that this new contract or race-free filesystem confinement already ships. Windows native verification remains UNVERIFIED.
 
 The CLI is intentionally conservative:
 
