@@ -225,6 +225,8 @@ If a previous update was interrupted, inspect the repository and use `vcp rollba
 
 ## Safety boundaries
 
+**D-03 (PROPOSED future Stage12 trust policy):** A shared selected-root path resolver must reject untrusted symlinks (including in-root aliases), Windows junction/reparse escapes and unsafe parents by default, distinguish read/creation/managed-state purposes, and recheck before writes under the relevant lock. This is not a claim that the released v0.9.3 CLI already implements those additional protections; TOCTOU and native Windows evidence remain open.
+
 Update paths are repository-relative and validated against traversal and symlink escapes. VCP state paths under `.vcp` receive the same no-symlink treatment.
 
 A lock prevents update and rollback processes from mutating the same project concurrently. A lock owned by a dead process on the same host can be reclaimed immediately for recovery. A lock from another host, or malformed lock metadata, is only reclaimed after the configured stale interval so VCP does not guess that a remote writer has disappeared.
