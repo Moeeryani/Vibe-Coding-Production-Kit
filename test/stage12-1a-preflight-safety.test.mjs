@@ -132,3 +132,41 @@ test('Stage12 preflight: existing path resolver rejects linked directory escape'
   assert.deepEqual(await snapshotTree(root), before);
   assert.equal(await readFile(path.join(outside, 'secret.txt'), 'utf8'), 'cannot traverse this link\n');
 });
+
+
+test('Stage12 D-03 selected policy preflight: in-root directory symlinks are not trusted', async t => {
+  const root = await fixture(t, 'vcp-stage12-inroot-');
+  await mkdir(path.join(root, 'real'));
+  await writeFile(path.join(root, 'real', 'user.txt'), 'private user content\n');
+  try {
+    await symlink(path.join(root, 'real'), path.join(root, 'alias'), process.platform === 'win32' ? 'junction' : 'dir');
+  } catch (error) {
+    if (['EPERM', 'EACCES', 'ENOTSUP', 'EOPNOTSUPP'].includes(error?.code)) {
+      t.skip('Host cannot create symlink/junction; native Windows still UNVERIFIED');
+      return;
+    }
+    throw error;
+  }
+  const before = await snapshotTree(root);
+  await assert.rejects(assertPathInsideRoot(root, 'alias/user.txt'), /Refusing to follow symlink/);
+  assert.deepEqual(await snapshotTree(root), before);
+  assert.equal(await readFile(path.join(root, 'real', 'user.txt'), 'utf8'), 'private user content\n');
+});
+
+test('Stage12 D-03 selected policy preflight: linked manifest is rejected before read with no writes', async t => {
+  const root = await fixture(t, 'vcp-stage12-linkedstate-');
+  await mkdir(path.join(root, '.vcp'));
+  await writeFile(path.join(root, '.vcp', 'stored.json'), JSON.stringify(minimalManifest(1)));
+  try {
+    await symlink(path.join(root, '.vcp', 'stored.json'), path.join(root, '.vcp', 'manifest.json'), 'file');
+  } catch (error) {
+    if (['EPERM', 'EACCES', 'ENOTSUP', 'EOPNOTSUPP'].includes(error?.code)) {
+      t.skip('Host cannot create symlink; native Windows still UNVERIFIED');
+      return;
+    }
+    throw error;
+  }
+  const before = await snapshotTree(root);
+  await assert.rejects(readManifest(root), /Refusing to follow symlink/);
+  assert.deepEqual(await snapshotTree(root), before);
+});
