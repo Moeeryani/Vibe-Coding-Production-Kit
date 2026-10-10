@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { readFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { checkRequiredCoverage, evaluateStatic, parseRegister } from '../scripts/check-adaptive-contracts.mjs';
+import { checkRequiredCoverage, evaluateStatic, parseRegister, verifyAcceptedRecord } from '../scripts/check-adaptive-contracts.mjs';
+import { sha256Utf8 } from '../scripts/run-adaptive-local-gates.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 async function docs() {
@@ -21,7 +23,95 @@ test('current proposed decision register and S/T regression anchors are coherent
   assert.deepEqual(out.errors, []);
   assert.equal(out.decisionCount, 12);
   assert.equal(out.checkedContractAnchors, 14);
-  assert.equal(out.accepted.length + out.pending.length, 12, 'Every stable ID retains an explicit status');
+  assert.equal(out.accepted.length + out.proposed.length + out.deferred.length + out.rejected.length,
+    12, 'Every stable ID retains an explicit status');
+});
+
+test('D-06: DEFERRED is not PROPOSED, and the executable checker reports every state', async () => {
+  const current = await docs();
+  const summary = evaluateStatic(current);
+  assert.deepEqual(summary.deferred, ['D-01']);
+  assert.ok(!summary.proposed.includes('D-01'));
+  const result = spawnSync(process.execPath, ['scripts/check-adaptive-contracts.mjs'], {
+    cwd: root, encoding: 'utf8', timeout: 10000
+  });
+  assert.equal(result.status, 0, result.stderr);
+  for (const status of ['proposed', 'accepted', 'deferred', 'rejected']) {
+    assert.match(result.stdout, new RegExp(status.toUpperCase() + '=' + summary[status].length));
+  }
+  assert.doesNotMatch(result.stdout, /PENDING=\d+/);
+
+  const changed = current.register
+    .replace('| D-02 | **PROPOSED** |', '| D-02 | **ACCEPTED** |')
+    .replace('| D-03 | **PROPOSED** |', '| D-03 | **REJECTED** |');
+  const mixed = evaluateStatic({ ...current, register: changed });
+  assert.deepEqual(mixed.errors, []);
+  assert.deepEqual(mixed.accepted, ['D-02']);
+  assert.deepEqual(mixed.rejected, ['D-03']);
+  assert.deepEqual(mixed.deferred, ['D-01']);
+  assert.equal(mixed.proposed.length, 9);
+});
+
+test('D-06: complete ACCEPTED-record validator checks independent map, metadata and document', async () => {
+  const folder = await mkdtemp(path.join(os.tmpdir(), 'vcp-d06-accepted-'));
+  try {
+    await mkdir(path.join(folder, 'docs/decisions'), { recursive: true });
+    await mkdir(path.join(folder, 'docs/fixtures'), { recursive: true });
+    const anchor = {
+      path: 'docs/fixtures/decision-policy.md',
+      heading: '## D-06 policy fixture',
+      requiredText: 'Independent affected-location review is required'
+    };
+    const docFile = path.join(folder, anchor.path);
+    const recordFile = path.join(folder, 'docs/decisions/D-06.json');
+    const inventory = { schemaVersion: 1,
+      decisions: { 'D-06': { coverageReview: 'APPROVED', anchors: [anchor] } } };
+    const record = {
+      id: 'D-06', status: 'ACCEPTED', owner: 'Test Maintainer',
+      decidedAtUtc: '2026-10-09T02:00:00Z',
+      chosenOption: 'Require independent affected-location review',
+      rationale: 'Maintain decision accountability',
+      approvalEvidence: 'Synthetic fixture only, never a real approval',
+      rejectedAlternatives: [{ option: 'Unreviewed coverage', reason: 'Cannot prove completeness' }],
+      implementationPR: 'https://github.com/Moeeryani/Vibe-Coding-Production-Kit/pull/94',
+      provingTests: ['exact-head-test-receipt-fixture'],
+      affectedLocations: [anchor]
+    };
+    await writeFile(docFile, '# Fixture\n\n## D-06 policy fixture\n\nD-06: Independent affected-location review is required.\n');
+    await writeFile(recordFile, JSON.stringify(record));
+    assert.deepEqual(await verifyAcceptedRecord('D-06', inventory, folder), []);
+    const pending = { schemaVersion: 1,
+      decisions: { 'D-06': { coverageReview: 'PENDING', anchors: [anchor] } } };
+    assert.match((await verifyAcceptedRecord('D-06', pending, folder)).join('\n'),
+      /NOT maintainer-reviewed/);
+    await writeFile(recordFile, JSON.stringify({ ...record, owner: 'PENDING' }));
+    assert.match((await verifyAcceptedRecord('D-06', inventory, folder)).join('\n'),
+      /missing acceptance field owner/);
+    await writeFile(recordFile, JSON.stringify({ ...record, approvalEvidence: 'PENDING' }));
+    assert.match((await verifyAcceptedRecord('D-06', inventory, folder)).join('\n'),
+      /missing explicit maintainer approvalEvidence/);
+    await writeFile(recordFile, JSON.stringify({ ...record, rejectedAlternatives: [] }));
+    assert.match((await verifyAcceptedRecord('D-06', inventory, folder)).join('\n'),
+      /rejectedAlternatives must name reviewed options/);
+    await writeFile(recordFile, JSON.stringify({ ...record, affectedLocations: [] }));
+    assert.match((await verifyAcceptedRecord('D-06', inventory, folder)).join('\n'),
+      /required anchor omitted or repeated/);
+    await writeFile(recordFile, JSON.stringify(record));
+    await writeFile(docFile, '## D-06 policy fixture\n\nD-06: weakened clause\n');
+    assert.match((await verifyAcceptedRecord('D-06', inventory, folder)).join('\n'),
+      /missing accepted-ID and substantive clause/);
+  } finally {
+    await rm(folder, { recursive: true, force: true });
+  }
+});
+
+test('D-03: selected no-follow contract also rejects in-root links and linked parents', async () => {
+  const T = await readFile(path.join(root, 'docs/ADAPTIVE-VCP-CODE-INTEGRATION-ANALYSIS.md'), 'utf8');
+  const task = await readFile(path.join(root, 'docs/tasks/stage12-safe-adoption-planning.md'), 'utf8');
+  assert.match(T, /D-03 no-follow policy rejects in-root symlinks/);
+  assert.match(T, /reject untrusted symlink\/junction\/reparse traversal by default even when its target stays inside/);
+  assert.match(task, /AC-010 \(D-03 PROPOSED\):[^\n]*even for in-root targets/);
+  assert.match(task, /native Windows fixtures required/);
 });
 
 test('detect duplicate canonical decision rows', async () => {
@@ -38,6 +128,12 @@ test('detect missing D-12 and regression of explicit old CLI fence', async () =>
   assert.match(evaluateStatic({ ...input, register: without12 }).errors.join('\n'), /D-12/);
   assert.match(evaluateStatic({ ...input, S: input.S.replaceAll('G-FENCE', 'HIDDEN-FENCE') })
     .errors.join('\n'), /C-01/);
+});
+
+test('local evidence receipt SHA-256 matches retained UTF-8 log bytes', () => {
+  assert.equal(sha256Utf8('abc'),
+    'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad');
+  assert.notEqual(sha256Utf8('stdout\n'), sha256Utf8('stdout'));
 });
 
 test('local gate runner refuses missing exact SHA/evidence directory before running npm', () => {
@@ -208,6 +304,8 @@ test('Stage12 reconciliation: T preserves final #87 checkpoint DONE and polyglot
   for (const block of blocks) {
     const start = T.indexOf(block.heading);
     assert.ok(start >= 0, 'Missing final #87 block: ' + block.heading);
+    assert.equal(T.split(block.heading).length - 1, 1,
+      'Duplicate final #87 block: ' + block.heading);
     const end = T.indexOf('\n## ', start + block.heading.length);
     const section = T.slice(start, end >= 0 ? end : T.length);
     for (const clause of block.clauses) {

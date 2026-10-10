@@ -2727,7 +2727,7 @@ vcp:prompts/02-plan-task.md
 
 Resolver safety contract:
 
-- a project override is still a selected-root project file; resolve it through the shared `resolveProjectPath` (or equivalently named) Stage-12 leaf helper. The present `lib/context.mjs`, `lib/readiness.mjs`, and `lib/verify.mjs` each have a duplicated `safePath` prefix-only implementation; none proves no symlink escape. One purpose-aware helper must canonicalize existing parent components, reject traversal/symlink/junction escape, default to no-follow for untrusted evidence (D-03), and re-inspect before writes under lock. In-root symlinks require explicit policy, not accidental acceptance. No impossible TOCTOU-freedom guarantee is claimed;
+- a project override is still a selected-root project file; resolve it through the shared `resolveProjectPath` (or equivalently named) Stage-12 leaf helper. The present `lib/context.mjs`, `lib/readiness.mjs`, and `lib/verify.mjs` each have a duplicated `safePath` prefix-only implementation; none proves no symlink escape. One purpose-aware helper must canonicalize existing parent components, reject traversal/symlink/junction escape, default to no-follow for untrusted evidence (D-03), and re-inspect before writes under lock. The maintainer-selected D-03 no-follow policy rejects in-root symlinks as well as escaping links by default; only separately documented, reviewed and tested purpose-specific exceptions can allow them. Canonical acceptance and native-Windows proof remain pending. No impossible TOCTOU-freedom guarantee is claimed;
 - package fallback is chosen only from the fixed MODE_PROMPTS/canonical prompt allowlist for the requested contextMode;
 - do not expose a generic "read any vcp:<path>" escape hatch;
 - the packaged prompt is typed as execution-prompt context, never Source of Truth;
@@ -3477,7 +3477,7 @@ Required detector-evaluation invariants:
 
 - every declared evidence path is portable, selected-project-root-relative, and passed through the **same central Stage-12 selected-root path resolver** used by Context/Readiness/Verify, not an inlined prefix-only `safePath`; read-existing and write-new intents remain distinct;
 - parent/sibling/workspace/URL/absolute path escape is rejected;
-- symlink targets cannot confer capability evidence outside the selected root;
+- symlink targets cannot confer capability evidence outside the selected root; moreover, reject untrusted symlink/junction/reparse traversal by default even when its target stays inside the selected root, including linked parent components (D-03 selected no-follow design; implementation and native Windows proof pending). A purpose-specific exception requires separate documentation, review and conformance fixtures;
 - JSON/text predicates have per-file and aggregate byte limits; directory/predicate counts have deterministic limits;
 - decoding/parsing failure is explicit and cannot silently become a positive match;
 - exact path/case semantics are deterministic across supported platforms where a predicate depends on a concrete path;

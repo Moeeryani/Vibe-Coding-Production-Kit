@@ -37,8 +37,9 @@ id: D-XX
 status: ACCEPTED # or DEFERRED / REJECTED
 owner: <maintainer>
 decidedAtUtc: <timestamp>
+approvalEvidence: <explicit human sign-off reference>
 chosenOption: <exact behavioral contract>
-rejectedAlternatives: [<option and rationale>]
+rejectedAlternatives: [{option: <rejected choice>, reason: <rationale>}]
 affectedLocations: [<exact S/T/roadmap/task anchors>]
 provingTests: [<test IDs and recorded evidence>]
 implementationPR: <URL or pending>

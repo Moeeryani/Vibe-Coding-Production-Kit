@@ -2054,7 +2054,7 @@ Today some legacy stack markers are tested with `access()`, which can follow sym
 
 Use the same underlying safe evidence primitives for core/first-party detectors and community DSL where practical so the trust model does not vary by provenance.
 
-**Common path trust primitive (C-11):** Stage 12 introduces one leaf resolver for selected-project-root reads and writes, with separate read-existing/write-new/managed-state policies. Validate canonical parent path components with no-follow checks; do not trust `path.resolve().startsWith(root)` to exclude symlink/junction escapes. For untrusted evidence, default to rejecting symlinks (including in-root links) pending D-03 approval; purpose-specific exceptions require explicit provenance and tests. Replace duplicated `safePath` copies in Context, Readiness and Verify. Re-inspect before mutation under the actual lock; no impossible TOCTOU-free guarantee is implied.
+**Common path trust primitive (C-11):** Stage 12 introduces one leaf resolver for selected-project-root reads and writes, with separate read-existing/write-new/managed-state policies. Validate canonical parent path components with no-follow checks; do not trust `path.resolve().startsWith(root)` to exclude symlink/junction escapes. For untrusted evidence, reject symlinks (including in-root links) by default under the maintainer-selected D-03 no-follow design; canonical acceptance remains pending independent coverage review. Purpose-specific exceptions require explicit provenance, review and tests. Replace duplicated `safePath` copies in Context, Readiness and Verify. Re-inspect before mutation under the actual lock; no impossible TOCTOU-free guarantee is implied.
 
 ## 5.5 Project-root semantics remain important
 
