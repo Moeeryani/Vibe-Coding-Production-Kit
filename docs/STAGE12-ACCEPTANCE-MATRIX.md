@@ -108,6 +108,25 @@ distinct unverified result when a platform is unavailable.
   Race-free safety, general Windows durability and full managed schema-v2
   lifecycle remain unproven and fenced.
 
+## Final source-authoring checklist (still no executed checks)
+
+- D-02 now has an additive *candidate* `installHealth` / `governance`
+  report split and `proposedD02DoctorExitCode()`, deliberately without
+  changing public `doctorExitCode` until the maintainer accepts D-02.
+  Test fixtures describe absent brownfield starter assets as not applicable.
+- `scripts/check-stage12-readonly-contract.mjs` is included through the
+  new `npm run check:stage12-contract` step inside `npm run validate`.
+  It statically enforces continued NO-GO, no pre-gate mkdir, negative 12/13
+  scenario witness identities and no production import of test-only fixtures.
+- The new linked-root and package-marker Doctor tests cover real symlinks
+  and opt-in Windows junctions, returning an explicit skip only when the
+  Windows host lacks permission to create the fixture.
+- `docs/decisions/stage12-p0-review-packet-20261010.md` on the
+  integrated contract branch records all six P0 proposed decision choices.
+  **Statuses remain PROPOSED; do not treat authored code as ratification.**
+- A fresh combined final-head test execution is mandatory before any
+  acceptance; no "137 failures fixed" assertion is authorized here.
+
 ## Test execution and governance
 
 Do not run npm check/test/validate/pack, syntax runners, package smoke or
