@@ -37,7 +37,7 @@
     {
       "path": "docs/UPDATES.md",
       "heading": "### Current ownership boundary",
-      "requiredText": "D-05 / D-01 warning"
+      "requiredText": "D-05 (ACCEPTED DESIGN; D-01 WRITER GATED)"
     },
     {
       "path": "docs/decisions/stage12-p0-review-packet-20261010.md",
