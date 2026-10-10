@@ -17,7 +17,7 @@ This file records explicit deferrals and proposed choices; **only D-01 has been 
 
 | ID | Status | Topic | Deadline | Affected anchors | Proposed outcome | Required evidence |
 |---|---|---|---|---|---|---|
-| D-01 | **DEFERRED** | Old 0.9.3 mutation fence | Before any managed schema-v2 write | S §3.5; T §4.8; ROADMAP Stage12; CLI/UPDATES legacy warnings | **Maintainer-selected Option C: defer live managed v1→v2 migration**. No writer, rollback/recovery migration or release assertion until a separately proved and accepted old-CLI safety fence. Backup-only and lifecycle-lock separation are empirically insufficient; directory sentinel is unproven beyond tested Linux entrypoints | PR #89 released 0.9.3 Linux POC: 7/12 unsafe protected mutations, 3 Linux sentinel blocks; required future proofs: native Windows, manifest-absent old init + sentinel, atomic transition, concurrent old/new processes, crash and byte-for-byte user edit preservation |
+| D-01 | **DEFERRED** | Old 0.9.3 mutation fence | Before any managed schema-v2 write | S §3.5; T §4.8; ROADMAP Stage12; CLI/UPDATES legacy warnings | **Maintainer-selected Option C: defer live managed v1→v2 migration**. No writer, rollback/recovery migration or release assertion until a separately proved and accepted old-CLI safety fence. Backup-only and lifecycle-lock separation are empirically insufficient; directory sentinel is FALSIFIED for old init when the manifest is missing (native Windows 13th scenario) | Authentic 0.9.3: Linux 7/12 and native Windows 8/13 protected user-edit losses; old init ignores sentinel when manifest absent. Windows NTFS v2 lock sync EPERM. New complete fence, Windows durability, concurrency, crash and old/new proof remain required |
 | D-02 | **PROPOSED** | Doctor --strict scope | Before Stage12 Doctor implementation | S §3.11; T §7.4 | Recommend applicable install-health WARN/FAIL only; governance informational | Synthetic brownfield-minimal/legacy-full strict and nonstrict exit matrix |
 | D-03 | **PROPOSED** | Untrusted symlink policy | Before new project path helper | S §5.4; T §7.2/§9.4A; ROADMAP #73; CLI/UPDATES path warnings | **Maintainer confirmed the design choice**: no-follow for untrusted selected-root paths, including in-root symlinks and native junctions; only separately reviewed purpose-specific exceptions. Canonical acceptance and product implementation remain PENDING complete coverage-map review and native-platform tests | Record of design choice in docs/decisions/D-03-policy-selection.md; exact selected-root read/write/managed-state conformance, native Windows junction tests and TOCTOU risk audit required before security claims |
 | D-04 | **PROPOSED** | Init action vocabulary and JSON | Before public planner | S §3.7; T §4.5 | Recommend CLAIM, update ADOPT unchanged, planVersion=1, skippedPaths separate | Content-free zero-write JSON conformance and unknown-version rejection |
@@ -54,3 +54,23 @@ The actual published v0.9.3 Linux POC in #89 observed **7/12 unsafe mutations**;
 ## D-01 compatibility safeguard
 
 A normal persistent `.vcp/update.lock` file is **not** a fence against the published 0.9.3 binary: old stale-lock reaping can remove it, and old rollback can restore a backup without first reading the live schema. A post-migration newest-v2-backup policy bounds schema regression only under assumptions, **not** arbitrary content mutation or lost later edits. A directory sentinel remains a candidate, not a proved fix. Old/new concurrency, transaction-journal precedence, crash transition, and Windows behavior are mandatory evidence. If proof fails, defer live managed v2 migration and mark the slice BLOCKED.
+
+## 2026-10-10 superseding D-01 evidence and proposed Stage12 scope
+
+The authenticated published-0.9.3 native Windows evidence is now on
+`evidence/stage12-d01-windows-native-20261009` at
+`9711013177900b4834906069491e5a1c6b2f8f45`: 8 protected
+user-edit loss witnesses among 13 scenarios, including old `init --force`
+overwriting project files after deleting the manifest with a directory
+sentinel intact. The earlier hypothesis that a directory sentinel might
+cover every old entrypoint has been falsified. Also, NTFS directory sync
+reported EPERM for the current v2 lock protocol. D-01 remains DEFERRED;
+no migration/recovery writer activation is authorized.
+
+A separate review-only proposal at
+`docs/STAGE12-SAFE-SUBSET-ACCEPTANCE-PROPOSAL.md` defines a potential
+**read-only Stage12 foundation**, deliberately excluding the full Stage12
+managed v2 lifecycle and release. It is not accepted yet. D-02, D-03,
+D-04, D-05, D-06 and D-12 remain PROPOSED and need their own semantic
+maintainer sign-off and required-anchor coverage review. A successful
+test suite cannot change those decision states.
