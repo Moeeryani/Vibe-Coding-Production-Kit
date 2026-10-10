@@ -61,7 +61,8 @@ export async function inspectStage12ReadOnlyContract(){
     ['lib/versioned-journal.mjs','writeVersionedJournal'],
     ['lib/versioned-journal.mjs','clearVersionedJournal'],
     ['lib/safe-create.mjs','createOwnedPathExclusively'],
-    ['lib/managed-schema-migrator.mjs','replaceManifestAtomically']
+    ['lib/managed-schema-migrator.mjs','replaceManifestAtomically'],
+    ['lib/terminal-retirement-v2.mjs','retireGreenfieldControlDirectory']
   ];
   for(const [file,exported] of protectedExports) {
     const source=await load(file);
