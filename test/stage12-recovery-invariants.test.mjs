@@ -59,7 +59,7 @@ test('unexpected empty folder is still foreign state',async t=>{
 });
 
 test('symlinks anywhere in initial rollback tree refuse ownership',async t=>{
-  if(process.platform==='win32')t.skip('native junction/reparse fixture belongs to Windows suite');
+  if(process.platform==='win32')return t.skip('native junction/reparse fixture belongs to Windows suite');
   const root=await sandbox(t);
   await setupTree(root);
   await symlink('owned.md',path.join(root,'docs/nested/foreign-link'));
