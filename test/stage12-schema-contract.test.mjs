@@ -267,6 +267,56 @@ test('committed journal cleanup requires valid operation-matched v2 state',()=>{
   ])assert.throws(mismatch,{code:'E_COMMITTED_STATE_UNPROVEN'});
 });
 
+test('journal transition enforces exact ownership and terminal phase ordering',async()=>{
+  const {assertVersionedJournalTransition}=
+    await import('../lib/versioned-journal.mjs');
+  const createdFiles=[
+    {path:'.vcp/manifest.json',hash:DIGEST},
+    {path:'.vcp/.gitignore',hash:DIGEST},
+    {path:'docs/README.md',hash:DIGEST}
+  ];
+  const make=(phase,extra={})=>describeVersionedTransaction({
+    operationId:'owner-journal',backupId:'owner-journal',operation:'init',
+    minimumReaderVersion:READER,startedAt:'2026-10-10T00:00:00Z',
+    phase,createdFiles,...extra
+  });
+  const prepared=make('prepared');
+  const applying=make('applying');
+  const recovering=make('recovering');
+  const cleanup=make('cleanup',{cleanupBackupHash:TARGET});
+  assert.equal(assertVersionedJournalTransition(null,prepared,{
+    readerVersion:READER
+  }).to,'prepared');
+  assert.equal(assertVersionedJournalTransition(prepared,applying,{
+    readerVersion:READER
+  }).to,'applying');
+  assert.equal(assertVersionedJournalTransition(applying,recovering,{
+    readerVersion:READER
+  }).to,'recovering');
+  assert.equal(assertVersionedJournalTransition(recovering,cleanup,{
+    readerVersion:READER
+  }).to,'cleanup');
+  for(const [old,next] of [
+    [null,cleanup],
+    [prepared,cleanup],
+    [applying,cleanup],
+    [cleanup,cleanup],
+    [recovering,make('cleanup',{
+      cleanupBackupHash:TARGET,
+      createdFiles:[...createdFiles.slice(0,2),{
+        path:'docs/README.md',hash:TARGET
+      }]
+    })],
+    [recovering,make('cleanup',{
+      cleanupBackupHash:TARGET,startedAt:'2026-10-11T00:00:00Z'
+    })]
+  ]) {
+    assert.throws(()=>assertVersionedJournalTransition(old,next,{
+      readerVersion:READER
+    }));
+  }
+});
+
 test('terminal cleanup journal requires exact init backup evidence',()=>{
   const base={
     operationId:'init-term',backupId:'init-term',operation:'init',
