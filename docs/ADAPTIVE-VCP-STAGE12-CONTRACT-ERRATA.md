@@ -20,3 +20,13 @@
 ## Repo status / expected reviewer action
 
 This is a **draft PR start**, not completion of G-ENTRY, G-DOCS or G-FENCE. Review the five internal errata and the canonical register, then approve a bounded separate S/T contract-edit sequence. Do not merge this PR or enable any product-code migration simply because these draft files exist.
+
+## 2026-10-10 superseding compatibility observation
+
+The prior directory-sentinel discussion was a test hypothesis and
+must not be treated as still viable by default. Authenticated native
+Windows old-CLI 0.9.3 ignored its update.lock directory on
+`init --force` when manifest was missing and overwrote AGENTS.md.
+The writer-side `syncContainingDirectory` implementation failed
+with EPERM on NTFS. D-01 remains DEFERRED and G-FENCE NO-GO;
+read-only foundation scope is proposed separately from full Stage12.
