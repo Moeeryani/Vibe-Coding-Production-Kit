@@ -17,7 +17,7 @@ Old individual-branch green receipts cannot be borrowed.
 | Criterion | Authored code / evidence | Still required |
 |---|---|---|
 | AC-001 | Contract-lineage local gate runner | Fresh combined SHA, clean tree, OS/Node/npm/Git receipts |
-| AC-002 | Canonical decision ledger and S/T contract PR #95 | Independent full-anchor review and actual decision ratification |
+| AC-002 | Maintainer accepted D-02/D-03/D-04/D-05/D-06/D-12 policies on 2026-10-10; D-01 remains DEFERRED | Independent full-anchor review, actual implementation conformance and exact-head proof |
 | AC-003 | manifest-v1-guard, manifest-v2, schema contract fixtures | Reader/writer minVersion and unknown-field cases on exact head |
 | AC-004 | Authentic published v0.9.3 verified independently on Linux and native Windows; old CLI has 7 Linux and 8 Windows post-backup user-edit loss witnesses. Case 13 disproves directory-sentinel protection for old init on missing manifest. Product auditor now consumes both 12/13-case redacted receipts | **NO-GO proven.** Safe alternate fence, atomic handoff, concurrency, mid-write crash injection, Windows durability design and explicit maintainer acceptance remain BLOCKED/UNVERIFIED |
 | AC-005 | managed-recovery-v2, versioned-journal, stale-journal-plan, committed-cleanup-plan | Crash by phase, exact byte proof, quarantine and native durability |
@@ -82,10 +82,11 @@ distinct unverified result when a platform is unavailable.
 
 ## P0/P1 construction pass — 2026-10-10 (UNEXECUTED)
 
-- Proposed interim scope is explicit in
-  `docs/STAGE12-SAFE-SUBSET-ACCEPTANCE-PROPOSAL.md`: this is **not** a
-  modification or successful completion of the original AC-004/005/006.
-  Human ratification is required to label the safe read-only foundation.
+- The historical limited-scope proposal in
+  `docs/STAGE12-SAFE-SUBSET-ACCEPTANCE-PROPOSAL.md` was rejected as final
+  delivery by the maintainer on 2026-10-10. **FULL ORIGINAL STAGE12 SCOPE**
+  is binding, including AC-004/005/006, Windows durability and v1→v2
+  migration. D-01/G-FENCE still blocks activation, not candidate authoring.
 - Every historical test failure from the `d13de6be` 469-test Linux run
   is individually inventoried in `docs/STAGE12-HISTORICAL-FAILURE-TRIAGE.md`:
   **112 D-01-gated init, 24 EXISTING brownfield-init rejection,
@@ -110,9 +111,9 @@ distinct unverified result when a platform is unavailable.
 
 ## Final source-authoring checklist (still no executed checks)
 
-- D-02 now has an additive *candidate* `installHealth` / `governance`
-  report split and `proposedD02DoctorExitCode()`, deliberately without
-  changing public `doctorExitCode` until the maintainer accepts D-02.
+- After D-02 policy acceptance, the public `doctorExitCode` candidate
+  was modified to consume applicable `installHealth`, separate from
+  governance findings. This is authored, **not yet executed or validated**.
   Test fixtures describe absent brownfield starter assets as not applicable.
 - `scripts/check-stage12-readonly-contract.mjs` is included through the
   new `npm run check:stage12-contract` step inside `npm run validate`.
@@ -121,9 +122,10 @@ distinct unverified result when a platform is unavailable.
 - The new linked-root and package-marker Doctor tests cover real symlinks
   and opt-in Windows junctions, returning an explicit skip only when the
   Windows host lacks permission to create the fixture.
-- `docs/decisions/stage12-p0-review-packet-20261010.md` on the
-  integrated contract branch records all six P0 proposed decision choices.
-  **Statuses remain PROPOSED; do not treat authored code as ratification.**
+- `docs/decisions/stage12-p0-review-packet-20261010.md` records the six
+  reviewed policies. Maintainer choices D-02/D-03/D-04/D-05/D-06/D-12
+  are **ACCEPTED as decisions**; D-01 remains DEFERRED. All required-anchor
+  coverage reviews remain PENDING and no implementation test has passed.
 - A fresh combined final-head test execution is mandatory before any
   acceptance; no "137 failures fixed" assertion is authorized here.
 
