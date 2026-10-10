@@ -157,6 +157,22 @@ test('schema update transaction requires one exact target manifest digest',()=>{
   },{readerVersion:READER}),{code:'E_CREATED_FILE_UNRECOGNIZED'});
 });
 
+test('versioned backup and journal reject case-colliding owned paths',()=>{
+  const backup=oldManagedBackup();
+  const entry=relative=>({path:relative,exists:true,mode:0o644});
+  for(const names of [
+    ['docs/README.md','docs/README.md'],
+    ['docs/README.md','docs/readme.md']
+  ]) {
+    assert.throws(()=>decodeBackupMetadata({
+      ...backup,entries:names.map(entry)
+    },{readerVersion:READER}),{code:'E_BACKUP_ENTRY'});
+    assert.throws(()=>decodeManagedTransaction({
+      ...journal(),createdFiles:names.map(relative=>({path:relative,hash:DIGEST}))
+    },{readerVersion:READER}),{code:'E_TRANSACTION_CREATED'});
+  }
+});
+
 test('new versioned writers remain disabled before any filesystem interaction',async()=>{
   const {applyAdaptiveGreenfield}=await import('../lib/greenfield-apply-v2.mjs');
   const {applyVersionedManagedSchemaMigration}=
