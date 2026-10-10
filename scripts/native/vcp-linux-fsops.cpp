@@ -9,9 +9,11 @@
 //
 // Safety model:
 //   * --root must be an absolute path without ".."; it is opened once with
-//     O_PATH|O_DIRECTORY|O_NOFOLLOW and every operation is resolved
+//     O_RDONLY|O_DIRECTORY|O_NOFOLLOW and every operation is resolved
 //     component-by-component beneath that pinned fd. A swapped parent or a
 //     symlink anywhere in the chain aborts the operation (exit 2/3).
+//     (O_PATH fds are deliberately NOT used: parent directories are
+//     fsync()ed and listed, which O_PATH does not permit.)
 //   * Relative names are restricted to [A-Za-z0-9._-] components, max 128
 //     chars each, max 32 components. No absolute names, no "..", no empty.
 //   * JSON goes to stdout (one line). Nothing is read from the network,
@@ -145,11 +147,15 @@ static std::vector<std::string> split_rel(const std::string& rel) {
   parts.push_back(cur);
   return parts;
 }
-// Open --root pinned: O_PATH|O_DIRECTORY|O_NOFOLLOW, must be a directory.
+// Open --root pinned: O_RDONLY|O_DIRECTORY|O_NOFOLLOW, must be a directory.
+// A real (non-O_PATH) directory fd is required: parents are fsync()ed and
+// listed through these fds, and fsync/fdopendir do not work on O_PATH fds.
+// The open file description pins the inode for the operation's lifetime.
 static int open_pinned_root(const std::string& root) {
   if (root.empty() || root[0] != '/' || root.find("..") != std::string::npos)
     return -100;
-  int fd = open(root.c_str(), O_PATH | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
+  int fd = open(root.c_str(),
+                O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
   if (fd < 0) return -101;
   struct stat st;
   if (fstat(fd, &st) != 0 || !S_ISDIR(st.st_mode)) {
@@ -172,8 +178,9 @@ static Resolved resolve_parent(int rootfd, const std::string& rel,
   int cur = rootfd;
   bool owned = false;
   for (size_t i = 0; i + 1 < parts.size(); i++) {
+    // Real directory fds (not O_PATH): the final parent is fsync()ed.
     int nxt = openat(cur, parts[i].c_str(),
-                     O_PATH | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
+                     O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
     if (nxt < 0) { why = "intermediate open failed"; goto bad; }
     struct stat st;
     if (fstat(nxt, &st) != 0 || !S_ISDIR(st.st_mode)) {
@@ -389,12 +396,17 @@ static int op_stat_id(int rootfd, const std::string& rel) {
   const char* type = S_ISREG(st.st_mode) ? "file"
       : S_ISDIR(st.st_mode) ? "dir" : S_ISLNK(st.st_mode) ? "symlink" : "other";
   char body[1024];
+  // mode is emitted as an OCTAL STRING (JSON has no octal literals);
+  // consumers parse it with base 8.
   snprintf(body, sizeof body,
            "{\"ok\":true,\"op\":\"stat-id\",\"path\":%s,"
-           "\"type\":%s,\"dev\":%ld,\"ino\":%ld,\"mode\":%o,"
+           "\"type\":%s,\"dev\":%ld,\"ino\":%ld,\"modeOct\":%s,"
            "\"uid\":%u,\"gid\":%u,\"size\":%lld}",
            jstr(rel).c_str(), jstr(type).c_str(), (long)st.st_dev,
-           (long)st.st_ino, (unsigned)(st.st_mode & 07777),
+           (long)st.st_ino, jstr([&]{
+             char m[16]; snprintf(m, sizeof m, "%o",
+                                 (unsigned)(st.st_mode & 07777));
+             return std::string(m); }()).c_str(),
            (unsigned)st.st_uid, (unsigned)st.st_gid,
            (long long)st.st_size);
   emit(body);

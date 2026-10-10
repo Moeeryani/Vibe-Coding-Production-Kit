@@ -125,6 +125,7 @@ async function publishedCli(archive, expected, scratch) {
   if (actual !== expected) throw new Error('Tarball does not match trusted npm registry integrity.');
   const unpackRoot = path.join(scratch, 'unpacked');
   await mkdir(unpackRoot, { recursive: true });
+  await chmod(unpackRoot, 0o755); // umask-independent: legacy must traverse
   // The legacy principal must be able to read+execute the unpacked CLI.
   const untar = spawnSync('tar', ['-xzf', archivePath, '-C', unpackRoot],
     { encoding: 'utf8', timeout: 90000 });
@@ -134,6 +135,7 @@ async function publishedCli(archive, expected, scratch) {
   if (pkg.name !== PKG || pkg.version !== VERSION)
     throw new Error('Wrong extracted published package identity.');
   await chown(root, LEGACY_UID, LEGACY_GID).catch(() => {});
+  await chmod(root, 0o755).catch(() => {}); // tarball ships 0770 dirs
   const fix = async dir => {
     for (const e of await readdir(dir, { withFileTypes: true })) {
       const p = path.join(dir, e.name);
@@ -168,6 +170,8 @@ async function backup(root, id, manifest, agent) {
 async function fixture(bin, scratch, name) {
   const root = path.join(scratch, 'projects', name);
   await mkdir(root, { recursive: true });
+  // umask-independent: the legacy principal must traverse the parents.
+  await chmod(path.join(scratch, 'projects'), 0o755).catch(() => {});
   await chown(root, LEGACY_UID, LEGACY_GID);
   const init = sh(process.execPath, [bin, 'init', root, '--yes', '--no-github'],
     { cwd: root, uid: LEGACY_UID });
@@ -363,6 +367,9 @@ async function main() {
   const evidenceDir = path.resolve(opt.evidence);
   await mkdir(evidenceDir, { recursive: true });
   const scratch = await mkdtemp(path.join(os.tmpdir(), 'vcp-old-cli-fence-linux-'));
+  // The legacy principal must traverse the scratch tree to reach the
+  // unpacked CLI and its fixtures (mkdtemp is 0700 by default).
+  await chmod(scratch, 0o755);
   const release = await publishedCli(opt.tarball, opt['expected-integrity'], scratch);
   const names = opt.scenario && opt.scenario !== 'all' ? [opt.scenario] : cases;
   const modes = opt.mode === 'both' ? ['baseline', 'fenced'] : [opt.mode];

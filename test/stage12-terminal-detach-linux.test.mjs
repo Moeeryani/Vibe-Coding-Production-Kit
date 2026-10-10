@@ -78,13 +78,12 @@ test('happy path: verify -> move -> ack, archive holds pinned identity', async t
   const names = await readdir(b.dir);
   assert.equal(names.length, 1);
   assert.ok(isRetiredArchiveName(names[0]));
-  // Forensic manifest round-trips.
-  const man = await writeArchiveManifest(m1.destination, {
-    journalSha256: b.journalHash, backupId: 'b1',
-    rootIdentity: v.sourceIdentity, scope: 'in-root',
-  });
+  // Forensic manifest was written by acknowledgeDetach; round-trips.
+  assert.match(ack.manifestSha256 ?? '', /^[a-f0-9]{64}$/);
   const read = await readArchiveManifest(b.dir, names[0]);
-  assert.equal(read.manifestSha256, man.manifestSha256);
+  assert.equal(read.manifestSha256, ack.manifestSha256);
+  assert.equal(read.manifest.journalSha256, b.journalHash);
+  assert.equal(read.manifest.kind, 'vcp-retirement-manifest');
 });
 
 test('crash before move: resume completes exactly one detach', async t => {
@@ -126,12 +125,12 @@ test('crash after ack: re-run is an idempotent no-op', async t => {
     /E_TERMINAL/.test(v2.code ?? ''),
     're-verify after detach must fail closed, got: ' + (v2.code ?? v2));
   // The planner reports the terminal state instead of BLOCKED.
-  await writeArchiveManifest(v.destination, {
-    journalSha256: b.journalHash, backupId: 'b1', scope: 'in-root',
-  });
+  // acknowledgeDetach already wrote the forensic manifest.
   const plan = await planGreenfieldRecovery(b.dir);
   assert.equal(plan.classification, 'ALREADY_RETIRED');
   assert.equal(plan.writeAuthorized, false);
+  assert.equal(plan.retiredArchives.length, 1);
+  assert.equal(plan.retiredArchives[0].journalSha256, b.journalHash);
 });
 
 test('destination collision: advisory check AND atomic OS check both refuse', async t => {
@@ -252,10 +251,10 @@ test('retention: prune plans by age, executes only with approval + re-verify', a
   const b = await bundle(t);
   const v = await verifiedOf(t, b);
   await performDetachMove(v);
-  await acknowledgeDetach(v);
-  const man = await writeArchiveManifest(v.destination, {
-    journalSha256: b.journalHash, backupId: 'b1', scope: 'in-root',
-  });
+  // acknowledgeDetach writes the forensic manifest idempotently.
+  const ack2 = await acknowledgeDetach(v);
+  const manSha = ack2.manifestSha256;
+  assert.match(manSha ?? '', /^[a-f0-9]{64}$/);
   const name = path.basename(v.destination);
   // Too young: skipped, never a candidate.
   let plan = await planArchivePrune(b.dir, { nowMs: Date.now() });
@@ -265,7 +264,7 @@ test('retention: prune plans by age, executes only with approval + re-verify', a
   // Old enough: candidate with verified manifest.
   plan = await planArchivePrune(b.dir, { nowMs: Date.now() + 31 * 24 * 3600 * 1000 });
   assert.equal(plan.candidates.length, 1);
-  assert.equal(plan.candidates[0].manifestSha256, man.manifestSha256);
+  assert.equal(plan.candidates[0].manifestSha256, manSha);
   // Execute without approval -> refused.
   await assert.rejects(executeArchivePrune(b.dir, {
     archives: plan.candidates, approval: null,
@@ -273,10 +272,10 @@ test('retention: prune plans by age, executes only with approval + re-verify', a
   // Execute with approval -> removed, parent synced.
   const approval = {
     approvedBy: 'test-operator', reason: 'retention-test',
-    archives: [{ name, manifestSha256: man.manifestSha256 }],
+    archives: [{ name, manifestSha256: manSha }],
   };
   const done = await executeArchivePrune(b.dir, {
-    archives: [{ name, manifestSha256: man.manifestSha256 }], approval,
+    archives: [{ name, manifestSha256: manSha }], approval,
   });
   assert.deepEqual(done.pruned, [name]);
   assert.deepEqual(await readdir(b.dir), []);
@@ -287,17 +286,16 @@ test('retention: manifest change between plan and execute aborts prune', async t
   const b = await bundle(t);
   const v = await verifiedOf(t, b);
   await performDetachMove(v);
-  await acknowledgeDetach(v);
+  const ack2 = await acknowledgeDetach(v);
+  const manSha = ack2.manifestSha256;
+  assert.match(manSha ?? '', /^[a-f0-9]{64}$/);
   const name = path.basename(v.destination);
-  const man = await writeArchiveManifest(v.destination, {
-    journalSha256: b.journalHash, backupId: 'b1', scope: 'in-root',
-  });
   const plan = await planArchivePrune(b.dir, { nowMs: Date.now() + 60 * 24 * 3600 * 1000 });
   // Tamper with the manifest after planning.
   await writeFile(path.join(v.destination, 'vcp-retirement-manifest.json'), '{}\n');
   const approval = {
     approvedBy: 't', reason: 't',
-    archives: [{ name, manifestSha256: man.manifestSha256 }],
+    archives: [{ name, manifestSha256: manSha }],
   };
   await assert.rejects(executeArchivePrune(b.dir, {
     archives: plan.candidates, approval,
@@ -310,17 +308,16 @@ test('retention: symlink inside archive aborts prune', async t => {
   const b = await bundle(t);
   const v = await verifiedOf(t, b);
   await performDetachMove(v);
-  await acknowledgeDetach(v);
+  const ack2 = await acknowledgeDetach(v);
+  const manSha = ack2.manifestSha256;
+  assert.match(manSha ?? '', /^[a-f0-9]{64}$/);
   const name = path.basename(v.destination);
-  const man = await writeArchiveManifest(v.destination, {
-    journalSha256: b.journalHash, backupId: 'b1', scope: 'in-root',
-  });
   await symlink('/etc', path.join(v.destination, 'evil-link'));
   const approval = {
     approvedBy: 't', reason: 't',
-    archives: [{ name, manifestSha256: man.manifestSha256 }],
+    archives: [{ name, manifestSha256: manSha }],
   };
   await assert.rejects(executeArchivePrune(b.dir, {
-    archives: [{ name, manifestSha256: man.manifestSha256 }], approval,
+    archives: [{ name, manifestSha256: manSha }], approval,
   }), e => e.code === 'E_PRUNE_SYMLINK_REFUSED');
 });

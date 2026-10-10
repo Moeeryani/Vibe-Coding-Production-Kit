@@ -49,8 +49,15 @@ test('native no-replace boundary refuses unsafe sibling scope and never falls ba
     {root,source,destination:'/disposable-project/inside-root'},
     {root,source,destination:'/somewhere/unrelated'}
   ])assert.throws(()=>planNoReplaceMove(wrong),{code:'E_NAMESPACE_SCOPE'});
+  // The primitive itself refuses a sibling archive without an explicit
+  // approval object, even when the caller bypasses the protocol layer.
+  // (Stage 12 implements the Linux provider; the old always-refuse stub
+  // code E_NATIVE_NOREPLACE_UNAVAILABLE now applies only off-Linux.)
   await assert.rejects(()=>moveDirectoryNoReplace({
     root,source,destination,platform:'linux'
+  }),{code:'E_TERMINAL_SIBLING_SCOPE_APPROVAL_REQUIRED'});
+  await assert.rejects(()=>moveDirectoryNoReplace({
+    root,source,destination,platform:'win32'
   }),{code:'E_NATIVE_NOREPLACE_UNAVAILABLE'});
 });
 

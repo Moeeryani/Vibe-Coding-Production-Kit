@@ -27,14 +27,22 @@ async function makeProvider(t) {
   return p;
 }
 async function scratch(t) {
-  const dir = await mkdtemp(path.join(os.tmpdir(), 'vcp-prov-test-'));
+  // btrfs-backed disposable dir (durable namespace semantics); /tmp here
+  // is tmpfs and is used only where tmpfs is specifically required.
+  const base = path.join(
+    path.dirname(new URL(import.meta.url).pathname), '..', '..', 'test-scratch');
+  await mkdir(base, { recursive: true });
+  const dir = await mkdtemp(path.join(base, 'vcp-prov-test-'));
   t.after(() => rm(dir, { recursive: true, force: true }));
   return dir;
 }
 
 test('probe reports kernel, filesystem and capability matrix', async t => {
   const p = await makeProvider(t);
-  const c = await p.probeCapabilities();
+  const base = path.join(
+    path.dirname(new URL(import.meta.url).pathname), '..', '..', 'test-scratch');
+  await mkdir(base, { recursive: true });
+  const c = await p.probeCapabilities(base);
   assert.equal(typeof c.kernel, 'string');
   assert.equal(typeof c.filesystem, 'string');
   assert.equal(typeof c.renameat2Noreplace, 'boolean');
@@ -45,6 +53,7 @@ test('probe reports kernel, filesystem and capability matrix', async t => {
     `immutable=${c.immutableSettable}(${c.immutableErrno})`);
   // On this Linux/btrfs host both primitives must hold; elsewhere the
   // provider fails closed instead of pretending.
+  assert.equal(c.filesystem, 'btrfs');
   assert.equal(c.renameat2Noreplace, true);
   assert.equal(c.directoryFsync, true);
 });
@@ -126,9 +135,13 @@ test('hardlink destination collision is refused; source hardlink survives move',
 
 test('cross-filesystem rename fails closed with E_CROSS_FILESYSTEM', async t => {
   const p = await makeProvider(t);
-  const a = await scratch(t); // btrfs (workspace) in this environment
-  const b = await mkdtemp(path.join('/tmp', 'vcp-prov-xdev-'));
+  const a = await scratch(t); // btrfs
+  const b = await mkdtemp(path.join('/tmp', 'vcp-prov-xdev-')); // tmpfs
   t.after(() => rm(b, { recursive: true, force: true }));
+  const fsA = (await import('node:fs/promises').then(m => m.statfs(a))).type;
+  const fsB = (await import('node:fs/promises').then(m => m.statfs(b))).type;
+  t.diagnostic(`src fs=${os.platform()}:${fsA} dst fs=${fsB}`);
+  assert.notEqual(fsA, fsB, 'test needs two different filesystems');
   await p.createDirectory(a, 'x');
   // Pin --root at / is too broad; instead drive the helper directly with
   // two disposable subtrees on different filesystems via relative paths
@@ -166,10 +179,12 @@ test('reapStaging removes only provider staging files', async t => {
   const dir = await scratch(t);
   await p.writeFileSynced(dir, '.keep.vcp-deadbeef.tmp', Buffer.from('s'));
   await writeFile(path.join(dir, 'user.txt'), 'user');
-  await writeFile(path.join(dir, '.user.vcp-1234.tmp'), 'not-ours-pattern?');
+  await writeFile(path.join(dir, '.user-notes.tmp'), 'decoy without staging pattern');
   const r = await p.reapStaging(dir, '.');
   assert.deepEqual(r.removed, ['.keep.vcp-deadbeef.tmp']);
   assert.equal(await readFile(path.join(dir, 'user.txt'), 'utf8'), 'user');
+  assert.equal(await readFile(path.join(dir, '.user-notes.tmp'), 'utf8'),
+    'decoy without staging pattern');
 });
 
 test('interrupted replace leaves original intact and staging is reapable', async t => {

@@ -77,9 +77,18 @@ test('planLegacyFence is read-only and reports kernel state', async t => {
 test('enforce refuses without privilege', async t => {
   if (!LINUX) t.skip('linux-only');
   const dir = await fixture(t);
+  // Stage the modules where the legacy UID can read them (/home/hatch is
+  // not traversable by other UIDs — itself a correct OS denial).
+  const stage = await mkdtemp(path.join(os.tmpdir(), 'vcp-fence-stage-'));
+  t.after(() => rm(stage, { recursive: true, force: true }));
+  const libDir = path.join(path.dirname(new URL(import.meta.url).pathname), '..', 'lib');
+  for (const f of ['linux-legacy-fence.mjs', 'linux-fs-provider.mjs']) {
+    await writeFile(path.join(stage, f), await readFile(path.join(libDir, f)));
+    await chmod(path.join(stage, f), 0o644);
+  }
+  await chmod(stage, 0o755);
   const r = asLegacy(`
-    const m = await import(${JSON.stringify(
-      path.join(path.dirname(new URL(import.meta.url).pathname), '..', 'lib', 'linux-legacy-fence.mjs'))});
+    const m = await import(${JSON.stringify(path.join(stage, 'linux-legacy-fence.mjs'))});
     try { await m.enforceLegacyFence(${JSON.stringify(dir)},
       { protectedPaths: ['.vcp'], writerUid: 60012, writerGid: 60012 });
       console.log('NO_THROW'); }

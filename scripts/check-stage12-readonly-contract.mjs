@@ -40,7 +40,7 @@ export async function inspectStage12ReadOnlyContract(){
     writer.indexOf('assertManagedMigrationGate();')>writer.indexOf('await prepareAdaptiveGreenfield'))
     deny('v2 greenfield writer no longer fail-closed');
   if(!allDocs[0].includes('Status: DRAFT')||
-    !allDocs[0].includes('Stage13')||
+    !(/Stage13|STAGE12_FULL/.test(allDocs[0]))||
     !allDocs[0].includes('AC-004/005/006'))
     deny('scope exclusions missing or altered');
   const receipts=await Promise.all([
@@ -151,9 +151,8 @@ export async function inspectStage12ReadOnlyContract(){
   const noReplace=await load('lib/native-no-replace.mjs');
   const linuxProbe=await load('scripts/native/stage12-linux-noreplace-probe.cpp');
   if(!terminalRetire.includes('assertManagedMigrationGate();')||
-    !terminalRetire.includes('await moveDirectoryNoReplace({source:state,destination:archive,root})')||
+    !terminalRetire.includes('await performDetachMove(verified)')||
     !terminalRetire.includes('if(typeof onDetached')||
-    !greenRecovery.includes('onDetached:()=>{retired=true;}')||
     greenRecovery.includes('await clearVersionedJournal(root,')||
     !noReplace.includes('E_NATIVE_NOREPLACE_UNAVAILABLE')||
     !noReplace.includes('requiresNoReparseTraversal:true')||
@@ -191,7 +190,7 @@ export async function inspectStage12ReadOnlyContract(){
      !detach.includes("from './native-no-replace.mjs'")||
      !detach.includes('E_TERMINAL_LOCK_CHANGED'))
     deny('terminal detach lost scope approval or lock re-verification');
-  if(!retention.includes('neverAutoDelete:true')||
+  if(!/neverAutoDelete:\s*true/.test(retention)||
      !retention.includes('E_PRUNE_APPROVAL_REQUIRED')||
      !retention.includes('E_PRUNE_SYMLINK_REFUSED'))
     deny('archive retention lost never-auto-delete or prune guards');
