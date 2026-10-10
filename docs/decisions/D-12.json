@@ -1,0 +1,60 @@
+{
+  "id": "D-12",
+  "status": "ACCEPTED",
+  "owner": "Moeeryani",
+  "decidedAtUtc": "2026-10-10T19:02:43Z",
+  "approvalEvidence": "Explicit maintainer approval in project ChatGPT conversation at 2026-10-10T19:02:43Z: approves D-02,D-03,D-04,D-05,D-06,D-12 per recommendations and requests original full Stage12. No D-01 GO authorization.",
+  "chosenOption": "VCP verify --run enforces exact executed Task Pack commands against latest selected-root AGENTS authority; reject conflicting/duplicate declarations, grandfathered or stale approvals, and require digest/policy-bound human approval for destructive commands. --yes cannot waive decisions; no interception promise for external shells.",
+  "rejectedAlternatives": [
+    {
+      "option": "Trust old task snapshots or --yes as blanket approval and claim interception outside VCP",
+      "reason": "Stale task data and unconstrained external commands could bypass human decision authority."
+    }
+  ],
+  "rationale": "Approval and execution identity must remain current even when a task or legacy command changes.",
+  "implementationPR": "https://github.com/Moeeryani/Vibe-Coding-Production-Kit/pull/96",
+  "provingTests": [
+    "test/verification-commands.test.mjs",
+    "test/verify.test.mjs",
+    "test/task-convention.test.mjs",
+    "pending executed command-tamper and receipt-freshness acceptance"
+  ],
+  "affectedLocations": [
+    {
+      "path": "docs/ADAPTIVE-VCP-IMPLEMENTATION-PLAN.md",
+      "heading": "### Migration re-screening and bounded enforcement (C-03 / D-12)",
+      "requiredText": "exact Task Pack command bytes"
+    },
+    {
+      "path": "docs/ADAPTIVE-VCP-CODE-INTEGRATION-ANALYSIS.md",
+      "heading": "### Migration command re-screen and execution-time authority (C-03 / D-12)",
+      "requiredText": "Stage 12 must authorize exact executed strings there"
+    },
+    {
+      "path": "docs/tasks/stage12-safe-adoption-planning.md",
+      "heading": "## Acceptance criteria",
+      "requiredText": "AC-011 (D-12 PROPOSED): Command authority"
+    },
+    {
+      "path": "docs/VERIFICATION-EVIDENCE.md",
+      "heading": "### Proposed D-12 execute-time gate (NOT IMPLEMENTED)",
+      "requiredText": "exact Task Pack shell command bytes"
+    },
+    {
+      "path": "docs/CLI.md",
+      "heading": "## Turn verification into evidence",
+      "requiredText": "Future D-12 execution authorization (not yet implemented)"
+    },
+    {
+      "path": "docs/TASK-PACKS.md",
+      "heading": "### Proposed D-12 Task Pack execution boundary (NOT IMPLEMENTED)",
+      "requiredText": "exact bytes actually executed"
+    },
+    {
+      "path": "docs/decisions/stage12-p0-review-packet-20261010.md",
+      "heading": "## D-12 — verification command authority",
+      "requiredText": "`verify --run`"
+    }
+  ],
+  "acceptanceCaveat": "DESIGN_DECISION_ACCEPTED_ONLY; required-anchors coverageReview PENDING independent maintainer review, runtime conformance and exact-final-head receipt not completed. No D-01 writer permission."
+}
