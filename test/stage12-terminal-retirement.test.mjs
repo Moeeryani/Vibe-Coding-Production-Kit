@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
 import {
   evaluateTerminalRetirement,retireGreenfieldControlDirectory
 } from '../lib/terminal-retirement-v2.mjs';
@@ -53,6 +54,16 @@ test('native no-replace boundary refuses unsafe sibling scope and never falls ba
   }),{code:'E_NATIVE_NOREPLACE_UNAVAILABLE'});
 });
 
+test('Linux native no-replace probe is disposable and not an attestation',async()=>{
+  const source=await readFile(new URL(
+    '../scripts/native/stage12-linux-noreplace-probe.cpp',import.meta.url),'utf8');
+  assert.match(source,/SYS_renameat2/);
+  assert.match(source,/RENAME_NOREPLACE/);
+  assert.match(source,/EEXIST/);
+  assert.match(source,/VCP-STAGE12-DISPOSABLE-ONLY\.marker/);
+  assert.match(source,/isDurabilityAttestation/);
+  assert.match(source,/requiresIndependentCrashAndPowerLossProof/);
+});
 test('terminal candidate refuses mutation before touching unknown root',async()=>{
   await assert.rejects(()=>retireGreenfieldControlDirectory({
     rootPath:'nonexistent-root',expectedJournalHash:H,ownedLock:null
