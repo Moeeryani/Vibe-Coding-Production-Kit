@@ -26,6 +26,7 @@ function journal(phase='applying') {
       {path:'AGENTS.md',kind:'managed-section',sectionId:'agent-routing',
         stagedDev:'7',stagedIno:'10',
         oldSha256:sha(old),oldMode:0o644,
+        originalDev:'7',originalIno:'11',
         newSha256:sha(section.document),
         baselineSha256:sha(section.body)}
     ]
