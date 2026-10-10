@@ -38,6 +38,9 @@ test('native probe is diagnostic and not a production durability authority',asyn
     '../scripts/native/stage12-windows-namespace-probe.cpp',import.meta.url),'utf8');
   assert.match(source,/MOVEFILE_WRITE_THROUGH/);
   assert.match(source,/FlushFileBuffers/);
+  assert.match(source,/CreateDirectoryW/);
+  assert.match(source,/RemoveDirectoryW/);
+  assert.match(source,/moveDirectoryWriteThroughReturned/);
   assert.match(source,/isDurabilityAttestation/);
   assert.match(source,/requiresIndependentCrashAndPowerLossProof/);
 });
