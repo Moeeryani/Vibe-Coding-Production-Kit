@@ -48,12 +48,12 @@
     {
       "path": "docs/CLI.md",
       "heading": "## Safety behavior",
-      "requiredText": "D-03 (PROPOSED future Stage12 path contract)"
+      "requiredText": "D-03 (ACCEPTED DESIGN; NATIVE PATH PROOF PENDING)"
     },
     {
       "path": "docs/UPDATES.md",
       "heading": "## Safety boundaries",
-      "requiredText": "D-03 (PROPOSED future Stage12 trust policy)"
+      "requiredText": "D-03 (ACCEPTED DESIGN; TRUST PROOF PENDING)"
     },
     {
       "path": "docs/decisions/stage12-p0-review-packet-20261010.md",
