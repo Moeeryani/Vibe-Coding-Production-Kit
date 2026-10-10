@@ -347,3 +347,44 @@ reader version/release contract, reviewed required anchor coverage and the
 final independent exact-head tests. Keep D-01 DEFERRED,
 `G-FENCE = NO-GO`, `managedV2MutationAuthorized:false` and
 Stage12 Plan/Blocked. No testing, main merge, tag or publication occurred.
+
+## 2026-10-10 P0 engineering candidates for three hard blockers
+
+The combination commit `480c62d0069b6334991730fa767280906ae73aaf`
+now includes source-level candidate designs for all three P0 blockers:
+`lib/legacy-writer-fence-contract.mjs`,
+`lib/windows-durability-contract.mjs`,
+`scripts/native/stage12-windows-namespace-probe.cpp`, and
+`lib/terminal-retirement-v2.mjs`. Added source and negative contract tests.
+None was executed.
+
+1. **D-01 remains DEFERRED:** a universal in-place writer barrier is
+   impossible when unchanged published 0.9.3 and the future writer
+   are equally authorized under the same OS security principal and
+   path. The candidate demands an OS-enforced different principal,
+   published-binary denial (including the privileged identity),
+   genuine Linux/native-Windows old-CLI observations and a NEW
+   separate maintainer approval. No such principal/ACL policy has
+   been installed or independently proven.
+2. **Windows remains fail-closed:** the native C++ diagnostic performs
+   disposable NTFS file/namespace probes, but its outputs
+   `isDurabilityAttestation:false`. A crash/power-loss proven native
+   production provider and appropriate integration into each
+   namespace mutation are still required.
+3. **Final control teardown now preserves evidence in a candidate:** a
+   full `.vcp` control bundle containing both exact journal and
+   lock is atomically renamed to an unpredictable adjacent archive
+   instead of clearing the last journal before lock cleanup.
+   The branch retains lock provenance even if sync after rename fails,
+   and marks results `verified:false`. This changes the write
+   footprint to a sibling of the selected root and needs distinct
+   security/scope approval and crash/no-replace proof. No automatic
+   forensic-archive garbage collector was authorized.
+
+The detailed proof boundaries and Microsoft reference links are in
+`docs/STAGE12-P0-THREE-BLOCKERS-ENGINEERING.md`.
+
+**CANDIDATE != ACCEPTED.** All AC-001 through AC-016 full-scope
+requirements remain in force. D-01/G-FENCE is NO-GO, coverage reviews
+are PENDING. No tests, native executable, main merge or publication
+were run in this construction pass.
