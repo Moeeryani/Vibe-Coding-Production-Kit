@@ -1,0 +1,49 @@
+{
+  "id": "D-04",
+  "status": "ACCEPTED",
+  "owner": "Moeeryani",
+  "decidedAtUtc": "2026-10-10T19:02:43Z",
+  "approvalEvidence": "Explicit maintainer approval in project ChatGPT conversation at 2026-10-10T19:02:43Z: approves D-02,D-03,D-04,D-05,D-06,D-12 per recommendations and requests original full Stage12. No D-01 GO authorization.",
+  "chosenOption": "Deterministic content-free init preview planVersion 1, planKind init; new-path CLAIM, distinct skippedPaths, ADOPT retained only for update semantics; no write authorization for unmanaged EXISTING Stage12 proposals.",
+  "rejectedAlternatives": [
+    {
+      "option": "Automatically adopt existing project files or embed complete file contents into JSON plans",
+      "reason": "Conflicts with Stage13 first adoption and content-free preview requirements."
+    }
+  ],
+  "rationale": "A read-only plan must never silently take ownership of project-authored documents or leak user content.",
+  "implementationPR": "https://github.com/Moeeryani/Vibe-Coding-Production-Kit/pull/96",
+  "provingTests": [
+    "test/adoption-plan.test.mjs",
+    "test/stage12-adoption-boundaries.test.mjs",
+    "test/stage12-preview-security.test.mjs"
+  ],
+  "affectedLocations": [
+    {
+      "path": "docs/ADAPTIVE-VCP-IMPLEMENTATION-PLAN.md",
+      "heading": "## 3.7 Init action semantics",
+      "requiredText": "Init planner vocabulary is distinct"
+    },
+    {
+      "path": "docs/ADAPTIVE-VCP-CODE-INTEGRATION-ANALYSIS.md",
+      "heading": "### init-plan",
+      "requiredText": "Public init JSON MUST"
+    },
+    {
+      "path": "docs/tasks/stage12-safe-adoption-planning.md",
+      "heading": "## Acceptance criteria",
+      "requiredText": "AC-015 (D-04 PROPOSED): Init planner JSON"
+    },
+    {
+      "path": "docs/CLI.md",
+      "heading": "## Initialize once, then update",
+      "requiredText": "Future D-04 init planner proposal (not enabled in v0.9.3)"
+    },
+    {
+      "path": "docs/decisions/stage12-p0-review-packet-20261010.md",
+      "heading": "## D-04 — init planner JSON contract",
+      "requiredText": "`planVersion:1`"
+    }
+  ],
+  "acceptanceCaveat": "DESIGN_DECISION_ACCEPTED_ONLY; required-anchors coverageReview PENDING independent maintainer review, runtime conformance and exact-final-head receipt not completed. No D-01 writer permission."
+}
