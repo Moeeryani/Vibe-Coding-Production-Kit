@@ -5,7 +5,7 @@
   "decidedAtUtc": "2026-10-09T01:25:54Z",
   "approvalChannel": "Maintainer's explicit instruction in project ChatGPT conversation; GitHub confirmation remains recommended for independent audit",
   "chosenOption": "C — defer all live managed schema-v1 to schema-v2 migration; retain schema v1 for deployed managed projects",
-  "rationale": "The published 0.9.3 Linux old-CLI POC demonstrated seven unsafe mutations in 12 scenarios, including loss of post-backup edits; lock separation and backup-only approaches are not zero-write fences.",
+  "rationale": "Published npm vibe-coding-production@0.9.3 was independently authenticated by SHA-256/SHA-512 and reproduced loss of post-backup AGENTS.md user edits in 7/12 Linux and 8/13 native Windows POC cases. On Windows, old init --force ignored a directory-shaped update.lock when manifest was absent, overwrote AGENTS.md and recreated schema-v1. Lock-only / backup-only strategies are not universal safety fences.",
   "rejectedAlternatives": [
     {
       "option": "Newest-v2-backup-only fence",
@@ -17,22 +17,22 @@
     },
     {
       "option": "Directory sentinel now",
-      "reason": "Only three isolated Linux old entrypoints blocked; insufficient native Windows/atomic/concurrency/manifest-absent-init/crash proof"
+      "reason": "FALSIFIED: native Windows published 0.9.3 old init --force writes with absent manifest despite directory sentinel; three isolated rollback/update/manage refusals do not cover init."
     }
   ],
   "provingTests": [
-    "PR #89 published v0.9.3 Linux POC — docs/evidence/stage12-old-cli-fence/linux-observations-20261009.json (7 unsafe mutations; 3 sentinel refusals)",
-    "PR #92 decision docs/static audit; no safety-proof claim"
+    "PR #89 Linux published-v0.9.3 POC at 2e8e098924e0c01d7b02bf93b1c82205acb50f32: 7/12 protected user-edit losses",
+    "Native Windows evidence branch 9711013177900b4834906069491e5a1c6b2f8f45: Windows 11 NTFS, authenticated npm 0.9.3, 8/13 protected user-edit losses; missing-manifest + directory sentinel old init counterexample",
+    "Product PR #96 negative receipt auditor supports 12 Linux and 13 Windows scenarios; receipt consistency is not a safe-writer attestation"
   ],
   "implementationPR": "https://github.com/Moeeryani/Vibe-Coding-Production-Kit/pull/92",
   "safetyState": "G-FENCE NO-GO; NO live schema-v2 migration writes",
   "reopenConditions": [
-    "Native Windows old-cli threat suite",
-    "old init --force with absent manifest and directory sentinel",
-    "gap-free file-to-directory lock conversion or fully proved alternative",
-    "old/new concurrent writers and crash/partial-journal recovery",
-    "byte-for-byte preservation of user edits after backup",
-    "new explicit maintainer decision"
+    "Design a complete compatibility fence covering all published 0.9.3 old init/update/manage/rollback entrypoints even if manifest is absent; directory sentinel alone has a proven counterexample",
+    "Prove a Windows NTFS-safe lifecycle directory durability protocol instead of bypassing EPERM / E_DIRECTORY_SYNC_UNPROVEN",
+    "Prove atomic transition / lock ownership, concurrent old/new writers and process-crash/partial-journal recovery on Linux and native Windows",
+    "Prove byte-for-byte retention of user changes made after every backup and prevent legacy rollback from following v2 journal or ignoring minimumReaderVersion",
+    "Obtain new independent exact-head receipts and a new explicit maintainer approval; D-01 remains DEFERRED / G-FENCE NO-GO meanwhile"
   ],
   "affectedLocations": [
     "docs/ADAPTIVE-VCP-IMPLEMENTATION-PLAN.md §3.5",
@@ -40,5 +40,16 @@
     "docs/ROADMAP.md Stage12",
     "docs/CLI.md future schema-v2 warning",
     "docs/UPDATES.md legacy rollback caveat"
-  ]
+  ],
+  "nativeWindowsSafetyObservation": {
+    "evidenceCommit": "9711013177900b4834906069491e5a1c6b2f8f45",
+    "publishedVersion": "0.9.3",
+    "scenarios": 13,
+    "unsafeMutations": 8,
+    "unexpectedScenario": "deleted-manifest-directory-sentinel-old-init",
+    "platform": "win32",
+    "writerDurability": "E_DIRECTORY_SYNC_UNPROVEN / EPERM on NTFS",
+    "gateResult": "NO_GO",
+    "approval": false
+  }
 }
