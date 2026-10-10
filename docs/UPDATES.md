@@ -232,15 +232,3 @@ If a previous update was interrupted, inspect the repository and use `vcp rollba
 Update paths are repository-relative and validated against traversal and symlink escapes. VCP state paths under `.vcp` receive the same no-symlink treatment.
 
 A lock prevents update and rollback processes from mutating the same project concurrently. A lock owned by a dead process on the same host can be reclaimed immediately for recovery. A lock from another host, or malformed lock metadata, is only reclaimed after the configured stale interval so VCP does not guess that a remote writer has disappeared.
-
-### 2026-10-10 old release compatibility counterexample
-
-Published npm 0.9.3 on native Windows ignored `.vcp/update.lock` in
-`init --force` after `.vcp/manifest.json` was removed, overwriting
-`AGENTS.md` despite an intact directory sentinel. Its rollback can
-follow a newer journal and erase post-backup changes. Linux reproduced
-seven and Windows eight protected mutation witnesses. Do not invoke an
-old CLI against v2 state; that warning is not itself an effective fence.
-While G-FENCE remains NO-GO, no managed v1→v2 migration, versioned
-update apply or restoration is enabled. Existing v1 lifecycle
-compatibility must be validated separately without re-enabling v1 init.

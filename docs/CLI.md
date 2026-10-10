@@ -407,15 +407,3 @@ Stage12 draft init `--force` is disabled. The published legacy CLI contract abov
 Node.js 22 or newer. The CLI has no runtime dependencies.
 
 See [`STACK-PROFILES.md`](STACK-PROFILES.md) for evidence-based React Native, JavaScript/Node.js, TypeScript, Python, and Go adaptation.
-
-### 2026-10-10 public Stage 12 write boundary (D-01 remains NO-GO)
-
-`vcp init <root> --dry-run [--json]` is a zero-write proposal, including
-unmanaged existing repositories; it does not authorize first adoption.
-Public non-dry-run `init` on NEW projects remains G-FENCE-blocked before
-directory creation, and EXISTING unmanaged apply remains Stage13-only.
-`init --force` is disabled. Versioned schema-v2 managed writers and
-recovery cleanup remain disabled. Historical schema-v1 test fixtures
-are **not** a public initializer. `release-check` must fail acceptance
-while D-01/G-FENCE is NO-GO. An old v0.9.3 CLI can mutate v2 project
-bytes even with a directory sentinel, so do not rely on it as a safeguard.
