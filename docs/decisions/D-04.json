@@ -37,7 +37,7 @@
     {
       "path": "docs/CLI.md",
       "heading": "## Initialize once, then update",
-      "requiredText": "Future D-04 init planner proposal (not enabled in v0.9.3)"
+      "requiredText": "D-04 (ACCEPTED DESIGN; NOT RELEASED)"
     },
     {
       "path": "docs/decisions/stage12-p0-review-packet-20261010.md",
