@@ -98,6 +98,16 @@ whose journal has already vanished. Even where the candidate detaches
 the bundle, the forensic archive must not be automatically deleted
 without proven ownership and a separate safe cleanup protocol.
 
+## Native diagnostic coverage extension
+
+The native disposable Windows probe also performs `CreateDirectoryW`,
+`MoveFileExW(MOVEFILE_WRITE_THROUGH)` on a directory and
+`RemoveDirectoryW`, reporting independent Boolean observations.
+These observations are NOT a directory-entry persistence attestation.
+The exact test marker, paths, native compiler identity, command line,
+raw results and NTFS hardware must be captured at the **final**
+independent Windows testing phase, not during construction.
+
 ## Remaining conditions before TEST READY
 
 1. Independently enforce and reproduce full published-v0.9.3 denial on
