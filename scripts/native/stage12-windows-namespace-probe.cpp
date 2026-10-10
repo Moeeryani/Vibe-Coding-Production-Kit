@@ -20,13 +20,19 @@ static std::wstring join(const std::wstring& a,const wchar_t *b) {
   return a+L"\\"+b;
 }
 static void report(bool dataFlush,bool moveThrough,bool finalFlush,
-                   bool directoryFlush,DWORD directoryError) {
+                   bool directoryFlush,DWORD directoryError,
+                   bool mkdirWorked,bool directoryMoveWorked,bool rmdirWorked,
+                   bool unlinkWorked) {
   std::wcout<<L"{\"kind\":\"VCP_STAGE12_WINDOWS_DISPOSABLE_PROBE\","
     L"\"dataFlush\":"<<(dataFlush?L"true":L"false")<<L","
     L"\"moveThroughReturned\":"<<(moveThrough?L"true":L"false")<<L","
     L"\"renamedFileFlush\":"<<(finalFlush?L"true":L"false")<<L","
     L"\"directoryFlushReturned\":"<<(directoryFlush?L"true":L"false")<<L","
     L"\"directoryError\":"<<directoryError<<L","
+    L"\"createDirectoryReturned\":"<<(mkdirWorked?L"true":L"false")<<L","
+    L"\"moveDirectoryWriteThroughReturned\":"<<(directoryMoveWorked?L"true":L"false")<<L","
+    L"\"removeDirectoryReturned\":"<<(rmdirWorked?L"true":L"false")<<L","
+    L"\"deleteFileReturned\":"<<(unlinkWorked?L"true":L"false")<<L","
     L"\"isDurabilityAttestation\":false,"
     L"\"requiresIndependentCrashAndPowerLossProof\":true}\n";
 }
@@ -106,11 +112,26 @@ int wmain(int argc,wchar_t *argv[]) {
     if(!dirFlush)dirError=GetLastError();
     CloseHandle(directory);
   }
+  const std::wstring dirSrc=join(root,L"stage12-native-dir-before");
+  const std::wstring dirDst=join(root,L"stage12-native-dir-after");
+  bool directoryCreated=false,directoryMoved=false,directoryRemoved=false;
+  if(GetFileAttributesW(dirSrc.c_str())==INVALID_FILE_ATTRIBUTES &&
+    GetFileAttributesW(dirDst.c_str())==INVALID_FILE_ATTRIBUTES) {
+    directoryCreated=CreateDirectoryW(dirSrc.c_str(),nullptr)!=0;
+    directoryMoved=directoryCreated &&
+      MoveFileExW(dirSrc.c_str(),dirDst.c_str(),MOVEFILE_WRITE_THROUGH)!=0;
+    if(directoryMoved)directoryRemoved=RemoveDirectoryW(dirDst.c_str())!=0;
+  }
+  // Do not recurse or force-remove unknown content; report leftover bytes.
+  if(GetFileAttributesW(dirSrc.c_str())!=INVALID_FILE_ATTRIBUTES)
+    RemoveDirectoryW(dirSrc.c_str());
+  bool deleted=false;
   if(GetFileAttributesW(src.c_str())!=INVALID_FILE_ATTRIBUTES)
-    DeleteFileW(src.c_str());
-  if(GetFileAttributesW(dest.c_str())!=INVALID_FILE_ATTRIBUTES)
-    DeleteFileW(dest.c_str());
-  report(dataFlush,moved,finalFlush,dirFlush,dirError);
+    deleted=DeleteFileW(src.c_str())!=0;
+  else if(GetFileAttributesW(dest.c_str())!=INVALID_FILE_ATTRIBUTES)
+    deleted=DeleteFileW(dest.c_str())!=0;
+  report(dataFlush,moved,finalFlush,dirFlush,dirError,
+    directoryCreated,directoryMoved,directoryRemoved,deleted);
   // 0 ONLY means the diagnostic ran. There is NO OS durability attestation.
   return 0;
 }
