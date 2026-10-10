@@ -118,3 +118,42 @@ implementable/accepted** Smart Init Apply candidate:
 **Hard invariant:** `D-01=DEFERRED`,
 `G-FENCE=NO-GO`, `managedV2MutationAuthorized:false`.
 No testing or check commands were executed during this construction pass.
+
+## Stage 13 public entrypoint and restart hardening
+
+The existing-repository CLI now accepts **explicit** `--adopt` together
+with `--yes --confirm-adoption <current-64-hex-fingerprint>`.
+`init --dry-run --json` reports the current root/intent/action-bound
+Stage13 consent fingerprint and never grants execution. A missing, stale,
+malformed, mismatched or unpaired fingerprint is rejected, and `--yes`
+alone cannot approve brownfield mutation. Under the still-closed D-01
+gate, even an exact fingerprint is rejected before project writes.
+
+The Stage13 transaction now stages new files first in owned VCP state,
+records their **device/inode identities in the immutable journal**, and
+moves the exact staged inode into a new user-project name using native
+Linux `NOREPLACE`. This prevents Recovery from treating a separately
+created file with coincidentally identical bytes as VCP-owned. The
+committed finalizer also checks inode identity and file mode.
+
+`recovery-plan` can recognize a Stage13 v3 transaction and show a
+read-only, exact-preimage rollback classification instead of attempting
+to interpret it as a Stage12 init/update journal. A protected rollback
+candidate was authored for root-level identity-owned claims and
+preserves the whole recovery bundle in an in-root no-replace forensic
+archive. It **does not** authorize editing existing user documents or
+recursively removing unknown user directories.
+
+New source-only tests:
+`test/stage13-cli-adoption.test.mjs`,
+`test/stage13-init-gate.test.mjs`,
+`test/stage13-materialize.test.mjs`,
+`test/stage13-transaction-recovery.test.mjs`.
+
+### No false completion
+
+This remains **BUILD IN PROGRESS** because section-file atomic CAS /
+enforced writer isolation, created-directory provenance for general
+nested claims, native Windows durability and final full-head independent
+testing have not been accepted. The package version remains 0.9.3.
+There is no approved D-01, G-FENCE, main merge or publication.
