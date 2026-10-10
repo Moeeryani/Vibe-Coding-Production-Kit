@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   evaluateTerminalRetirement,retireGreenfieldControlDirectory
 } from '../lib/terminal-retirement-v2.mjs';
+import {planNoReplaceMove,moveDirectoryNoReplace} from '../lib/native-no-replace.mjs';
 
 const H='a'.repeat(64);
 function state() {
@@ -34,6 +35,24 @@ test('terminal retirement rejects foreign data, missing journal or foreign lock'
     assert.equal(evaluateTerminalRetirement(proof).classification,'BLOCKED');
   }
 });
+test('native no-replace boundary refuses unsafe sibling scope and never falls back',async()=>{
+  const root='/disposable-project';
+  const source='/disposable-project/.vcp';
+  const destination='/.disposable-project.vcp-recovery-retired-backup-'+('a'.repeat(40));
+  const plan=planNoReplaceMove({root,source,destination,platform:'linux'});
+  assert.equal(plan.operation,'ATOMIC_DIRECTORY_RENAME_NOREPLACE');
+  assert.equal(plan.authorized,false);
+  assert.equal(plan.siblingWriteScopeApprovalRequired,true);
+  for(const wrong of [
+    {root,source:'/other/.vcp',destination},
+    {root,source,destination:'/disposable-project/inside-root'},
+    {root,source,destination:'/somewhere/unrelated'}
+  ])assert.throws(()=>planNoReplaceMove(wrong),{code:'E_NAMESPACE_SCOPE'});
+  await assert.rejects(()=>moveDirectoryNoReplace({
+    root,source,destination,platform:'linux'
+  }),{code:'E_NATIVE_NOREPLACE_UNAVAILABLE'});
+});
+
 test('terminal candidate refuses mutation before touching unknown root',async()=>{
   await assert.rejects(()=>retireGreenfieldControlDirectory({
     rootPath:'nonexistent-root',expectedJournalHash:H,ownedLock:null
