@@ -6,6 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import test from 'node:test';
+import { seedLegacyV1Fixture } from './helpers/legacy-v1-fixture.mjs';
 
 const execFileAsync = promisify(execFile);
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -24,20 +25,32 @@ async function run(args, options = {}) {
 }
 
 async function init(root) {
-  await run(['init', root, '--agent', 'generic', '--stack', 'generic', '--no-github', '--yes']);
+  return seedLegacyV1Fixture({targetDir:root,agent:'generic',stack:'generic',includeGitHub:false});
 }
 
 async function initAuto(root) {
-  await run(['init', root, '--agent', 'generic', '--stack', 'auto', '--no-github', '--yes']);
+  return seedLegacyV1Fixture({targetDir:root,agent:'generic',stack:'auto',includeGitHub:false});
 }
 
-test('CLI init creates versioned update state', async () => {
+test('public CLI init refuses NEW schema writes before creating a manifest', async () => {
   const root = await tempDir();
+  await assert.rejects(run(['init',root,'--agent','generic','--stack','generic',
+    '--no-github','--yes']),error=>{
+    assert.equal(error.code,1);
+    assert.match(error.stderr,/D-01\/G-FENCE NO-GO/);
+    return true;
+  });
+  await assert.rejects(readFile(path.join(root,'.vcp/manifest.json'),'utf8'),
+    /ENOENT/);
+});
+
+test('test-only historical v1 fixture enables downstream CLI update conformance',async()=>{
+  const root=await tempDir();
   await init(root);
-  const manifest = JSON.parse(await readFile(path.join(root, '.vcp/manifest.json'), 'utf8'));
-  assert.equal(manifest.schemaVersion, 1);
-  assert.equal(manifest.installedVersion, '0.9.3');
-  assert.ok(Object.keys(manifest.managedFiles).length > 0);
+  const manifest=JSON.parse(await readFile(path.join(root,'.vcp/manifest.json'),'utf8'));
+  assert.equal(manifest.schemaVersion,1);
+  assert.equal(manifest.installedVersion,'0.9.3');
+  assert.ok(Object.keys(manifest.managedFiles).length>0);
 });
 
 test('CLI update check works offline without registry access', async () => {

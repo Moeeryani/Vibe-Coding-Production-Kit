@@ -6,7 +6,8 @@ import path from 'node:path';
 import test from 'node:test';
 import { promisify } from 'node:util';
 import { createContextPack } from '../lib/context.mjs';
-import { initProject } from '../lib/init.mjs';
+// Test-only preinstalled historical v1 state; production init stays fenced.
+import { seedLegacyV1Fixture as initProject } from './helpers/legacy-v1-fixture.mjs';
 import { runTaskReadiness } from '../lib/readiness.mjs';
 import { resolveWorkspaceSourceTruthReference } from '../lib/source-truth-scope.mjs';
 

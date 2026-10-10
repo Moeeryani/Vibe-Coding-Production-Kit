@@ -1,5 +1,13 @@
 # Safe lifecycle updates
 
+
+> **Stage12 draft lifecycle boundary:** Schema-v1 legacy updates remain a
+> separate historical lifecycle. The draft adds versioned schema-v2 readers,
+> ownership planning, and `vcp recovery-plan`, but schema-v2 mutation is
+> disabled by D-01/G-FENCE **NO-GO**. Do not treat this code as a tested or
+> released migrator; published v0.9.3 behavior below is documented as such.
+
+
 VCP v0.9 introduces repository-native lifecycle state so a project can evolve with the kit without blindly overwriting project decisions.
 
 ## The contract

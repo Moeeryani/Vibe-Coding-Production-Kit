@@ -3,7 +3,8 @@ import { mkdir, mkdtemp, stat, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { initProject } from '../lib/init.mjs';
+// Legacy downstream lifecycle fixture; never lifts the public D-01 init fence.
+import { seedLegacyV1Fixture as initProject } from './helpers/legacy-v1-fixture.mjs';
 import { applyUpdate, rollbackProject } from '../lib/update.mjs';
 
 async function tempDir() {

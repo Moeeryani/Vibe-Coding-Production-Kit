@@ -1,5 +1,17 @@
 # Vibe Coding Production Kit
 
+
+> **Stage 12 implementation branch (draft, not released):** `vcp inspect`,
+> `vcp init --dry-run [--json]`, and `vcp recovery-plan` provide
+> nonmutating discovery/planning. First adoption of unmanaged EXISTING
+> repositories remains Stage 13 only. Schema-v2 writes, including fresh
+> greenfield application and managed migration, are fenced by D-01/G-FENCE
+> **NO-GO** pending published-old-CLI safety proof and maintainer acceptance.
+> This source branch has not passed its deferred integration tests. Existing
+> published-package instructions below describe the released v0.9.3 behavior
+> until Stage 12 is accepted and published.
+
+
 > Build with AI like an engineering team — not like a chat session.
 
 [![npm version](https://img.shields.io/npm/v/vibe-coding-production.svg)](https://www.npmjs.com/package/vibe-coding-production)

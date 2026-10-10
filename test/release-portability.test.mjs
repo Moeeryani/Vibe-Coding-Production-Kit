@@ -6,7 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { normalizeTemplateText } from '../lib/template.mjs';
-import { initProject } from '../lib/init.mjs';
+import { seedLegacyV1Fixture as initProject } from './helpers/legacy-v1-fixture.mjs';
 import { createTaskPack } from '../lib/task.mjs';
 import { formatReadinessReport, runTaskReadiness } from '../lib/readiness.mjs';
 import { buildVerificationPlan } from '../lib/verify.mjs';
@@ -57,7 +57,7 @@ test('readiness and verification reports expose slash-separated task paths', asy
 test('task and ready CLIs print slash-separated paths on every host OS', async () => {
   const target = await mkdtemp(path.join(os.tmpdir(), 'vcp-portable-cli-'));
   const bin = path.resolve('bin/vibe-coding-production.mjs');
-  await execFileAsync(process.execPath, [bin, 'init', target, '--agent', 'generic', '--stack', 'generic', '--yes']);
+  await initProject({targetDir:target,agent:'generic',stack:'generic',includeGitHub:true});
 
   const created = await execFileAsync(process.execPath, [bin, 'task', 'demo', '--title', 'Demo', '--dir', target]);
   assert.match(created.stdout, /Created task pack: docs\/tasks\/demo\.md/);

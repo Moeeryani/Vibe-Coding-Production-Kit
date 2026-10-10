@@ -7,7 +7,8 @@ import test from 'node:test';
 import { promisify } from 'node:util';
 import { createContextPack } from '../lib/context.mjs';
 import { formatDoctorReport, runDoctor } from '../lib/doctor.mjs';
-import { initProject } from '../lib/init.mjs';
+// Test-only preinstalled historical v1 state; production init stays fenced.
+import { seedLegacyV1Fixture as initProject } from './helpers/legacy-v1-fixture.mjs';
 import { createTaskPack } from '../lib/task.mjs';
 import { runVerification } from '../lib/verify.mjs';
 import {

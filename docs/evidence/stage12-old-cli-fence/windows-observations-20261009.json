@@ -1,0 +1,428 @@
+{
+  "type": "published-old-cli-fence-observation",
+  "status": "NOT_A_MIGRATION_APPROVAL",
+  "baseline": "8ccb276545fdb3cc301ce7ce324812eb4c314586",
+  "release": {
+    "name": "vibe-coding-production",
+    "version": "0.9.3"
+  },
+  "tarballSha256": "4b78fd413cf5e3508f5a5a34b5b47418d437eacd4343290f03b3ac5126ac9130",
+  "node": "v24.5.0",
+  "platform": "win32",
+  "arch": "x64",
+  "recordedUtc": "2026-10-09T06:10:48.625Z",
+  "snapshotScope": "all fixture files and modes except update.lock bytes; legacy lock path kind separately recorded; byte SHA256, no mtimes",
+  "results": [
+    {
+      "scenario": "rollback-v1-backup",
+      "command": {
+        "args": [
+          "rollback",
+          "C:\\Users\\<USER>\\AppData\\Local\\Temp\\vcp-old-cli-fence-EKYv3p\\projects\\rollback-v1-backup"
+        ],
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "Restored VCP backup 2026-01-01T00-00-00-000Z-a0000000. Project state returned to 0.9.3.\n",
+        "stderr": ""
+      },
+      "expectedMutation": true,
+      "observedMutation": true,
+      "expectedObservationMatched": true,
+      "legacyLockBefore": "absent",
+      "legacyLockAfter": "absent",
+      "resultingSchema": 1,
+      "postBackupEditSurvived": false,
+      "changes": [
+        {
+          "path": ".vcp/manifest.json",
+          "before": "file:438:4713195a1f33c2ab9d80e7af6515ececb92b270650c6676d2e69c8eef65673f2",
+          "after": "file:438:08c121995343ae196ec2ea27fd4300c46858c2b69b09d9033efdfec16ce282a6"
+        },
+        {
+          "path": "AGENTS.md",
+          "before": "file:438:86b39f0885f3cd6cf6a28809894cddf03c64235bceaf94fce3e0839a9ac587a8",
+          "after": "file:438:637efb62ff1c12b7d921c5d10068d7a2e57936ef5504db7a2edaff4794d59926"
+        }
+      ],
+      "conclusion": "LEGACY_MUTATION_OBSERVED__NOT_SAFE"
+    },
+    {
+      "scenario": "rollback-v2-erases-user-edit",
+      "command": {
+        "args": [
+          "rollback",
+          "C:\\Users\\<USER>\\AppData\\Local\\Temp\\vcp-old-cli-fence-EKYv3p\\projects\\rollback-v2-erases-user-edit"
+        ],
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "Restored VCP backup 2026-02-01T00-00-00-000Z-b0000000. Project state returned to 0.9.3.\n",
+        "stderr": ""
+      },
+      "expectedMutation": true,
+      "observedMutation": true,
+      "expectedObservationMatched": true,
+      "legacyLockBefore": "absent",
+      "legacyLockAfter": "absent",
+      "resultingSchema": 2,
+      "postBackupEditSurvived": false,
+      "changes": [
+        {
+          "path": "AGENTS.md",
+          "before": "file:438:86b39f0885f3cd6cf6a28809894cddf03c64235bceaf94fce3e0839a9ac587a8",
+          "after": "file:438:637efb62ff1c12b7d921c5d10068d7a2e57936ef5504db7a2edaff4794d59926"
+        }
+      ],
+      "conclusion": "LEGACY_MUTATION_OBSERVED__NOT_SAFE"
+    },
+    {
+      "scenario": "rollback-stale-transaction",
+      "command": {
+        "args": [
+          "rollback",
+          "C:\\Users\\<USER>\\AppData\\Local\\Temp\\vcp-old-cli-fence-EKYv3p\\projects\\rollback-stale-transaction"
+        ],
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "Restored VCP backup 2026-01-01T00-00-00-000Z-a0000000. Project state returned to 0.9.3.\n",
+        "stderr": ""
+      },
+      "expectedMutation": true,
+      "observedMutation": true,
+      "expectedObservationMatched": true,
+      "legacyLockBefore": "absent",
+      "legacyLockAfter": "absent",
+      "resultingSchema": 1,
+      "postBackupEditSurvived": false,
+      "changes": [
+        {
+          "path": ".vcp/manifest.json",
+          "before": "file:438:bd1506c48762f32c4477e7895b2872c2a32288f1630dc90b79ab9928ea115809",
+          "after": "file:438:99f6cf01e6e1050561ca037f2d7b499a8b95ec8e2b357946d6aae8bb7915abfd"
+        },
+        {
+          "path": ".vcp/transaction.json",
+          "before": "file:438:04462f535eeedfe113d67ecf7a924949da1cc1ae3408772cfcccebc35de15dfa",
+          "after": null
+        },
+        {
+          "path": "AGENTS.md",
+          "before": "file:438:86b39f0885f3cd6cf6a28809894cddf03c64235bceaf94fce3e0839a9ac587a8",
+          "after": "file:438:637efb62ff1c12b7d921c5d10068d7a2e57936ef5504db7a2edaff4794d59926"
+        }
+      ],
+      "conclusion": "LEGACY_MUTATION_OBSERVED__NOT_SAFE"
+    },
+    {
+      "scenario": "dead-pid-file-lock",
+      "command": {
+        "args": [
+          "rollback",
+          "C:\\Users\\<USER>\\AppData\\Local\\Temp\\vcp-old-cli-fence-EKYv3p\\projects\\dead-pid-file-lock"
+        ],
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "Restored VCP backup 2026-01-01T00-00-00-000Z-a0000000. Project state returned to 0.9.3.\n",
+        "stderr": ""
+      },
+      "expectedMutation": true,
+      "observedMutation": true,
+      "expectedObservationMatched": true,
+      "legacyLockBefore": "regular-file",
+      "legacyLockAfter": "absent",
+      "resultingSchema": 1,
+      "postBackupEditSurvived": false,
+      "changes": [
+        {
+          "path": ".vcp/manifest.json",
+          "before": "file:438:d6a61aafe280b9913be8492a4f56a1d99a4fb0d0ad0c85277e5774a07e8c653c",
+          "after": "file:438:bd11f8481589aabb252dc864b75b065d846050ee69bcf699298830c0d99848ae"
+        },
+        {
+          "path": "AGENTS.md",
+          "before": "file:438:86b39f0885f3cd6cf6a28809894cddf03c64235bceaf94fce3e0839a9ac587a8",
+          "after": "file:438:637efb62ff1c12b7d921c5d10068d7a2e57936ef5504db7a2edaff4794d59926"
+        }
+      ],
+      "conclusion": "LEGACY_MUTATION_OBSERVED__NOT_SAFE"
+    },
+    {
+      "scenario": "separate-lifecycle-lock",
+      "command": {
+        "args": [
+          "rollback",
+          "C:\\Users\\<USER>\\AppData\\Local\\Temp\\vcp-old-cli-fence-EKYv3p\\projects\\separate-lifecycle-lock"
+        ],
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "Restored VCP backup 2026-01-01T00-00-00-000Z-a0000000. Project state returned to 0.9.3.\n",
+        "stderr": ""
+      },
+      "expectedMutation": true,
+      "observedMutation": true,
+      "expectedObservationMatched": true,
+      "legacyLockBefore": "absent",
+      "legacyLockAfter": "absent",
+      "resultingSchema": 1,
+      "postBackupEditSurvived": false,
+      "changes": [
+        {
+          "path": ".vcp/manifest.json",
+          "before": "file:438:9ee4a3e03576de56345dfdc39e0d13bafa42790df456f6811c5a2d6a9d99dc7c",
+          "after": "file:438:420604022cea3d03a5e0258ae8d40c58d4917fc2e489c8f7c7293fa173b39c7d"
+        },
+        {
+          "path": "AGENTS.md",
+          "before": "file:438:86b39f0885f3cd6cf6a28809894cddf03c64235bceaf94fce3e0839a9ac587a8",
+          "after": "file:438:637efb62ff1c12b7d921c5d10068d7a2e57936ef5504db7a2edaff4794d59926"
+        }
+      ],
+      "conclusion": "LEGACY_MUTATION_OBSERVED__NOT_SAFE"
+    },
+    {
+      "scenario": "directory-sentinel-rollback",
+      "command": {
+        "args": [
+          "rollback",
+          "C:\\Users\\<USER>\\AppData\\Local\\Temp\\vcp-old-cli-fence-EKYv3p\\projects\\directory-sentinel-rollback"
+        ],
+        "exitCode": 1,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "\nError: Another VCP update appears to be running. If it was interrupted, use `vcp rollback` or remove a confirmed stale .vcp/update.lock.\n"
+      },
+      "expectedMutation": false,
+      "observedMutation": false,
+      "expectedObservationMatched": true,
+      "legacyLockBefore": "directory",
+      "legacyLockAfter": "directory",
+      "resultingSchema": 2,
+      "postBackupEditSurvived": true,
+      "changes": [],
+      "conclusion": "NO_PROTECTED_BYTES_CHANGED_IN_ONE_FIXTURE_ONLY"
+    },
+    {
+      "scenario": "directory-sentinel-update",
+      "command": {
+        "args": [
+          "update",
+          "C:\\Users\\<USER>\\AppData\\Local\\Temp\\vcp-old-cli-fence-EKYv3p\\projects\\directory-sentinel-update",
+          "--offline"
+        ],
+        "exitCode": 1,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "\nError: VCP update failed before project changes were applied: Another VCP update appears to be running. If it was interrupted, use `vcp rollback` or remove a confirmed stale .vcp/update.lock.\n"
+      },
+      "expectedMutation": false,
+      "observedMutation": false,
+      "expectedObservationMatched": true,
+      "legacyLockBefore": "directory",
+      "legacyLockAfter": "directory",
+      "resultingSchema": 2,
+      "postBackupEditSurvived": true,
+      "changes": [],
+      "conclusion": "NO_PROTECTED_BYTES_CHANGED_IN_ONE_FIXTURE_ONLY"
+    },
+    {
+      "scenario": "directory-sentinel-manage",
+      "command": {
+        "args": [
+          "manage",
+          "ignore",
+          "AGENTS.md",
+          "--dir",
+          "C:\\Users\\<USER>\\AppData\\Local\\Temp\\vcp-old-cli-fence-EKYv3p\\projects\\directory-sentinel-manage"
+        ],
+        "exitCode": 1,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "\nError: Another VCP update appears to be running. If it was interrupted, use `vcp rollback` or remove a confirmed stale .vcp/update.lock.\n"
+      },
+      "expectedMutation": false,
+      "observedMutation": false,
+      "expectedObservationMatched": true,
+      "legacyLockBefore": "directory",
+      "legacyLockAfter": "directory",
+      "resultingSchema": 2,
+      "postBackupEditSurvived": true,
+      "changes": [],
+      "conclusion": "NO_PROTECTED_BYTES_CHANGED_IN_ONE_FIXTURE_ONLY"
+    },
+    {
+      "scenario": "fresh-malformed-lock",
+      "command": {
+        "args": [
+          "rollback",
+          "C:\\Users\\<USER>\\AppData\\Local\\Temp\\vcp-old-cli-fence-EKYv3p\\projects\\fresh-malformed-lock"
+        ],
+        "exitCode": 1,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "\nError: Another VCP update appears to be running. If it was interrupted, use `vcp rollback` or remove a confirmed stale .vcp/update.lock.\n"
+      },
+      "expectedMutation": false,
+      "observedMutation": false,
+      "expectedObservationMatched": true,
+      "legacyLockBefore": "regular-file",
+      "legacyLockAfter": "regular-file",
+      "resultingSchema": 2,
+      "postBackupEditSurvived": true,
+      "changes": [],
+      "conclusion": "NO_PROTECTED_BYTES_CHANGED_IN_ONE_FIXTURE_ONLY"
+    },
+    {
+      "scenario": "aged-malformed-lock",
+      "command": {
+        "args": [
+          "rollback",
+          "C:\\Users\\<USER>\\AppData\\Local\\Temp\\vcp-old-cli-fence-EKYv3p\\projects\\aged-malformed-lock"
+        ],
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "Restored VCP backup 2026-01-01T00-00-00-000Z-a0000000. Project state returned to 0.9.3.\n",
+        "stderr": ""
+      },
+      "expectedMutation": true,
+      "observedMutation": true,
+      "expectedObservationMatched": true,
+      "legacyLockBefore": "regular-file",
+      "legacyLockAfter": "absent",
+      "resultingSchema": 1,
+      "postBackupEditSurvived": false,
+      "changes": [
+        {
+          "path": ".vcp/manifest.json",
+          "before": "file:438:aa8535e765f56817862a931db4b8b5ade5f5ce9c3cd3d8e36c53abea80a3fe54",
+          "after": "file:438:952548c005d04a70ef68f542f0a1d909cab7fbd746638eb0b552465b3df1de06"
+        },
+        {
+          "path": "AGENTS.md",
+          "before": "file:438:86b39f0885f3cd6cf6a28809894cddf03c64235bceaf94fce3e0839a9ac587a8",
+          "after": "file:438:637efb62ff1c12b7d921c5d10068d7a2e57936ef5504db7a2edaff4794d59926"
+        }
+      ],
+      "conclusion": "LEGACY_MUTATION_OBSERVED__NOT_SAFE"
+    },
+    {
+      "scenario": "intact-v2-old-init",
+      "command": {
+        "args": [
+          "init",
+          "C:\\Users\\<USER>\\AppData\\Local\\Temp\\vcp-old-cli-fence-EKYv3p\\projects\\intact-v2-old-init",
+          "--yes",
+          "--no-github",
+          "--force"
+        ],
+        "exitCode": 1,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "\nError: This project is already initialized with VCP. Use `vcp update` for lifecycle upgrades; `vcp init --force` will not replace existing VCP state.\n"
+      },
+      "expectedMutation": false,
+      "observedMutation": false,
+      "expectedObservationMatched": true,
+      "legacyLockBefore": "absent",
+      "legacyLockAfter": "absent",
+      "resultingSchema": 2,
+      "postBackupEditSurvived": true,
+      "changes": [],
+      "conclusion": "NO_PROTECTED_BYTES_CHANGED_IN_ONE_FIXTURE_ONLY"
+    },
+    {
+      "scenario": "deleted-manifest-old-init",
+      "command": {
+        "args": [
+          "init",
+          "C:\\Users\\<USER>\\AppData\\Local\\Temp\\vcp-old-cli-fence-EKYv3p\\projects\\deleted-manifest-old-init",
+          "--yes",
+          "--no-github",
+          "--force"
+        ],
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "\nInstalled Vibe Coding Production Kit 0.9.3 in C:\\Users\\<USER>\\AppData\\Local\\Temp\\vcp-old-cli-fence-EKYv3p\\projects\\deleted-manifest-old-init\nFiles/paths: 65\nUse AGENTS.md as the repository-wide instruction source.\nStack profile: generic\nUpdate state: .vcp/manifest.json\n\nNext:\n  Ask your coding agent to inspect the repository and set up VCP from repository evidence.\n  The agent should draft Source of Truth, run `vcp doctor .`, and ask only for unresolved human-intent decisions.\n  Then state your feature intent normally and have the agent drive task → ready → context → verify → review.\n",
+        "stderr": ""
+      },
+      "expectedMutation": true,
+      "observedMutation": true,
+      "expectedObservationMatched": true,
+      "legacyLockBefore": "absent",
+      "legacyLockAfter": "absent",
+      "resultingSchema": 1,
+      "postBackupEditSurvived": false,
+      "changes": [
+        {
+          "path": ".vcp/manifest.json",
+          "before": null,
+          "after": "file:438:30bf59bf8a1884ab88cd7b326bb8ba0dd6c0e8fc2fc13b6a21c94eeec55c8b09"
+        },
+        {
+          "path": "AGENTS.md",
+          "before": "file:438:86b39f0885f3cd6cf6a28809894cddf03c64235bceaf94fce3e0839a9ac587a8",
+          "after": "file:438:637efb62ff1c12b7d921c5d10068d7a2e57936ef5504db7a2edaff4794d59926"
+        }
+      ],
+      "conclusion": "LEGACY_MUTATION_OBSERVED__NOT_SAFE"
+    },
+    {
+      "scenario": "deleted-manifest-directory-sentinel-old-init",
+      "command": {
+        "args": [
+          "init",
+          "C:\\Users\\<USER>\\AppData\\Local\\Temp\\vcp-old-cli-fence-EKYv3p\\projects\\deleted-manifest-directory-sentinel-old-init",
+          "--yes",
+          "--no-github",
+          "--force"
+        ],
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "\nInstalled Vibe Coding Production Kit 0.9.3 in C:\\Users\\<USER>\\AppData\\Local\\Temp\\vcp-old-cli-fence-EKYv3p\\projects\\deleted-manifest-directory-sentinel-old-init\nFiles/paths: 65\nUse AGENTS.md as the repository-wide instruction source.\nStack profile: generic\nUpdate state: .vcp/manifest.json\n\nNext:\n  Ask your coding agent to inspect the repository and set up VCP from repository evidence.\n  The agent should draft Source of Truth, run `vcp doctor .`, and ask only for unresolved human-intent decisions.\n  Then state your feature intent normally and have the agent drive task → ready → context → verify → review.\n",
+        "stderr": ""
+      },
+      "expectedMutation": false,
+      "observedMutation": true,
+      "expectedObservationMatched": false,
+      "legacyLockBefore": "directory",
+      "legacyLockAfter": "directory",
+      "resultingSchema": 1,
+      "postBackupEditSurvived": false,
+      "changes": [
+        {
+          "path": ".vcp/manifest.json",
+          "before": null,
+          "after": "file:438:de2b0c7b72bf6bc458ec5e8dcbff598413a5f6af76e0dd1d05bcbe426f93e882"
+        },
+        {
+          "path": "AGENTS.md",
+          "before": "file:438:86b39f0885f3cd6cf6a28809894cddf03c64235bceaf94fce3e0839a9ac587a8",
+          "after": "file:438:637efb62ff1c12b7d921c5d10068d7a2e57936ef5504db7a2edaff4794d59926"
+        }
+      ],
+      "conclusion": "LEGACY_MUTATION_OBSERVED__NOT_SAFE"
+    }
+  ],
+  "expectedObservationsMatched": 12,
+  "unexpected": 1,
+  "unsafeMutationCount": 8,
+  "gate": "NO_GO__LEGACY_MUTATION_DEMONSTRATED",
+  "unverified": [
+    "atomic file-to-directory sentinel conversion",
+    "actual new-vs-old CLI concurrency",
+    "crash injection",
+    "cross-platform supported environments",
+    "independent registry provenance"
+  ]
+}

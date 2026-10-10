@@ -6,7 +6,8 @@ import test from 'node:test';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { createContextPack } from '../lib/context.mjs';
-import { initProject } from '../lib/init.mjs';
+// Historical setup is intentionally test-only: production init remains gated.
+import { seedLegacyV1Fixture as initProject } from './helpers/legacy-v1-fixture.mjs';
 import { createTaskPack } from '../lib/task.mjs';
 
 const execFileAsync = promisify(execFile);

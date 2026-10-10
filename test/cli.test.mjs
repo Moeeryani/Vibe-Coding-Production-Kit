@@ -5,7 +5,8 @@ import path from 'node:path';
 import test from 'node:test';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { initProject } from '../lib/init.mjs';
+import { initProject as publicInitProject } from '../lib/init.mjs';
+import { seedLegacyV1Fixture as initProject } from './helpers/legacy-v1-fixture.mjs';
 import { doctorExitCode, runDoctor } from '../lib/doctor.mjs';
 import { createTaskPack } from '../lib/task.mjs';
 
@@ -15,7 +16,7 @@ async function tempDir() {
   return mkdtemp(path.join(os.tmpdir(), 'vcp-'));
 }
 
-test('installs the core framework and GitHub assets', async () => {
+test('historical v1 fixture includes the original core framework and GitHub assets', async () => {
   const target = await tempDir();
   const result = await initProject({ targetDir: target, agent: 'codex', includeGitHub: true });
 
@@ -51,8 +52,8 @@ test('refuses to overwrite existing managed paths without --force', async () => 
   await writeFile(path.join(target, 'AGENTS.md'), 'existing policy\n');
 
   await assert.rejects(
-    initProject({ targetDir: target, agent: 'generic', includeGitHub: false }),
-    /Refusing to overwrite/
+    publicInitProject({ targetDir: target, agent: 'generic', includeGitHub: false }),
+    /Stage12 Existing-repository Smart Init is zero-write preview only/
   );
 
   assert.equal(await readFile(path.join(target, 'AGENTS.md'), 'utf8'), 'existing policy\n');
@@ -60,13 +61,13 @@ test('refuses to overwrite existing managed paths without --force', async () => 
 
 test('dry-run performs no writes', async () => {
   const target = await tempDir();
-  const result = await initProject({ targetDir: target, agent: 'claude', includeGitHub: false, dryRun: true });
+  const result = await publicInitProject({ targetDir: target, agent: 'claude', includeGitHub: false, dryRun: true });
 
   assert.equal(result.dryRun, true);
   await assert.rejects(readFile(path.join(target, 'AGENTS.md'), 'utf8'));
 });
 
-test('merges into existing directories when individual framework files do not conflict', async () => {
+test('test-only historical fixture preserves unrelated existing directories', async () => {
   const target = await tempDir();
   await mkdir(path.join(target, 'docs'), { recursive: true });
   await writeFile(path.join(target, 'docs/EXISTING.md'), 'keep me\n');
@@ -161,7 +162,7 @@ test('doctor fails when the framework is not installed', async () => {
   assert.ok(report.checks.some((item) => item.id === 'agents' && item.status === 'fail'));
 });
 
-test('doctor warns for untouched templates but passes structural checks after init', async () => {
+test('doctor warns for untouched templates in a historical preinstalled fixture', async () => {
   const target = await tempDir();
   await initProject({ targetDir: target, agent: 'generic', stack: 'generic', includeGitHub: true });
   const report = await runDoctor(target);

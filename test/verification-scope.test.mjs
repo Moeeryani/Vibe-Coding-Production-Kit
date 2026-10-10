@@ -5,7 +5,8 @@ import path from 'node:path';
 import test from 'node:test';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { initProject } from '../lib/init.mjs';
+// Test-only preinstalled historical v1 state; production init stays fenced.
+import { seedLegacyV1Fixture as initProject } from './helpers/legacy-v1-fixture.mjs';
 import { runVerification } from '../lib/verify.mjs';
 
 const execFileAsync = promisify(execFile);
