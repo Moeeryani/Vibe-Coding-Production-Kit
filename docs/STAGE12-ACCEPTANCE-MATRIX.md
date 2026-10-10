@@ -219,3 +219,18 @@ recovery receipt as a pass.
 No tests, syntax checker, local acceptance runner, native Windows
 conformance or published-old-binary execution were run in this pass.
 `D-01 = DEFERRED`, `G-FENCE = NO-GO`, no main merge or release.
+
+## Recovering-phase construction detail — not a terminal cleanup proof
+
+Greenfield recovery now writes its exact existing init ownership ledger into
+a durable versioned `recovering` journal transition **before its first
+owned-file deletion**, when the interrupted journal was `prepared`,
+`applying` or `verified`. Re-entry from an already recorded
+`recovering` phase does not rewrite that intent. The source-only Stage12
+checker also requires this ordering and per-file directory synchronization.
+
+This improves restart classification while the versioned backup and journal
+still exist. It does **not** close the final provenance gap after backup
+metadata is removed and before journal clearance, as identified above.
+A resilient terminal-control state machine and exact frozen-head crash tests
+remain mandatory; AC-005 and Stage12 are NOT ACCEPTED.
