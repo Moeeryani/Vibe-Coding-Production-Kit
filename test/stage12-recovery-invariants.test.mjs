@@ -17,6 +17,7 @@ import {
   lifecycleDurabilityCapability, assertLifecycleDurabilitySupported
 } from '../lib/file-durability.mjs';
 import { acquireLifecycleLock } from '../lib/lifecycle-lock-v2.mjs';
+import { inspectTerminalOrphan, classifyTerminalOrphan } from '../lib/terminal-orphan-inspect.mjs';
 
 const SHA=bytes=>createHash('sha256').update(bytes).digest('hex');
 async function sandbox(t){
@@ -32,6 +33,27 @@ async function setupTree(root){
   await writeFile(path.join(root,'.vcp/backups/owned-1/backup.json'),'{}\n');
   await writeFile(path.join(root,'docs/nested/owned.md'),'expected\n');
 }
+
+test('orphaned final lock is reported read-only and never implicitly retired',async t=>{
+  const root=await sandbox(t);
+  await mkdir(path.join(root,'.vcp'));
+  const lockPath=path.join(root,'.vcp/update.lock');
+  const bytes=Buffer.from('another-process-lock\n');
+  await writeFile(lockPath,bytes);
+  const orphan=await inspectTerminalOrphan(root);
+  assert.equal(orphan.classification,'ORPHAN_LOCK_MANUAL_REVIEW_ONLY');
+  assert.equal(orphan.retirementAuthorized,false);
+  assert.equal(orphan.writeAuthorized,false);
+  assert.deepEqual(await (await import('node:fs/promises')).readFile(lockPath),bytes);
+  assert.equal(classifyTerminalOrphan({
+    projectNames:['.vcp','AGENTS.md'],stateNames:['update.lock'],
+    journalPresent:false,regularLock:true
+  }),'FOREIGN_OR_UNMANAGED_CONTENT');
+  await writeFile(path.join(root,'user-owned.txt'),'keep');
+  const foreign=await inspectTerminalOrphan(root);
+  assert.equal(foreign.classification,'FOREIGN_OR_UNMANAGED_CONTENT');
+  assert.deepEqual((await readdir(root)).sort(),['.vcp','user-owned.txt']);
+});
 
 test('Windows durability stays NO-GO and lock preflight never creates state',async t=>{
   const windows=lifecycleDurabilityCapability('win32');
