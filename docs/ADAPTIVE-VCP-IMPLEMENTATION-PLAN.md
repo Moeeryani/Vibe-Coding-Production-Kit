@@ -4456,3 +4456,18 @@ Additional findings integrated after the original audit snapshot include:
 - reviewed-head/finalization-head exceptions require semantic task-section validation, not path-only checks.
 
 If this appendix and the consolidated report ever diverge, the main strategic/technical sections plus the consolidated report are the pre-implementation authority; historical audit counts remain evidence of the earlier snapshot rather than a substitute for current verification.
+
+## Stage 12 dated safety addendum — 2026-10-10 (supersedes sentinel hypothesis)
+
+Authentic published v0.9.3 native Windows POC proved that a directory
+sentinel alone is not a compatibility fence: old init --force does not
+take the lock and, with a missing manifest, overwrote AGENTS.md and
+reverted to schema v1. Linux: seven unsafe cases; Windows: eight.
+NTFS directory sync failed with EPERM in the versioned lifecycle
+lock implementation, which must continue to fail closed.
+
+No normal Stage12 writer is thereby approved. Original AC-004/005/006
+remain pending; bounded read-only subset acceptance is separately
+proposed, not retroactively substituted, in
+`docs/STAGE12-SAFE-SUBSET-ACCEPTANCE-PROPOSAL.md`.
+D-02/03/04/05/06/12 remain subject to ratification and anchor review.
