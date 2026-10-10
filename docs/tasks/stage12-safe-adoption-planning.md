@@ -117,3 +117,27 @@ Published-old-CLI, Windows native, process-kill and recovery fixtures require ne
 ## Current readiness and decisions
 
 **PLAN / BLOCKED.** This document deliberately does not claim Stage12 product-code implementation readiness.
+
+## Stage 12 review candidate amendment — 2026-10-10
+
+**Original Task Pack remains Status: Plan / BLOCKED.** This task's
+AC-004/005/006 require an enabled, proven managed-v2 lifecycle;
+none is accepted merely because code was authored or tests pass.
+
+Published npm 0.9.3 was independently authenticated on native Windows.
+Eight of thirteen original+extended POC cases erased protected
+user edits. The directory sentinel was bypassed by old init with
+a missing manifest; `syncContainingDirectory()` on NTFS returned
+EPERM and the new writer deliberately fails closed. D-01 remains
+DEFERRED and G-FENCE remains NO-GO.
+
+All 137 failures in the old `d13de6be` Linux suite have been
+listed per test in `docs/STAGE12-HISTORICAL-FAILURE-TRIAGE.md`.
+Pre-test fixture repairs do not imply passing execution.
+
+The only proposed independent acceptance target is
+`STAGE12_READ_ONLY_FOUNDATION`, described in
+`docs/STAGE12-SAFE-SUBSET-ACCEPTANCE-PROPOSAL.md`.
+This is a scope change requiring explicit maintainer ratification,
+not completion of the original Stage12 managed-migration objective.
+No test result can supply the missing human decision.
