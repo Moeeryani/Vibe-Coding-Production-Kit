@@ -133,6 +133,24 @@ test('v2 validator rejects unknown fields at root, install, file and ownership',
   }
 });
 
+test('schema-v2 is never advertised as readable by published 0.9.3',()=>{
+  assert.throws(()=>previewV1ToV2(legacy(),{readerVersion:'0.9.3'}),{
+    code:'E_ADAPTIVE_MINIMUM_READER'
+  });
+  const manifest=previewV1ToV2(legacy(),{readerVersion:READER});
+  manifest.minimumReaderVersion='0.9.3';
+  assert.throws(()=>validateAdaptiveManifest(manifest,{readerVersion:READER}),{
+    code:'E_ADAPTIVE_MINIMUM_READER'
+  });
+  const backup=oldManagedBackup();
+  assert.throws(()=>decodeBackupMetadata({
+    ...backup,minimumReaderVersion:'0.9.3'
+  },{readerVersion:READER}),{code:'E_BACKUP_FORMAT'});
+  assert.throws(()=>decodeManagedTransaction({
+    ...journal(),minimumReaderVersion:'0.9.3'
+  },{readerVersion:READER}),{code:'E_TRANSACTION_FORMAT'});
+});
+
 test('v2 reader blocks older reader and missing or malformed ownership metadata',()=>{
   const manifest=previewV1ToV2(legacy(),{readerVersion:READER});
   assert.throws(()=>validateAdaptiveManifest(manifest,{readerVersion:'0.9.3'}),{
@@ -173,6 +191,8 @@ test('explicit adapter provenance is a separate owner claim, never mere observat
 test('schema migration backup identity and prior-state must match operation',()=>{
   const backup=oldManagedBackup();
   assert.equal(decodeBackupMetadata(backup,{readerVersion:READER}).operation,'update');
+  assert.equal(decodeBackupMetadata(backup,{readerVersion:READER}).priorInstalledVersion,
+    '0.9.3');
   assert.throws(()=>decodeBackupMetadata({...backup,unexpected:true},{
     readerVersion:READER
   }),{code:'E_BACKUP_UNKNOWN_FIELDS'});
@@ -215,6 +235,28 @@ test('versioned backup and journal reject case-colliding owned paths',()=>{
     assert.throws(()=>decodeManagedTransaction({
       ...journal(),createdFiles:names.map(relative=>({path:relative,hash:DIGEST}))
     },{readerVersion:READER}),{code:'E_TRANSACTION_CREATED'});
+  }
+});
+
+test('first-init recovery refuses a forged partial ownership ledger',()=>{
+  const initJournal={
+    formatVersion:2,transactionSchemaVersion:2,
+    minimumReaderVersion:READER,operation:'init',id:'init-one',
+    operationId:'init-one',backupId:'init-one',phase:'prepared',
+    startedAt:'2026-10-10T01:00:00Z',
+    createdFiles:[
+      {path:'.vcp/manifest.json',hash:DIGEST},
+      {path:'.vcp/.gitignore',hash:DIGEST},
+      {path:'docs/owned.md',hash:DIGEST}
+    ]
+  };
+  assert.equal(decodeManagedTransaction(initJournal,{readerVersion:READER}).operation,'init');
+  for(const missing of ['.vcp/manifest.json','.vcp/.gitignore']) {
+    const altered={...initJournal,
+      createdFiles:initJournal.createdFiles.filter(x=>x.path!==missing)};
+    assert.throws(()=>decodeManagedTransaction(altered,{readerVersion:READER}),{
+      code:'E_TRANSACTION_INIT_LEDGER'
+    });
   }
 });
 
