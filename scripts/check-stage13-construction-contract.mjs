@@ -32,7 +32,8 @@ export async function inspectStage13ConstructionContract() {
     'lib/lifecycle-lock-v2.mjs',
     'lib/adoption-inspect.mjs',
     'lib/cli.mjs',
-    'scripts/native/vcp-linux-fsops.cpp'
+    'scripts/native/vcp-linux-fsops.cpp',
+    'test/stage13-nested-recovery.test.mjs'
   ];
   const contents=new Map(await Promise.all(files.map(async name=>
     [name,await read(name)])));
@@ -63,8 +64,8 @@ export async function inspectStage13ConstructionContract() {
     fail('Stage13 recovery adopted unbounded recursive deletion');
   includes(part(files[9]),'inspectCommittedStage13',files[9]);
   includes(part(files[9]),"'.vcp/transaction.json'",files[9]);
-  includes(part(files[10]),'9007199254740993',files[10].includes('9007199254740993')?
-    files[10]:'test/stage13-nested-recovery.test.mjs');
+  includes(part(files[10]),'E_STAGE13_NATIVE_IDENTITY_UNPROVEN',files[10]);
+  includes(part(files[15]),'9007199254740993',files[15]);
   includes(part(files[11]),'inspectOwnedAdoptionBootstrap',files[11]);
   includes(part(files[12]),'ownedBootstrapLock',files[12]);
   includes(part(files[13]),'--confirm-adoption',files[13]);
