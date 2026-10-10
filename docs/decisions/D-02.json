@@ -43,7 +43,7 @@
     {
       "path": "docs/CLI.md",
       "heading": "## Audit an existing repository",
-      "requiredText": "Future D-02 proposal (not a current CLI guarantee)"
+      "requiredText": "D-02 (ACCEPTED DESIGN; APPLICABILITY PROOF PENDING)"
     },
     {
       "path": "docs/decisions/stage12-p0-review-packet-20261010.md",
