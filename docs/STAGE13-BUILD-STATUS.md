@@ -97,11 +97,13 @@ implementable/accepted** Smart Init Apply candidate:
    read-hash-then-rename operation. Require a real OS-enforced exclusive
    writer/identity-proof contract, backed by new D-01 authorization and
    independent Linux/Windows tests; no silent downgrade.
-2. **General nested claim rollback** is deliberately blocked without
-   original-parent/created-directory ownership evidence. A non-root
-   project directory must never be silently removed on a hash-only
-   guess. Author the complete directory ownership ledger and restart
-   proof before enabling nested rollback.
+2. **Nested claim rollback construction added:** first missing project
+   ancestors are staged as directory trees; the version-3 WAL records
+   every created directory's exact native device/inode, and kernel
+   NOREPLACE moves the first absent subtree as a unit. Read-only
+   recovery rejects modified or foreign directories and plans
+   deepest-first empty-directory removal. The independent crash/restart
+   and directory-race conformance proof remains PENDING.
 3. Stage13 commit/recovery is **source-only and unexecuted**; all
    linkages, import cycles, integration contracts, manifest and native
    durability behavior need the final frozen-head computer-agent
@@ -154,6 +156,42 @@ New source-only tests:
 
 This remains **BUILD IN PROGRESS** because section-file atomic CAS /
 enforced writer isolation, created-directory provenance for general
-nested claims, native Windows durability and final full-head independent
-testing have not been accepted. The package version remains 0.9.3.
+the initial bootstrap-before-journal crash window, native Windows
+durability and final full-head independent testing have not been accepted. The package version remains 0.9.3.
 There is no approved D-01, G-FENCE, main merge or publication.
+
+## 2026-10-11 nested-directory ownership and exact native identity
+
+A further source-only build increment adds:
+`lib/stage13-directory-ownership.mjs`,
+`lib/stage13-identity.mjs`, and tests
+`test/stage13-directory-ownership.test.mjs`,
+`test/stage13-nested-recovery.test.mjs`.
+For a missing project directory (e.g. `.github/ISSUE_TEMPLATE`), Stage13
+builds the new subtree under `.vcp/stage/<id>/dirs`, pins every native
+directory/file identity **before** serializing the v3 journal, then
+installs the subtree with Linux `renameat2(RENAME_NOREPLACE)`. The
+rollback classifier matches those exact directory/file IDs and deletes
+only owned files followed by empty owned directories in deepest-first
+order. Any foreign entry blocks deletion.
+
+The Linux helper now includes **lossless string-encoded uint64 device/inode
+fields** (`devExact`, `inoExact`) because JSON numbers round 64-bit inode
+identities beyond JavaScript's safe-integer range. Destructive Stage13
+ownership checks reject rounded JS numbers. Stage13 intentionally
+retains legacy numeric helper fields for Stage12 compatibility.
+
+`scripts/check-stage13-construction-contract.mjs` was authored as an
+unexecuted static guard against changing the Stage13 fence, fresh replan,
+native no-replace path, directory provenance and identity. It does not
+assert filesystem proof or Stage13 completion.
+
+**Outstanding gap:** a crash during initial adopt lock/bootstrap/staging
+**before the v3 journal has been persisted** can leave owned control
+residue without a complete transaction descriptor. Without exact
+provenance a restarted process MUST fail closed; no automatic cleanup of
+such residue is authorized. A complete first-adoption bootstrap recovery
+protocol and native interruption tests remain required before marking
+BUILD COMPLETE. Managed-section replacement still requires demonstrably
+enforced writer isolation/atomic concurrency protections. No code/tests
+have been executed in this increment.
