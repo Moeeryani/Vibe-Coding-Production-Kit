@@ -218,6 +218,28 @@ test('versioned backup and journal reject case-colliding owned paths',()=>{
   }
 });
 
+test('first-init recovery refuses a forged partial ownership ledger',()=>{
+  const initJournal={
+    formatVersion:2,transactionSchemaVersion:2,
+    minimumReaderVersion:READER,operation:'init',id:'init-one',
+    operationId:'init-one',backupId:'init-one',phase:'prepared',
+    startedAt:'2026-10-10T01:00:00Z',
+    createdFiles:[
+      {path:'.vcp/manifest.json',hash:DIGEST},
+      {path:'.vcp/.gitignore',hash:DIGEST},
+      {path:'docs/owned.md',hash:DIGEST}
+    ]
+  };
+  assert.equal(decodeManagedTransaction(initJournal,{readerVersion:READER}).operation,'init');
+  for(const missing of ['.vcp/manifest.json','.vcp/.gitignore']) {
+    const altered={...initJournal,
+      createdFiles:initJournal.createdFiles.filter(x=>x.path!==missing)};
+    assert.throws(()=>decodeManagedTransaction(altered,{readerVersion:READER}),{
+      code:'E_TRANSACTION_INIT_LEDGER'
+    });
+  }
+});
+
 test('versioned ledgers reject file/directory overlap and invalid backup modes',()=>{
   const backup=oldManagedBackup();
   const nested=['docs/owner','docs/owner/child.md'];
