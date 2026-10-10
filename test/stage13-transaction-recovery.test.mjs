@@ -21,8 +21,10 @@ function journal(phase='applying') {
     createdAt:'2026-10-11T00:00:00.000Z',phase,
     items:[
       {path:'NEW.md',kind:'whole-file',oldSha256:null,
+        stagedDev:'7',stagedIno:'9',
         newSha256:sha(content),baselineSha256:sha(content)},
       {path:'AGENTS.md',kind:'managed-section',sectionId:'agent-routing',
+        stagedDev:'7',stagedIno:'10',
         oldSha256:sha(old),oldMode:0o644,
         newSha256:sha(section.document),
         baselineSha256:sha(section.body)}
@@ -31,6 +33,8 @@ function journal(phase='applying') {
 }
 const live=()=>new Map([['NEW.md',content],['AGENTS.md',section.document]]);
 const backups=()=>new Map([['AGENTS.md',old]]);
+const ids=()=>new Map([['NEW.md',{dev:7,ino:9}],
+  ['AGENTS.md',{dev:7,ino:10}]]);
 test('Stage13 journal only accepts authenticated adoption ledger and phases',()=>{
   const first=journal('snapshotted');
   const ready=journal('staged');
@@ -54,7 +58,7 @@ test('Stage13 journal only accepts authenticated adoption ledger and phases',()=
 });
 test('Stage13 recovery restores exact user preimage and removes only owned claims',()=>{
   const report=classifyStage13RecoverySnapshot(journal(),{
-    currentFiles:live(),backups:backups()
+    currentFiles:live(),currentIdentities:ids(),backups:backups()
   });
   assert.equal(report.classification,'RECOVERABLE_CANDIDATE');
   assert.equal(report.writeAuthorized,false);
@@ -74,19 +78,31 @@ test('Stage13 user post-apply edits and foreign backup always block rollback',()
       ['AGENTS.md',Buffer.from('user rewrote the document')]]),
       backups:backups()}
   ]) {
-    const report=classifyStage13RecoverySnapshot(journal(),altered);
+    const report=classifyStage13RecoverySnapshot(journal(),{
+      ...altered,currentIdentities:ids()
+    });
     assert.equal(report.classification,'BLOCKED');
     assert.deepEqual(report.actions,[]);
   }
 });
+test('byte-identical replacement from a different inode is not owned',()=>{
+  const stolen=ids();
+  stolen.set('NEW.md',{dev:7,ino:999});
+  const report=classifyStage13RecoverySnapshot(journal(),{
+    currentFiles:live(),currentIdentities:stolen,backups:backups()
+  });
+  assert.equal(report.classification,'BLOCKED');
+  assert.equal(report.issues[0].reason,'CREATED_INODE_NOT_OWNED');
+});
 test('Stage13 committed status proves all file bytes, not only manifest hash',()=>{
   const good=classifyStage13RecoverySnapshot(journal('committed'),{
-    currentFiles:live(),backups:backups(),manifestBytes:manifest
+    currentFiles:live(),currentIdentities:ids(),backups:backups(),manifestBytes:manifest
   });
   assert.equal(good.classification,'COMMITTED_VERIFY_ONLY');
   const missing=new Map(live());missing.delete('NEW.md');
   const bad=classifyStage13RecoverySnapshot(journal('committed'),{
-    currentFiles:missing,backups:backups(),manifestBytes:manifest
+    currentFiles:missing,currentIdentities:ids(),backups:backups(),
+    manifestBytes:manifest
   });
   assert.equal(bad.classification,'BLOCKED');
   assert.equal(bad.reason,'COMMITTED_FILE_CHANGED');
