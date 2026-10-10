@@ -181,3 +181,41 @@ reviews PENDING. Full original Stage12 remains required.
 The test agent must use only a later frozen, fully integrated commit. No
 result from the historical `d13de6be` run or previous branch-specific
 CI may be promoted to a receipt for this construction pass.
+
+## Continued Stage12 construction — recovery lineage and deletion durability
+
+Integration commit `f13ceb11759c6d31041a9fe3454684e8610119b8`
+combines further **unexecuted** implementation changes:
+
+- Greenfield recovery now requests directory synchronization after each
+  owned-file unlink, empty-directory removal, and final state-directory
+  removal. A successful per-file hash before unlink is not enough to
+  acknowledge persistence of a namespace deletion. This still does not
+  solve hostile rename races or unsupported native Windows durability.
+- Versioned init journals must enumerate exactly named VCP manifest and
+  gitignore controls even if the operation crashed before creating them;
+  a ledger omitting these required planned outputs is never an accepted
+  recovery ownership proof.
+- Managed recovery preview validates the entire backup's historical
+  schema-v1 allowlist and verifies `priorInstalledVersion` provenance
+  instead of trusting two superficial v1 fields.
+- Versioned backup, journal, manifest and v1→v2 preview refuse a
+  `minimumReaderVersion` of 0.9.3 or below. The current local
+  package remains 0.9.3; the migration preview reports
+  `ADAPTIVE_READER_NOT_RELEASED` without filesystem writes.
+- Authored regression fixtures cover incomplete init ledgers, the
+  preserved prior-version witness and refusal of 0.9.3 as v2 reader.
+
+**Known open crash-resume defect:** `greenfield-recovery-apply` still
+deletes its backup metadata/directory before clearing the owned journal.
+An interruption in that gap can leave an incomplete journal without its
+backup provenance, so repeat invocation cannot prove a safe resume.
+Reordering multi-file cleanup alone creates the inverse orphan-control
+problem; an explicitly crash-restartable terminal cleanup protocol with
+owned markers and independent test evidence remains a P0 requirement.
+Do not call AC-005 complete, activate this writer or classify a partial
+recovery receipt as a pass.
+
+No tests, syntax checker, local acceptance runner, native Windows
+conformance or published-old-binary execution were run in this pass.
+`D-01 = DEFERRED`, `G-FENCE = NO-GO`, no main merge or release.
