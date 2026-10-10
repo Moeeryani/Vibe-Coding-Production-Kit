@@ -286,3 +286,33 @@ future schema-v2-capable reader release.
 
 No `node --check`, tests, npm validate, pack, full gates, old binary
 execution, native Windows conformance, main merge or publication occurred.
+
+## Terminal cleanup recovery hardening — further source-only checkpoint
+
+Combined candidate `3e8564514b45e98aaea938e6f9c527c33193ee91`
+adds the following **authored but unexecuted** safeguards:
+
+- A pure versioned journal transition validator is reused by the actual
+  journal writer. It enforces first-phase `prepared`, original operation/
+  backup/start/reader/file-ledger identity across transitions and a single
+  `recovering → cleanup` transition before metadata removal. Tests
+  include invalid jumps, missing hashes and altered ledger entries.
+- The terminal recovery planner reads no created-file bytes when checking
+  absence, refuses retained files **and empty created directories**,
+  caps total ordinary recovery snapshot reads at 64 MiB, and repeats the
+  complete inventory/provenance proof before control cleanup.
+- A read-only terminal absence inspector is independently exercisable
+  using disposable filesystem fixtures. Authored tests confirm that both
+  a remaining empty directory and a remaining edited user file cause
+  refusal without mutating the edited bytes.
+- Static source checks assert that the terminal ownership proof and
+  read bound are not silently removed from the build.
+
+**Unresolved safety conditions:** hostile rename/unlink TOCTOU still needs
+an OS-backed proof; NTFS directory-entry durability remains unproved and
+Windows writers fail closed; old published CLI 0.9.3 still defeats shared
+namespace protection; a crash after clearing the final journal but before
+`.vcp/update.lock` release/`.vcp` retirement can leave an orphaned
+control directory without transaction provenance. This final seam remains
+P0 rather than being marked complete. No tests or checks ran for this
+candidate and no decision coverage review was silently approved.
