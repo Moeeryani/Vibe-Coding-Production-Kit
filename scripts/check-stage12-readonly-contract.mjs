@@ -149,6 +149,7 @@ export async function inspectStage12ReadOnlyContract(){
   const terminalRetire=await load('lib/terminal-retirement-v2.mjs');
   const windowsProbe=await load('scripts/native/stage12-windows-namespace-probe.cpp');
   const noReplace=await load('lib/native-no-replace.mjs');
+  const linuxProbe=await load('scripts/native/stage12-linux-noreplace-probe.cpp');
   if(!terminalRetire.includes('assertManagedMigrationGate();')||
     !terminalRetire.includes('await moveDirectoryNoReplace({source:state,destination:archive,root})')||
     !terminalRetire.includes('if(typeof onDetached')||
@@ -156,6 +157,9 @@ export async function inspectStage12ReadOnlyContract(){
     greenRecovery.includes('await clearVersionedJournal(root,')||
     !noReplace.includes('E_NATIVE_NOREPLACE_UNAVAILABLE')||
     !noReplace.includes('requiresNoReparseTraversal:true')||
+    !linuxProbe.includes('SYS_renameat2')||
+    !linuxProbe.includes('RENAME_NOREPLACE')||
+    !linuxProbe.includes('isDurabilityAttestation')||
     !windowsProbe.includes('MOVEFILE_WRITE_THROUGH')||
     !windowsProbe.includes('isDurabilityAttestation')||
     !windowsProbe.includes('requiresIndependentCrashAndPowerLossProof')) {
