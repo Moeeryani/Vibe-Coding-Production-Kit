@@ -1,15 +1,22 @@
 # Task — Stage 12 Safe Adoption Planning (DRAFT / BLOCKED)
 
 Status: Plan
-Readiness: BLOCKED for implementation until documentation contract decisions, exact-head baseline and published-old-CLI safety evidence are accepted.
+Readiness: BUILD IN PROGRESS; live schema-v2 mutation, final verification and acceptance remain blocked by D-01/G-FENCE and unproved Windows durability.
 Slug: `stage12-safe-adoption-planning`
 Audited baseline: `8ccb276545fdb3cc301ce7ce324812eb4c314586`
 
-## Stage12.0 gate triage — execution started, migration deliberately deferred
+## Stage12.0 historical gate triage and current full-scope decision
 
-The first preparatory PR12.1a **characterization-only** work is in draft PR #91 (no product-code changes). PR #89's authentic published old-CLI Linux POC found 7 unsafe protected-file mutations; default **D-01 option C: keep live managed schema-v2 migration BLOCKED**. Directory sentinel is only a Linux-isolated candidate and lacks native Windows, old init with deleted manifest, atomic installation, concurrent old/new writers and crash validation.
+The first preparatory PR12.1a **characterization-only** work is in draft PR #91 (no product-code changes). PR #89's authentic published old-CLI Linux POC found 7 unsafe protected-file mutations; default **D-01 option C: keep live managed schema-v2 migration BLOCKED**. The directory sentinel was disproven by the native Windows old-init witness when the manifest was missing; it is NOT an approved fence. Atomic installation, concurrency and crash safety still lack proof.
 
-Decision-ratification packet: `docs/decisions/stage12-d01-d03-d06-ratification-packet.md`. **D-03 / D-06 remain PROPOSED** pending an actual maintainer decision. PR #90's focused regression checks and Linux cooperative receipt are not remotely trusted merge enforcement or completed G-DOCS; a final-HEAD local evidence run and independently complete accepted-ID reference coverage are required. This is a status of **preparatory test work started**, not a product-code GO or Stage12 Task Pack Ready/Done transition.
+Decision-ratification packet: `docs/decisions/stage12-d01-d03-d06-ratification-packet.md`. **D-02, D-03, D-04, D-05, D-06 and D-12 were ACCEPTED as design policies by the maintainer on 2026-10-10T19:02:43Z.** Implementation conformance and required-anchor coverage remain unverified; D-01 remains DEFERRED and G-FENCE remains NO-GO. PR #90's focused regression checks and Linux cooperative receipt are not remotely trusted merge enforcement or completed G-DOCS; a final-HEAD local evidence run and independently complete accepted-ID reference coverage are required. This is a status of **preparatory test work started**, not a product-code GO or Stage12 Task Pack Ready/Done transition.
+
+**Binding scope as of 2026-10-10:** FULL ORIGINAL STAGE12 SCOPE.
+The six accepted policy choices are not proof of implementation. The old CLI
+compatibility fence, Windows durability and managed-v2 lifecycle remain
+Stage12 engineering tasks. Stage13 alone covers first mutating adoption of
+an unmanaged existing repository. Never activate v2 writers while G-FENCE
+is NO-GO; no main merge or npm release is authorized.
 
 ## Outcome
 
@@ -17,12 +24,12 @@ Enable trustworthy, bounded, zero-write adoption *planning* for unmanaged existi
 
 ## Source of truth
 
-**D-06 (PROPOSED):** The canonical decision register and separately reviewed required-anchor inventory are review controls; neither a Draft PR nor a passing local smoke guard implies that any decision is accepted. The register must remain authoritative over historical S/T Appendix Z rows.
+**D-06 (ACCEPTED POLICY; COVERAGE NOT YET APPROVED):** The canonical decision register and separately reviewed required-anchor inventory are review controls; neither a Draft PR nor a passing local smoke guard implies that any decision is accepted. The register must remain authoritative over historical S/T Appendix Z rows.
 
 
 - `docs/ADAPTIVE-VCP-IMPLEMENTATION-PLAN.md` (strategic S; current text must be reconciled)
 - `docs/ADAPTIVE-VCP-CODE-INTEGRATION-ANALYSIS.md` (technical T; current text must be reconciled)
-- `docs/ADAPTIVE-VCP-DECISIONS.md` (all choices currently **PROPOSED**, none accepted)
+- `docs/ADAPTIVE-VCP-DECISIONS.md` (D-02/D-03/D-04/D-05/D-06/D-12 ACCEPTED as policy; D-01 DEFERRED; implementation and required-anchor review outstanding)
 - `docs/UPDATES.md`, `docs/CLI.md`, `docs/DOCTOR.md`, `docs/TASK-PACKS.md`, `docs/TASK-READINESS.md`, `docs/ROADMAP.md`
 - `lib/state.mjs`, `lib/update-apply.mjs`, `lib/update-plan.mjs`, `lib/init.mjs`, `lib/verify.mjs`, `lib/doctor.mjs`
 - `docs/tasks/stage11-mobile-profiles-implementation.md` (historic Windows finalization rerun gap remains historical, not backfilled)
@@ -41,15 +48,15 @@ Inspect existing repositories without writing to them, distinguish new/unmanaged
 - [ ] AC-004: Real v0.9.3 package test proves D-01 safety invariant before any live v1→v2 mutation (old update/manage/rollback/init; POSIX/Windows; dead/aged/foreign lock; concurrency; no changed user edits).
 - [ ] AC-005: Versioned managed backup/journal, stale journal quarantine and crash recovery available **in Stage12**, independent of Stage13 first-adoption recovery.
 - [ ] AC-006: Guarded v1→v2 migration retains old installed surface as legacy-full-v1, whole-file ownership and all project changes; idempotent and recoverable.
-- [ ] AC-007 (D-05 PROPOSED): Markdown section parser with owned-region authorship, malformed-marker conflict and byte-identical outside text, including BOM/CRLF/mixed endings.
+- [ ] AC-007 (D-05 ACCEPTED POLICY): Markdown section parser with owned-region authorship, malformed-marker conflict and byte-identical outside text, including BOM/CRLF/mixed endings.
 - [ ] AC-008: assetSet values legacy-full-v1 / greenfield-safe-v1 / brownfield-minimal-v1 retained by every writer; update never re-adds intentionally omitted assets.
 - [ ] AC-009: Selected-root and VCP-state classification before guessing maturity; explicit agent/GitHub/stack provenance; nested and polyglot cases covered.
-- [ ] AC-010 (D-03 PROPOSED): Common purpose-aware read-existing/write-new/managed-state path policy refuses traversal, linked parents and symlink/junction/reparse traversal by default even for in-root targets; only reviewed purpose-specific exceptions; native Windows fixtures required and no false race-freedom promise.
-- [ ] AC-011 (D-12 PROPOSED): Command authority handles duplicate/conflicting commands, migrated destructive-command reconfirmation and execution-time `verify --run` guard; `--yes` cannot waive HUMAN DECISION.
+- [ ] AC-010 (D-03 ACCEPTED POLICY): Common purpose-aware read-existing/write-new/managed-state path policy refuses traversal, linked parents and symlink/junction/reparse traversal by default even for in-root targets; only reviewed purpose-specific exceptions; native Windows fixtures required and no false race-freedom promise.
+- [ ] AC-011 (D-12 ACCEPTED POLICY): Command authority handles duplicate/conflicting commands, migrated destructive-command reconfirmation and execution-time `verify --run` guard; `--yes` cannot waive HUMAN DECISION.
 - [ ] AC-012: assetSet-aware prompt resolver and packaged fallback do not reference omitted starter paths; generated Task Pack does not invent governance docs.
 - [ ] AC-013: Doctor install-health and governance separated, approved D-02 `--strict` truth table, green synthetic minimal fixture and legacy fixture regressions.
 - [ ] AC-014: Greenfield-safe consumer surface excludes source-only npm validation CI while legacy-full compatibility remains intact.
-- [ ] AC-015 (D-04 PROPOSED): Init planner JSON planVersion=1, planKind=init, CLAIM, separate skippedPaths, no file contents, determinism and zero writes for EXISTING unmanaged; non-dry-run apply refuses in Stage12.
+- [ ] AC-015 (D-04 ACCEPTED POLICY): Init planner JSON planVersion=1, planKind=init, CLAIM, separate skippedPaths, no file contents, determinism and zero writes for EXISTING unmanaged; non-dry-run apply refuses in Stage12.
 - [ ] AC-016: Golden negative fixtures, `npm run validate` / `npm run pack:check`, package smoke, review/finalization exact-head rerun, supported-platform evidence; Stage12 exit is not adoption Checkpoint A.
 
 ## Scope
@@ -108,7 +115,7 @@ Published-old-CLI, Windows native, process-kill and recovery fixtures require ne
 
 ## Review and finalization
 
-- No merge or stage "ready" flag without D-01 actual released-package safety evidence and accepted contracts.
+- No merge or stage "ready" flag without a separately proved D-01 fence, verified policy/required-anchor conformance and final exact-head acceptance.
 - Compare changed user-owned file-tree bytes and not only manifest schema.
 - Separate stage12 synthetic minimal-fixture results from Stage13 actual adoption Checkpoint A.
 - Treat unavailable platform results as UNVERIFIED, not green.
