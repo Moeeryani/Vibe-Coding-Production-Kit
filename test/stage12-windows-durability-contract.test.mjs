@@ -5,7 +5,8 @@ import { assessWindowsDurabilityEvidence } from '../lib/windows-durability-contr
 import { lifecycleDurabilityCapability } from '../lib/file-durability.mjs';
 
 const operations=['create','file-flush','rename-write-through','directory-sync',
-  'owned-unlink','owned-rmdir','journal-replay','lock-release'];
+  'owned-unlink','owned-rmdir','no-replace-collision',
+  'journal-replay','lock-release'];
 function completeDeclaredReport() {
   return {platform:'win32',filesystem:'NTFS',nativeWindows:true,
     disposableFixture:true,publishedImplementationHashVerified:true,
