@@ -1,5 +1,15 @@
 # CLI
 
+
+> **Draft Stage 12, not yet released:** Read-only `vcp inspect`,
+> `vcp init . --dry-run [--json]` and `vcp recovery-plan` are authored on
+> the Stage12 development branch. Unmanaged EXISTING apply is Stage13-only.
+> NEW schema-v2 init and MANAGED v1→v2 migration are currently disabled by
+> D-01/G-FENCE **NO-GO**. Do not use the draft as a replacement for the
+> published v0.9.3 CLI. The following published CLI usage remains historical
+> released behavior unless specifically labeled Stage12 draft.
+
+
 The CLI bootstraps the Vibe Coding Production Kit into a new or existing repository, manages its lifecycle state, and provides task/readiness/context/verification workflows without replacing unrelated files.
 
 The preferred human experience is agent-first: let the coding agent inspect the repository, draft VCP artifacts, run these commands, and ask the developer only for unresolved decisions that require human intent.
@@ -75,6 +85,18 @@ The updater uses persistent baselines, ownership policies, explicit migrations, 
 A newer npm version is never applied by an older CLI. `--check` returns a version-pinned `npx` command targeting the same project path so the migration code and templates come from the version being installed.
 
 See [`UPDATES.md`](UPDATES.md) for the full lifecycle contract.
+
+
+### Stage12 draft: management ownership preview
+
+Use `vcp manage track <path> --dir . --dry-run --json` or
+`vcp manage ignore <path> --dir . --dry-run --json` to inspect a proposed
+ownership change without writing. A compatible schema-v2 project reports
+managed-section versus whole-file ownership and preserves unowned user files;
+**actual schema-v2 manage mutations remain disabled under D-01/G-FENCE**.
+Legacy schema-v1 manage behavior remains separate. Neither `--yes` nor
+`--force` approves a schema-v2 ownership change. This is draft source behavior,
+not an instruction for the published v0.9.3 CLI.
 
 ## Roll back the newest recovery point
 
@@ -329,7 +351,7 @@ See [`COMMUNITY-PLUGINS.md`](COMMUNITY-PLUGINS.md).
 The CLI is intentionally conservative:
 
 - it merges into existing directories instead of deleting unrelated files;
-- initial bootstrap refuses framework-file overwrite unless `--force` is explicit;
+- Stage12 draft init refuses destructive `--force` and never applies unmanaged brownfield files;
 - initialized VCP projects cannot be re-initialized over existing lifecycle state;
 - `update --dry-run` computes the full plan without writing project files;
 - any update conflict blocks apply before project-file writes;
@@ -341,7 +363,7 @@ The CLI is intentionally conservative:
 - repository and `.vcp` paths reject traversal and symlink escapes;
 - `--no-github` skips GitHub-specific templates and workflow files during initialization.
 
-Before using bootstrap `--force`, inspect the reported conflicts. The CLI never treats an overwrite as implicit approval.
+Stage12 draft init `--force` is disabled. The published legacy CLI contract above remains version-specific.
 
 ## Common options
 
@@ -350,7 +372,8 @@ Before using bootstrap `--force`, inspect the reported conflicts. The CLI never 
 --stack <name>     auto | generic | javascript | typescript | python | go | react-native
 --yes, -y          non-interactive initialization
 --force            explicit overwrite where that command supports it
---no-github        skip GitHub issue/PR/workflow files during init
+--github           explicitly include optional GitHub issue/PR scaffolding (Stage12 draft)
+--no-github        explicitly omit optional GitHub issue/PR scaffolding (Stage12 draft)
 --dry-run          preview without writing; update computes the full plan
 --check            update: check version/profile lifecycle state
 --offline          update --check/apply: do not query npm

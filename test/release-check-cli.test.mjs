@@ -86,21 +86,25 @@ async function makeCliReleaseFixture() {
 
 test('release-check preview is exposed through the public CLI as structured evidence', async () => {
   const target = await makeCliReleaseFixture();
-  const { stdout, stderr } = await execFileAsync(process.execPath, [
-    bin,
-    'release-check',
-    '0.9.3',
-    '--dir',
-    target,
-    '--json'
-  ], { cwd: repoRoot });
-
+  // A blocked release-check still returns structured JSON with a nonzero
+  // process exit; do not make a blocked candidate appear successful.
+  let stdout='', stderr='', exitCode=0;
+  try {
+    ({ stdout, stderr } = await execFileAsync(process.execPath, [
+      bin,'release-check','0.9.3','--dir',target,'--json'
+    ],{cwd:repoRoot}));
+  } catch(error) {
+    ({ stdout, stderr }=error);
+    exitCode=error.code;
+  }
+  assert.equal(exitCode,1);
   assert.equal(stderr, '');
   const report = JSON.parse(stdout);
   assert.equal(report.kind, 'release-candidate');
   assert.equal(report.mode, 'preview');
   assert.equal(report.version, '0.9.3');
-  assert.equal(report.success, true);
+  assert.equal(report.success, false);
+  assert.equal(report.checks.find(x=>x.id==='adaptive-managed-migration-safety').status,'fail');
   assert.equal(report.releaseApproved, false);
   assert.equal(report.published, false);
   assert.equal(report.checks.find((item) => item.id === 'candidate-tag').status, 'human-decision');
@@ -110,13 +114,17 @@ test('release-check preview is exposed through the public CLI as structured evid
 
 test('release-check human output states that release approval remains a human decision', async () => {
   const target = await makeCliReleaseFixture();
-  const { stdout } = await execFileAsync(process.execPath, [
-    bin,
-    'release-check',
-    '0.9.3',
-    '--dir',
-    target
-  ], { cwd: repoRoot });
+  let stdout='', exitCode=0;
+  try {
+    ({stdout}=await execFileAsync(process.execPath,[
+      bin,'release-check','0.9.3','--dir',target
+    ],{cwd:repoRoot}));
+  }catch(error){
+    stdout=error.stdout;
+    exitCode=error.code;
+  }
+  assert.equal(exitCode,1);
+  assert.match(stdout,/D-01\/G-FENCE NO-GO/);
 
   assert.match(stdout, /Release approval: HUMAN DECISION/);
   assert.match(stdout, /\[HUMAN_DECISION\] candidate-tag/);

@@ -3,7 +3,8 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { initProject } from '../lib/init.mjs';
+// Legacy downstream lifecycle fixture; never lifts the public D-01 init fence.
+import { seedLegacyV1Fixture as initProject } from './helpers/legacy-v1-fixture.mjs';
 import { runDoctor } from '../lib/doctor.mjs';
 import { ignorePath, trackPath } from '../lib/manage.mjs';
 import { applyUpdate, checkForUpdate, planUpdate, rollbackProject } from '../lib/update.mjs';

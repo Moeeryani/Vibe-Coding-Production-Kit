@@ -15,7 +15,8 @@ import {
 } from '../lib/community-plugins.mjs';
 import { createContextPack } from '../lib/context.mjs';
 import { runDoctor } from '../lib/doctor.mjs';
-import { initProject } from '../lib/init.mjs';
+// Legacy downstream lifecycle fixture; never lifts the public D-01 init fence.
+import { seedLegacyV1Fixture as initProject } from './helpers/legacy-v1-fixture.mjs';
 import { planUpdate } from '../lib/update-plan.mjs';
 import { readManifest } from '../lib/state.mjs';
 import { createTaskPack } from '../lib/task.mjs';

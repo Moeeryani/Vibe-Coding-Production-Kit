@@ -3,7 +3,8 @@ import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { initProject } from '../lib/init.mjs';
+// Historical setup is intentionally test-only: production init remains gated.
+import { seedLegacyV1Fixture as initProject } from './helpers/legacy-v1-fixture.mjs';
 import { formatDoctorReport, runDoctor } from '../lib/doctor.mjs';
 
 async function tempDir() {
