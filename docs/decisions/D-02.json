@@ -1,0 +1,55 @@
+{
+  "id": "D-02",
+  "status": "ACCEPTED",
+  "owner": "Moeeryani",
+  "decidedAtUtc": "2026-10-10T19:02:43Z",
+  "approvalEvidence": "Explicit maintainer approval in project ChatGPT conversation at 2026-10-10T19:02:43Z: approves D-02,D-03,D-04,D-05,D-06,D-12 per recommendations and requests original full Stage12. No D-01 GO authorization.",
+  "chosenOption": "Doctor --strict applies only to applicable install-health FAIL/WARN; governance findings reported separately; non-strict exits nonzero only for applicable installation FAIL, strict for installation WARN or FAIL.",
+  "rejectedAlternatives": [
+    {
+      "option": "Mix governance recommendations and missing source templates into strict install-health",
+      "reason": "Falsely fails valid minimal and brownfield surfaces."
+    }
+  ],
+  "rationale": "Avoid conflating project governance advice with install validity and avoid requiring intentionally omitted minimal-surface starter assets.",
+  "implementationPR": "https://github.com/Moeeryani/Vibe-Coding-Production-Kit/pull/96",
+  "provingTests": [
+    "test/doctor-stack-profile.test.mjs",
+    "test/doctor-coverage.test.mjs",
+    "test/stage12-doctor-paths.test.mjs",
+    "pending exact-final-HEAD D-02 truth-table conformance"
+  ],
+  "affectedLocations": [
+    {
+      "path": "docs/ADAPTIVE-VCP-IMPLEMENTATION-PLAN.md",
+      "heading": "## 3.11 Minimal brownfield adoption surface and Doctor compatibility",
+      "requiredText": "Proposed D-02 strict truth table"
+    },
+    {
+      "path": "docs/ADAPTIVE-VCP-CODE-INTEGRATION-ANALYSIS.md",
+      "heading": "### Phase 2/3 broader cleanup",
+      "requiredText": "Doctor minimum (D-02 proposal)"
+    },
+    {
+      "path": "docs/tasks/stage12-safe-adoption-planning.md",
+      "heading": "## Acceptance criteria",
+      "requiredText": "AC-013:"
+    },
+    {
+      "path": "docs/DOCTOR.md",
+      "heading": "### Proposed Stage12 applicable-install-health boundary (D-02 — NOT IMPLEMENTED)",
+      "requiredText": "Proposed non-strict exit is nonzero only for"
+    },
+    {
+      "path": "docs/CLI.md",
+      "heading": "## Audit an existing repository",
+      "requiredText": "Future D-02 proposal (not a current CLI guarantee)"
+    },
+    {
+      "path": "docs/decisions/stage12-p0-review-packet-20261010.md",
+      "heading": "## D-02 — Doctor install-health versus governance",
+      "requiredText": "strict fails on applicable install-health"
+    }
+  ],
+  "acceptanceCaveat": "DESIGN_DECISION_ACCEPTED_ONLY; required-anchors coverageReview PENDING independent maintainer review, runtime conformance and exact-final-head receipt not completed. No D-01 writer permission."
+}
