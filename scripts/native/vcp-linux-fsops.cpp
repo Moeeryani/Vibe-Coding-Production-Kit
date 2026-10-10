@@ -225,11 +225,23 @@ static int op_mkdir_sync(int rootfd, const std::string& rel,
   if (t.dirfd < 0) return fail_usage(op, why);
   int rc = mkdirat(t.dirfd, t.name.c_str(), (mode_t)mode);
   int e = errno;
-  bool synced = false;
-  if (rc == 0) synced = fsync_fd(t.dirfd);
+  if (rc != 0) { close(t.dirfd); return fail_os(op, e); }
+  // mkdirat(...,mode) is still affected by the process umask. Pin the
+  // EXCLUSIVELY created directory and set its requested permissions on
+  // that descriptor before syncing its inode and parent namespace.
+  int child = openat(t.dirfd,t.name.c_str(),
+                     O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
+  if (child < 0) {
+    e = errno; close(t.dirfd); return fail_os(op,e);
+  }
+  if (fchmod(child,(mode_t)mode)!=0) {
+    e = errno; close(child); close(t.dirfd); return fail_os(op,e);
+  }
+  bool childSynced = fsync_fd(child);
+  close(child);
+  bool parentSynced = childSynced && fsync_fd(t.dirfd);
   close(t.dirfd);
-  if (rc != 0) return fail_os(op, e);
-  if (!synced) return fail_os(op, errno ? errno : EIO);
+  if (!childSynced || !parentSynced) return fail_os(op, errno ? errno : EIO);
   emit("{\"ok\":true,\"op\":" + jstr(op) + ",\"path\":" + jstr(rel) +
        ",\"directorySynced\":true}");
   return 0;
@@ -279,8 +291,14 @@ static int op_write_file_sync(int rootfd, const std::string& rel,
     }
     off += (size_t)w;
   }
-  struct stat st;
-  bool ok = fstat(fd, &st) == 0 && S_ISREG(st.st_mode);
+  // O_CREAT's mode is umask-filtered; persist the exact requested mode
+  // on the already-pinned brand-new file before fsync and atomic rename.
+  if (fchmod(fd,(mode_t)mode)!=0) {
+    e=errno; close(fd); close(t.dirfd); return fail_os(op,e);
+  }
+  struct stat st{};
+  bool ok = fstat(fd, &st) == 0 && S_ISREG(st.st_mode) &&
+            (st.st_mode & 07777) == (mode_t)mode;
   bool data_synced = ok && fsync_fd(fd);
   close(fd);
   bool parentSynced = data_synced && fsync_fd(t.dirfd);
