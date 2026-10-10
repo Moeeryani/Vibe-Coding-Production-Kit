@@ -101,8 +101,19 @@ export async function inspectStage12ReadOnlyContract(){
     !terminalPlanner.includes('MAX_PLAN_FILE_BYTES=64*1024*1024')||
     !terminalPlanner.includes('plannedFileAbsent(root,entry.path)')||
     !terminalReader.includes('cleanupBackupHash')||
-    !phaseWriter.includes("recovering:['cleanup']")) {
+    !terminalReader.includes('selectRecoveryBackupMetadata({')||
+    !terminalReader.includes("if(backupMetadata==null)")||
+    !phaseWriter.includes("recovering:['cleanup']")||
+    !phaseWriter.includes('assertTerminalJournalClearance(transaction,')||
+    !phaseWriter.includes('E_JOURNAL_TERMINAL_NOT_EMPTY')) {
     deny('restartable terminal greenfield control cleanup proof is missing');
+  }
+  const bounded=await load('lib/safe-read.mjs');
+  if(!bounded.includes('while(true)')||
+    !bounded.includes('maxBytes+1-total')||
+    bounded.includes('bytes=await fd.readFile()')||
+    !terminalReader.includes('readProjectBytes(root,relative')) {
+    deny('bounded read protection for managed/recovery state was removed');
   }
   const dirs=['lib','bin','scripts'];
   for(const dir of dirs){

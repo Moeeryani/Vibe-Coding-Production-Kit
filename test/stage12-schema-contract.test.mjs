@@ -7,7 +7,7 @@ import {
 import {
   describeVersionedBackup, decodeBackupMetadata,
   describeVersionedTransaction, decodeManagedTransaction,
-  assertCommittedAdaptiveState
+  assertCommittedAdaptiveState, selectRecoveryBackupMetadata
 } from '../lib/managed-recovery-v2.mjs';
 
 const READER='1.0.0',DIGEST='a'.repeat(64),TARGET='b'.repeat(64);
@@ -267,6 +267,35 @@ test('committed journal cleanup requires valid operation-matched v2 state',()=>{
   ])assert.throws(mismatch,{code:'E_COMMITTED_STATE_UNPROVEN'});
 });
 
+test('terminal journal cannot clear while project or backup controls survive',async()=>{
+  const {assertTerminalJournalClearance}=
+    await import('../lib/versioned-journal.mjs');
+  const tx=decodeManagedTransaction(describeVersionedTransaction({
+    operationId:'cleanup-lock',backupId:'cleanup-lock',operation:'init',
+    phase:'cleanup',minimumReaderVersion:READER,
+    startedAt:'2026-10-10T00:00:00Z',
+    createdFiles:[
+      {path:'.vcp/manifest.json',hash:DIGEST},
+      {path:'.vcp/.gitignore',hash:DIGEST}
+    ],cleanupBackupHash:TARGET
+  }),{readerVersion:READER});
+  const exact={rootEntries:['.vcp'],
+    stateEntries:['update.lock','transaction.json']};
+  assert.equal(assertTerminalJournalClearance(tx,exact).terminalRootProved,true);
+  for(const probe of [
+    {...exact,rootEntries:['.vcp','AGENTS.md']},
+    {...exact,stateEntries:['update.lock','transaction.json','backups']},
+    {...exact,stateEntries:['transaction.json']},
+    {...exact,stateEntries:['transaction.json','rogue.lock']},
+    {...exact,rootEntries:['.vcp','docs']},
+    {...exact,stateEntries:undefined}
+  ]) {
+    assert.throws(()=>assertTerminalJournalClearance(tx,probe),{
+      code:'E_JOURNAL_TERMINAL_NOT_EMPTY'
+    });
+  }
+});
+
 test('journal transition enforces exact ownership and terminal phase ordering',async()=>{
   const {assertVersionedJournalTransition}=
     await import('../lib/versioned-journal.mjs');
@@ -315,6 +344,43 @@ test('journal transition enforces exact ownership and terminal phase ordering',a
       readerVersion:READER
     }));
   }
+});
+
+test('missing backup allowed only for exact terminal init cleanup',()=>{
+  const ownedFiles=[
+    {path:'.vcp/manifest.json',hash:DIGEST},
+    {path:'.vcp/.gitignore',hash:DIGEST}
+  ];
+  const terminal=decodeManagedTransaction(describeVersionedTransaction({
+    operationId:'terminal-one',backupId:'terminal-one',operation:'init',
+    minimumReaderVersion:READER,phase:'cleanup',
+    startedAt:'2026-10-10T00:00:00Z',createdFiles:ownedFiles,
+    cleanupBackupHash:TARGET
+  }),{readerVersion:READER});
+  assert.equal(selectRecoveryBackupMetadata({
+    transaction:terminal,backupMetadata:null,
+    readerVersion:READER
+  }),null);
+  assert.throws(()=>selectRecoveryBackupMetadata({
+    transaction:terminal,backupId:'another-backup',backupMetadata:null,
+    readerVersion:READER
+  }),{code:'E_BACKUP_ID_MISMATCH'});
+  const initBefore=decodeManagedTransaction(describeVersionedTransaction({
+    operationId:'terminal-one',backupId:'terminal-one',operation:'init',
+    minimumReaderVersion:READER,phase:'recovering',
+    startedAt:'2026-10-10T00:00:00Z',createdFiles:ownedFiles
+  }),{readerVersion:READER});
+  assert.throws(()=>selectRecoveryBackupMetadata({
+    transaction:initBefore,backupMetadata:null,readerVersion:READER
+  }),{code:'E_BACKUP_MISSING'});
+  const update=decodeManagedTransaction(journal('prepared'),{readerVersion:READER});
+  assert.throws(()=>selectRecoveryBackupMetadata({
+    transaction:update,backupMetadata:null,readerVersion:READER
+  }),{code:'E_BACKUP_MISSING'});
+  assert.throws(()=>selectRecoveryBackupMetadata({
+    transaction:terminal,backupId:'terminal-one',backupMetadata:{id:'other'},
+    readerVersion:READER
+  }));
 });
 
 test('terminal cleanup journal requires exact init backup evidence',()=>{
