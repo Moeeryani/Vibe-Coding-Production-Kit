@@ -38,7 +38,7 @@ test('existing unmanaged project cannot be adopted and original bytes remain unt
   const original=Buffer.from([0xef,0xbb,0xbf,...Buffer.from('Project owned \r\n')]);
   await writeFile(file,original);
   await assert.rejects(()=>initProject({targetDir:target}),
-    /Stage12 Existing-repository Smart Init is zero-write preview only/);
+    {code:'E_G_FENCE_NO_GO'});
   assert.deepEqual(await readdir(target),['AGENTS.md']);
   assert.deepEqual(await readFile(file),original);
 });
