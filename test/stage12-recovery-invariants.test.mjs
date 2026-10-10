@@ -12,6 +12,10 @@ import { planCommittedJournalCleanup } from '../lib/committed-cleanup-plan.mjs';
 import { inspectLifecycleLock } from '../lib/lock-inspect-v2.mjs';
 import { finalizeCommittedVersionedJournal } from '../lib/committed-cleanup-apply.mjs';
 import { quarantineAcknowledgedStaging } from '../lib/stale-journal-apply.mjs';
+import {
+  lifecycleDurabilityCapability, assertLifecycleDurabilitySupported
+} from '../lib/file-durability.mjs';
+import { acquireLifecycleLock } from '../lib/lifecycle-lock-v2.mjs';
 
 const SHA=bytes=>createHash('sha256').update(bytes).digest('hex');
 async function sandbox(t){
@@ -27,6 +31,25 @@ async function setupTree(root){
   await writeFile(path.join(root,'.vcp/backups/owned-1/backup.json'),'{}\n');
   await writeFile(path.join(root,'docs/nested/owned.md'),'expected\n');
 }
+
+test('Windows durability stays NO-GO and lock preflight never creates state',async t=>{
+  const windows=lifecycleDurabilityCapability('win32');
+  assert.equal(windows.supported,false);
+  assert.equal(windows.requiresNativeProof,true);
+  assert.equal(windows.reason,'WINDOWS_NAMESPACE_DURABILITY_UNPROVEN');
+  assert.equal(lifecycleDurabilityCapability('linux').reason,
+    'DIRECTORY_FSYNC_PROBE_REQUIRED');
+  const root=await sandbox(t);
+  if(process.platform==='win32') {
+    await assert.rejects(()=>assertLifecycleDurabilitySupported(root),{
+      code:'E_DIRECTORY_SYNC_UNPROVEN'
+    });
+    await assert.rejects(()=>acquireLifecycleLock(root,{mode:'init'}),{
+      code:'E_DIRECTORY_SYNC_UNPROVEN'
+    });
+    assert.deepEqual(await readdir(root),[]);
+  }
+});
 
 test('recovery inventory refuses portable case aliases and file ancestors',()=>{
   for(const ledger of [
