@@ -22,7 +22,8 @@ static std::wstring join(const std::wstring& a,const wchar_t *b) {
 static void report(bool dataFlush,bool moveThrough,bool finalFlush,
                    bool directoryFlush,DWORD directoryError,
                    bool mkdirWorked,bool directoryMoveWorked,bool rmdirWorked,
-                   bool unlinkWorked) {
+                   bool unlinkWorked,bool noReplaceCollisionDenied,
+                   bool collisionDestinationPreserved) {
   std::wcout<<L"{\"kind\":\"VCP_STAGE12_WINDOWS_DISPOSABLE_PROBE\","
     L"\"dataFlush\":"<<(dataFlush?L"true":L"false")<<L","
     L"\"moveThroughReturned\":"<<(moveThrough?L"true":L"false")<<L","
@@ -33,6 +34,8 @@ static void report(bool dataFlush,bool moveThrough,bool finalFlush,
     L"\"moveDirectoryWriteThroughReturned\":"<<(directoryMoveWorked?L"true":L"false")<<L","
     L"\"removeDirectoryReturned\":"<<(rmdirWorked?L"true":L"false")<<L","
     L"\"deleteFileReturned\":"<<(unlinkWorked?L"true":L"false")<<L","
+    L"\"existingDirectoryReplacementDenied\":"<<(noReplaceCollisionDenied?L"true":L"false")<<L","
+    L"\"existingDirectoryPreserved\":"<<(collisionDestinationPreserved?L"true":L"false")<<L","
     L"\"isDurabilityAttestation\":false,"
     L"\"requiresIndependentCrashAndPowerLossProof\":true}\n";
 }
@@ -122,6 +125,34 @@ int wmain(int argc,wchar_t *argv[]) {
       MoveFileExW(dirSrc.c_str(),dirDst.c_str(),MOVEFILE_WRITE_THROUGH)!=0;
     if(directoryMoved)directoryRemoved=RemoveDirectoryW(dirDst.c_str())!=0;
   }
+  // Independent no-replace collision axis: precreate two fresh scratch
+  // directories and deliberately attempt to rename into an existing target.
+  // The API MUST reject replacement; never delete a directory not created
+  // by this probe. Observations are not a power-loss attestation.
+  const std::wstring collideSrc=join(root,L"stage12-noreplace-src");
+  const std::wstring collideDest=join(root,L"stage12-noreplace-dest");
+  bool collisionDenied=false,collisionPreserved=false;
+  if(GetFileAttributesW(collideSrc.c_str())==INVALID_FILE_ATTRIBUTES &&
+    GetFileAttributesW(collideDest.c_str())==INVALID_FILE_ATTRIBUTES) {
+    const bool first=CreateDirectoryW(collideSrc.c_str(),nullptr)!=0;
+    const bool second=first &&
+      CreateDirectoryW(collideDest.c_str(),nullptr)!=0;
+    if(second) {
+      collisionDenied=MoveFileExW(collideSrc.c_str(),collideDest.c_str(),
+        MOVEFILE_WRITE_THROUGH)==0;
+      const DWORD sourceAttributes=GetFileAttributesW(collideSrc.c_str());
+      const DWORD destAttributes=GetFileAttributesW(collideDest.c_str());
+      collisionPreserved=collisionDenied &&
+        sourceAttributes!=INVALID_FILE_ATTRIBUTES &&
+        (sourceAttributes&FILE_ATTRIBUTE_DIRECTORY)!=0 &&
+        destAttributes!=INVALID_FILE_ATTRIBUTES &&
+        (destAttributes&FILE_ATTRIBUTE_DIRECTORY)!=0;
+      if(collisionPreserved) {
+        RemoveDirectoryW(collideSrc.c_str());
+        RemoveDirectoryW(collideDest.c_str());
+      }
+    }else if(first)RemoveDirectoryW(collideSrc.c_str());
+  }
   // Do not recurse or force-remove unknown content; report leftover bytes.
   if(GetFileAttributesW(dirSrc.c_str())!=INVALID_FILE_ATTRIBUTES)
     RemoveDirectoryW(dirSrc.c_str());
@@ -131,7 +162,8 @@ int wmain(int argc,wchar_t *argv[]) {
   else if(GetFileAttributesW(dest.c_str())!=INVALID_FILE_ATTRIBUTES)
     deleted=DeleteFileW(dest.c_str())!=0;
   report(dataFlush,moved,finalFlush,dirFlush,dirError,
-    directoryCreated,directoryMoved,directoryRemoved,deleted);
+    directoryCreated,directoryMoved,directoryRemoved,deleted,
+    collisionDenied,collisionPreserved);
   // 0 ONLY means the diagnostic ran. There is NO OS durability attestation.
   return 0;
 }
