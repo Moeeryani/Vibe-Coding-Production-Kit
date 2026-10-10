@@ -82,7 +82,7 @@ distinct unverified result when a platform is unavailable.
 
 ## P0/P1 construction pass — 2026-10-10 (UNEXECUTED)
 
-- Proposed interim scope is explicit in
+- Historical (now REJECTED as final target) interim scope is explicit in
   `docs/STAGE12-SAFE-SUBSET-ACCEPTANCE-PROPOSAL.md`: this is **not** a
   modification or successful completion of the original AC-004/005/006.
   Human ratification is required to label the safe read-only foundation.
@@ -108,6 +108,10 @@ distinct unverified result when a platform is unavailable.
   Race-free safety, general Windows durability and full managed schema-v2
   lifecycle remain unproven and fenced.
 
+## 2026-10-10 maintainer direction — ORIGINAL FULL STAGE12 REQUIRED
+
+The maintainer explicitly approved D-02/03/04/05/06/12 policy choices and chose the **full original Stage12**, rejecting the earlier read-only subset proposal as a delivery target. Original AC-004, AC-005 and AC-006 remain IN SCOPE and BLOCKING. The old-CLI fence failure and native Windows directory-sync EPERM remain actual engineering blockers; no semantic compromise, migration activation, `main` merge or release is authorized. Decision records were added to the integrated contract branch; `required-anchors.json` coverageReview remains PENDING independently reviewed applicability. Exact-final-head acceptance cannot precede fixing D-01 and full native-platform proof.
+
 ## Final source-authoring checklist (still no executed checks)
 
 - D-02 now has an additive *candidate* `installHealth` / `governance`
@@ -123,7 +127,7 @@ distinct unverified result when a platform is unavailable.
   Windows host lacks permission to create the fixture.
 - `docs/decisions/stage12-p0-review-packet-20261010.md` on the
   integrated contract branch records all six P0 proposed decision choices.
-  **Statuses remain PROPOSED; do not treat authored code as ratification.**
+  **Policy selections ACCEPTED by explicit maintainer message; independent coverage and executable conformance are NOT approved.**
 - A fresh combined final-head test execution is mandatory before any
   acceptance; no "137 failures fixed" assertion is authorized here.
 
