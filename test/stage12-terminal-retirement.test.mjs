@@ -38,7 +38,7 @@ test('terminal retirement rejects foreign data, missing journal or foreign lock'
 test('native no-replace boundary refuses unsafe sibling scope and never falls back',async()=>{
   const root='/disposable-project';
   const source='/disposable-project/.vcp';
-  const destination='/.disposable-project.vcp-recovery-retired-backup-012345';
+  const destination='/.disposable-project.vcp-recovery-retired-backup-'+('a'.repeat(40));
   const plan=planNoReplaceMove({root,source,destination,platform:'linux'});
   assert.equal(plan.operation,'ATOMIC_DIRECTORY_RENAME_NOREPLACE');
   assert.equal(plan.authorized,false);
