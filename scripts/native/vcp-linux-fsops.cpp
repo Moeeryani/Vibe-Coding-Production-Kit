@@ -400,10 +400,13 @@ static int op_stat_id(int rootfd, const std::string& rel) {
   // consumers parse it with base 8.
   snprintf(body, sizeof body,
            "{\"ok\":true,\"op\":\"stat-id\",\"path\":%s,"
-           "\"type\":%s,\"dev\":%ld,\"ino\":%ld,\"modeOct\":%s,"
+           "\"type\":%s,\"dev\":%ld,\"ino\":%ld,\"devExact\":%s,\"inoExact\":%s,\"modeOct\":%s,"
            "\"uid\":%u,\"gid\":%u,\"size\":%lld}",
            jstr(rel).c_str(), jstr(type).c_str(), (long)st.st_dev,
-           (long)st.st_ino, jstr([&]{
+           (long)st.st_ino,
+           jstr(std::to_string((unsigned long long)st.st_dev)).c_str(),
+           jstr(std::to_string((unsigned long long)st.st_ino)).c_str(),
+           jstr([&]{
              char m[16]; snprintf(m, sizeof m, "%o",
                                  (unsigned)(st.st_mode & 07777));
              return std::string(m); }()).c_str(),
