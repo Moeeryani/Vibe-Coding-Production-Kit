@@ -6,6 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import test from 'node:test';
+import {seedLegacyV1Fixture} from './helpers/legacy-v1-fixture.mjs';
 
 const execFileAsync = promisify(execFile);
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -23,7 +24,7 @@ async function run(args) {
 }
 
 async function init(root, stack = 'generic') {
-  await run(['init', root, '--agent', 'generic', '--stack', stack, '--no-github', '--yes']);
+  return seedLegacyV1Fixture({targetDir:root,agent:'generic',stack,includeGitHub:false});
 }
 
 test('update check exits zero and reports no-work when nothing is pending', async () => {
