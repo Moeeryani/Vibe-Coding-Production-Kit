@@ -1,8 +1,7 @@
 # Stage 12 P0/P1 — frozen-head validation handoff
 
 **Status:** PRETEST PLAN ONLY / NOT EXECUTED / NOT ACCEPTED.
-**Acceptance target:** original Stage12 remains BLOCKED; an explicitly
-ratified read-only subset may be evaluated as a separate milestone.
+**Acceptance target:** full original Stage12 only, explicitly selected by maintainer 2026-10-10. Original AC-004/005/006 remain BLOCKED; no reduced-scope substitute is authorized. This plan is for future exact-head execution and is NOT a passing test receipt.
 
 ## Required preconditions
 
@@ -80,8 +79,8 @@ EPERM must stay fail-closed; never weaken directory-sync durability.
 
 ## Decision and release boundary
 
-Before labeling even the subset accepted, obtain a real maintainer
-signoff on `docs/decisions/stage12-p0-review-packet-20261010.md`
+Before labeling full Stage12 accepted, complete the independent
+anchor coverage review and all original technical safety gates documented in `docs/decisions/stage12-p0-review-packet-20261010.md`
 and separately record applicable D-ID statuses with independent
 anchor reviews. `D-01 = DEFERRED`, `G-FENCE = NO-GO` remain fixed.
 Full Stage12's managed-v2 migration, crash recovery and new greenfield
