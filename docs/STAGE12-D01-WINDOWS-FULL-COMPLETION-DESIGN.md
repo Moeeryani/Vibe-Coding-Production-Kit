@@ -102,3 +102,85 @@ Keep exploratory code non-shipping and isolated from existing
 `main`, tagged releases and schema-v1 production mutators.
 Stage13 remains first *unmanaged existing-repository* adoption;
 managed v1→v2 safety and native writer durability remain Stage12.
+
+## 2026-10-10 construction checkpoint — static source work, not proof
+
+The candidate now has a non-mutating OS durability preflight before a lifecycle
+lock can bootstrap `.vcp`, and fail-closed guards on the direct v2 manifest
+replacement, exclusive file creation, backup writers and journal writers.
+The recovery candidate checks the *exact restored manifest digest* before
+clearing an incomplete journal. These changes narrow accidental and API-level
+write exposure; they do **not** constrain the unchanged published 0.9.3 CLI
+or prove write-through/rename persistence on NTFS.
+
+### D-01 feasibility result under the existing zero-write invariant
+
+- **Shared writable path, same OS principal:** INFEASIBLE as a universal
+  compatibility fence implemented solely in the new npm package. Published
+  0.9.3 already exists, may be invoked on a path without the v2 manifest,
+  and need not execute new-package checks. File names, JSON markers and
+  v2 JavaScript guards do not enforce an external security boundary.
+- **Separate OS principal + enforced permissions:** CANDIDATE ONLY. Requires
+  an OS-verified deny of all relevant legacy operations, including old
+  init with missing/corrupt manifest, while a narrowly privileged v2 actor
+  can write. On Windows prove identity/ACL enforcement and reparse-point
+  behavior; on Linux prove UID/GID/ACL and all ancestor directories. A
+  process invoked deliberately with the privileged identity remains a
+  threat unless denied by another independent policy boundary.
+- **Isolated destination root:** CANDIDATE ONLY, and by itself insufficient
+  for a universal promise that legacy CLI cannot target the destination.
+  A different controlled cutover and no shared-writer period would require
+  a *new explicit D-01 approval* changing the in-place lifecycle contract.
+- **Unknown or unsupported boundary:** BLOCK rather than silently choose
+  a weaker contract or label an unverified platform as passing.
+
+### Windows implementation limitation and acceptance boundary
+
+`lib/file-durability.mjs` currently reports
+`WINDOWS_NAMESPACE_DURABILITY_UNPROVEN` and throws
+`E_DIRECTORY_SYNC_UNPROVEN` **before selected-project bootstrap**, instead
+of creating a partial lock or staging directory and then swallowing EPERM.
+The native Windows replacement design is **not implemented or accepted**.
+Before shipping a native capability provider, it must document its exact
+file/namespace operations, Windows handles and access rights, hardware /
+filesystem scope, path confinement and crash semantics; independent native
+Windows tests must prove the contract. Ordinary Node file-handle sync, a
+generic rename, and a claim about `MOVEFILE_WRITE_THROUGH` alone do not
+satisfy this requirement.
+
+Microsoft's `FlushFileBuffers` specification requires a write-capable
+handle and addresses file buffers, while CreateFile write-through documents
+metadata behavior in its own flagged-I/O context. Neither is a blanket
+attestation for every ordinary Node rename/unlink:
+- https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-flushfilebuffers
+- https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea
+
+### Mandatory future maintainer decision
+
+The six accepted Stage12 policy choices remain accepted. **D-01 is not one
+of them.** Do not flip `MANAGED_SCHEMA_MIGRATION_GATE`, allow in-place
+schema-v2 writes, remove low-level guards, or freeze a release until either:
+(a) full independently reproducible original-invariant proofs on genuine
+published 0.9.3 and native Windows + Linux are recorded; or
+(b) a different, fully specified invariant and access/cutover design is
+presented for a **new explicit D-01 maintainer approval**, followed by new
+source implementation and the complete exact-head test campaign.
+
+## Engineering handoff to independent Testing Agent — authored only
+
+The dedicated agent with a native computer will execute the full suite only
+after the final complete code/test HEAD is explicitly frozen. Capture
+exact commit, dirty-status proof, OS/NTFS filesystem, Node/npm versions,
+published tarball identity, command lines and exit codes; retain unredacted
+local raw logs separately and publish only redacted receipts.
+
+Required red/green axes: old CLI init/update/manage/rollback with
+present/missing/corrupt manifest; post-backup user edits; locked, stale,
+replaced and foreign lock; cross-principal access denial; old/new races;
+Linux and actual Windows junctions; commit/rename/crash boundaries;
+power-loss durability evidence; greenfield rollback tree including foreign
+nested files; exact expected manifest hash before clearing journal;
+direct low-level writer bypass tests and first-write Windows durability
+preflight. Lack of any mandatory proof is UNVERIFIED, not PASS.
+
+No test was executed to produce this checkpoint.
