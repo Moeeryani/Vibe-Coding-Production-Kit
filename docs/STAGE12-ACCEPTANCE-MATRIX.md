@@ -316,3 +316,34 @@ namespace protection; a crash after clearing the final journal but before
 control directory without transaction provenance. This final seam remains
 P0 rather than being marked complete. No tests or checks ran for this
 candidate and no decision coverage review was silently approved.
+
+## Additional 2026-10-10 construction — authored, NOT TEST READY
+
+- Repaired versioned backup selection: an absent `backup.json` is now
+  permissible **only** for an init-only terminal `cleanup` journal with
+  exact backup identity. Prior phases, wrong backup selectors, and corrupt
+  descriptors remain BLOCKED; negative tests were authored.
+- Replaced potentially unbounded `FileHandle.readFile()` reads with
+  a shared no-follow, identity-checked bounded-chunk reader. Adaptive
+  Manifest, managed and greenfield planners, recovery apply, journal,
+  recovery metadata and saved Manifest now use the same bounded reader.
+- Added durability synchronization after staging and empty-directory
+  removal; failed parent sync is no longer confused with an idempotent
+  `rmdir ENOENT`.
+- Terminal journal clearance is now separately guarded: the root must
+  contain only `.vcp`, and `.vcp` only the journal and lifecycle lock.
+  Any backup directory, foreign file or missing expected control blocks.
+- Added read-only orphan-lock diagnostics for a crash after the journal
+  is cleared but before the lock and state directory retire. It **never**
+  grants lock deletion authority or claims automatic restoration.
+- Updated source tripwires and negative tests, none executed.
+  `docs/STAGE12-INDEPENDENT-TEST-HANDOFF.md` specifies the full frozen
+  SHA Linux/native-Windows computer-agent campaign for AC-001–AC-016.
+
+**Not completed:** old published CLI D-01 universal compatibility fence
+under shared principal, independently proved NTFS durable namespace
+operations, fully crash-safe orphaned final lock retirement, actual v2
+reader version/release contract, reviewed required anchor coverage and the
+final independent exact-head tests. Keep D-01 DEFERRED,
+`G-FENCE = NO-GO`, `managedV2MutationAuthorized:false` and
+Stage12 Plan/Blocked. No testing, main merge, tag or publication occurred.
