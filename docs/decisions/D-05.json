@@ -1,0 +1,49 @@
+{
+  "id": "D-05",
+  "status": "ACCEPTED",
+  "owner": "Moeeryani",
+  "decidedAtUtc": "2026-10-10T19:02:43Z",
+  "approvalEvidence": "Explicit maintainer approval in project ChatGPT conversation at 2026-10-10T19:02:43Z: approves D-02,D-03,D-04,D-05,D-06,D-12 per recommendations and requests original full Stage12. No D-01 GO authorization.",
+  "chosenOption": "Managed Markdown sections use exact bounded VCP BEGIN/END markers ([a-z0-9-]{1,64}), manifest-proved ownership and baseline identity; malformed, duplicate, fenced or unclaimed markers conflict; BOM/CRLF/mixed-EOL and all outside bytes preserved.",
+  "rejectedAlternatives": [
+    {
+      "option": "Treat presence of VCP marker text alone as authorization to rewrite its section",
+      "reason": "A project author could have introduced those bytes independently; authorship must come from validated managed ownership state."
+    }
+  ],
+  "rationale": "Visible markers do not prove VCP ownership, and section updates must never rewrite surrounding project text.",
+  "implementationPR": "https://github.com/Moeeryani/Vibe-Coding-Production-Kit/pull/96",
+  "provingTests": [
+    "test/managed-markdown.test.mjs",
+    "test/stage12-adoption-boundaries.test.mjs",
+    "test/stage12-schema-contract.test.mjs"
+  ],
+  "affectedLocations": [
+    {
+      "path": "docs/ADAPTIVE-VCP-IMPLEMENTATION-PLAN.md",
+      "heading": "## 3.5 Managed-section ownership for existing agent files",
+      "requiredText": "Stage-12 Markdown marker grammar"
+    },
+    {
+      "path": "docs/ADAPTIVE-VCP-CODE-INTEGRATION-ANALYSIS.md",
+      "heading": "## 5.2 Recommended ownership model",
+      "requiredText": "Stage-12 Markdown marker grammar"
+    },
+    {
+      "path": "docs/tasks/stage12-safe-adoption-planning.md",
+      "heading": "## Acceptance criteria",
+      "requiredText": "AC-007 (D-05 PROPOSED): Markdown section parser"
+    },
+    {
+      "path": "docs/UPDATES.md",
+      "heading": "### Current ownership boundary",
+      "requiredText": "D-05 / D-01 warning"
+    },
+    {
+      "path": "docs/decisions/stage12-p0-review-packet-20261010.md",
+      "heading": "## D-05 — managed Markdown section authority",
+      "requiredText": "visible markers alone"
+    }
+  ],
+  "acceptanceCaveat": "DESIGN_DECISION_ACCEPTED_ONLY; required-anchors coverageReview PENDING independent maintainer review, runtime conformance and exact-final-head receipt not completed. No D-01 writer permission."
+}
