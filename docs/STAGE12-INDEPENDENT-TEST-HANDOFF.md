@@ -201,3 +201,31 @@ to start tests while construction is incomplete.
 **Stop condition:** Any missing native capability, inability to enforce
 legacy denial, unreviewed outside-root archive, or missing crash proof
 means Stage12 remains NO-GO and not eligible for a full PASS receipt.
+
+## Added native no-replace and mandatory-identity checks — unexecuted
+
+On an independent native Linux test host, **after full HEAD freeze**, compile
+`scripts/native/stage12-linux-noreplace-probe.cpp` with C++17 and launch
+only against a new temporary directory containing the same exact disposable
+operator marker specified for Windows. Record the requested syscall,
+`RENAME_NOREPLACE` collision outcome, both directory identities and
+byte-for-byte unchanged marker, fresh move and fsync acknowledgements.
+Repeat under a documented race/fault campaign; exit 0 is never crash-proof.
+
+On Windows, the disposable probe now records collision denial and retention
+of both scratch directories when `MOVEFILE_WRITE_THROUGH` is used
+without the replacement flag. These are the platform probes, not the
+shipping `lib/native-no-replace.mjs` provider. **The shipping provider
+intentionally raises `E_NATIVE_NOREPLACE_UNAVAILABLE`**, preventing any
+operation from relying on TOCTOU `lstat` + Node `rename`.
+
+D-01 test receipts must record genuine OS access-policy denial rather than
+merely a CLI error, include published archive SHA-256, native process
+principal, mandatory policy identifier/hash, immutable raw-log SHA-256,
+pre/post user tree hash and independent reviewer. A claimed
+`OS_MANDATORY_POLICY` in JSON is **not independent confirmation**; verify
+the policy against the actual Windows SID/WDAC or Linux MAC confinement.
+
+Do not elevate a green source test or a green disposable probe to AC-004,
+AC-005, AC-006 or G-FENCE authorization. Leave them UNVERIFIED until full
+native implementation and replay evidence.
