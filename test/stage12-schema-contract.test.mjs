@@ -218,6 +218,24 @@ test('versioned backup and journal reject case-colliding owned paths',()=>{
   }
 });
 
+test('versioned ledgers reject file/directory overlap and invalid backup modes',()=>{
+  const backup=oldManagedBackup();
+  const nested=['docs/owner','docs/owner/child.md'];
+  assert.throws(()=>decodeBackupMetadata({
+    ...backup,entries:nested.map(relative=>({
+      path:relative,exists:true,mode:0o644
+    }))
+  },{readerVersion:READER}),{code:'E_BACKUP_ENTRY'});
+  assert.throws(()=>decodeBackupMetadata({
+    ...backup,entries:[{path:'docs/owner',exists:true,mode:'0644'}]
+  },{readerVersion:READER}),{code:'E_BACKUP_ENTRY'});
+  assert.throws(()=>decodeManagedTransaction({
+    ...journal(),createdFiles:nested.map(relative=>({
+      path:relative,hash:DIGEST
+    }))
+  },{readerVersion:READER}),{code:'E_TRANSACTION_CREATED'});
+});
+
 test('new versioned writers remain disabled before any filesystem interaction',async()=>{
   const {applyAdaptiveGreenfield}=await import('../lib/greenfield-apply-v2.mjs');
   const {applyVersionedManagedSchemaMigration}=
