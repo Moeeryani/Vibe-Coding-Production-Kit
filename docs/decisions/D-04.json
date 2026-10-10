@@ -32,7 +32,7 @@
     {
       "path": "docs/tasks/stage12-safe-adoption-planning.md",
       "heading": "## Acceptance criteria",
-      "requiredText": "AC-015 (D-04 PROPOSED): Init planner JSON"
+      "requiredText": "AC-015 (D-04 ACCEPTED POLICY): Init planner JSON"
     },
     {
       "path": "docs/CLI.md",

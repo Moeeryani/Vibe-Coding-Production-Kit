@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "status": "DRAFT_REQUIRES_MAINTAINER_COVERAGE_REVIEW",
-  "purpose": "Independent required-anchor coverage proposals for prospective ACCEPTED decisions. Maintainer must verify exhaustive normative S/T/Roadmap/CLI/Task coverage; not yet approval. 2026-10-10 additions link the read-only scope and decision review packet; additions are PROPOSED not exhaustive human reviewed coverage.",
+  "purpose": "Independent required-anchor inventory for selected ACCEPTED design policies, not yet reviewed for exhaustive normative S/T/Roadmap/CLI/Task coverage. Approval is still required. 2026-10-10 additions link the read-only scope and decision review packet; additions are PROPOSED not exhaustive human reviewed coverage.",
   "decisions": {
     "D-01": {
       "coverageReview": "PENDING",
@@ -99,7 +99,7 @@
         {
           "path": "docs/tasks/stage12-safe-adoption-planning.md",
           "heading": "## Acceptance criteria",
-          "requiredText": "AC-010 (D-03 PROPOSED): Common purpose-aware read-existing/write-new/managed-state path policy"
+          "requiredText": "AC-010 (D-03 ACCEPTED POLICY): Common purpose-aware read-existing/write-new/managed-state path policy"
         },
         {
           "path": "docs/ROADMAP.md",
@@ -139,7 +139,7 @@
         {
           "path": "docs/tasks/stage12-safe-adoption-planning.md",
           "heading": "## Acceptance criteria",
-          "requiredText": "AC-015 (D-04 PROPOSED): Init planner JSON"
+          "requiredText": "AC-015 (D-04 ACCEPTED POLICY): Init planner JSON"
         },
         {
           "path": "docs/CLI.md",
@@ -169,7 +169,7 @@
         {
           "path": "docs/tasks/stage12-safe-adoption-planning.md",
           "heading": "## Acceptance criteria",
-          "requiredText": "AC-007 (D-05 PROPOSED): Markdown section parser"
+          "requiredText": "AC-007 (D-05 ACCEPTED POLICY): Markdown section parser"
         },
         {
           "path": "docs/UPDATES.md",
@@ -209,7 +209,7 @@
         {
           "path": "docs/ADAPTIVE-VCP-DECISIONS.md",
           "heading": "## Normative register rules",
-          "requiredText": "D-06 (PROPOSED):"
+          "requiredText": "D-06 (ACCEPTED DECISION; COVERAGE PENDING):"
         },
         {
           "path": "docs/ROADMAP.md",
@@ -239,7 +239,7 @@
         {
           "path": "docs/tasks/stage12-safe-adoption-planning.md",
           "heading": "## Acceptance criteria",
-          "requiredText": "AC-011 (D-12 PROPOSED): Command authority"
+          "requiredText": "AC-011 (D-12 ACCEPTED POLICY): Command authority"
         },
         {
           "path": "docs/VERIFICATION-EVIDENCE.md",
@@ -274,9 +274,9 @@
   "coverageNotes": [
     "Locations were read independently from the current Stage12 strategic/technical and Task Pack documents and require human review. Listing existing text does not prove complete or correct acceptance semantics.",
     "ROADMAP.md and CLI.md use the current v0.9.3 contract; applicability and any mandatory new accepted anchors must be reviewed and added before changing coverageReview to APPROVED.",
-    "Do not set coverageReview APPROVED or an ID to ACCEPTED automatically. Future-phase decisions D-07..D-11 lack inventories and MUST fail closed on acceptance.",
+    "Do not set coverageReview APPROVED automatically: policy acceptance is distinct from complete anchor conformance. Future-phase decisions D-07..D-11 lack inventories and MUST fail closed on acceptance.",
     "Do not infer accepted contract from status or snippets; review selected alternatives, rejected alternatives, tests, provenance and all normative surfaces.",
-    "D-01 and D-03 user-facing ROADMAP/CLI/UPDATES anchors added on the Stage12 ratification branch; they describe proposed future contracts and explicitly preserve v0.9.3 current behavior. All reviews stay PENDING.",
+    "D-01 remains DEFERRED, while D-03 is an ACCEPTED future-stage design policy but not shipped behavior. Existing ROADMAP/CLI/UPDATES v0.9.3 behavior must remain truthful; all independent reviews stay PENDING.",
     "A check of listed source-text identity does not prove semantic sufficiency or exhaustiveness. Reviewer must separately determine D-02/04/05/06/12 applicability to DOCTOR/CLI/ROADMAP/UPDATES.",
     "D-06 governance applicability: CLI.md and UPDATES.md describe released command behavior, not maintainer record/review authority, and are NOT required D-06 anchors unless they begin asserting the Stage12 gate contract. The canonical register and ROADMAP Stage12 contract are directly applicable and included.",
     "D-02/D-04/D-05/D-12 consumer-document anchors are now tracked as prospective Stage12 contracts, not present v0.9.3 behavior. This inventory remains PENDING pending independent maintainer review."
