@@ -251,6 +251,15 @@ test('first-init recovery refuses a forged partial ownership ledger',()=>{
     ]
   };
   assert.equal(decodeManagedTransaction(initJournal,{readerVersion:READER}).operation,'init');
+  const recoveryIntent=describeVersionedTransaction({
+    operationId:initJournal.id,backupId:initJournal.backupId,operation:'init',
+    phase:'recovering',startedAt:initJournal.startedAt,
+    minimumReaderVersion:READER,createdFiles:initJournal.createdFiles
+  });
+  assert.equal(decodeManagedTransaction(recoveryIntent,{
+    readerVersion:READER
+  }).phase,'recovering');
+  assert.deepEqual(recoveryIntent.createdFiles,initJournal.createdFiles);
   for(const missing of ['.vcp/manifest.json','.vcp/.gitignore']) {
     const altered={...initJournal,
       createdFiles:initJournal.createdFiles.filter(x=>x.path!==missing)};
