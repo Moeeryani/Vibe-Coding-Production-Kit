@@ -108,6 +108,46 @@ The exact test marker, paths, native compiler identity, command line,
 raw results and NTFS hardware must be captured at the **final**
 independent Windows testing phase, not during construction.
 
+## 2026-10-10 hardening: no-replace must be an OS operation
+
+The earlier candidate's separate `lstat(archive)` then `fs.rename()` was
+not an acceptable atomic no-replace guarantee. It has now been removed.
+`lib/native-no-replace.mjs` performs strict source/destination/backup
+archive path scoping and refuses the operation with
+`E_NATIVE_NOREPLACE_UNAVAILABLE` while no reviewed native provider exists.
+The terminal-retirement caller retains the journal and lock, and cannot
+silently fall back to Node rename. This **closes an unsafe source-code
+fallback**, not the platform functionality itself.
+
+Native disposable diagnostics have now been authored for both OSes:
+- `scripts/native/stage12-windows-namespace-probe.cpp` uses
+  `MoveFileExW` without `MOVEFILE_REPLACE_EXISTING`, with a pre-existing
+  target directory, and reports whether the target and source survive.
+- `scripts/native/stage12-linux-noreplace-probe.cpp` uses
+  `renameat2(RENAME_NOREPLACE)` with two test directories and validates
+  `EEXIST`, then separately exercises fresh rename and directory fsync.
+
+These scratch probes DO NOT implement the production backend, do not
+establish a durable atomic cross-directory rename or safe hostile-path
+confinement, and do not permit any writer. Linux needs an owned dirfd
+implementation with `renameat2(RENAME_NOREPLACE)` and authenticated
+directory sync; Windows needs an equivalent OS-enforced no-replace move
+and independently demonstrated NTFS persistence/ACL semantics. A
+native provider must preserve "move succeeded but subsequent sync failed"
+as an explicit **detached-evidence** state, never retry unlink against
+the obsolete selected-root lock path.
+
+### D-01 denial proof strengthening
+
+`lib/legacy-writer-fence-contract.mjs` now requires a declared Linux
+mandatory MAC or Windows mandatory executable-identity policy, exact
+published archive SHA-256, per-operation raw log SHA-256, explicit
+`OS_MANDATORY_POLICY` denial reason and identical pre/post SHA-256 tree
+proof. These are input validation **requirements**; self-reported hashes
+are not independent proof. No 0.9.3 CLI restrictions have been installed
+or proven on the native platforms. The evaluator continues to return
+NO-GO or a candidate needing separate D-01 maintainer acceptance.
+
 ## Remaining conditions before TEST READY
 
 1. Independently enforce and reproduce full published-v0.9.3 denial on
