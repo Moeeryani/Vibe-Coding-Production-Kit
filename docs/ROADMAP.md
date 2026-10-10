@@ -821,3 +821,14 @@ Developer states intent
 ```
 
 The measure of progress is not the number of commands added. It is how reliably VCP reduces developer bookkeeping while increasing engineering correctness, evidence, restartability, and control.
+
+### 2026-10-10 Stage 12 interim-scope proposal (NOT FULL ACCEPTANCE)
+
+Stage12's original managed schema-v2 migration/greenfield writer and durable
+recovery criteria remain BLOCKED under D-01/G-FENCE NO-GO. Independently
+authenticated published v0.9.3 caused 7/12 Linux and 8/13 native Windows
+user-edit losses; missing-manifest old init bypasses a directory sentinel.
+A proposed read-only foundation is described in
+`docs/STAGE12-SAFE-SUBSET-ACCEPTANCE-PROPOSAL.md`; acceptance requires
+explicit maintainer ratification and exact-final-head receipts, and is not
+the same as completion of original AC-004/005/006 or an npm release.
