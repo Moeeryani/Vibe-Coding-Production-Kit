@@ -249,3 +249,40 @@ a write: D-01 and Windows namespace durability stay blocked.
 
 The final greenfield control cleanup crash-resume gap remains open.
 No exact-head or platform gates were executed here.
+
+## Terminal cleanup checkpoint follow-up — source authored, unexecuted
+
+Integration `ba7c3e8a090a086832247ccca013e6f60680e306`
+supersedes the earlier unhandled **backup.json → journal** interruption
+window for first-init recovery, at the source-code design level only.
+
+- New `cleanup` is a versioned **init-only** journal phase following
+  `recovering`. The transition preserves operation ID, original startedAt,
+  minimum reader, and exact planned created-file ledger, and records the
+  pre-deletion SHA-256 of `backup.json` in `cleanupBackupHash`.
+- A terminal read-only plan requires *all* ledger-owned created files to be
+  absent, a fully enumerated no-follow inventory with no foreign content,
+  the exact backup metadata hash **if backup.json remains**, and the exact
+  surviving journal hash. When the backup descriptor is already gone,
+  only this matching `cleanup` checkpoint can permit control cleanup
+  planning; alternate caller-supplied backup IDs are rejected.
+- The candidate executor first re-inspects under an owned lock, saves its
+  cleanup checkpoint before removing backup metadata and directories, then
+  removes only known controls; terminal re-entry never removes project files.
+  A pure transition validator and negative tests cover forbidden jumps and
+  ledger/identity changes.
+- The static Stage12 check pins the checkpoint-before-backup-deletion
+  invariant, but **a static text check is not crash, race or Windows proof**.
+
+**Still open:** Once the final transaction journal is cleared, an
+interruption before releasing the lock/removing `.vcp` can leave orphan
+control state without the journal's provenance. Never automatically
+unlink an unverified lock or treat that residue as proof of unmanaged
+restore. A safe terminal retirement protocol and independent crash/native
+adversarial testing are required before AC-005 may be accepted.
+The original published 0.9.3 old-binary fence (D-01) and NTFS durability
+remain NO-GO. Current candidate package is still 0.9.3, not the
+future schema-v2-capable reader release.
+
+No `node --check`, tests, npm validate, pack, full gates, old binary
+execution, native Windows conformance, main merge or publication occurred.
