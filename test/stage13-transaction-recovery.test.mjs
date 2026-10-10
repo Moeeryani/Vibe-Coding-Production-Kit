@@ -110,7 +110,9 @@ test('Stage13 committed status proves all file bytes, not only manifest hash',()
 });
 test('Stage13 old pre-state after restore is not a new managed state',()=>{
   const restored=classifyStage13RecoverySnapshot(journal('restored'),{
-    currentFiles:new Map([['AGENTS.md',old]]),backups:backups()
+    currentFiles:new Map([['AGENTS.md',old]]),
+    currentIdentities:new Map([['AGENTS.md',{dev:'7',ino:'11'}]]),
+    backups:backups()
   });
   assert.equal(restored.classification,'RESTORED_REVIEW');
   assert.equal(restored.writeAuthorized,false);
