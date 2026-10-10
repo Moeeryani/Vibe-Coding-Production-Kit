@@ -1,21 +1,21 @@
 # Stage 12 P0 — maintainer review-ready decision and scope packet
 
-**Prepared:** 2026-10-10. **Status:** PROPOSED / NOT ACCEPTED.
+**Prepared:** 2026-10-10. **Decision selected by maintainer at 2026-10-10T19:02:43Z.** Coverage review and code conformance remain pending.
 **Source of authority:** `docs/ADAPTIVE-VCP-DECISIONS.md`,
 `docs/decisions/required-anchors.json` and original Stage12 Task Pack.
 Passing tests, agent commits and this packet cannot record human approval.
 
 ## Requested Stage 12 scope choice (new acceptance authority)
 
-- [ ] **Accept** `STAGE12_READ_ONLY_FOUNDATION` as a bounded interim
+- [x] **Rejected as final Stage12 target:** `STAGE12_READ_ONLY_FOUNDATION` as a bounded interim
   engineering milestone, leaving original Stage12 AC-004, AC-005, AC-006
   and all v2 writers / recovery apply / Stage13 unmanaged apply BLOCKED.
-- [ ] **Reject** a narrowed scope and keep full Stage12 `Plan/Blocked`
+- [x] **Selected:** retain full original Stage12 `Plan/Blocked`
   until a new old-CLI compatibility fence is independently proven.
 
 The proposed scope and exact exclusions are in
 `docs/STAGE12-SAFE-SUBSET-ACCEPTANCE-PROPOSAL.md`.
-Default without a marked decision: **NOT ACCEPTED**.
+Decision: **FULL ORIGINAL STAGE12 SCOPE**, not subset. This is a scope selection only; all original acceptance criteria remain enforceable.
 
 ## D-02 — Doctor install-health versus governance
 
@@ -28,7 +28,7 @@ and separately classify safety-critical operation refusal.
 with installation conformance so minimal adoption falsely fails strict.
 **Evidence required:** minimal/legacy synthetic check matrix, doctor
 CLI strict/non-strict cases and complete S/T/DOCTOR/CLI anchor review.
-**Decision status:** PROPOSED. Implementation review still required;
+**Decision status:** ACCEPTED POLICY by maintainer; independent anchor review / code proof PENDING. Implementation review still required;
 do not claim current `doctorExitCode` is D-02 ratified.
 
 ## D-03 — selected-root path trust
@@ -42,7 +42,7 @@ are not selected. Maintainer design preference recorded earlier;
 structured acceptance and native conformance are still pending.
 **Evidence required:** linked root, parent, final leaf, external link,
 native Windows junction and bytes-preserved refusals.
-**Decision status:** PROPOSED.
+**Decision status:** ACCEPTED POLICY by maintainer; independent anchor review / code proof PENDING.
 
 ## D-04 — init planner JSON contract
 
@@ -53,7 +53,7 @@ Stage12 unmanaged EXISTING apply and NEW gated write.
 **Alternative:** silently adopting existing content or shipping opaque
 executable plans is rejected. **Evidence:** repeated plan equivalence,
 nonmutating BOM/CRLF file preservation, polyglot/intent conflicts.
-**Decision status:** PROPOSED.
+**Decision status:** ACCEPTED POLICY by maintainer; independent anchor review / code proof PENDING.
 
 ## D-05 — managed Markdown section authority
 
@@ -64,7 +64,7 @@ section, with BOM, outside bytes and mixed line endings preserved.
 **Alternative:** visible markers alone grant ownership is rejected.
 **Evidence:** duplicate/malformed/fenced marker negative fixtures,
 CRLF/BOM/mixed-endings byte snapshots and ownership integrity.
-**Decision status:** PROPOSED.
+**Decision status:** ACCEPTED POLICY by maintainer; independent anchor review / code proof PENDING.
 
 ## D-06 — canonical decisions and coverage
 
@@ -76,7 +76,7 @@ affectedLocations subset or green local hook as remote protection
 is rejected. **Evidence:** C-01–C-14 semantic S/T reconciliation,
 omitted required anchor negatives, exact-HEAD receipts and coverage
 owner review. `required-anchors.json` `coverageReview` remains PENDING.
-**Decision status:** PROPOSED.
+**Decision status:** ACCEPTED POLICY by maintainer; independent anchor review / code proof PENDING.
 
 ## D-12 — verification command authority
 
@@ -88,7 +88,7 @@ grants a HUMAN DECISION. External shell commands outside VCP are
 not intercepted and must not be claimed covered.
 **Evidence:** tampered task text, stale digest, duplicated
 commands, explicitly grandfathered receipts and execution-time check.
-**Decision status:** PROPOSED.
+**Decision status:** ACCEPTED POLICY by maintainer; independent anchor review / code proof PENDING.
 
 ## D-01 — pre-existing deferred decision, not a new acceptance request
 
@@ -100,10 +100,10 @@ init counterexample are recorded in `docs/decisions/D-01.json`.
 
 | Field | Required value |
 |---|---|
-| Reviewing maintainer | PENDING |
-| UTC decision timestamp | PENDING |
-| Scope option accepted/rejected | PENDING |
-| D-02 / D-03 / D-04 / D-05 / D-06 / D-12 decisions | PENDING per ID |
+| Reviewing maintainer | Moeeryani (approval in project chat) |
+| UTC decision timestamp | 2026-10-10T19:02:43Z |
+| Scope option accepted/rejected | Full original Stage12 accepted as engineering target; reduced read-only target rejected |
+| D-02 / D-03 / D-04 / D-05 / D-06 / D-12 decisions | ACCEPTED policy selections; structured records created |
 | Reviewed required S/T/Roadmap/CLI/Task anchors | PENDING |
 | Exact-final-head evidence IDs | PENDING until later test phase |
 | Acceptance boundary | NEVER full v2 managed writer with D-01 NO-GO |
@@ -112,3 +112,8 @@ To ratify, update the canonical ledger and structured D-ID records
 and ensure each mandatory anchor has independently reviewed coverage.
 Do not backdate a decision or auto-populate signature fields from
 this suggested packet.
+
+
+## Remaining gate after recorded approval
+
+`docs/decisions/required-anchors.json` retains `coverageReview: PENDING`; no independent exhaustive maintainer coverage sign-off or acceptance test receipt was supplied. Do not alter it to APPROVED automatically. The static document guard intentionally remains blocking until that review occurs. D-01 is still DEFERRED / NO-GO.
