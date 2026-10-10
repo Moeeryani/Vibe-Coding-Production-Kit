@@ -234,3 +234,18 @@ still exist. It does **not** close the final provenance gap after backup
 metadata is removed and before journal clearance, as identified above.
 A resilient terminal-control state machine and exact frozen-head crash tests
 remain mandatory; AC-005 and Stage12 are NOT ACCEPTED.
+
+## Committed-manifest cleanup hardening — authored, not executed
+
+`lib/managed-recovery-v2.mjs` now parses a digest-matching committed
+Manifest and validates its full Adaptive v2 schema and transaction-specific
+provenance before treating it as safe for journal cleanup. A committed
+`init` requires `greenfield-safe-v1` without migration provenance;
+a committed `update` requires `legacy-full-v1` with explicit 1→2
+migration provenance. Neither a self-consistent hash nor a journal
+`committed` phase is independently sufficient. New pure negative tests
+cover invalid documents and operation swaps. This does not authorize
+a write: D-01 and Windows namespace durability stay blocked.
+
+The final greenfield control cleanup crash-resume gap remains open.
+No exact-head or platform gates were executed here.
