@@ -191,6 +191,8 @@ test('explicit adapter provenance is a separate owner claim, never mere observat
 test('schema migration backup identity and prior-state must match operation',()=>{
   const backup=oldManagedBackup();
   assert.equal(decodeBackupMetadata(backup,{readerVersion:READER}).operation,'update');
+  assert.equal(decodeBackupMetadata(backup,{readerVersion:READER}).priorInstalledVersion,
+    '0.9.3');
   assert.throws(()=>decodeBackupMetadata({...backup,unexpected:true},{
     readerVersion:READER
   }),{code:'E_BACKUP_UNKNOWN_FIELDS'});
