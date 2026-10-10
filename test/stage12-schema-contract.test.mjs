@@ -6,7 +6,8 @@ import {
 } from '../lib/manifest-v2.mjs';
 import {
   describeVersionedBackup, decodeBackupMetadata,
-  describeVersionedTransaction, decodeManagedTransaction
+  describeVersionedTransaction, decodeManagedTransaction,
+  assertCommittedAdaptiveState
 } from '../lib/managed-recovery-v2.mjs';
 
 const READER='1.0.0',DIGEST='a'.repeat(64),TARGET='b'.repeat(64);
@@ -236,6 +237,34 @@ test('versioned backup and journal reject case-colliding owned paths',()=>{
       ...journal(),createdFiles:names.map(relative=>({path:relative,hash:DIGEST}))
     },{readerVersion:READER}),{code:'E_TRANSACTION_CREATED'});
   }
+});
+
+test('committed journal cleanup requires valid operation-matched v2 state',()=>{
+  const update=decodeManagedTransaction(journal('committed'),{readerVersion:READER});
+  const migrated=previewV1ToV2(legacy(),{readerVersion:READER});
+  assert.equal(assertCommittedAdaptiveState(update,migrated,{readerVersion:READER}).valid,true);
+  const initDescriptor=describeVersionedTransaction({
+    operationId:'init-proof',backupId:'init-proof',operation:'init',
+    phase:'committed',startedAt:'2026-10-10T00:00:00Z',
+    committedAt:'2026-10-10T00:00:01Z',committedManifestHash:TARGET,
+    minimumReaderVersion:READER,
+    createdFiles:[
+      {path:'.vcp/manifest.json',hash:DIGEST},
+      {path:'.vcp/.gitignore',hash:DIGEST}
+    ]
+  });
+  const init=decodeManagedTransaction(initDescriptor,{readerVersion:READER});
+  const greenfield=constructAdaptiveManifest({
+    legacyShape:legacy(),assetSet:'greenfield-safe-v1',readerVersion:READER
+  });
+  assert.equal(assertCommittedAdaptiveState(init,greenfield,{
+    readerVersion:READER
+  }).valid,true);
+  for(const mismatch of [
+    ()=>assertCommittedAdaptiveState(init,migrated,{readerVersion:READER}),
+    ()=>assertCommittedAdaptiveState(update,greenfield,{readerVersion:READER}),
+    ()=>assertCommittedAdaptiveState(update,{schemaVersion:2},{readerVersion:READER})
+  ])assert.throws(mismatch,{code:'E_COMMITTED_STATE_UNPROVEN'});
 });
 
 test('first-init recovery refuses a forged partial ownership ledger',()=>{
