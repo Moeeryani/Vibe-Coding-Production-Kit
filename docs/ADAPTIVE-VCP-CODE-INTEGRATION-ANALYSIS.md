@@ -6781,3 +6781,17 @@ Additional findings integrated after the original audit snapshot include:
 - reviewed-head/finalization-head exceptions require semantic task-section validation, not path-only checks.
 
 If this appendix and the consolidated report ever diverge, the main strategic/technical sections plus the consolidated report are the pre-implementation authority; historical audit counts remain evidence of the earlier snapshot rather than a substitute for current verification.
+
+## Stage 12 integration evidence addendum — 2026-10-10
+
+Do not rely on the old-CLI directory-lock refusal seen in three Linux
+fixtures: native Windows exposed a manifest-absent `init --force` path
+that does not inspect the lock and mutates AGENTS.md. Also old rollback
+ignores schema-2 minimumReaderVersion and can follow newer journal
+state. The new Windows v2 lock primitive fails closed on directory-sync
+EPERM; this is not cross-platform writable durability.
+
+The full managed writer and recovery remain fenced. Contract PR #95
+and product PR #96 must be assembled into a single SHA and revalidated
+after source freeze. A narrower read-only capability set is proposed
+separately and requires human scope approval before any acceptance label.
