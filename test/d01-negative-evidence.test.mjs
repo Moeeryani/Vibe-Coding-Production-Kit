@@ -21,8 +21,39 @@ test('historical receipt tampering cannot turn missing old-CLI negative witness 
   const old=await load();
   const modified=structuredClone(old);
   modified.unsafeMutationCount=0;
-  assert.throws(()=>auditHistoricalD01Evidence(modified),/INCONSISTENT HISTORICAL RECEIPT/);
+  assert.throws(()=>auditHistoricalD01Evidence(modified),/INCONSISTENT D-01 RECEIPT/);
   const forged=structuredClone(old);
   forged.results[1].postBackupEditSurvived=true;
-  assert.throws(()=>auditHistoricalD01Evidence(forged),/INCONSISTENT HISTORICAL RECEIPT/);
+  assert.throws(()=>auditHistoricalD01Evidence(forged),/INCONSISTENT D-01 RECEIPT/);
+});
+
+const windowsReceiptUrl=new URL('../docs/evidence/stage12-old-cli-fence/windows-observations-20261009.json',import.meta.url);
+const loadWindows=async()=>JSON.parse(await readFile(windowsReceiptUrl,'utf8'));
+
+test('native Windows 13-case witness records lock-blind old-init user loss without granting GO',async()=>{
+  const report=auditHistoricalD01Evidence(await loadWindows());
+  assert.equal(report.historicalPlatform,'win32');
+  assert.equal(report.scenarios,13);
+  assert.equal(report.postBackupUserEditLossWitnesses.length,8);
+  assert.equal(report.nonMutatingOneFixtureObservations.length,5);
+  assert.equal(report.unexpectedObservations,1);
+  assert.ok(report.postBackupUserEditLossWitnesses.includes(
+    'deleted-manifest-directory-sentinel-old-init'));
+  assert.equal(report.gFenceGoAuthorized,false);
+  assert.equal(report.artifactAttested,false);
+});
+
+test('Windows result tampering never hides the eighth post-backup user edit loss',async()=>{
+  const fixture=await loadWindows();
+  const invalid=structuredClone(fixture);
+  const extra=invalid.results.find(x=>
+    x.scenario==='deleted-manifest-directory-sentinel-old-init');
+  extra.postBackupEditSurvived=true;
+  assert.throws(()=>auditHistoricalD01Evidence(invalid),/INCONSISTENT D-01 RECEIPT/);
+  const forgery=structuredClone(fixture);
+  forgery.unexpected=0;
+  assert.throws(()=>auditHistoricalD01Evidence(forgery),/INCONSISTENT D-01 RECEIPT/);
+  const missing=structuredClone(fixture);
+  missing.results.pop();
+  assert.throws(()=>auditHistoricalD01Evidence(missing),/INCONSISTENT D-01 RECEIPT/);
 });
