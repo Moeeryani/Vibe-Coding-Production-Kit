@@ -112,7 +112,8 @@ test('preview validates a clean candidate while retaining tag/publish HUMAN_DECI
   const report = await runReleaseCheck({ targetDir: root, version: '0.9.3' });
 
   assert.equal(report.mode, 'preview');
-  assert.equal(report.success, true);
+  assert.equal(report.success, false);
+  assert.equal(checkById(report, 'adaptive-managed-migration-safety').status, 'fail');
   assert.equal(report.releaseApproved, false);
   assert.equal(report.published, false);
   assert.equal(report.revision.dirty, false);
@@ -126,7 +127,7 @@ test('preview validates a clean candidate while retaining tag/publish HUMAN_DECI
   assert.equal(checkById(report, 'candidate-tag').status, 'human-decision');
   assert.equal(checkById(report, 'npm-publish').status, 'human-decision');
   assert.equal(report.summary.planned, 4);
-  assert.equal(releaseCheckExitCode(report), 0);
+  assert.equal(releaseCheckExitCode(report), 1);
   assert.match(formatReleaseCheckReport(report), /Release approval: HUMAN DECISION/);
 });
 
