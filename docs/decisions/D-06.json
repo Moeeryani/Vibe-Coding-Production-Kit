@@ -1,0 +1,59 @@
+{
+  "id": "D-06",
+  "status": "ACCEPTED",
+  "owner": "Moeeryani",
+  "decidedAtUtc": "2026-10-10T19:02:43Z",
+  "approvalEvidence": "Explicit maintainer approval in project ChatGPT conversation at 2026-10-10T19:02:43Z: approves D-02,D-03,D-04,D-05,D-06,D-12 per recommendations and requests original full Stage12. No D-01 GO authorization.",
+  "chosenOption": "Canonical D-ID register and independently reviewed required-anchor inventory; versioned exact-final-HEAD cooperative raw-log gate plus real maintainer inspection, without claiming protected remote CI. S/T historical Appendix Z rows need not be identical.",
+  "rejectedAlternatives": [
+    {
+      "option": "Accept token-only S/T smoke tests or local hook as sufficient remote branch protection",
+      "reason": "These checks cannot prove exhaustive semantic references and may be bypassed or run against a stale SHA."
+    }
+  ],
+  "rationale": "Local smoke guards and self-declared references are not complete normative coverage nor tamper-resistant merge enforcement.",
+  "implementationPR": "https://github.com/Moeeryani/Vibe-Coding-Production-Kit/pull/96",
+  "provingTests": [
+    "test/adaptive-local-gates.test.mjs",
+    "scripts/check-adaptive-contracts.mjs",
+    "pending exact-final-head and independent anchor-coverage review"
+  ],
+  "affectedLocations": [
+    {
+      "path": "docs/ADAPTIVE-VCP-IMPLEMENTATION-PLAN.md",
+      "heading": "## Z.1 Amendments register (strategic)",
+      "requiredText": "Historical register — do not enforce byte-identical"
+    },
+    {
+      "path": "docs/ADAPTIVE-VCP-CODE-INTEGRATION-ANALYSIS.md",
+      "heading": "## Z.1 Amendments register (technical)",
+      "requiredText": "Historical appendix, not an identical-row twin"
+    },
+    {
+      "path": "docs/tasks/stage12-safe-adoption-planning.md",
+      "heading": "## Source of truth",
+      "requiredText": "docs/ADAPTIVE-VCP-DECISIONS.md"
+    },
+    {
+      "path": "docs/ADAPTIVE-VCP-LOCAL-GATES.md",
+      "heading": "## Scope of local static guard",
+      "requiredText": "unique registered D-01–D-12"
+    },
+    {
+      "path": "docs/ADAPTIVE-VCP-DECISIONS.md",
+      "heading": "## Normative register rules",
+      "requiredText": "D-06 (PROPOSED):"
+    },
+    {
+      "path": "docs/ROADMAP.md",
+      "heading": "### Stage 12 — Safe Adoption Planning",
+      "requiredText": "D-03 path trust and D-06 review governance remain PROPOSED"
+    },
+    {
+      "path": "docs/decisions/stage12-p0-review-packet-20261010.md",
+      "heading": "## D-06 — canonical decisions and coverage",
+      "requiredText": "required-anchor inventory"
+    }
+  ],
+  "acceptanceCaveat": "DESIGN_DECISION_ACCEPTED_ONLY; required-anchors coverageReview PENDING independent maintainer review, runtime conformance and exact-final-head receipt not completed. No D-01 writer permission."
+}
