@@ -140,3 +140,44 @@ must be recorded in the authoritative decision register, followed by
 any gated-writer activation and a brand-new exact-head acceptance run.
 
 No Stage 13 adoption apply, main merge, tag or publication is approved.
+
+## 2026-10-10 continued construction — NOT A PASS RECEIPT
+
+After the initial integrated candidate, code was authored and merged into
+the Stage12 integration line for these **build-only** changes:
+
+- `lib/manifest-v1-guard.mjs` and `lib/manifest-v2.mjs`: strict
+  pre-conversion v1 field validation, portable alias and file/parent
+  collisions across managed and ignored ownership.
+- `lib/managed-recovery-v2.mjs` and `lib/owned-tree-inventory.mjs`:
+  normalized ownership-ledger collision checks, backup modes, reserved
+  Windows names and ambiguous file-vs-directory ownership.
+- `lib/managed-schema-migrator.mjs` and `lib/versioned-recovery-apply.mjs`:
+  bounded no-follow Manifest reads, locked exact source-byte identity,
+  exact restored digest requirement before journal clearance.
+- `lib/file-durability.mjs`, `lib/lifecycle-lock-v2.mjs` and
+  `lib/safe-replace.mjs`: operating-system durability preflight before
+  initial lock bootstrap or non-lifecycle replacement staging. Windows
+  remains explicitly **UNSUPPORTED / NO-GO** pending a native proof.
+- `lib/versioned-backup.mjs`, `lib/versioned-journal.mjs`,
+  `lib/safe-create.mjs` and the low-level manifest replacement:
+  direct-call D-01 guards prevent independent imports from authorizing
+  selected-root mutations. The static source boundary checker now pins
+  these guards and durability-preflight calls.
+- Extended `test/stage12-schema-contract.test.mjs` and
+  `test/stage12-recovery-invariants.test.mjs` with negative cases.
+  **These test cases have been written but never executed in this pass.**
+
+**Cannot close yet:** AC-004 universal published-old-binary zero-write
+fence remains contradicted by Linux/Windows loss witnesses; an OS-enforced
+alternate or independently approved changed cutover invariant is required.
+AC-005/006 recovery/migration cannot be declared successful without
+fenced-writer release and crash/platform proof. AC-010 requires hostile
+rename/junction proof. Windows directory-entry durability remains unproven.
+AC-001/016 need full frozen combined-head test and release gates. D-01 is
+DEFERRED, G-FENCE NO-GO, all independent decision-anchor coverage
+reviews PENDING. Full original Stage12 remains required.
+
+The test agent must use only a later frozen, fully integrated commit. No
+result from the historical `d13de6be` run or previous branch-specific
+CI may be promoted to a receipt for this construction pass.
