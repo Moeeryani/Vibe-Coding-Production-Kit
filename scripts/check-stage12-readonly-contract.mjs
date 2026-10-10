@@ -82,6 +82,13 @@ export async function inspectStage12ReadOnlyContract(){
     !replace.includes('await assertLifecycleDurabilitySupported(root);')) {
     deny('lifecycle or replacement durability preflight missing');
   }
+  const greenRecovery=await load('lib/greenfield-recovery-apply.mjs');
+  const phaseProof=greenRecovery.indexOf("phase:'recovering'");
+  const firstDeletion=greenRecovery.indexOf('for(const action of actions)await unlinkMatching');
+  if(phaseProof<0||firstDeletion<0||phaseProof>firstDeletion||
+    !greenRecovery.includes('await syncContainingDirectory(data.file);')) {
+    deny('first-init recovery lost its pre-deletion journal or durable unlink');
+  }
   const dirs=['lib','bin','scripts'];
   for(const dir of dirs){
     const names=await readdir(path.join(root,dir));
