@@ -80,6 +80,34 @@ stale/dead/foreign locks, post-backup edits, concurrent new/old writers,
 interrupted processes, native Windows junctions, and POSIX. Record a
 distinct unverified result when a platform is unavailable.
 
+## P0/P1 construction pass — 2026-10-10 (UNEXECUTED)
+
+- Proposed interim scope is explicit in
+  `docs/STAGE12-SAFE-SUBSET-ACCEPTANCE-PROPOSAL.md`: this is **not** a
+  modification or successful completion of the original AC-004/005/006.
+  Human ratification is required to label the safe read-only foundation.
+- Every historical test failure from the `d13de6be` 469-test Linux run
+  is individually inventoried in `docs/STAGE12-HISTORICAL-FAILURE-TRIAGE.md`:
+  **112 D-01-gated init, 24 EXISTING brownfield-init rejection,
+  1 release-check expectation**, total 137. These classifications do not
+  constitute a new PASS.
+- `test/helpers/legacy-v1-fixture.mjs` now preflights every intended path
+  and schema-v1 field before initial writes, refuses linked ancestors and
+  roots outside isolated `vcp-*` OS-temp directories and never claims
+  existing user-owned bytes. The original public CLI remains gated.
+- The schema-v2 malformed metadata test now passes its `readerVersion` so
+  it cannot pass because a reader option is omitted. Native-Windows
+  symlink test uses an actual skip with return rather than continuing.
+- `lib/stacks.mjs` and `lib/doctor.mjs` now route stack evidence and
+  Doctor document reads through no-follow read boundaries; added
+  `test/stage12-preview-security.test.mjs`,
+  `test/legacy-v1-fixture-boundaries.test.mjs` and
+  `test/stage12-doctor-paths.test.mjs` for content-free read-only planning,
+  fixture integrity, in-root/external links and Windows junction controls.
+- These fixes are **authored only**, not evidence of a clean test run.
+  Race-free safety, general Windows durability and full managed schema-v2
+  lifecycle remain unproven and fenced.
+
 ## Test execution and governance
 
 Do not run npm check/test/validate/pack, syntax runners, package smoke or
