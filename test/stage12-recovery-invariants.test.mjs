@@ -10,6 +10,7 @@ import {
 import { planStaleJournalQuarantine } from '../lib/stale-journal-plan.mjs';
 import { planCommittedJournalCleanup } from '../lib/committed-cleanup-plan.mjs';
 import { inspectLifecycleLock } from '../lib/lock-inspect-v2.mjs';
+import { inspectTerminalCreatedPaths } from '../lib/greenfield-recovery-plan.mjs';
 import { finalizeCommittedVersionedJournal } from '../lib/committed-cleanup-apply.mjs';
 import { quarantineAcknowledgedStaging } from '../lib/stale-journal-apply.mjs';
 import {
@@ -49,6 +50,25 @@ test('Windows durability stays NO-GO and lock preflight never creates state',asy
     });
     assert.deepEqual(await readdir(root),[]);
   }
+});
+
+test('terminal absence proof refuses empty owned directories without reading user bytes',async t=>{
+  const root=await sandbox(t);
+  const ledger=[{path:'docs/nested/owned.md'},{path:'.vcp/manifest.json'}];
+  assert.deepEqual(await inspectTerminalCreatedPaths(root,ledger),[]);
+  await mkdir(path.join(root,'docs/nested'),{recursive:true});
+  const empty=await inspectTerminalCreatedPaths(root,ledger);
+  assert.ok(empty.some(issue=>
+    issue.path==='docs'&&issue.code==='CREATED_DIRECTORY_STILL_PRESENT'));
+  assert.ok(empty.some(issue=>
+    issue.path==='docs/nested'&&issue.code==='CREATED_DIRECTORY_STILL_PRESENT'));
+  const existing=Buffer.from('user-edited content must survive\r\n');
+  await writeFile(path.join(root,'docs/nested/owned.md'),existing);
+  const withFile=await inspectTerminalCreatedPaths(root,ledger);
+  assert.ok(withFile.some(issue=>
+    issue.path==='docs/nested/owned.md'&&issue.code==='CREATED_FILE_STILL_PRESENT'));
+  assert.deepEqual(await (await import('node:fs/promises')).readFile(
+    path.join(root,'docs/nested/owned.md')),existing);
 });
 
 test('recovery inventory refuses portable case aliases and file ancestors',()=>{
