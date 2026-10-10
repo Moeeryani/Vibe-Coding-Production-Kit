@@ -64,6 +64,14 @@ test('recovery inventory refuses portable case aliases and file ancestors',()=>{
   }
 });
 
+test('ownership inventory refuses Windows device names and reserved Git components',()=>{
+  for(const owned of ['CON.txt','aux','docs/LPT1.md','docs/.GiT/config']) {
+    assert.throws(()=>describeRecoveryOwnedTree('owned-1',[owned]),{
+      code:'E_INVENTORY_LEDGER_PATH'
+    });
+  }
+});
+
 test('rollback inventory recognizes strictly enumerated nested files only',async t=>{
   const root=await sandbox(t);
   await setupTree(root);
