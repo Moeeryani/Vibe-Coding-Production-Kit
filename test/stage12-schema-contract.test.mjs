@@ -236,6 +236,20 @@ test('versioned ledgers reject file/directory overlap and invalid backup modes',
   },{readerVersion:READER}),{code:'E_TRANSACTION_CREATED'});
 });
 
+test('direct versioned write modules remain gated by D-01',async()=>{
+  const {replaceManifestAtomically}=await import('../lib/managed-schema-migrator.mjs');
+  const {createOwnedPathExclusively}=await import('../lib/safe-create.mjs');
+  const {writeVersionedJournal,clearVersionedJournal}=
+    await import('../lib/versioned-journal.mjs');
+  const unknown='stage12-unselected-fixture-root';
+  for(const attempt of [
+    ()=>replaceManifestAtomically(unknown,Buffer.from('{}'),DIGEST),
+    ()=>createOwnedPathExclusively(unknown,'note.md',Buffer.from('hello')),
+    ()=>writeVersionedJournal(unknown,journal(),{readerVersion:READER}),
+    ()=>clearVersionedJournal(unknown,{expectedHash:DIGEST})
+  ])await assert.rejects(attempt,{code:'E_G_FENCE_NO_GO'});
+});
+
 test('new versioned writers remain disabled before any filesystem interaction',async()=>{
   const {applyAdaptiveGreenfield}=await import('../lib/greenfield-apply-v2.mjs');
   const {applyVersionedManagedSchemaMigration}=
