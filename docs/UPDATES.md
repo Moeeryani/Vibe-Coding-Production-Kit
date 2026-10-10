@@ -10,6 +10,14 @@
 
 VCP v0.9 introduces repository-native lifecycle state so a project can evolve with the kit without blindly overwriting project decisions.
 
+### Legacy-release rollback is not a future schema-v2 fence (D-01)
+
+G-FENCE = NO-GO and managed v1→v2 writes remain disabled.
+Published old rollback may overwrite post-backup user edits; old init with
+a missing manifest can disregard a directory-shaped lock sentinel.
+Versioned backups and new-CLI-only locks are not a safety fence. Separate
+Linux/native-Windows proof and maintainer D-01 approval remain required.
+
 ## The contract
 
 `vcp init` creates `.vcp/manifest.json` plus baseline snapshots for files VCP manages. The manifest records the installed VCP version, install profile, ownership policy, baseline hash, baseline path, file mode, and template version. New installs also preserve the requested stack selector separately from the resolved stack profile so lifecycle code can distinguish automatic detection from an explicit human stack choice.
@@ -45,6 +53,12 @@ vcp manage track AGENTS.md
 ~~~
 
 ### Current ownership boundary
+
+D-05 (ACCEPTED DESIGN; D-01 WRITER GATED): Managed Markdown sections
+must preserve bytes outside explicitly owned markers, including BOM and
+mixed EOL. Malformed, duplicate or foreign markers block mutation.
+This is not current released v0.9.3 whole-file ownership or permission
+to activate schema-v2 writers.
 
 Released/current lifecycle state still manages **whole files**.
 
@@ -228,6 +242,12 @@ A rename refuses to overwrite an unrelated destination and treats overlapping lo
 If a previous update was interrupted, inspect the repository and use `vcp rollback` before starting another update.
 
 ## Safety boundaries
+
+D-03 (ACCEPTED DESIGN; TRUST PROOF PENDING): Stage12 selected-root reads,
+writes and managed-state paths should refuse untrusted symlinks, junctions
+and reparse points even for in-root targets. Linux checks do not prove
+native Windows or hostile replacement-race safety. Implementation
+conformance is still unverified.
 
 Update paths are repository-relative and validated against traversal and symlink escapes. VCP state paths under `.vcp` receive the same no-symlink treatment.
 
