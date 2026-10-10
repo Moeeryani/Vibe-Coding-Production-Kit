@@ -241,12 +241,19 @@ test('direct versioned write modules remain gated by D-01',async()=>{
   const {createOwnedPathExclusively}=await import('../lib/safe-create.mjs');
   const {writeVersionedJournal,clearVersionedJournal}=
     await import('../lib/versioned-journal.mjs');
+  const {createManagedSchemaBackup,createGreenfieldRecoveryBackup}=
+    await import('../lib/versioned-backup.mjs');
   const unknown='stage12-unselected-fixture-root';
   for(const attempt of [
     ()=>replaceManifestAtomically(unknown,Buffer.from('{}'),DIGEST),
     ()=>createOwnedPathExclusively(unknown,'note.md',Buffer.from('hello')),
     ()=>writeVersionedJournal(unknown,journal(),{readerVersion:READER}),
-    ()=>clearVersionedJournal(unknown,{expectedHash:DIGEST})
+    ()=>clearVersionedJournal(unknown,{expectedHash:DIGEST}),
+    ()=>createManagedSchemaBackup(unknown,{
+      manifestBytes:Buffer.from('{}'),installedVersion:'0.9.3',
+      minimumReaderVersion:READER,priorBaselinesExisted:true
+    }),
+    ()=>createGreenfieldRecoveryBackup(unknown,{minimumReaderVersion:READER})
   ])await assert.rejects(attempt,{code:'E_G_FENCE_NO_GO'});
 });
 
