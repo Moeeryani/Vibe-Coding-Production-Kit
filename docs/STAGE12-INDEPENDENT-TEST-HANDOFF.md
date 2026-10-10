@@ -163,3 +163,41 @@ Only after an exact-head full pass on all mandatory platforms, separately
 approved D-01, completed independent anchor review and maintainer final
 acceptance may Stage 12 be labelled COMPLETE. Until then keep Plan/Blocked
 and avoid merging main or publishing.
+
+## Supplement: three P0 candidate-specific independent gates
+
+This section is an **unexecuted testing-plan addition**, not a request
+to start tests while construction is incomplete.
+
+1. For `lib/legacy-writer-fence-contract.mjs`, replay actual published
+   0.9.3 from independently verified registry bytes as the legacy security
+   principal; verify genuine deny of all enumerated operations including
+   manifest-deleted old init. Attempt deliberate execution of old CLI
+   **as the new writer principal**. If that process can write, the
+   proposed fence is invalid no matter how many same-principal fixture
+   refusals passed. Capture token/SID/UID, parent-path ACL and exact
+   before/after tree hashes. Present results to maintainer for NEW D-01
+   authorization; tests alone never flip G-FENCE.
+2. Compile the standalone
+   `scripts/native/stage12-windows-namespace-probe.cpp` **only** on a
+   native Windows build machine after HEAD freeze, in a disposable test
+   directory containing just the marker
+   `VCP-STAGE12-DISPOSABLE-ONLY.marker` whose exact ASCII bytes are
+   `VCP_STAGE12_DISPOSABLE_TEST_ROOT_ONLY\n`. The probe is not a
+   production durability provider. Record Win32 error codes, file/dir
+   flush results, filesystem and storage facts; then evaluate
+   `lib/windows-durability-contract.mjs` and reproduce real interruption
+   boundaries. Never interpret the diagnostic's exit status as proof.
+3. For `lib/terminal-retirement-v2.mjs`, verify that an interruption
+   just before, during and after the **whole `.vcp` directory rename**
+   preserves the journal and lock together. Prove no foreign sibling
+   archive can be replaced, no external ACL/junction traversal,
+   same-filesystem namespace operation and durable parent acknowledgement,
+   unmodified user project bytes and safe manual/archive retention.
+   The sibling side-effect footprint requires its own maintainer scope
+   review; the candidate's `verified:false` must not be upgraded
+   automatically.
+
+**Stop condition:** Any missing native capability, inability to enforce
+legacy denial, unreviewed outside-root archive, or missing crash proof
+means Stage12 remains NO-GO and not eligible for a full PASS receipt.
