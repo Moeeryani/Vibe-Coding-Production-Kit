@@ -43,7 +43,7 @@
     {
       "path": "docs/CLI.md",
       "heading": "## Turn verification into evidence",
-      "requiredText": "Future D-12 execution authorization (not yet implemented)"
+      "requiredText": "D-12 (ACCEPTED DESIGN; VERIFICATION PENDING)"
     },
     {
       "path": "docs/TASK-PACKS.md",
