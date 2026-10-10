@@ -267,6 +267,38 @@ test('committed journal cleanup requires valid operation-matched v2 state',()=>{
   ])assert.throws(mismatch,{code:'E_COMMITTED_STATE_UNPROVEN'});
 });
 
+test('terminal cleanup journal requires exact init backup evidence',()=>{
+  const base={
+    operationId:'init-term',backupId:'init-term',operation:'init',
+    phase:'cleanup',minimumReaderVersion:READER,
+    startedAt:'2026-10-10T00:00:00Z',
+    createdFiles:[
+      {path:'.vcp/manifest.json',hash:DIGEST},
+      {path:'.vcp/.gitignore',hash:DIGEST},
+      {path:'AGENTS.md',hash:DIGEST}
+    ]
+  };
+  const tx=describeVersionedTransaction({...base,cleanupBackupHash:TARGET});
+  const decoded=decodeManagedTransaction(tx,{readerVersion:READER});
+  assert.equal(decoded.phase,'cleanup');
+  assert.equal(decoded.cleanupBackupHash,TARGET);
+  assert.equal(decoded.createdFiles.length,3);
+  for(const malformed of [
+    {...tx,cleanupBackupHash:undefined},
+    {...tx,cleanupBackupHash:'bad'},
+    {...tx,operation:'update',plannedManifestHash:DIGEST},
+    {...tx,createdFiles:[{path:'AGENTS.md',hash:DIGEST}]}
+  ]) {
+    assert.throws(()=>decodeManagedTransaction(malformed,{readerVersion:READER}));
+  }
+  assert.throws(()=>decodeManagedTransaction({
+    ...tx,phase:'recovering'
+  },{readerVersion:READER}),{code:'E_TERMINAL_CLEANUP_EVIDENCE'});
+  assert.throws(()=>decodeManagedTransaction({
+    ...journal(),cleanupBackupHash:TARGET
+  },{readerVersion:READER}),{code:'E_TERMINAL_CLEANUP_EVIDENCE'});
+});
+
 test('first-init recovery refuses a forged partial ownership ledger',()=>{
   const initJournal={
     formatVersion:2,transactionSchemaVersion:2,
