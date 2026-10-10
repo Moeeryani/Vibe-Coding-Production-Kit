@@ -126,3 +126,14 @@ Doctor does **not** certify that a project is secure, correct, compliant, produc
 ## Why there is no readiness score
 
 A single percentage would hide important differences between projects and can create false confidence. Doctor reports concrete checks, coverage, and remediation instead, so teams can decide which warnings and unassessed artifacts matter for their context.
+
+### Stage 12 Doctor scope proposal — 2026-10-10 (NOT RATIFIED)
+
+The candidate Doctor distinguishes install-health information from
+command-governance observation and makes no claim that observing a
+vendor adapter proves VCP ownership. Project instruction and stack
+marker reads must refuse untrusted symlink/junction paths, including
+in-root links. D-02's proposed strict/non-strict truth table still
+needs explicit maintainer acceptance and conformance receipts; existing
+Doctor output is not itself a new D-02 policy decision. Native Windows
+lock durability remains unproven and full v2 recovery stays gated.
