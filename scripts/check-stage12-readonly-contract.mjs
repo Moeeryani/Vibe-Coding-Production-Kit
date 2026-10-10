@@ -136,6 +136,25 @@ export async function inspectStage12ReadOnlyContract(){
     !orphan.includes('ORPHAN_LOCK_MANUAL_REVIEW_ONLY')) {
     deny('orphaned terminal lock diagnosis has gained unsafe write authority');
   }
+  // No historical 0.9.3 JavaScript check can defend a shared UID/SID.
+  const legacyFence=await load('lib/legacy-writer-fence-contract.mjs');
+  if(!legacyFence.includes('SHARED_OR_UNKNOWN_WRITER_IDENTITY')||
+    !legacyFence.includes('PRIVILEGED_LEGACY_BINARY_NOT_BLOCKED')||
+    !legacyFence.includes("gate:'NO_GO',mutationAuthorized:false,approved:false")) {
+    deny('D-01 evaluator incorrectly grants in-process old-CLI authority');
+  }
+  const terminalRetire=await load('lib/terminal-retirement-v2.mjs');
+  const windowsProbe=await load('scripts/native/stage12-windows-namespace-probe.cpp');
+  if(!terminalRetire.includes('assertManagedMigrationGate();')||
+    !terminalRetire.includes('await rename(state,archive)')||
+    !terminalRetire.includes('if(typeof onDetached')||
+    !greenRecovery.includes('onDetached:()=>{retired=true;}')||
+    greenRecovery.includes('await clearVersionedJournal(root,')||
+    !windowsProbe.includes('MOVEFILE_WRITE_THROUGH')||
+    !windowsProbe.includes('isDurabilityAttestation')||
+    !windowsProbe.includes('requiresIndependentCrashAndPowerLossProof')) {
+    deny('native durability diagnostic or terminal provenance retirement missing');
+  }
   const dirs=['lib','bin','scripts'];
   for(const dir of dirs){
     const names=await readdir(path.join(root,dir));

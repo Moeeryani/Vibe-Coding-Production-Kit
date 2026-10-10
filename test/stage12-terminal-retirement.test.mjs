@@ -1,0 +1,41 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import {
+  evaluateTerminalRetirement,retireGreenfieldControlDirectory
+} from '../lib/terminal-retirement-v2.mjs';
+
+const H='a'.repeat(64);
+function state() {
+  return {
+    priorClassification:'TERMINAL_CLEANUP_CANDIDATE',
+    rootNames:['.vcp'],
+    stateNames:['transaction.json','update.lock'],
+    journalHash:H,expectedJournalHash:H,
+    lockTokenMatches:true,writerBoundaryAccepted:true
+  };
+}
+test('terminal retirement never asserts D-01 or native durability',()=>{
+  const plan=evaluateTerminalRetirement(state());
+  assert.equal(plan.classification,'NATIVE_RENAME_CANDIDATE');
+  assert.equal(plan.authorized,false);
+  assert.equal(plan.gate,'NO_GO');
+});
+test('terminal retirement rejects foreign data, missing journal or foreign lock',()=>{
+  for(const mutate of [
+    x=>x.rootNames.push('user.md'),
+    x=>x.stateNames.push('backups'),
+    x=>x.stateNames.splice(0,1),
+    x=>x.lockTokenMatches=false,
+    x=>x.expectedJournalHash='b'.repeat(64),
+    x=>x.writerBoundaryAccepted=false,
+    x=>x.priorClassification='BLOCKED'
+  ]) {
+    const proof=state();mutate(proof);
+    assert.equal(evaluateTerminalRetirement(proof).classification,'BLOCKED');
+  }
+});
+test('terminal candidate refuses mutation before touching unknown root',async()=>{
+  await assert.rejects(()=>retireGreenfieldControlDirectory({
+    rootPath:'nonexistent-root',expectedJournalHash:H,ownedLock:null
+  }),{code:'E_G_FENCE_NO_GO'});
+});
