@@ -1,6 +1,8 @@
 # Stage 12 — bounded safety/read-only acceptance proposal
 
-**Status: DRAFT — human ratification REQUIRED before this scope can be accepted.**
+**Status: HISTORICAL PROPOSAL — REJECTED as the Stage12 delivery target by the maintainer on 2026-10-10T19:02:43Z.**
+
+The maintainer explicitly chose **full original Stage12**, including managed-v2 migration, native Windows durability and versioned recovery. These remain outstanding Stage12 gates; the subset below is NOT a valid completion criterion.
 **Date of proposal:** 2026-10-10. **Implementation:** PR #96 plus the contract
 lineage in PR #95, assembled into a single exact-head integration candidate.
 
