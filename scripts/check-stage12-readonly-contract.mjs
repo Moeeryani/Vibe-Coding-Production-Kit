@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Static, fail-closed protection for the deliberately reduced Stage12 candidate.
-// Does not execute any writer and cannot authorize D-01 or release approval.
+// Historical read-only boundary check retained for FULL original Stage12.
+// Source inspection is not a test receipt and cannot authorize D-01 or release.
 import {readFile,readdir} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -52,6 +52,36 @@ export async function inspectStage12ReadOnlyContract(){
     audited[1].scenarios!==13||audited[1].postBackupUserEditLossWitnesses.length!==8||
     audited.some(x=>x.gFenceGoAuthorized||x.artifactAttested))
     deny('D-01 failure witnesses modified, missing or mischaracterized');
+  // Guard the otherwise directly-importable Stage12 write primitives.
+  // These are static tripwires only; native filesystem testing remains
+  // mandatory on the frozen combined head.
+  const protectedExports=[
+    ['lib/versioned-backup.mjs','createManagedSchemaBackup'],
+    ['lib/versioned-backup.mjs','createGreenfieldRecoveryBackup'],
+    ['lib/versioned-journal.mjs','writeVersionedJournal'],
+    ['lib/versioned-journal.mjs','clearVersionedJournal'],
+    ['lib/safe-create.mjs','createOwnedPathExclusively'],
+    ['lib/managed-schema-migrator.mjs','replaceManifestAtomically']
+  ];
+  for(const [file,exported] of protectedExports) {
+    const source=await load(file);
+    const declaration=source.indexOf('export async function '+exported+'(');
+    if(declaration<0)deny('versioned write primitive missing: '+file+'#'+exported);
+    const untilNext=source.indexOf('export async function ',declaration+1);
+    const scope=source.slice(declaration,untilNext<0?undefined:untilNext);
+    if(!scope.includes('assertManagedMigrationGate();'))
+      deny('direct primitive bypasses D-01 gate: '+file+'#'+exported);
+  }
+  const [durability,lock,replace]=await Promise.all([
+    load('lib/file-durability.mjs'),
+    load('lib/lifecycle-lock-v2.mjs'),load('lib/safe-replace.mjs')
+  ]);
+  if(!durability.includes('WINDOWS_NAMESPACE_DURABILITY_UNPROVEN')||
+    !durability.includes('assertLifecycleDurabilitySupported')||
+    !lock.includes('await assertLifecycleDurabilitySupported(root);')||
+    !replace.includes('await assertLifecycleDurabilitySupported(root);')) {
+    deny('lifecycle or replacement durability preflight missing');
+  }
   const dirs=['lib','bin','scripts'];
   for(const dir of dirs){
     const names=await readdir(path.join(root,dir));
