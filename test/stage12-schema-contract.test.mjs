@@ -100,7 +100,7 @@ test('v2 reader blocks older reader and missing or malformed ownership metadata'
   ]) {
     const v=structuredClone(manifest);
     mutate(v);
-    assert.throws(()=>validateAdaptiveManifest(v));
+    assert.throws(()=>validateAdaptiveManifest(v,{readerVersion:READER}));
   }
 });
 
