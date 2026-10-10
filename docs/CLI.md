@@ -14,6 +14,15 @@ The CLI bootstraps the Vibe Coding Production Kit into a new or existing reposit
 
 The preferred human experience is agent-first: let the coding agent inspect the repository, draft VCP artifacts, run these commands, and ask the developer only for unresolved decisions that require human intent.
 
+### Stage12 schema-v2 migration is not enabled (D-01 G-FENCE NO-GO)
+
+Managed schema-v1 → schema-v2 migration remains disabled / NO-GO.
+The authenticated published 0.9.3 CLI can overwrite user edits via old
+init when the manifest is missing, despite a directory sentinel; old rollback
+also has unsafe post-backup-edit cases. A new old-binary fence and native
+Windows durability remain Stage12 requirements. D-01 is DEFERRED and the
+draft has no v2 write authority.
+
 ## Run from npm
 
 The published package is the primary installation path:
@@ -31,6 +40,12 @@ npx --yes github:Moeeryani/Vibe-Coding-Production-Kit init . --agent all
 ```
 
 ## Initialize once, then update
+
+D-04 (ACCEPTED DESIGN; NOT RELEASED): Stage12 read-only init planning uses
+content-free JSON with `planVersion: 1`, `planKind: init` and `CLAIM`
+actions. Existing unmanaged apply belongs to Stage13. No draft plan grants
+schema-v2 write authority. The examples below describe published v0.9.3
+behavior unless expressly labeled Stage12 draft.
 
 Initialization creates the framework plus `.vcp/manifest.json` and baseline snapshots used by the safe update engine.
 
@@ -132,6 +147,11 @@ vcp manage track AGENTS.md
 
 ## Audit an existing repository
 
+D-02 (ACCEPTED DESIGN; APPLICABILITY PROOF PENDING): Stage12 Doctor should
+distinguish applicable installation health from governance findings;
+`--strict` depends on applicable install-health WARN/FAIL, not governance
+alone. The implementation is authored but unverified on the final HEAD.
+
 `doctor` is read-only:
 
 ```bash
@@ -228,6 +248,11 @@ vcp context accept-invite --mode implement \
 ```
 
 ## Turn verification into evidence
+
+D-12 (ACCEPTED DESIGN; VERIFICATION PENDING): Stage12 must re-screen the
+exact `verify --run` commands at execution time; sensitive commands
+require a valid HUMAN DECISION receipt that `--yes` cannot bypass.
+This is not a published v0.9.3 behavior guarantee or a passing test receipt.
 
 Preview configured verification commands without executing them:
 
@@ -347,6 +372,12 @@ Selected plugin guidance may appear additively in bounded context packs. Verific
 See [`COMMUNITY-PLUGINS.md`](COMMUNITY-PLUGINS.md).
 
 ## Safety behavior
+
+D-03 (ACCEPTED DESIGN; NATIVE PATH PROOF PENDING): Stage12 path trust
+rejects untrusted in-root and external symlinks and native Windows
+junction/reparse traversal by default. Exceptions require separate
+review. Race-free enforcement and Windows-native proof remain outstanding.
+Do not silently upgrade historical v0.9.3 guarantees to this draft policy.
 
 The CLI is intentionally conservative:
 
