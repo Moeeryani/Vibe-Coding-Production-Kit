@@ -115,6 +115,21 @@ export async function inspectStage12ReadOnlyContract(){
     !terminalReader.includes('readProjectBytes(root,relative')) {
     deny('bounded read protection for managed/recovery state was removed');
   }
+  for(const file of [
+    'lib/manifest-v2.mjs',
+    'lib/managed-recovery-v2.mjs',
+    'lib/managed-recovery-plan.mjs',
+    'lib/greenfield-recovery-plan.mjs',
+    'lib/greenfield-recovery-apply.mjs',
+    'lib/versioned-recovery-apply.mjs',
+    'lib/versioned-journal.mjs'
+  ]) {
+    const source=await load(file);
+    if(!source.includes('readProjectBytes(')||
+       source.includes('bytes=await fd.readFile()')) {
+      deny('versioned recovery source lost shared bounded no-follow read: '+file);
+    }
+  }
   const dirs=['lib','bin','scripts'];
   for(const dir of dirs){
     const names=await readdir(path.join(root,dir));
