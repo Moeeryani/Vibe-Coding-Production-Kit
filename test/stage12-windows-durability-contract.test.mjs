@@ -42,6 +42,8 @@ test('native probe is diagnostic and not a production durability authority',asyn
   assert.match(source,/CreateDirectoryW/);
   assert.match(source,/RemoveDirectoryW/);
   assert.match(source,/moveDirectoryWriteThroughReturned/);
+  assert.match(source,/existingDirectoryReplacementDenied/);
+  assert.match(source,/existingDirectoryPreserved/);
   assert.match(source,/isDurabilityAttestation/);
   assert.match(source,/requiresIndependentCrashAndPowerLossProof/);
 });
