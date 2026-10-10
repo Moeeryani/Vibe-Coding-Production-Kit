@@ -1,0 +1,14 @@
+{
+  "recordedUtc": "2026-10-10T22:29:33.076Z",
+  "kernel": "7.0.0-39-generic",
+  "arch": "x86_64",
+  "node": "v24.20.0",
+  "npm": "10.9.4",
+  "git": "git version 2.43.0",
+  "compiler": "c++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "uid": "0",
+  "fixtureFilesystem": "btrfs",
+  "tmpFilesystem": "tmpfs",
+  "lsm": "absent (cannot prove SELinux/AppArmor)",
+  "chattrImmutable": "EPERM (no CAP_LINUX_IMMUTABLE)"
+}

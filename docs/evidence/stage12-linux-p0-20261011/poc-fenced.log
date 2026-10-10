@@ -1,0 +1,2 @@
+{"gate":"INCONCLUSIVE","baseline":"0/0 mutated","fenced":"0/19 breached","evidence":"/home/hatch/workspace/vcp-stage12/poc-artifacts/fenced"}
+FENCED_EXIT=0

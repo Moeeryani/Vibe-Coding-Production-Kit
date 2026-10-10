@@ -1,0 +1,50 @@
+✔ probe reports kernel, filesystem and capability matrix (45.192587ms)
+ℹ kernel=7.0.0-39-generic arch=x86_64 fs=btrfs noreplace=true dirFsync=true immutable=false(EPERM)
+✔ writeFileSynced creates exclusive, synced files; second create fails (103.186499ms)
+✔ replaceFileAtomic swaps content and leaves no staging files (119.63105ms)
+✔ moveNoReplace succeeds fresh and refuses collisions atomically (110.544831ms)
+✔ moveNoReplace refuses symlink at destination and symlink parents (47.624323ms)
+✔ hardlink destination collision is refused; source hardlink survives move (79.310667ms)
+✔ cross-filesystem rename fails closed with E_CROSS_FILESYSTEM (26.82758ms)
+ℹ src fs=linux:2435016766 dst fs=16914836
+✔ deleteFile and removeEmptyDirectory sync parents; ENOTEMPTY is safe (91.559701ms)
+✔ reapStaging removes only provider staging files (68.131431ms)
+✔ interrupted replace leaves original intact and staging is reapable (107.0652ms)
+✔ SIGKILL during a write burst leaves no torn committed files (1305.321487ms)
+ℹ burst files reaped as staging: 1
+✔ path validation rejects escapes before touching the helper (19.310459ms)
+✔ planLegacyFence is read-only and reports kernel state (69.342391ms)
+✔ enforce refuses without privilege (88.151568ms)
+✔ enforced fence: kernel denies legacy writes (EACCES), bytes unchanged (394.872378ms)
+✔ verify detects ownership, mode and replacement violations (186.690721ms)
+✔ enforce refuses a symlinked control tree (24.449835ms)
+✔ immutable backend reports honestly when the capability is absent (83.494597ms)
+ℹ immutable enforcement UNVERIFIED here (no CAP_LINUX_IMMUTABLE)
+✔ happy path: verify -> move -> ack, archive holds pinned identity (95.740426ms)
+✔ crash before move: resume completes exactly one detach (30.456205ms)
+✔ crash after move before ack: resume detects detached-evidence, no re-move (25.37784ms)
+✔ crash after ack: re-run is an idempotent no-op (69.53414ms)
+✔ destination collision: advisory check AND atomic OS check both refuse (56.282759ms)
+✔ symlink at destination name is never replaced (40.595837ms)
+✔ lock changed between verify and move aborts the detach (12.202304ms)
+✔ journal hash mismatch and corrupt journal fail verification (10.416259ms)
+✔ foreign user file at root during cleanup fails verification (8.636744ms)
+✔ sibling archive requires an explicit approval object (29.872236ms)
+✔ two detaches produce distinct archives; old archive untouched (41.019283ms)
+✔ retention: prune plans by age, executes only with approval + re-verify (101.345091ms)
+✔ retention: manifest change between plan and execute aborts prune (59.813767ms)
+✔ retention: symlink inside archive aborts prune (85.064266ms)
+✔ terminal retirement never asserts D-01 or native durability (1.372984ms)
+✔ terminal retirement rejects foreign data, missing journal or foreign lock (0.692301ms)
+✔ native no-replace boundary refuses unsafe sibling scope and never falls back (2.220068ms)
+✔ Linux native no-replace probe is disposable and not an attestation (15.702185ms)
+✔ terminal candidate refuses mutation before touching unknown root (2.935793ms)
+ℹ tests 37
+ℹ suites 0
+ℹ pass 37
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4664.711467
+exit=0

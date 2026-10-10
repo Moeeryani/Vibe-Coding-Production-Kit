@@ -1,0 +1,26 @@
+
+> vibe-coding-production@0.9.3 check:stage12-contract
+> node scripts/check-stage12-readonly-contract.mjs
+
+{
+  "status": "PASS_READ_ONLY_BOUNDARIES",
+  "gFence": "NO_GO",
+  "stage12FullAccepted": false,
+  "readOnlySubsetAccepted": false,
+  "legacyV1FixtureProductionImports": 0,
+  "receipts": [
+    {
+      "platform": "linux",
+      "scenarios": 12,
+      "unsafe": 7,
+      "conclusion": "NO_GO__LEGACY_USER_EDIT_LOSS_WITNESSES"
+    },
+    {
+      "platform": "win32",
+      "scenarios": 13,
+      "unsafe": 8,
+      "conclusion": "NO_GO__LEGACY_USER_EDIT_LOSS_WITNESSES"
+    }
+  ]
+}
+exit=0

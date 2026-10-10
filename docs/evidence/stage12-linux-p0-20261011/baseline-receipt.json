@@ -1,0 +1,415 @@
+{
+  "type": "d01-linux-fence-poc",
+  "status": "NOT_A_MIGRATION_APPROVAL",
+  "release": {
+    "name": "vibe-coding-production",
+    "version": "0.9.3"
+  },
+  "tarballSha256": "4b78fd413cf5e3508f5a5a34b5b47418d437eacd4343290f03b3ac5126ac9130",
+  "node": "v24.20.0",
+  "platform": "linux",
+  "arch": "x64",
+  "kernel": "7.0.0-39-generic",
+  "recordedUtc": "2026-10-10T22:18:53.804Z",
+  "principalModel": {
+    "legacyUid": 60001,
+    "writerUid": 60002,
+    "note": "fence = kernel DAC uid-separation; same-UID separation is impossible by design (control experiment in report)"
+  },
+  "results": [
+    {
+      "scenario": "rollback-v1-backup",
+      "mode": "baseline",
+      "command": {
+        "args": [
+          "rollback",
+          "/tmp/vcp-old-cli-fence-linux-LvoJbJ/projects/rollback-v1-backup"
+        ],
+        "exitCode": 0,
+        "signal": null
+      },
+      "protectedChanges": [
+        ".vcp/manifest.json",
+        "AGENTS.md"
+      ],
+      "protectedBytesChanged": true,
+      "postBackupEditSurvived": false,
+      "fenceIntactAfter": null,
+      "conclusion": "LEGACY_MUTATION_OBSERVED__NOT_SAFE"
+    },
+    {
+      "scenario": "rollback-v2-erases-user-edit",
+      "mode": "baseline",
+      "command": {
+        "args": [
+          "rollback",
+          "/tmp/vcp-old-cli-fence-linux-LvoJbJ/projects/rollback-v2-erases-user-edit"
+        ],
+        "exitCode": 0,
+        "signal": null
+      },
+      "protectedChanges": [
+        "AGENTS.md"
+      ],
+      "protectedBytesChanged": true,
+      "postBackupEditSurvived": false,
+      "fenceIntactAfter": null,
+      "conclusion": "LEGACY_MUTATION_OBSERVED__NOT_SAFE"
+    },
+    {
+      "scenario": "rollback-stale-transaction",
+      "mode": "baseline",
+      "command": {
+        "args": [
+          "rollback",
+          "/tmp/vcp-old-cli-fence-linux-LvoJbJ/projects/rollback-stale-transaction"
+        ],
+        "exitCode": 0,
+        "signal": null
+      },
+      "protectedChanges": [
+        "AGENTS.md"
+      ],
+      "protectedBytesChanged": true,
+      "postBackupEditSurvived": false,
+      "fenceIntactAfter": null,
+      "conclusion": "LEGACY_MUTATION_OBSERVED__NOT_SAFE"
+    },
+    {
+      "scenario": "dead-pid-file-lock",
+      "mode": "baseline",
+      "command": {
+        "args": [
+          "rollback",
+          "/tmp/vcp-old-cli-fence-linux-LvoJbJ/projects/dead-pid-file-lock"
+        ],
+        "exitCode": 0,
+        "signal": null
+      },
+      "protectedChanges": [
+        ".vcp/manifest.json",
+        ".vcp/update.lock",
+        "AGENTS.md"
+      ],
+      "protectedBytesChanged": true,
+      "postBackupEditSurvived": false,
+      "fenceIntactAfter": null,
+      "conclusion": "LEGACY_MUTATION_OBSERVED__NOT_SAFE"
+    },
+    {
+      "scenario": "separate-lifecycle-lock",
+      "mode": "baseline",
+      "command": {
+        "args": [
+          "rollback",
+          "/tmp/vcp-old-cli-fence-linux-LvoJbJ/projects/separate-lifecycle-lock"
+        ],
+        "exitCode": 0,
+        "signal": null
+      },
+      "protectedChanges": [
+        ".vcp/manifest.json",
+        "AGENTS.md"
+      ],
+      "protectedBytesChanged": true,
+      "postBackupEditSurvived": false,
+      "fenceIntactAfter": null,
+      "conclusion": "LEGACY_MUTATION_OBSERVED__NOT_SAFE"
+    },
+    {
+      "scenario": "directory-sentinel-rollback",
+      "mode": "baseline",
+      "command": {
+        "args": [
+          "rollback",
+          "/tmp/vcp-old-cli-fence-linux-LvoJbJ/projects/directory-sentinel-rollback"
+        ],
+        "exitCode": 1,
+        "signal": null
+      },
+      "protectedChanges": [],
+      "protectedBytesChanged": false,
+      "postBackupEditSurvived": true,
+      "fenceIntactAfter": null,
+      "conclusion": "NO_PROTECTED_BYTES_CHANGED_IN_ONE_FIXTURE_ONLY"
+    },
+    {
+      "scenario": "directory-sentinel-update",
+      "mode": "baseline",
+      "command": {
+        "args": [
+          "update",
+          "/tmp/vcp-old-cli-fence-linux-LvoJbJ/projects/directory-sentinel-update",
+          "--offline"
+        ],
+        "exitCode": 1,
+        "signal": null
+      },
+      "protectedChanges": [],
+      "protectedBytesChanged": false,
+      "postBackupEditSurvived": true,
+      "fenceIntactAfter": null,
+      "conclusion": "NO_PROTECTED_BYTES_CHANGED_IN_ONE_FIXTURE_ONLY"
+    },
+    {
+      "scenario": "directory-sentinel-manage",
+      "mode": "baseline",
+      "command": {
+        "args": [
+          "manage",
+          "ignore",
+          "AGENTS.md",
+          "--dir",
+          "/tmp/vcp-old-cli-fence-linux-LvoJbJ/projects/directory-sentinel-manage"
+        ],
+        "exitCode": 1,
+        "signal": null
+      },
+      "protectedChanges": [],
+      "protectedBytesChanged": false,
+      "postBackupEditSurvived": true,
+      "fenceIntactAfter": null,
+      "conclusion": "NO_PROTECTED_BYTES_CHANGED_IN_ONE_FIXTURE_ONLY"
+    },
+    {
+      "scenario": "fresh-malformed-lock",
+      "mode": "baseline",
+      "command": {
+        "args": [
+          "rollback",
+          "/tmp/vcp-old-cli-fence-linux-LvoJbJ/projects/fresh-malformed-lock"
+        ],
+        "exitCode": 1,
+        "signal": null
+      },
+      "protectedChanges": [],
+      "protectedBytesChanged": false,
+      "postBackupEditSurvived": true,
+      "fenceIntactAfter": null,
+      "conclusion": "NO_PROTECTED_BYTES_CHANGED_IN_ONE_FIXTURE_ONLY"
+    },
+    {
+      "scenario": "aged-malformed-lock",
+      "mode": "baseline",
+      "command": {
+        "args": [
+          "rollback",
+          "/tmp/vcp-old-cli-fence-linux-LvoJbJ/projects/aged-malformed-lock"
+        ],
+        "exitCode": 0,
+        "signal": null
+      },
+      "protectedChanges": [
+        ".vcp/manifest.json",
+        ".vcp/update.lock",
+        "AGENTS.md"
+      ],
+      "protectedBytesChanged": true,
+      "postBackupEditSurvived": false,
+      "fenceIntactAfter": null,
+      "conclusion": "LEGACY_MUTATION_OBSERVED__NOT_SAFE"
+    },
+    {
+      "scenario": "intact-v2-old-init",
+      "mode": "baseline",
+      "command": {
+        "args": [
+          "init",
+          "/tmp/vcp-old-cli-fence-linux-LvoJbJ/projects/intact-v2-old-init",
+          "--yes",
+          "--no-github",
+          "--force"
+        ],
+        "exitCode": 1,
+        "signal": null
+      },
+      "protectedChanges": [],
+      "protectedBytesChanged": false,
+      "postBackupEditSurvived": true,
+      "fenceIntactAfter": null,
+      "conclusion": "NO_PROTECTED_BYTES_CHANGED_IN_ONE_FIXTURE_ONLY"
+    },
+    {
+      "scenario": "deleted-manifest-old-init",
+      "mode": "baseline",
+      "command": {
+        "args": [
+          "init",
+          "/tmp/vcp-old-cli-fence-linux-LvoJbJ/projects/deleted-manifest-old-init",
+          "--yes",
+          "--no-github",
+          "--force"
+        ],
+        "exitCode": 0,
+        "signal": null
+      },
+      "protectedChanges": [
+        ".vcp/manifest.json",
+        "AGENTS.md"
+      ],
+      "protectedBytesChanged": true,
+      "postBackupEditSurvived": false,
+      "fenceIntactAfter": null,
+      "conclusion": "LEGACY_MUTATION_OBSERVED__NOT_SAFE"
+    },
+    {
+      "scenario": "deleted-manifest-directory-sentinel-old-init",
+      "mode": "baseline",
+      "command": {
+        "args": [
+          "init",
+          "/tmp/vcp-old-cli-fence-linux-LvoJbJ/projects/deleted-manifest-directory-sentinel-old-init",
+          "--yes",
+          "--no-github",
+          "--force"
+        ],
+        "exitCode": 0,
+        "signal": null
+      },
+      "protectedChanges": [
+        ".vcp/manifest.json",
+        "AGENTS.md"
+      ],
+      "protectedBytesChanged": true,
+      "postBackupEditSurvived": false,
+      "fenceIntactAfter": null,
+      "conclusion": "LEGACY_MUTATION_OBSERVED__NOT_SAFE"
+    },
+    {
+      "scenario": "corrupt-manifest-old-init",
+      "mode": "baseline",
+      "command": {
+        "args": [
+          "init",
+          "/tmp/vcp-old-cli-fence-linux-LvoJbJ/projects/corrupt-manifest-old-init",
+          "--yes",
+          "--no-github",
+          "--force"
+        ],
+        "exitCode": 1,
+        "signal": null
+      },
+      "protectedChanges": [],
+      "protectedBytesChanged": false,
+      "postBackupEditSurvived": true,
+      "fenceIntactAfter": null,
+      "conclusion": "NO_PROTECTED_BYTES_CHANGED_IN_ONE_FIXTURE_ONLY"
+    },
+    {
+      "scenario": "corrupt-manifest-old-rollback",
+      "mode": "baseline",
+      "command": {
+        "args": [
+          "rollback",
+          "/tmp/vcp-old-cli-fence-linux-LvoJbJ/projects/corrupt-manifest-old-rollback"
+        ],
+        "exitCode": 0,
+        "signal": null
+      },
+      "protectedChanges": [
+        ".vcp/manifest.json",
+        "AGENTS.md"
+      ],
+      "protectedBytesChanged": true,
+      "postBackupEditSurvived": false,
+      "fenceIntactAfter": null,
+      "conclusion": "LEGACY_MUTATION_OBSERVED__NOT_SAFE"
+    },
+    {
+      "scenario": "old-new-concurrent",
+      "mode": "baseline",
+      "command": {
+        "args": [
+          "rollback",
+          "/tmp/vcp-old-cli-fence-linux-LvoJbJ/projects/old-new-concurrent"
+        ],
+        "exitCode": 0,
+        "signal": null
+      },
+      "protectedChanges": [
+        ".vcp/manifest.json",
+        "AGENTS.md"
+      ],
+      "protectedBytesChanged": true,
+      "postBackupEditSurvived": false,
+      "fenceIntactAfter": null,
+      "conclusion": "LEGACY_MUTATION_OBSERVED__NOT_SAFE"
+    },
+    {
+      "scenario": "crash-restart-old-rollback",
+      "mode": "baseline",
+      "command": {
+        "args": [
+          "/tmp/vcp-old-cli-fence-linux-LvoJbJ/unpacked/package/bin/vibe-coding-production.mjs",
+          "rollback",
+          "/tmp/vcp-old-cli-fence-linux-LvoJbJ/projects/crash-restart-old-rollback"
+        ],
+        "exitCode": 0,
+        "signal": "SIGKILL"
+      },
+      "protectedChanges": [
+        ".vcp/manifest.json",
+        "AGENTS.md"
+      ],
+      "protectedBytesChanged": true,
+      "postBackupEditSurvived": false,
+      "fenceIntactAfter": null,
+      "conclusion": "LEGACY_MUTATION_OBSERVED__NOT_SAFE",
+      "restart": {
+        "exitCode": 0,
+        "signal": null
+      }
+    },
+    {
+      "scenario": "symlink-vcp-old-init",
+      "mode": "baseline",
+      "command": {
+        "args": [
+          "init",
+          "/tmp/vcp-old-cli-fence-linux-LvoJbJ/projects/symlink-vcp-old-init",
+          "--yes",
+          "--no-github",
+          "--force"
+        ],
+        "exitCode": 1,
+        "signal": null
+      },
+      "protectedChanges": [
+        "AGENTS.md"
+      ],
+      "protectedBytesChanged": true,
+      "postBackupEditSurvived": false,
+      "fenceIntactAfter": null,
+      "conclusion": "LEGACY_MUTATION_OBSERVED__NOT_SAFE"
+    },
+    {
+      "scenario": "parent-swap-mid-transaction",
+      "mode": "baseline",
+      "command": {
+        "args": [
+          "/tmp/vcp-old-cli-fence-linux-LvoJbJ/unpacked/package/bin/vibe-coding-production.mjs",
+          "rollback",
+          "/tmp/vcp-old-cli-fence-linux-LvoJbJ/projects/parent-swap-mid-transaction"
+        ],
+        "exitCode": 0,
+        "signal": null
+      },
+      "protectedChanges": [
+        ".vcp/manifest.json",
+        "AGENTS.md"
+      ],
+      "protectedBytesChanged": true,
+      "postBackupEditSurvived": false,
+      "fenceIntactAfter": null,
+      "conclusion": "LEGACY_MUTATION_OBSERVED__NOT_SAFE",
+      "swapNote": "swap-and-restore-ok"
+    }
+  ],
+  "summary": {
+    "baselineScenarios": 19,
+    "baselineProtectedMutations": 13,
+    "fencedScenarios": 0,
+    "fenceBreaches": 0
+  },
+  "gate": "INCONCLUSIVE"
+}
