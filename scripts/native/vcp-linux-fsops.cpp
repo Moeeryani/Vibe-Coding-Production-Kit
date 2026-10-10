@@ -317,8 +317,10 @@ static int op_write_file_sync(int rootfd, const std::string& rel,
 }
 
 static int do_rename(int rootfd, const std::string& src,
-                     const std::string& dst, bool noreplace) {
-  const std::string op = noreplace ? "rename-noreplace" : "rename-replace";
+                     const std::string& dst, bool noreplace,
+                     bool exchange = false) {
+  const std::string op = exchange ? "rename-exchange" :
+    noreplace ? "rename-noreplace" : "rename-replace";
   std::string why;
   Resolved a = resolve_parent(rootfd, src, why);
   if (a.dirfd < 0) return fail_usage(op, why);
@@ -329,7 +331,12 @@ static int do_rename(int rootfd, const std::string& src,
     return fail_usage(op, "cannot rename the root itself");
   }
   long r;
-  if (noreplace) {
+  if (exchange) {
+    // Stage13 existing-user-document swap: the displaced inode is retained
+    // at the exact staged name, not overwritten or unlinked. No emulation.
+    r = syscall(SYS_renameat2, a.dirfd, a.name.c_str(), b.dirfd,
+                b.name.c_str(), RENAME_EXCHANGE);
+  } else if (noreplace) {
     r = syscall(SYS_renameat2, a.dirfd, a.name.c_str(), b.dirfd,
                 b.name.c_str(), RENAME_NOREPLACE);
   } else {
@@ -600,7 +607,8 @@ static void usage() {
       "usage: vcp-linux-fsops --root ABS --op OP [args]\n"
       "   or: vcp-linux-fsops --probe-dir ABS --op probe\n"
       "ops: mkdir-sync <rel> [mode] | write-file-sync <rel> [mode] < stdin\n"
-      "     rename-noreplace <src> <dst> | rename-replace <src> <dst>\n"
+      "     rename-noreplace <src> <dst> | rename-replace <src> <dst> |\n"
+      "     rename-exchange <src> <dst>\n"
       "     unlink-sync <rel> | rmdir-sync <rel> | fsync-dir <rel> |\n"
       "     list-names <rel> | stat-id <rel> | get-flags <rel> |\n"
       "     set-immutable <rel> | clear-immutable <rel>\n";
@@ -638,6 +646,8 @@ int main(int argc, char** argv) {
     rc = do_rename(rootfd, args[0], args[1], true);
   else if (op == "rename-replace" && args.size() == 2)
     rc = do_rename(rootfd, args[0], args[1], false);
+  else if (op == "rename-exchange" && args.size() == 2)
+    rc = do_rename(rootfd, args[0], args[1], false, true);
   else if (op == "unlink-sync" && args.size() == 1)
     rc = op_unlink_sync(rootfd, args[0], false);
   else if (op == "rmdir-sync" && args.size() == 1)
