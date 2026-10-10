@@ -57,8 +57,8 @@ export async function inspectStage12ReadOnlyContract(){
     const names=await readdir(path.join(root,dir));
     for(const name of names.filter(n=>n.endsWith('.mjs'))){
       const source=await load(dir+'/'+name);
-      if(source.includes("from '../test/helpers/legacy-v1-fixture.mjs'")||
-         source.includes("from './test/helpers/legacy-v1-fixture.mjs'"))
+      if(source.split('\n').some(line=>
+        /^\s*import\s+.*\bfrom\s+['"][^'"]*legacy-v1-fixture\.mjs['"]/.test(line)))
         deny('test-only v1 fixture imported by production source: '+dir+'/'+name);
     }
   }
