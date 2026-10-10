@@ -87,7 +87,7 @@ test('Stage13 user post-apply edits and foreign backup always block rollback',()
 });
 test('byte-identical replacement from a different inode is not owned',()=>{
   const stolen=ids();
-  stolen.set('NEW.md',{dev:7,ino:999});
+  stolen.set('NEW.md',{dev:'7',ino:'999'});
   const report=classifyStage13RecoverySnapshot(journal(),{
     currentFiles:live(),currentIdentities:stolen,backups:backups()
   });
