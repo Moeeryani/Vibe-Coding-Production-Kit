@@ -130,6 +130,12 @@ export async function inspectStage12ReadOnlyContract(){
       deny('versioned recovery source lost shared bounded no-follow read: '+file);
     }
   }
+  const orphan=await load('lib/terminal-orphan-inspect.mjs');
+  if(!orphan.includes('retirementAuthorized:false')||
+    !orphan.includes('writeAuthorized:false')||
+    !orphan.includes('ORPHAN_LOCK_MANUAL_REVIEW_ONLY')) {
+    deny('orphaned terminal lock diagnosis has gained unsafe write authority');
+  }
   const dirs=['lib','bin','scripts'];
   for(const dir of dirs){
     const names=await readdir(path.join(root,dir));
