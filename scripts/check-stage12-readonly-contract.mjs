@@ -141,16 +141,21 @@ export async function inspectStage12ReadOnlyContract(){
   const legacyFence=await load('lib/legacy-writer-fence-contract.mjs');
   if(!legacyFence.includes('SHARED_OR_UNKNOWN_WRITER_IDENTITY')||
     !legacyFence.includes('PRIVILEGED_LEGACY_BINARY_NOT_BLOCKED')||
+    !legacyFence.includes('denialOrigin')||
+    !legacyFence.includes('MANDATORY_POLICY_UNPROVEN_')||
     !legacyFence.includes("gate:'NO_GO',mutationAuthorized:false,approved:false")) {
     deny('D-01 evaluator incorrectly grants in-process old-CLI authority');
   }
   const terminalRetire=await load('lib/terminal-retirement-v2.mjs');
   const windowsProbe=await load('scripts/native/stage12-windows-namespace-probe.cpp');
+  const noReplace=await load('lib/native-no-replace.mjs');
   if(!terminalRetire.includes('assertManagedMigrationGate();')||
-    !terminalRetire.includes('await rename(state,archive)')||
+    !terminalRetire.includes('await moveDirectoryNoReplace({source:state,destination:archive,root})')||
     !terminalRetire.includes('if(typeof onDetached')||
     !greenRecovery.includes('onDetached:()=>{retired=true;}')||
     greenRecovery.includes('await clearVersionedJournal(root,')||
+    !noReplace.includes('E_NATIVE_NOREPLACE_UNAVAILABLE')||
+    !noReplace.includes('requiresNoReparseTraversal:true')||
     !windowsProbe.includes('MOVEFILE_WRITE_THROUGH')||
     !windowsProbe.includes('isDurabilityAttestation')||
     !windowsProbe.includes('requiresIndependentCrashAndPowerLossProof')) {
