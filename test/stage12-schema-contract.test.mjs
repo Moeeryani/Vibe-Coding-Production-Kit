@@ -74,6 +74,51 @@ test('legacy manifest refuses unrecognized behavior fields and redirected baseli
   });
 });
 
+test('conversion refuses unknown historical v1 authority rather than dropping it',()=>{
+  const invalid=legacy();
+  invalid.install.futurePermission='unsafe';
+  assert.throws(()=>previewV1ToV2(invalid,{readerVersion:READER}),{
+    code:'E_V1_UNENUMERATED_INSTALL_FIELD'
+  });
+  const extra=legacy();
+  extra.unknownTopLevelBehavior=true;
+  assert.throws(()=>previewV1ToV2(extra,{readerVersion:READER}),{
+    code:'E_V1_UNENUMERATED_ROOT_FIELD'
+  });
+});
+
+test('v1 owned and ignored paths refuse portable aliases and parent collisions',()=>{
+  for(const ignoredFiles of [
+    ['agents.md'],
+    ['docs/Readme.md','docs/readme.md'],
+    ['AGENTS.md/child.md'],
+    ['docs','docs/child.md']
+  ]) {
+    const input=legacy();
+    input.ignoredFiles=ignoredFiles;
+    assert.throws(()=>validateLegacyManifestFields(input),{
+      code:'E_V1_PATH_COLLISION'
+    });
+    assert.throws(()=>previewV1ToV2(input,{readerVersion:READER}),{
+      code:'E_V1_PATH_COLLISION'
+    });
+  }
+});
+
+test('v2 owned and ignored paths refuse parent-child aliases',()=>{
+  const manifest=previewV1ToV2(legacy(),{readerVersion:READER});
+  for(const ignoredFiles of [
+    ['AGENTS.md/child.md'],
+    ['agents.md/child.md']
+  ]) {
+    const invalid=structuredClone(manifest);
+    invalid.ignoredFiles=ignoredFiles;
+    assert.throws(()=>validateAdaptiveManifest(invalid,{readerVersion:READER}),{
+      code:'E_MANAGED_CASE_COLLISION'
+    });
+  }
+});
+
 test('v2 validator rejects unknown fields at root, install, file and ownership',()=>{
   const original=previewV1ToV2(legacy(),{readerVersion:READER});
   for(const mutate of [
