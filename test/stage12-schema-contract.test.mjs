@@ -133,6 +133,24 @@ test('v2 validator rejects unknown fields at root, install, file and ownership',
   }
 });
 
+test('schema-v2 is never advertised as readable by published 0.9.3',()=>{
+  assert.throws(()=>previewV1ToV2(legacy(),{readerVersion:'0.9.3'}),{
+    code:'E_ADAPTIVE_MINIMUM_READER'
+  });
+  const manifest=previewV1ToV2(legacy(),{readerVersion:READER});
+  manifest.minimumReaderVersion='0.9.3';
+  assert.throws(()=>validateAdaptiveManifest(manifest,{readerVersion:READER}),{
+    code:'E_ADAPTIVE_MINIMUM_READER'
+  });
+  const backup=oldManagedBackup();
+  assert.throws(()=>decodeBackupMetadata({
+    ...backup,minimumReaderVersion:'0.9.3'
+  },{readerVersion:READER}),{code:'E_BACKUP_FORMAT'});
+  assert.throws(()=>decodeManagedTransaction({
+    ...journal(),minimumReaderVersion:'0.9.3'
+  },{readerVersion:READER}),{code:'E_TRANSACTION_FORMAT'});
+});
+
 test('v2 reader blocks older reader and missing or malformed ownership metadata',()=>{
   const manifest=previewV1ToV2(legacy(),{readerVersion:READER});
   assert.throws(()=>validateAdaptiveManifest(manifest,{readerVersion:'0.9.3'}),{
