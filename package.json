@@ -24,12 +24,11 @@
     "check": "node scripts/check-syntax.mjs",
     "test": "node --test",
     "test:cli": "node --test test/cli.test.mjs",
-    "validate": "node scripts/validate-framework.mjs && npm run check && npm test",
+    "validate": "node scripts/validate-framework.mjs && npm run check && npm run check:stage12-contract && npm test",
     "pack:check": "npm pack --dry-run",
     "doctor": "node bin/vibe-coding-production.mjs doctor .",
     "prepublishOnly": "npm run validate",
-    "adaptive:contracts": "node scripts/check-adaptive-contracts.mjs",
-    "adaptive:local-gates": "node scripts/run-adaptive-local-gates.mjs"
+    "check:stage12-contract": "node scripts/check-stage12-readonly-contract.mjs"
   },
   "engines": {
     "node": ">=22"
