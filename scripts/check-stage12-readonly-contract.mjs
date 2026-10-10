@@ -97,6 +97,7 @@ export async function inspectStage12ReadOnlyContract(){
   if(checkpointAt<0||backupDeleteAt<0||checkpointAt>=backupDeleteAt||
     !terminalPlanner.includes("classification:'TERMINAL_CLEANUP_CANDIDATE'")||
     !terminalPlanner.includes('CREATED_FILE_STILL_PRESENT')||
+    !terminalPlanner.includes('CREATED_DIRECTORY_STILL_PRESENT')||
     !terminalPlanner.includes('MAX_PLAN_FILE_BYTES=64*1024*1024')||
     !terminalPlanner.includes('plannedFileAbsent(root,entry.path)')||
     !terminalReader.includes('cleanupBackupHash')||
