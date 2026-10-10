@@ -28,6 +28,19 @@ async function setupTree(root){
   await writeFile(path.join(root,'docs/nested/owned.md'),'expected\n');
 }
 
+test('recovery inventory refuses portable case aliases and file ancestors',()=>{
+  for(const ledger of [
+    ['docs/Readme.md','docs/readme.md'],
+    ['docs/owner','docs/owner/child.md'],
+    ['.vcp/UPDATE.LOCK']
+  ]) {
+    assert.throws(()=>describeRecoveryOwnedTree('owned-1',ledger),{
+      code:ledger[1]?.endsWith('child.md')
+        ?'E_INVENTORY_FILE_DIRECTORY_COLLISION':'E_INVENTORY_LEDGER_PATH'
+    });
+  }
+});
+
 test('rollback inventory recognizes strictly enumerated nested files only',async t=>{
   const root=await sandbox(t);
   await setupTree(root);
