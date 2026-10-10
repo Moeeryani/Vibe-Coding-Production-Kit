@@ -89,6 +89,18 @@ export async function inspectStage12ReadOnlyContract(){
     !greenRecovery.includes('await syncContainingDirectory(data.file);')) {
     deny('first-init recovery lost its pre-deletion journal or durable unlink');
   }
+  const terminalPlanner=await load('lib/greenfield-recovery-plan.mjs');
+  const terminalReader=await load('lib/managed-recovery-v2.mjs');
+  const phaseWriter=await load('lib/versioned-journal.mjs');
+  const checkpointAt=greenRecovery.indexOf("phase:'cleanup'");
+  const backupDeleteAt=greenRecovery.indexOf('await unlinkMatching(root,metadataRel');
+  if(checkpointAt<0||backupDeleteAt<0||checkpointAt>=backupDeleteAt||
+    !terminalPlanner.includes("classification:'TERMINAL_CLEANUP_CANDIDATE'")||
+    !terminalPlanner.includes('CREATED_FILE_STILL_PRESENT')||
+    !terminalReader.includes('cleanupBackupHash')||
+    !phaseWriter.includes("recovering:['cleanup']")) {
+    deny('restartable terminal greenfield control cleanup proof is missing');
+  }
   const dirs=['lib','bin','scripts'];
   for(const dir of dirs){
     const names=await readdir(path.join(root,dir));
