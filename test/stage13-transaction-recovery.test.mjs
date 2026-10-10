@@ -33,8 +33,8 @@ function journal(phase='applying') {
 }
 const live=()=>new Map([['NEW.md',content],['AGENTS.md',section.document]]);
 const backups=()=>new Map([['AGENTS.md',old]]);
-const ids=()=>new Map([['NEW.md',{dev:7,ino:9}],
-  ['AGENTS.md',{dev:7,ino:10}]]);
+const ids=()=>new Map([['NEW.md',{dev:'7',ino:'9'}],
+  ['AGENTS.md',{dev:'7',ino:'10'}]]);
 test('Stage13 journal only accepts authenticated adoption ledger and phases',()=>{
   const first=journal('snapshotted');
   const ready=journal('staged');
