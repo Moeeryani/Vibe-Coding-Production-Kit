@@ -1,0 +1,65 @@
+{
+  "id": "D-03",
+  "status": "ACCEPTED",
+  "owner": "Moeeryani",
+  "decidedAtUtc": "2026-10-10T19:02:43Z",
+  "approvalEvidence": "Explicit maintainer approval in project ChatGPT conversation at 2026-10-10T19:02:43Z: approves D-02,D-03,D-04,D-05,D-06,D-12 per recommendations and requests original full Stage12. No D-01 GO authorization.",
+  "chosenOption": "Deny untrusted symlinks, in-root links, native Windows junctions/reparse points and linked parent components; purpose-aware read-existing, write-new and managed-state paths, explicit reviewed exceptions only; no claim of race freedom from lstat.",
+  "rejectedAlternatives": [
+    {
+      "option": "Allow in-root symlinks by default or prefix-string-only confinement",
+      "reason": "Allows untrusted link targets and changing path ancestry to defeat selected-root boundaries."
+    }
+  ],
+  "rationale": "Observed filesystem paths, even inside the root, do not confer mutation or data-access authority.",
+  "implementationPR": "https://github.com/Moeeryani/Vibe-Coding-Production-Kit/pull/96",
+  "provingTests": [
+    "test/safe-path.test.mjs",
+    "test/stage12-preview-security.test.mjs",
+    "test/stage12-doctor-paths.test.mjs",
+    "pending native Windows junction and race conformance"
+  ],
+  "affectedLocations": [
+    {
+      "path": "docs/ADAPTIVE-VCP-IMPLEMENTATION-PLAN.md",
+      "heading": "### Core detector filesystem trust",
+      "requiredText": "Common path trust primitive (C-11)"
+    },
+    {
+      "path": "docs/ADAPTIVE-VCP-CODE-INTEGRATION-ANALYSIS.md",
+      "heading": "## 7.2 Prompt resolution must change first",
+      "requiredText": "resolveProjectPath"
+    },
+    {
+      "path": "docs/ADAPTIVE-VCP-CODE-INTEGRATION-ANALYSIS.md",
+      "heading": "## 9.4A Detector DSL resource and path contract",
+      "requiredText": "symlink targets cannot confer capability evidence"
+    },
+    {
+      "path": "docs/tasks/stage12-safe-adoption-planning.md",
+      "heading": "## Acceptance criteria",
+      "requiredText": "AC-010 (D-03 PROPOSED): Common purpose-aware read-existing/write-new/managed-state path policy"
+    },
+    {
+      "path": "docs/ROADMAP.md",
+      "heading": "#### #73 — Concurrent local filesystem replacement TOCTOU",
+      "requiredText": "D-03 (PROPOSED):"
+    },
+    {
+      "path": "docs/CLI.md",
+      "heading": "## Safety behavior",
+      "requiredText": "D-03 (PROPOSED future Stage12 path contract)"
+    },
+    {
+      "path": "docs/UPDATES.md",
+      "heading": "## Safety boundaries",
+      "requiredText": "D-03 (PROPOSED future Stage12 trust policy)"
+    },
+    {
+      "path": "docs/decisions/stage12-p0-review-packet-20261010.md",
+      "heading": "## D-03 — selected-root path trust",
+      "requiredText": "deny untrusted symlink"
+    }
+  ],
+  "acceptanceCaveat": "DESIGN_DECISION_ACCEPTED_ONLY; required-anchors coverageReview PENDING independent maintainer review, runtime conformance and exact-final-head receipt not completed. No D-01 writer permission."
+}
