@@ -267,6 +267,35 @@ test('committed journal cleanup requires valid operation-matched v2 state',()=>{
   ])assert.throws(mismatch,{code:'E_COMMITTED_STATE_UNPROVEN'});
 });
 
+test('terminal journal cannot clear while project or backup controls survive',async()=>{
+  const {assertTerminalJournalClearance}=
+    await import('../lib/versioned-journal.mjs');
+  const tx=decodeManagedTransaction(describeVersionedTransaction({
+    operationId:'cleanup-lock',backupId:'cleanup-lock',operation:'init',
+    phase:'cleanup',minimumReaderVersion:READER,
+    startedAt:'2026-10-10T00:00:00Z',
+    createdFiles:[
+      {path:'.vcp/manifest.json',hash:DIGEST},
+      {path:'.vcp/.gitignore',hash:DIGEST}
+    ],cleanupBackupHash:TARGET
+  }),{readerVersion:READER});
+  const exact={rootEntries:['.vcp'],
+    stateEntries:['update.lock','transaction.json']};
+  assert.equal(assertTerminalJournalClearance(tx,exact).terminalRootProved,true);
+  for(const probe of [
+    {...exact,rootEntries:['.vcp','AGENTS.md']},
+    {...exact,stateEntries:['update.lock','transaction.json','backups']},
+    {...exact,stateEntries:['transaction.json']},
+    {...exact,stateEntries:['transaction.json','rogue.lock']},
+    {...exact,rootEntries:['.vcp','docs']},
+    {...exact,stateEntries:undefined}
+  ]) {
+    assert.throws(()=>assertTerminalJournalClearance(tx,probe),{
+      code:'E_JOURNAL_TERMINAL_NOT_EMPTY'
+    });
+  }
+});
+
 test('journal transition enforces exact ownership and terminal phase ordering',async()=>{
   const {assertVersionedJournalTransition}=
     await import('../lib/versioned-journal.mjs');
