@@ -388,3 +388,34 @@ The detailed proof boundaries and Microsoft reference links are in
 requirements remain in force. D-01/G-FENCE is NO-GO, coverage reviews
 are PENDING. No tests, native executable, main merge or publication
 were run in this construction pass.
+
+## New no-replace/old-writer hardening — construction only
+
+After `f4e449c359bd512c3036522a33f839251c753590`
+and `d74487ae6d04e4512fa9894a5603a55710431b5a`:
+
+- Replaced an unsafe `lstat(target)` + Node `rename(source,target)`
+  terminal-archive sequence with a **fail-closed native no-replace
+  interface**. The interface validates a project-root source, exact
+  sibling archive naming shape and backup-ID/random suffix, and throws
+  `E_NATIVE_NOREPLACE_UNAVAILABLE` without a reviewed kernel provider.
+  It never silently falls back to overwrite-capable rename.
+- Hardened the D-01 candidate evaluator to require distinct security
+  identities, OS mandatory access policy and digest-bound native denial
+  receipts for every old-binary lifecycle scenario. It still has
+  **NO-GO authority only** and cannot independently validate self-reported
+  logs or policies.
+- Authored native disposable Windows collision-denial and Linux
+  `renameat2(RENAME_NOREPLACE)` probes, and source/negative tests.
+  **Neither diagnostic was compiled or executed.** Neither proves
+  power-loss persistence or supplies the shipping OS provider.
+
+**Blocking status remains unchanged:** genuine executable-policy
+enforcement against published 0.9.3, approved D-01, native Windows NTFS
+durability provider, no-replace native terminal evidence relocation and
+OS confinement, orphan archive retention and complete independent
+crash/restart evidence are still outstanding. These require actual
+platform integration plus the later independently run test campaign;
+do not label a diagnostic result as AC acceptance. All earlier pending
+AC-001 through AC-016 remain pending. No main merge, publication or
+test execution occurred.
