@@ -167,11 +167,12 @@ async function backup(root, id, manifest, agent) {
   }, null, 2) + '\n');
 }
 
-async function fixture(bin, scratch, name) {
-  const root = path.join(scratch, 'projects', name);
+async function fixture(bin, scratch, name, mode = 'baseline') {
+  const root = path.join(scratch, 'projects', mode, name);
   await mkdir(root, { recursive: true });
   // umask-independent: the legacy principal must traverse the parents.
   await chmod(path.join(scratch, 'projects'), 0o755).catch(() => {});
+  await chmod(path.join(scratch, 'projects', mode), 0o755).catch(() => {});
   await chown(root, LEGACY_UID, LEGACY_GID);
   const init = sh(process.execPath, [bin, 'init', root, '--yes', '--no-github'],
     { cwd: root, uid: LEGACY_UID });
@@ -239,7 +240,7 @@ function scenarioArgs(bin, name, root) {
 }
 
 async function observe({ bin, scratch, name, mode, newCli }) {
-  const root = await fixture(bin, scratch, name);
+  const root = await fixture(bin, scratch, name, mode);
   let fenceReceipt = null, fenceIntactAfter = null;
   if (mode === 'fenced') {
     if (name === 'symlink-vcp-old-init') {
