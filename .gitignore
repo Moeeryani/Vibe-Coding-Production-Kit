@@ -6,3 +6,7 @@
 .env
 .env.*
 !.env.example
+
+# Stage 12 Linux native helper: build artifact, never committed
+# (build with: npm run build:native-linux)
+scripts/native/vcp-linux-fsops

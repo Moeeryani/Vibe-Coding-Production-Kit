@@ -175,6 +175,33 @@ export async function inspectStage12ReadOnlyContract(){
         deny('test-only v1 fixture imported by production source: '+dir+'/'+name);
     }
   }
+  // Linux P0 implementation tripwires (2026-10-11 pass): the new modules
+  // must keep their fail-closed, no-bypass, no-auto-delete invariants.
+  const [fence, detach, retention, provider] = await Promise.all([
+    load('lib/linux-legacy-fence.mjs'),
+    load('lib/terminal-detach-protocol.mjs'),
+    load('lib/terminal-archive-retention.mjs'),
+    load('lib/linux-fs-provider.mjs'),
+  ]);
+  if(!fence.includes('E_FENCE_PRIVILEGE_REQUIRED')||
+     !fence.includes('export async function verifyLegacyFence(')||
+     !fence.includes('E_FENCE_SYMLINK_REFUSED'))
+    deny('linux fence lost privilege-gating or symlink refusal');
+  if(!detach.includes('E_TERMINAL_SIBLING_SCOPE_APPROVAL_REQUIRED')||
+     !detach.includes("from './native-no-replace.mjs'")||
+     !detach.includes('E_TERMINAL_LOCK_CHANGED'))
+    deny('terminal detach lost scope approval or lock re-verification');
+  if(!retention.includes('neverAutoDelete:true')||
+     !retention.includes('E_PRUNE_APPROVAL_REQUIRED')||
+     !retention.includes('E_PRUNE_SYMLINK_REFUSED'))
+    deny('archive retention lost never-auto-delete or prune guards');
+  if(!provider.includes('E_CROSS_FILESYSTEM')||
+     !provider.includes('E_FS_NOREPLACE_UNSUPPORTED')||
+     !provider.includes('E_NATIVE_HELPER_MISSING'))
+    deny('linux fs provider lost fail-closed guarantees');
+  if(/from\s+['"]node:fs\/promises['"]/.test(noReplace) &&
+     noReplace.includes('rename('))
+    deny('no-replace regained an fs.rename fallback');
   return Object.freeze({status:'PASS_READ_ONLY_BOUNDARIES',
     gFence:'NO_GO',stage12FullAccepted:false,
     readOnlySubsetAccepted:false,

@@ -22,6 +22,7 @@
   ],
   "scripts": {
     "check": "node scripts/check-syntax.mjs",
+    "build:native-linux": "c++ -std=c++17 -Wall -Wextra -O2 -o scripts/native/vcp-linux-fsops scripts/native/vcp-linux-fsops.cpp",
     "test": "node --test",
     "test:cli": "node --test test/cli.test.mjs",
     "validate": "node scripts/validate-framework.mjs && npm run check && npm run check:stage12-contract && npm test",

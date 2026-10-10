@@ -1,0 +1,54 @@
+# AppArmor candidate profile for the D-01 Linux legacy-writer fence.
+#
+# STATUS: CANDIDATE — NOT proven in the Stage 12 sandbox (no LSM active).
+# This profile is shipped as reviewable source for a host with AppArmor
+# enforcement. It is never loaded or enforced by any Stage 12 code path.
+#
+# Intent: confine the published vibe-coding-production@0.9.3 binary so the
+# kernel denies its writes to protected project state even when it is
+# invoked with the writer principal's UID (the DAC residual risk).
+#
+# Installation (privileged operator, out of scope for Stage 12 automation):
+#   sudo cp vcp-legacy-fence.apparmor /etc/apparmor.d/vcp-old-cli-0.9.3
+#   sudo apparmor_parser -r /etc/apparmor.d/vcp-old-cli-0.9.3
+#
+# The profile must be bound to the exact authenticated 0.9.3 binary
+# (e.g. via an explicit ix/px transition in the launcher, or by placing
+# the extracted tarball at a fixed path and referencing it here).
+# Replace /opt/vcp-old-cli-0.9.3/** with the real deployment path.
+
+#include <tunables/global>
+
+/opt/vcp-old-cli-0.9.3/bin/vibe-coding-production.mjs {
+  #include <abstractions/base>
+
+  # Node runtime needs execute + shared libraries.
+  /usr/bin/node ix,
+  /usr/lib/** rm,
+  /proc/*/maps r,
+  /sys/devices/system/cpu/online r,
+
+  # Read-only access to the project tree: the old CLI may inspect but
+  # must never mutate protected state.
+  owner /home/*/.vcp/** r,
+  owner /home/*/AGENTS.md r,
+
+  # Deny (with explicit audit) every write-shaped access to protected
+  # state, regardless of the invoking UID.
+  audit deny owner /home/*/.vcp/** w,
+  audit deny owner /home/*/.vcp/** l,
+  audit deny owner /home/*/AGENTS.md w,
+  audit deny owner /home/*/AGENTS.md l,
+
+  # Scratch space for the confined process itself.
+  owner /tmp/vcp-old-cli-*/** rw,
+
+  deny network inet,
+  deny network inet6,
+  deny capability sys_admin,
+  deny capability dac_override,
+  deny capability linux_immutable,
+  deny mount,
+  deny remount,
+  deny pivot_root,
+}

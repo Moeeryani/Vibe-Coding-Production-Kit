@@ -1,0 +1,54 @@
+/* SELinux candidate module for the D-01 Linux legacy-writer fence.
+ *
+ * STATUS: CANDIDATE — NOT proven in the Stage 12 sandbox (no LSM active).
+ * Shipped as reviewable source for an SELinux-enforcing host. Never
+ * loaded by any Stage 12 code path.
+ *
+ * Intent: type-enforce the published vibe-coding-production@0.9.3 domain
+ * so the kernel denies its writes to protected project types even when
+ * the old binary runs under the writer UID (the DAC residual risk).
+ *
+ * Build (on an SELinux host with selinux-policy-devel):
+ *   checkmodule -M -m -o vcp_legacy_fence.mod vcp-legacy-fence.te
+ *   semodule_package -o vcp_legacy_fence.pp -m vcp_legacy_fence.mod
+ *   sudo semodule -i vcp_legacy_fence.pp
+ *
+ * The protected project tree must be labeled vcp_protected_t, e.g.:
+ *   sudo semanage fcontext -a -t vcp_protected_t "/srv/vcp-projects(/.*)?"
+ *   sudo restorecon -Rv /srv/vcp-projects
+ * The old 0.9.3 binary/domain transition is deployment-specific and must
+ * be bound to the authenticated archive (see .te notes below).
+ */
+
+policy_module(vcp_legacy_fence, 1.0.0)
+
+require {
+    type unconfined_t;
+    class file { read getattr open map execute };
+    class dir { read getattr open search };
+}
+
+/* New types introduced by this module. */
+type vcp_old_cli_t;
+type vcp_old_cli_exec_t;
+type vcp_protected_t;
+
+/* The old CLI domain may read (never write) protected project state. */
+allow vcp_old_cli_t vcp_protected_t:file { read getattr open map };
+allow vcp_old_cli_t vcp_protected_t:dir { read getattr open search };
+
+/* Explicitly no write/add_name/remove_name/create/unlink/rename rules:
+ * SELinux defaults to deny, so any write-shaped access by vcp_old_cli_t
+ * to vcp_protected_t is denied by the kernel with an AVC record. */
+
+/* Domain transition: bind ONLY the authenticated 0.9.3 executable.
+ * The executable file must be labeled vcp_old_cli_exec_t by the
+ * deployment (semanage fcontext on the exact tarball extraction path
+ * whose sha256 matches the published integrity receipt). */
+allow unconfined_t vcp_old_cli_exec_t:file { getattr read open map execute };
+type_transition unconfined_t vcp_old_cli_exec_t:process vcp_old_cli_t;
+allow unconfined_t vcp_old_cli_t:process transition;
+allow vcp_old_cli_t vcp_old_cli_exec_t:file { getattr read open map execute };
+
+/* The confined domain gets no dac_override / sys_admin: even a UID-0
+ * invocation confined to vcp_old_cli_t cannot bypass the type denial. */
