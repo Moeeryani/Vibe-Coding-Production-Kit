@@ -72,7 +72,10 @@ test('missing claim without stage or forensic archive must BLOCK',async t=>{
 });
 test('directory proof never treats absent namespace as safely removed',async t=>{
   const root=await fixture(t);
-  const record={path:'AGENTS.md',kind:'whole-file',oldSha256:null,
+  // A transaction-created directory must own at least one declared
+  // descendant. Keep the directory absent to test forensic refusal,
+  // but make the immutable WAL itself valid before calling inspector.
+  const record={path:'.github/owned.md',kind:'whole-file',oldSha256:null,
     stagedDev:'5',stagedIno:'8',
     newSha256:'d'.repeat(64),baselineSha256:'d'.repeat(64)};
   const dirs=[{path:'.github',kind:'stage13-created-directory',
