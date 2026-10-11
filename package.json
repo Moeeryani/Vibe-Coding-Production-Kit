@@ -31,7 +31,7 @@
     "prepublishOnly": "npm run validate",
     "check:stage12-contract": "node scripts/check-stage12-readonly-contract.mjs",
     "check:stage13-contract": "node scripts/check-stage13-construction-contract.mjs",
-    "test:stage13": "node --test test/stage13-bootstrap-crash.test.mjs test/stage13-cli-adoption.test.mjs test/stage13-committed-orphan.test.mjs test/stage13-directory-ownership.test.mjs test/stage13-init-gate.test.mjs test/stage13-materialize.test.mjs test/stage13-nested-recovery.test.mjs test/stage13-recovery-lock.test.mjs test/stage13-section-exchange.test.mjs test/stage13-transaction-recovery.test.mjs"
+    "test:stage13": "node --test test/stage13-bootstrap-crash.test.mjs test/stage13-cli-adoption.test.mjs test/stage13-committed-orphan.test.mjs test/stage13-directory-ownership.test.mjs test/stage13-init-gate.test.mjs test/stage13-materialize.test.mjs test/stage13-native-exchange.test.mjs test/stage13-nested-recovery.test.mjs test/stage13-recovery-lock.test.mjs test/stage13-section-exchange.test.mjs test/stage13-transaction-recovery.test.mjs"
   },
   "engines": {
     "node": ">=22"
