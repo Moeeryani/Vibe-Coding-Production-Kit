@@ -832,3 +832,24 @@ A proposed read-only foundation is described in
 `docs/STAGE12-SAFE-SUBSET-ACCEPTANCE-PROPOSAL.md`; acceptance requires
 explicit maintainer ratification and exact-final-head receipts, and is not
 the same as completion of original AC-004/005/006 or an npm release.
+
+### 2026-10-11 Stage14 construction — Adaptive Phase 2, NOT an authorized checkpoint transition
+
+The maintainer requested that the team stop repetitive interim Stage12/13
+acceptance rounds and concentrate on full **Stage14 consumer asset separation**
+source construction. Tracking: [#103](https://github.com/Moeeryani/Vibe-Coding-Production-Kit/issues/103)
+and [draft PR #104](https://github.com/Moeeryani/Vibe-Coding-Production-Kit/pull/104).
+Stage14 is a **working label for the already planned Adaptive Phase 2**, not
+a new normative claim that Stage13 or Validation Checkpoint A was completed.
+The governing sequence in §15 remains binding.
+
+New safe asset surfaces use an explicit reviewed inventory, slim standing
+instructions, packaged runtime fallbacks and read-only legacy retirement
+planning; previous v1 migration/rollback inputs remain packaged. The source
+branch does not enable managed schema-v2 mutation, greenfield/brownfield
+writers, CI gates, npm publication, or changed release identity.
+
+**Current stage status: BUILD IN PROGRESS / UNTESTED; Checkpoint A PENDING
+and D-01 DEFERRED / G-FENCE NO-GO.** Exact-final-HEAD independent Linux/native
+Windows acceptance and the original Stage12/13 blockers remain required
+after the implementation is complete.

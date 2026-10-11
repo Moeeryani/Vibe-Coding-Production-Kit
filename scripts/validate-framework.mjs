@@ -23,6 +23,8 @@ const requiredFiles = [
   'docs/QUICKSTART.md',
   'docs/CONTEXT-PACKS.md',
   'docs/UPDATES.md',
+  'docs/CONSUMER-ASSET-SEPARATION.md',
+  'docs/STAGE14-ACCEPTANCE-MATRIX.md',
   'docs/product/PRODUCT-BRIEF.md',
   'docs/product/PRD.md',
   'docs/product/USER-FLOWS.md',
@@ -86,6 +88,17 @@ const providerMobileRequiredFiles = [
   'examples/mobile-react-native/test/unit.test.mjs',
   'examples/mobile-react-native/test/integration.test.mjs',
   'examples/mobile-react-native/test/e2e.test.mjs'
+];
+
+// Only required in the new Stage14 development source/package; this does
+// not require them in any installed consumer project.
+const providerStage14RequiredFiles = [
+  'lib/asset-catalog.mjs',
+  'lib/greenfield-routing.mjs',
+  'lib/consumer-asset-retirement-plan.mjs',
+  'lib/consumer-asset-health.mjs',
+  'scripts/check-stage14-construction-contract.mjs',
+  'docs/tasks/stage14-consumer-asset-separation.md'
 ];
 
 const excludedDirs = new Set(['.git', 'node_modules', '.vcp']);
@@ -168,12 +181,14 @@ const providerRuntimePresent = await existsNonEmpty('lib/prompt-eval.mjs');
 const providerReleasePresent = await existsNonEmpty('lib/release-check.mjs');
 const providerPluginPresent = await existsNonEmpty('lib/community-plugins.mjs');
 const providerMobilePresent = await existsNonEmpty('lib/stack-provenance.mjs');
+const providerStage14Present = await existsNonEmpty('lib/consumer-asset-retirement-plan.mjs');
 const effectiveRequiredFiles = [
   ...requiredFiles,
   ...(providerRuntimePresent ? providerRuntimeRequiredFiles : []),
   ...(providerReleasePresent ? providerReleaseRequiredFiles : []),
   ...(providerPluginPresent ? providerPluginRequiredFiles : []),
-  ...(providerMobilePresent ? providerMobileRequiredFiles : [])
+  ...(providerMobilePresent ? providerMobileRequiredFiles : []),
+  ...(providerStage14Present ? providerStage14RequiredFiles : [])
 ];
 
 for (const relative of effectiveRequiredFiles) {

@@ -438,3 +438,25 @@ Stage12 draft init `--force` is disabled. The published legacy CLI contract abov
 Node.js 22 or newer. The CLI has no runtime dependencies.
 
 See [`STACK-PROFILES.md`](STACK-PROFILES.md) for evidence-based React Native, JavaScript/Node.js, TypeScript, Python, and Go adaptation.
+
+## Stage14 source candidate — explicit consumer assets (NOT released)
+
+The draft `asset-plan` CLI is read-only:
+
+```bash
+vcp asset-plan . --asset-set greenfield-safe-v1 --json
+vcp asset-plan . --asset-set brownfield-minimal-v1 --json
+```
+
+This inspects a managed `legacy-full-v1` repository and reports exact
+manifest-owned `KEEP_CONSUMER`, `RETIRE_CANDIDATE`,
+`PRESERVE_USER_EDIT`, `RETAIN_ABSENT` or `CONFLICT` states. It does
+**not** write, detach, delete, overwrite, acquire a writer lock, infer consent,
+or lift D-01/G-FENCE. `--force`, `--yes`, `--run` and other mutation
+flags are refused. Missing/malformed lifecycle ownership blocks the
+inspection. The package still ships legacy files for previous-release
+rollback; these are not silently copied into new safe projects.
+
+See [Consumer Asset Separation](CONSUMER-ASSET-SEPARATION.md). Historical
+released v0.9.3 syntax above continues to describe the published CLI; this
+new entrypoint only exists on the unmerged development branch.
