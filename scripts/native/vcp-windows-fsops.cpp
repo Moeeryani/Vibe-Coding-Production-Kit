@@ -18,6 +18,10 @@
 // a marker in a folder. Full ACL/MAC isolation and durable namespace
 // semantics must be separately approved before any user-root integration.
 //
+// IMPORTANT: Handle-relative rename and disposition require DELETE-capable
+// file handles; they narrow pathname TOCTOU but do not make the remaining
+// create/mkdir calls descriptor-relative or the namespace power-loss durable.
+// Directory disposition is still a candidate to be checked on real NTFS.
 // IMPORTANT: Win32 completion, FlushFileBuffers(file), and even a successful
 // directory FlushFileBuffers do not prove journal/power-loss durability.
 // A failed directory flush is an explicit nonzero exit AFTER any completed
@@ -323,7 +327,10 @@ int wmain(int argc, wchar_t* argv[]) {
   std::vector<Handle> ancestorPins;
   if (!pinAncestorsNoRename(root, ancestorPins) ||
       !safeInventory(root)) return 3;
-  Handle rootHandle(CreateFileW(root.c_str(), FILE_READ_ATTRIBUTES,
+  // FILE_RENAME_INFO.RootDirectory is an actual target-directory handle.
+  // FILE_ADD_FILE authorizes creating the renamed directory entry there.
+  Handle rootHandle(CreateFileW(root.c_str(),
+      FILE_READ_ATTRIBUTES | FILE_ADD_FILE,
       FILE_SHARE_READ | FILE_SHARE_WRITE,
       nullptr, OPEN_EXISTING,
       FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, nullptr));
