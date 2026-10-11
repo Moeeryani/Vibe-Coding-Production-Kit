@@ -18,14 +18,31 @@ async function assertFixtureRoot(root){
   if(typeof root!=='string'||!root)refused('root required');
   const base=path.resolve(os.tmpdir()),selected=path.resolve(root);
   const within=path.relative(base,selected);
+  // The *sandbox*, not necessarily its nested selected project, must be
+  // an immediate vcp-* child of OS temp. Nested packages/api projects are
+  // legitimate, but no arbitrary sibling or outside root is trusted.
   if(!within||within==='..'||within.startsWith('..'+path.sep)||
-    path.isAbsolute(within)||!path.basename(selected).startsWith('vcp-'))
-    refused('must use a fresh vcp-* project inside OS temp');
-  // Trust no existing linked ancestor (including Windows junctions).
+    path.isAbsolute(within)||!within.split(path.sep)[0].startsWith('vcp-'))
+    refused('must use an existing project inside a vcp-* OS-temp sandbox');
+  const sandbox=path.join(base,within.split(path.sep)[0]);
+  // The caller must create the selected project directory, including every
+  // intended parent, *before* this helper runs. Never create an unproved
+  // nested directory as a side effect of fixture-root validation.
+  // Trust no linked ancestor (including Windows junctions).
   let at=selected;
   while(true){
-    const meta=await lstat(at);
-    if(meta.isSymbolicLink()||!meta.isDirectory())refused('linked or non-directory ancestor');
+    let meta;
+    try{meta=await lstat(at);}
+    catch(error){
+      if(error?.code==='ENOENT'||error?.code==='ENOTDIR')
+        refused('selected fixture project and ancestors must preexist');
+      throw error;
+    }
+    if(meta.isSymbolicLink()||!meta.isDirectory())
+      refused('linked or non-directory ancestor');
+    if(at===sandbox&&process.platform!=='win32'&&
+       typeof process.getuid==='function'&&meta.uid!==process.getuid())
+      refused('sandbox owned by another OS user');
     const parent=path.dirname(at);
     if(parent===at)break;
     at=parent;
