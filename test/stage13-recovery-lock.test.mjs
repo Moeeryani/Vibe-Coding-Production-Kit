@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,mkdir,rm,writeFile,readdir,readFile,unlink} from 'node:fs/promises';
+import {mkdtemp,mkdir,rm,writeFile,readdir,readFile,lstat} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import path from 'node:path';
 import os from 'node:os';
@@ -15,8 +15,10 @@ async function fixture(t,{pid=process.pid,lockId=id}={}) {
   t.after(()=>rm(root,{recursive:true,force:true}));
   await mkdir(path.join(root,'.vcp/backups',id),{recursive:true});
   await writeFile(path.join(root,'USER.txt'),'USER ORIGINAL BYTES');
+  const rootInfo=await lstat(root);
+  const rootIdentity=sha(Buffer.from(root+'|'+rootInfo.dev+'|'+rootInfo.ino));
   const journal=describeStage13Transaction({
-    id,rootIdentity:'b'.repeat(64),consentFingerprint:consent,
+    id,rootIdentity,consentFingerprint:consent,
     manifestSha256:'c'.repeat(64),minimumReaderVersion:'0.9.4',
     phase:'snapshotted',createdAt:'2026-10-11T00:00:00.000Z',
     items:[{path:'AGENTS.md',kind:'whole-file',oldSha256:null,
