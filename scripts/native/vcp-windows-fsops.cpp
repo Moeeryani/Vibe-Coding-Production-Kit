@@ -418,8 +418,10 @@ int wmain(int argc, wchar_t* argv[]) {
       !safeInventory(root)) return 3;
   // FILE_RENAME_INFO.RootDirectory is an actual target-directory handle.
   // FILE_ADD_FILE authorizes creating the renamed directory entry there.
+  const DWORD scratchRootAccess = FILE_READ_ATTRIBUTES |
+      (op == L"rename-no-replace" ? FILE_ADD_FILE : 0);
   Handle rootHandle(CreateFileW(root.c_str(),
-      FILE_READ_ATTRIBUTES | FILE_ADD_FILE,
+      scratchRootAccess,
       FILE_SHARE_READ | FILE_SHARE_WRITE,
       nullptr, OPEN_EXISTING,
       FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, nullptr));
