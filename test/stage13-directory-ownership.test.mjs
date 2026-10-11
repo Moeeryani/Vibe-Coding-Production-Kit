@@ -42,7 +42,7 @@ test('Stage13 existing .github parent creates only missing child subtree',async 
   assert.ok(plan.existingDirectories.has('.github'));
 });
 test('Stage13 never follows symlinked ancestor or claims foreign parent',async t=>{
-  if(process.platform==='win32')t.skip('native Windows junction test pending');
+  if(process.platform==='win32')t.skip('native Windows adoption-ancestor junction is exercised by test/stage13-windows-ntfs.test.mjs');
   const root=await disposable(t);
   await symlink(os.tmpdir(),path.join(root,'.github'));
   await assert.rejects(()=>inspectStage13DirectoryTopology(root,[

@@ -1,13 +1,15 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
+import os from 'node:os';
+import nodePath from 'node:path';
 import {assembleStage13Target} from '../lib/stage13-materialize.mjs';
 import {assessStage13Preview} from '../lib/stage13-brownfield-preflight.mjs';
 import {parseManagedSections} from '../lib/managed-markdown.mjs';
 
 const sha=x=>createHash('sha256').update(x).digest('hex');
 function selection(action='PROPOSE_SECTION') {
-  const path='AGENTS.md',root='/tmp/stage13-brownfield-test';
+  const path='AGENTS.md',root=nodePath.join(os.tmpdir(),'stage13-brownfield-test');
   const plan={root,planKind:'init',planVersion:1,zeroWrite:true,
     previewOnly:true,executionAuthorized:false,classification:'EXISTING',
     blocked:false,assetSet:'brownfield-minimal-v1',stack:'generic',
