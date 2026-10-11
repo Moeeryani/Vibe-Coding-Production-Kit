@@ -73,7 +73,7 @@ test('no-replace collision and invalid protocol have different mutation certaint
     response(receipt('rename-no-replace',{completed:false}),0),
     response(receipt('rename-no-replace',{mayHaveMutated:false}),0),
     response(receipt('rename-no-replace',{directoryFlushReturned:false}),0),
-    response(receipt('rename-no-replace',{protocolVersion:2}),0),
+    response(receipt('rename-no-replace',{protocolVersion:1}),0),
     response(receipt('rename-no-replace',{powerLossAttested:true}),0)
   ]) {
     assert.throws(()=>interpretWindowsScratchResult('rename-no-replace',invalid),e=>{
