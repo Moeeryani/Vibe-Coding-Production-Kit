@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {mkdtemp,mkdir,writeFile,readFile,rm,readdir} from 'node:fs/promises';
+import {mkdtemp,mkdir,writeFile,readFile,rm,readdir,lstat} from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import {buildManifest} from '../lib/state.mjs';
@@ -41,9 +41,11 @@ async function fixture(t) {
     consentFingerprint:consent,bootstrapPriorVcpAbsent:true,
     startedAt:new Date().toISOString()})+'\n';
   await writeFile(path.join(root,'.vcp/update.lock'),lock);
+  const rootInfo=await lstat(root);
+  const rootIdentity=sha(Buffer.from(root+'|'+rootInfo.dev+'|'+rootInfo.ino));
   await writeFile(path.join(root,'.vcp/backups',ID,'backup.json'),
     JSON.stringify({kind:'stage13-complete-recovery-point',formatVersion:3,
-      id:ID,previousVcpAbsent:true,rootIdentity:'b'.repeat(64),
+      id:ID,previousVcpAbsent:true,rootIdentity,
       consentFingerprint:consent,minimumReaderVersion:'0.9.4',
       manifestSha256:sha(manifestBytes),createdDirectories:[],
       items:[{path:'AGENTS.md',kind:'whole-file',oldSha256:null,
