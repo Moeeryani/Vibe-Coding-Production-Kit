@@ -1,0 +1,65 @@
+{
+  "planVersion": 1,
+  "planKind": "init",
+  "root": "/home/hatch/workspace/stage13-test/scratch/a1301-gdy69i",
+  "classification": "EXISTING",
+  "zeroWrite": true,
+  "previewOnly": true,
+  "applyStatus": "STAGE13_UNMANAGED_APPLY_REQUIRED",
+  "actions": [
+    {
+      "action": "CLAIM",
+      "path": "AGENTS.md",
+      "executionAuthorized": false,
+      "ownershipProposal": "whole-file"
+    }
+  ],
+  "skippedPaths": [],
+  "humanDecisionRequired": true,
+  "requestedIntent": {
+    "agent": {
+      "kind": "unspecified"
+    },
+    "stack": {
+      "kind": "unspecified"
+    },
+    "github": {
+      "kind": "unspecified"
+    }
+  },
+  "executionAuthorized": false,
+  "stack": "generic",
+  "assetSet": "brownfield-minimal-v1",
+  "assetSurface": {
+    "catalogVersion": 1,
+    "assetSet": "brownfield-minimal-v1",
+    "sourceWorkflowIncluded": false,
+    "githubScaffoldingIncluded": false,
+    "coreAgentFile": "AGENTS.md",
+    "brownfieldNonMutating": true
+  },
+  "stackEvidence": [],
+  "polyglot": false,
+  "observedAdapters": [],
+  "observedCompatibleAdapters": [],
+  "managedAdapterSurface": [],
+  "proposedManagedAdapterSurface": [],
+  "blocked": false,
+  "reason": null,
+  "githubIncludedInPlan": false,
+  "warnings": [],
+  "planSummary": {
+    "claim": 1,
+    "section": 0,
+    "conflicts": 0,
+    "preserve": 0
+  },
+  "stage13Consent": {
+    "intentFingerprint": "10e18a62f39c8fa1b3ad750fe231b07ac764be89835985f312977a2049e503b4",
+    "expectedActions": [
+      "CLAIM:AGENTS.md"
+    ],
+    "status": "EXPLICIT_ADOPTION_DECISION_REQUIRED",
+    "executionAuthorized": false
+  }
+}
