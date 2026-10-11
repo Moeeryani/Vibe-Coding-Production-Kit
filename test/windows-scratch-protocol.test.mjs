@@ -7,7 +7,7 @@ import {interpretWindowsScratchResult,windowsNativeCandidateStatus}
 
 function receipt(operation,overrides={}){
   return {kind:'VCP_WINDOWS_SCRATCH_NAMESPACE_CANDIDATE',
-    protocolVersion:2,operation,completed:true,
+    protocolVersion:3,operation,completed:true,
     fileFlushReturned:operation==='write-exclusive',
     mayHaveMutated:!['capabilities','sync-root'].includes(operation),
     directoryFlushReturned:true,lastWin32Error:0,
@@ -73,7 +73,7 @@ test('no-replace collision and invalid protocol have different mutation certaint
     response(receipt('rename-no-replace',{completed:false}),0),
     response(receipt('rename-no-replace',{mayHaveMutated:false}),0),
     response(receipt('rename-no-replace',{directoryFlushReturned:false}),0),
-    response(receipt('rename-no-replace',{protocolVersion:1}),0),
+    response(receipt('rename-no-replace',{protocolVersion:2}),0),
     response(receipt('rename-no-replace',{powerLossAttested:true}),0)
   ]) {
     assert.throws(()=>interpretWindowsScratchResult('rename-no-replace',invalid),e=>{
@@ -99,4 +99,55 @@ test('missing binary, process failure or timeout never proves a successful no-op
       return true;
     });
   }
+});
+
+
+test('read-only native identity observations can describe crash-leftover names without writer authority',()=>{
+  const absent=interpretWindowsScratchResult('inspect-entry',response(
+    receipt('inspect-entry',{
+      mayHaveMutated:false,
+      directoryFlushReturned:false,
+      entry:{exists:false,kind:'ABSENT',identity:'',sizeBytes:'0'}
+    })));
+  assert.equal(absent.entry.exists,false);
+  assert.equal(absent.managedMutationAuthorized,false);
+  const file=interpretWindowsScratchResult('inspect-entry',response(
+    receipt('inspect-entry',{
+      mayHaveMutated:false,
+      directoryFlushReturned:false,
+      entry:{exists:true,kind:'REGULAR',
+        identity:'a'.repeat(24),sizeBytes:'18446744073709551615'}
+    })));
+  assert.equal(file.entry.identity,'a'.repeat(24));
+  assert.equal(file.entry.sizeBytes,'18446744073709551615');
+  assert.equal(file.directoryDurabilityProven,false);
+});
+
+test('inspection never mistakes unknown or forged native identity for absence',()=>{
+  const valid=receipt('inspect-entry',{
+    mayHaveMutated:false,directoryFlushReturned:false,
+    entry:{exists:false,kind:'ABSENT',identity:'',sizeBytes:'0'}
+  });
+  for(const changed of [
+    {entry:null},
+    {entry:{exists:false,kind:'ABSENT',identity:'a'.repeat(24),sizeBytes:'0'}},
+    {entry:{exists:true,kind:'REGULAR',identity:'',sizeBytes:'1'}},
+    {entry:{exists:true,kind:'REGULAR',identity:'a'.repeat(24),sizeBytes:'-1'}},
+    {entry:{exists:true,kind:'REGULAR',identity:'a'.repeat(24),sizeBytes:'1e9'}},
+    {entry:{exists:true,kind:'REGULAR',identity:'a'.repeat(24),sizeBytes:'2.5'}},
+    {entry:{exists:false,kind:'ABSENT',identity:'',sizeBytes:'1'}},
+    {mayHaveMutated:true},
+    {directoryFlushReturned:true},
+    {protocolVersion:2},
+  ]) {
+    assert.throws(()=>interpretWindowsScratchResult('inspect-entry',
+      response({...valid,...changed})),e=>{
+      assert.equal(e.code,'E_WINDOWS_SCRATCH_HELPER_PROTOCOL');
+      assert.equal(e.nativeOutcomeUnknown,true);
+      assert.equal(e.mayHaveMutated,false); // Inspection never writes.
+      return true;
+    });
+  }
+  assert.throws(()=>interpretWindowsScratchResult('inspect-entry',
+    {stdout:'',status:6}),{code:'E_WINDOWS_SCRATCH_HELPER_PROTOCOL'});
 });
