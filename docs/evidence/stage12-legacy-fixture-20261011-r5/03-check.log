@@ -1,0 +1,5 @@
+
+> vibe-coding-production@0.9.3 check
+> node scripts/check-syntax.mjs
+
+Syntax check passed for 111 module(s).

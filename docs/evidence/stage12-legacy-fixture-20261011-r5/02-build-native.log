@@ -1,0 +1,12 @@
+
+> vibe-coding-production@0.9.3 build:native-linux
+> c++ -std=c++17 -Wall -Wextra -O2 -o scripts/native/vcp-linux-fsops scripts/native/vcp-linux-fsops.cpp
+
+scripts/native/vcp-linux-fsops.cpp: In function 'void usage()':
+scripts/native/vcp-linux-fsops.cpp:629:14: warning: ignoring return value of 'ssize_t write(int, const void*, size_t)' declared with attribute 'warn_unused_result' [-Wunused-result]
+  629 |   (void)write(STDERR_FILENO, m, strlen(m));
+      |         ~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+scripts/native/vcp-linux-fsops.cpp: In function 'void emit(const std::string&)':
+scripts/native/vcp-linux-fsops.cpp:96:14: warning: ignoring return value of 'ssize_t write(int, const void*, size_t)' declared with attribute 'warn_unused_result' [-Wunused-result]
+   96 |   (void)write(STDOUT_FILENO, line.c_str(), line.size());
+      |         ~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
