@@ -31,6 +31,8 @@
 #include <windows.h>
 #include <cstring>
 #include <cwchar>
+#include <sstream>
+#include <iomanip>
 #include <cstddef>
 #include <iostream>
 #include <utility>
@@ -41,6 +43,13 @@ namespace {
 constexpr DWORD kMaxPayload = 1024U * 1024U;
 const wchar_t* kMarker = L"VCP-STAGE12-DISPOSABLE-ONLY.marker";
 const char* kMarkerBytes = "VCP_STAGE12_DISPOSABLE_TEST_ROOT_ONLY\n";
+struct EntryObservation {
+  bool known = false;
+  bool exists = false;
+  const char* type = "ABSENT";
+  std::string identity;
+  std::string sizeBytes = "0";
+};
 
 struct Handle {
   HANDLE h = INVALID_HANDLE_VALUE;
@@ -277,6 +286,51 @@ bool disposeOwnedHandle(HANDLE object,DWORD& lastError) {
   // The actual namespace disappearance is pending until the handle closes.
   return disposed!=0;
 }
+bool inspectScratchEntry(const std::wstring& root,
+                         const std::wstring& name,
+                         EntryObservation& result,DWORD& osError) {
+  Handle object(CreateFileW(join(root,name).c_str(),FILE_READ_ATTRIBUTES,
+      FILE_SHARE_READ|FILE_SHARE_WRITE,nullptr,OPEN_EXISTING,
+      FILE_FLAG_OPEN_REPARSE_POINT|FILE_FLAG_BACKUP_SEMANTICS,nullptr));
+  if(!object.valid()) {
+    osError=GetLastError();
+    if(osError==ERROR_FILE_NOT_FOUND) {
+      result.known=true;
+      result.exists=false;
+      result.type="ABSENT";
+      osError=0;
+      return true;
+    }
+    return false; // ERROR_ACCESS_DENIED is not proof the name is absent.
+  }
+  BY_HANDLE_FILE_INFORMATION info = {};
+  if(!GetFileInformationByHandle(object.h,&info)) {
+    osError=GetLastError();
+    return false;
+  }
+  // Even a read-only probe must not report a reparse-point or an alias
+  // as a trusted owned file. Leave the state for manual investigation.
+  if((info.dwFileAttributes&FILE_ATTRIBUTE_REPARSE_POINT)!=0 ||
+     info.nNumberOfLinks!=1) {
+    osError=ERROR_INVALID_DATA;
+    return false;
+  }
+  result.known=true;
+  result.exists=true;
+  result.type=(info.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)!=0
+      ?"DIRECTORY":"REGULAR";
+  std::ostringstream id;
+  id<<std::hex<<std::setfill('0')
+    <<std::setw(8)<<info.dwVolumeSerialNumber
+    <<std::setw(8)<<info.nFileIndexHigh
+    <<std::setw(8)<<info.nFileIndexLow;
+  result.identity=id.str();
+  const unsigned long long bytes=
+    (static_cast<unsigned long long>(info.nFileSizeHigh)<<32) |
+      info.nFileSizeLow;
+  result.sizeBytes=std::to_string(bytes);
+  return true;
+}
 bool readBoundedStdin(std::vector<char>& payload) {
   HANDLE input = GetStdHandle(STD_INPUT_HANDLE);
   if (input == INVALID_HANDLE_VALUE || input == nullptr) return false;
@@ -326,9 +380,10 @@ bool flushRoot(const std::wstring& root, DWORD& lastError) {
 }
 void printResult(const bool completed, const bool fileSynced,
                  const bool parentSyncReturned, const DWORD osError,
-                 const bool mayHaveMutated, const std::string& operation) {
+                 const bool mayHaveMutated, const std::string& operation,
+                 const EntryObservation* entry = nullptr) {
   std::cout << "{\"kind\":\"VCP_WINDOWS_SCRATCH_NAMESPACE_CANDIDATE\","
-    << "\"protocolVersion\":2,"
+    << "\"protocolVersion\":3,"
     << "\"operation\":\"" << operation << "\","
     << "\"completed\":" << (completed ? "true" : "false") << ","
     << "\"fileFlushReturned\":" << (fileSynced ? "true" : "false") << ","
@@ -338,7 +393,15 @@ void printResult(const bool completed, const bool fileSynced,
     << "\"lastWin32Error\":" << osError << ","
     << "\"managedMutationAuthorized\":false,"
     << "\"directoryDurabilityProven\":false,"
-    << "\"powerLossAttested\":false}\n";
+    << "\"powerLossAttested\":false";
+  if(entry && entry->known) {
+    std::cout << ",\"entry\":{\"exists\":"
+      << (entry->exists ? "true" : "false")
+      << ",\"kind\":\"" << entry->type << "\","
+      << "\"identity\":\"" << entry->identity << "\","
+      << "\"sizeBytes\":\"" << entry->sizeBytes << "\"}";
+  }
+  std::cout << "}\n";
 }
 } // namespace
 
@@ -365,9 +428,13 @@ int wmain(int argc, wchar_t* argv[]) {
 
   bool completed = false, fileSynced = false, mayHaveMutated = false;
   DWORD err = 0;
+  EntryObservation entry = {};
   if (op == L"capabilities" || op == L"sync-root") {
     if (argc != 5) return 2;
     completed = true;
+  } else if (op == L"inspect-entry") {
+    if(argc!=6 || !allowedName(argv[5]))return 2;
+    completed=inspectScratchEntry(root,argv[5],entry,err);
   } else if (op == L"write-exclusive") {
     if (argc != 6 || !allowedName(argv[5])) return 2;
     std::vector<char> payload;
@@ -446,10 +513,16 @@ int wmain(int argc, wchar_t* argv[]) {
       !sameIdentity(first, fresh) || !safeInventory(root)) {
     // Do not retry or cleanup. Preserve completed work for inspection.
     printResult(completed, fileSynced, false, ERROR_INVALID_HANDLE,
-                mayHaveMutated, operation);
+                mayHaveMutated, operation, &entry);
     return 5;
   }
   DWORD syncErr = 0;
+  // Read-only identity inspection never requires a successful parent flush.
+  // Failure to open/inspect an entry cannot be mistaken for absence.
+  if(op == L"inspect-entry") {
+    printResult(completed,false,false,err,false,operation,&entry);
+    return completed ? 0 : 6;
+  }
   // Capabilities deliberately attempts to measure namespace flush support,
   // but its exit code 0 is never evidence of durability.
   const bool directoryFlush = flushRoot(root, syncErr);
