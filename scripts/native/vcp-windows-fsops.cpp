@@ -127,8 +127,11 @@ bool safeInventory(const std::wstring& root) {
       break;
     }
   } while (FindNextFileW(h, &entry));
+  const DWORD enumerationError = valid ? GetLastError() : ERROR_INVALID_DATA;
   FindClose(h);
-  return valid && marker && readMarker(root);
+  // An interrupted FindNextFileW enumeration is never a clean inventory.
+  return valid && enumerationError == ERROR_NO_MORE_FILES &&
+         marker && readMarker(root);
 }
 bool ntfsVolume(const std::wstring& root) {
   wchar_t volume[MAX_PATH] = {}, fs[MAX_PATH] = {};
@@ -192,8 +195,10 @@ bool flushRoot(const std::wstring& root, DWORD& lastError) {
 }
 void printResult(const bool completed, const bool fileSynced,
                  const bool parentSyncReturned, const DWORD osError,
-                 const bool mayHaveMutated) {
+                 const bool mayHaveMutated, const std::string& operation) {
   std::cout << "{\"kind\":\"VCP_WINDOWS_SCRATCH_NAMESPACE_CANDIDATE\","
+    << "\"protocolVersion\":1,"
+    << "\"operation\":\"" << operation << "\","
     << "\"completed\":" << (completed ? "true" : "false") << ","
     << "\"fileFlushReturned\":" << (fileSynced ? "true" : "false") << ","
     << "\"mayHaveMutated\":" << (mayHaveMutated ? "true" : "false") << ","
@@ -210,6 +215,9 @@ int wmain(int argc, wchar_t* argv[]) {
   if (argc < 5 || argc > 7 || std::wstring(argv[1]) != L"--scratch-root" ||
       std::wstring(argv[3]) != L"--op") return 2;
   std::wstring root, op(argv[4]);
+  // Operations are a closed ASCII allowlist below. Never interpolate a raw
+  // unvalidated command into a machine-readable receipt.
+  const std::string operation(op.begin(), op.end());
   if (!checkedRoot(argv[2], root) || !ntfsVolume(root) ||
       !safeInventory(root)) return 3;
   Handle rootHandle(CreateFileW(root.c_str(), FILE_READ_ATTRIBUTES,
@@ -280,7 +288,7 @@ int wmain(int argc, wchar_t* argv[]) {
       !sameIdentity(first, fresh) || !safeInventory(root)) {
     // Do not retry or cleanup. Preserve completed work for inspection.
     printResult(completed, fileSynced, false, ERROR_INVALID_HANDLE,
-                mayHaveMutated);
+                mayHaveMutated, operation);
     return 5;
   }
   DWORD syncErr = 0;
@@ -288,7 +296,7 @@ int wmain(int argc, wchar_t* argv[]) {
   // but its exit code 0 is never evidence of durability.
   const bool directoryFlush = flushRoot(root, syncErr);
   printResult(completed, fileSynced, directoryFlush, syncErr ? syncErr : err,
-              mayHaveMutated);
+              mayHaveMutated, operation);
   if (!completed) return 6;
   if (op == L"capabilities") return 0;
   // DirectoryFlush failure remains a hard nonzero acknowledgement.
