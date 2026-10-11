@@ -24,6 +24,7 @@ const requiredFiles = [
   'docs/CONTEXT-PACKS.md',
   'docs/UPDATES.md',
   'docs/CONSUMER-ASSET-SEPARATION.md',
+  'docs/STAGE14-ACCEPTANCE-MATRIX.md',
   'docs/product/PRODUCT-BRIEF.md',
   'docs/product/PRD.md',
   'docs/product/USER-FLOWS.md',
