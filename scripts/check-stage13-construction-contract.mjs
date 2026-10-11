@@ -33,7 +33,12 @@ export async function inspectStage13ConstructionContract() {
     'lib/adoption-inspect.mjs',
     'lib/cli.mjs',
     'scripts/native/vcp-linux-fsops.cpp',
-    'test/stage13-nested-recovery.test.mjs'
+    'test/stage13-nested-recovery.test.mjs',
+    'lib/stage13-bootstrap-recovery.mjs',
+    'lib/stage13-bootstrap-retire.mjs',
+    'lib/stage13-recovery-lock.mjs',
+    'lib/stage13-committed-orphan-lock.mjs',
+    'lib/stage13-section-exchange.mjs'
   ];
   const contents=new Map(await Promise.all(files.map(async name=>
     [name,await read(name)])));
@@ -52,14 +57,16 @@ export async function inspectStage13ConstructionContract() {
   includes(part(files[5]),"mode:'adopt'",files[5]);
   includes(part(files[5]),'stage13ClaimStagingPath',files[5]);
   includes(part(files[5]),'provider.moveNoReplace',files[5]);
-  includes(part(files[5]),'E_STAGE13_SECTION_ATOMIC_CAS_UNAVAILABLE',files[5]);
+  includes(part(files[5]),'assertStage13SectionIsolationAvailable',files[5]);
+  includes(part(files[5]),'exchangeStage13Section',files[5]);
   if(part(files[5]).includes('await rename('))
     fail('Stage13 adopted a racy plain rename fallback');
   includes(part(files[6]),'CREATED_INODE_NOT_OWNED',files[6]);
   includes(part(files[6]),'CREATED_DIRECTORY_REPLACED',files[6]);
   includes(part(files[7]),'exactNativeIdentity',files[7]);
   includes(part(files[8]),'assertManagedMigrationGate();',files[8]);
-  includes(part(files[8]),'removeEmptyDirectory',files[8]);
+  includes(part(files[8]),'archiveOwnedDirectory',files[8]);
+  includes(part(files[8]),'acquireStage13RecoveryLock',files[8]);
   if(part(files[8]).includes('recursive:true'))
     fail('Stage13 recovery adopted unbounded recursive deletion');
   includes(part(files[9]),'inspectCommittedStage13',files[9]);
@@ -72,6 +79,17 @@ export async function inspectStage13ConstructionContract() {
   includes(part(files[13]),'--adopt',files[13]);
   includes(part(files[14]),'devExact',files[14]);
   includes(part(files[14]),'inoExact',files[14]);
+  includes(part(files[14]),'RENAME_EXCHANGE',files[14]);
+  includes(part(files[14]),'fchmod(fd',files[14]);
+  includes(part(files[16]),'mayRemoveState:false',files[16]);
+  includes(part(files[17]),'assertManagedMigrationGate();',files[17]);
+  includes(part(files[17]),'moveNoReplace',files[17]);
+  includes(part(files[18]),'RECOVER_STAGE13_EXACT_TRANSACTION',files[18]);
+  includes(part(files[18]),'acquireLifecycleLock',files[18]);
+  includes(part(files[19]),'validateAdaptiveManifest',files[19]);
+  includes(part(files[19]),'retireStage13CommittedOrphanLock',files[19]);
+  includes(part(files[20]),'exchangeNames',files[20]);
+  includes(part(files[20]),'kernelVerifiedIsolation',files[20]);
   return Object.freeze({
     status:'STAGE13_SOURCE_CONSTRUCTION_PRESENT_ONLY',
     fullStage13Accepted:false,
