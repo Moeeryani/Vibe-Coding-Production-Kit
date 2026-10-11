@@ -1,0 +1,38 @@
+
+> vibe-coding-production@0.9.3 doctor
+> node bin/vibe-coding-production.mjs doctor .
+
+Vibe Coding Production Doctor
+Target: /home/hatch/workspace/stage13-test/vcp-stage14-linux-test
+Detected stack: javascript
+Stage12 inspection: EXISTING; surface: brownfield-minimal-v1
+Command governance: 0 conflicts; 0 sensitive keys (not install-health).
+
+[PASS] Target directory: Project directory is readable.
+[PASS] Stack detection: Detected javascript.
+[WARN] VCP update state: This repository has no VCP manifest. Run `vcp init` with v0.9.0 or newer before using updates.
+       Fix: Initialize with VCP v0.9.0+ before relying on automatic updates.
+[PASS] Agent instructions: AGENTS.md is present.
+[WARN] Verification commands: 9 command slot(s) still need a project-specific decision: INSTALL_COMMAND, FORMAT_CHECK_COMMAND, LINT_COMMAND, TYPECHECK_COMMAND, CHECK_COMMAND, UNIT_TEST_COMMAND, INTEGRATION_TEST_COMMAND, BUILD_COMMAND, E2E_COMMAND.
+       Fix: Define commands that apply to this repository; use n/a only when a check is intentionally not applicable.
+[WARN] Product brief: docs/product/PRODUCT-BRIEF.md still contains starter-template signals.
+       Fix: Replace template prompts/placeholders with project-specific decisions.
+[WARN] Product requirements: docs/product/PRD.md still contains starter-template signals.
+       Fix: Replace template prompts/placeholders with project-specific decisions.
+[WARN] Architecture: docs/architecture/ARCHITECTURE.md still contains starter-template signals.
+       Fix: Replace template prompts/placeholders with project-specific decisions.
+[WARN] Threat model: docs/security/THREAT-MODEL.md still contains starter-template signals.
+       Fix: Replace template prompts/placeholders with project-specific decisions.
+[WARN] Test strategy: docs/testing/TEST-STRATEGY.md still contains starter-template signals.
+       Fix: Replace template prompts/placeholders with project-specific decisions.
+[PASS] Definition of Ready: docs/delivery/DEFINITION-OF-READY.md is present and no known starter-template marker was found.
+[PASS] Definition of Done: docs/delivery/DEFINITION-OF-DONE.md is present and no known starter-template marker was found.
+[PASS] Security profiles: Active security profiles: baseline.
+[PASS] Community plugins: No community plugins are explicitly selected; plugin trust remains opt-in.
+[PASS] CI validation: Legacy VCP npm workflow is not required for this safe asset surface; provider CI coverage remains unassessed.
+[PASS] Local validation: Legacy framework-specific local validator is not required for this asset surface.
+[PASS] Plan/review loop: Prompt sources: plan=project-override, review=project-override.
+
+Summary: 10 pass, 7 warn, 0 fail
+Core docs: 7/7 present; 2 without known starter-template markers.
+Coverage: starter-template markers are checked for 5/7 core docs; 2 core docs are presence-only. Not assessed for template completeness: docs/product/USER-FLOWS.md, docs/architecture/DOMAIN.md, docs/architecture/DATA-MODEL.md.

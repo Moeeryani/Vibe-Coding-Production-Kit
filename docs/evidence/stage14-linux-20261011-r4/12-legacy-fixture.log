@@ -1,0 +1,17 @@
+✔ historical fixture creates only valid v1 claims and matching baseline bytes (368.038487ms)
+✔ historical fixture preserves preexisting AGENTS bytes and does not claim them (278.000921ms)
+✔ preflight refuses blocked ancestor before writing any template or vcp state (38.523807ms)
+✔ historical fixture accepts a precreated nested project inside its vcp-* sandbox (244.60306ms)
+✔ fixture never creates an unproved nested project directory (4.860337ms)
+✔ a vcp-* final directory under a foreign temp sandbox is still refused (3.694187ms)
+✔ fixture refuses a linked ancestor inside an otherwise valid vcp-* sandbox (5.669202ms)
+✔ fixture refuses non-vcp temporary directory before any writes (2.848987ms)
+✔ fixture refuses an in-project linked template file without following it (44.566008ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1144.855956

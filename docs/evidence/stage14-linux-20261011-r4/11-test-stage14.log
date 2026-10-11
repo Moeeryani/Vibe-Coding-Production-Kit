@@ -1,0 +1,38 @@
+
+> vibe-coding-production@0.9.3 test:stage14
+> node --test test/stage14-consumer-assets.test.mjs test/stage14-dogfood.test.mjs test/stage14-legacy-validator.test.mjs
+
+✔ Stage14 catalog exports stable three-version assetSet and four explicit classes (3.807126ms)
+✔ Stage14 catalog refuses unknown source identity, aliases and untrusted paths (1.326392ms)
+✔ Stage14 explicit manifest categorizes all supplied inventory with no inferred ownership (10.277109ms)
+✔ Stage14 safe greenfield exact golden inventory never sweeps package sources (20.182611ms)
+✔ Stage14 greenfield explicit --no-GitHub cannot introduce scaffolding or CI (6.391946ms)
+✔ Stage14 brownfield stays minimal, even if package gains more docs (2.979884ms)
+✔ Stage14 historic full surface retains original compatibility assets (60.101813ms)
+✔ Stage14 catalog retains legacy CI/package-only prompt but never in safe surface (2.3784ms)
+✔ Stage14 only canonical packaged prompts are eligible, not arbitrary package files (0.252589ms)
+✔ Stage14 prompt override retains exact user content, absent override falls back to package (13.034879ms)
+✔ Stage14 unmanaged root can never be retired by preview (4.26271ms)
+✔ Stage14 legacy retirement preview preserves edited prompts and retains user bytes (319.405603ms)
+✔ Stage14 consumer-retirement preview cannot convert an empty target to authorization (3.618182ms)
+✔ Stage14 original D-01 migration gate remains unmodified and blocking (0.338649ms)
+✔ Stage14 linked modified retirement path cannot be removed or trusted (404.597234ms)
+✔ Stage14 CLI asset-plan emits only read-only inspection JSON (461.749648ms)
+✔ Stage14 CLI asset-plan refuses force/run/yes and absent target (3.404562ms)
+✔ Stage14 consumer health exposes contradictory managed ownership without authorizing deletion (1.056005ms)
+✔ Stage14 health never mistakes untracked project docs for manifest-owned assets (0.204538ms)
+✔ Stage14 legacy and brownfield preserve an intentionally unowned AGENTS path (0.354192ms)
+✔ Stage14 nested-workspace planning never copies or reads sibling project content (7.429134ms)
+✔ Stage14 first-use dry-run measures legacy/full vs safe/minimal noise without writing (61.765961ms)
+✔ Stage14 real init writer stays gated even with a new short catalog (5.712887ms)
+✔ Stage14 legacy managed dogfood measures candidate noise yet never erases user edits (475.567243ms)
+✔ Stage14 validator keeps provider docs mandatory only for provider source (362.476367ms)
+✔ Stage14 provider validator refuses missing required docs and self-sentinel module (1903.335483ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4629.771742

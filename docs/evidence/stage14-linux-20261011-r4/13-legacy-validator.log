@@ -1,0 +1,10 @@
+✔ Stage14 validator keeps provider docs mandatory only for provider source (365.344603ms)
+✔ Stage14 provider validator refuses missing required docs and self-sentinel module (1939.225676ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2436.023914

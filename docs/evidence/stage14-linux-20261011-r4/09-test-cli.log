@@ -1,0 +1,66 @@
+
+> vibe-coding-production@0.9.3 test:cli
+> node --test test/cli.test.mjs
+
+✔ historical v1 fixture includes the original core framework and GitHub assets (746.988726ms)
+✔ adds thin adapters only when the selected tool needs them (233.308493ms)
+✔ refuses to overwrite existing managed paths without --force (7.067791ms)
+✔ dry-run performs no writes (10.620525ms)
+✔ test-only historical fixture preserves unrelated existing directories (189.95793ms)
+✔ auto-detects TypeScript and fills commands proven by package scripts (321.384744ms)
+✔ auto-detects JavaScript package projects and imports existing check/test scripts (281.928458ms)
+✔ Go stack installs stable verification commands (229.119554ms)
+✔ auto-detects Python tooling only when configuration provides evidence (266.338161ms)
+✔ doctor fails when the framework is not installed (14.495743ms)
+✔ doctor warns for untouched templates in a historical preinstalled fixture (336.612957ms)
+✔ doctor reports explicit stack commands as resolved (316.654303ms)
+✖ task generator creates a bounded task and imports configured verification commands (192.960217ms)
+✖ task generator does not turn reasoned n/a decisions into executable commands (257.383718ms)
+✖ task generator refuses overwrite and supports dry-run (223.853267ms)
+✔ task generator validates kebab-case slugs (1.095325ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 13
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3831.705402
+
+✖ failing tests:
+
+test at test/cli.test.mjs:204:1
+✖ task generator creates a bounded task and imports configured verification commands (192.960217ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///home/hatch/workspace/stage13-test/vcp-stage14-linux-test/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///home/hatch/workspace/stage13-test/vcp-stage14-linux-test/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///home/hatch/workspace/stage13-test/vcp-stage14-linux-test/lib/task.mjs:89:13)
+      at async TestContext.<anonymous> (file:///home/hatch/workspace/stage13-test/vcp-stage14-linux-test/test/cli.test.mjs:218:18)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/cli.test.mjs:233:1
+✖ task generator does not turn reasoned n/a decisions into executable commands (257.383718ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///home/hatch/workspace/stage13-test/vcp-stage14-linux-test/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///home/hatch/workspace/stage13-test/vcp-stage14-linux-test/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///home/hatch/workspace/stage13-test/vcp-stage14-linux-test/lib/task.mjs:89:13)
+      at async TestContext.<anonymous> (file:///home/hatch/workspace/stage13-test/vcp-stage14-linux-test/test/cli.test.mjs:247:18)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test/cli.test.mjs:260:1
+✖ task generator refuses overwrite and supports dry-run (223.853267ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///home/hatch/workspace/stage13-test/vcp-stage14-linux-test/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///home/hatch/workspace/stage13-test/vcp-stage14-linux-test/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///home/hatch/workspace/stage13-test/vcp-stage14-linux-test/lib/task.mjs:89:13)
+      at async TestContext.<anonymous> (file:///home/hatch/workspace/stage13-test/vcp-stage14-linux-test/test/cli.test.mjs:263:3)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:969:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
