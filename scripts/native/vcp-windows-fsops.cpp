@@ -21,8 +21,7 @@
 // a process exit 0 is a certified crash-consistent transaction.
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <algorithm>
-#include <cstdint>
+#include <cstring>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -70,7 +69,6 @@ bool checkedRoot(const std::wstring& input, std::wstring& out) {
       out.back() == L'\\') return false;
   // The complete path is only as safe as its ancestors. This check is a
   // development preflight, not a race-free production root capability.
-  std::wstring current = out.substr(0, 3);
   for (size_t i = 3; i <= out.size(); ++i) {
     if (i == out.size() || out[i] == L'\\') {
       if (i > 3) {
@@ -167,7 +165,7 @@ bool writeExclusive(const std::wstring& full,
   DWORD wrote = 0;
   const BOOL ok = WriteFile(file.h, bytes.data(),
       static_cast<DWORD>(bytes.size()), &wrote, nullptr);
-  if (!ok || wrote != bytes.size()) {
+  if (!ok || wrote != static_cast<DWORD>(bytes.size())) {
     lastError = ok ? ERROR_WRITE_FAULT : GetLastError();
     return false; // partial file is deliberately retained
   }
