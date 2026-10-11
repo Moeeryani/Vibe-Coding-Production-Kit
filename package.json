@@ -29,7 +29,9 @@
     "pack:check": "npm pack --dry-run",
     "doctor": "node bin/vibe-coding-production.mjs doctor .",
     "prepublishOnly": "npm run validate",
-    "check:stage12-contract": "node scripts/check-stage12-readonly-contract.mjs"
+    "check:stage12-contract": "node scripts/check-stage12-readonly-contract.mjs",
+    "check:stage13-contract": "node scripts/check-stage13-construction-contract.mjs",
+    "test:stage13": "node --test test/stage13-*.test.mjs"
   },
   "engines": {
     "node": ">=22"
