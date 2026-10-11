@@ -35,7 +35,8 @@
     "test:stage14": "node --test test/stage14-consumer-assets.test.mjs test/stage14-dogfood.test.mjs test/stage14-legacy-validator.test.mjs",
     "check:stage14-contract": "node scripts/check-stage14-construction-contract.mjs",
     "build:native-windows": "node scripts/build-native-windows.mjs",
-    "test:native-windows-candidate": "node scripts/run-native-windows-candidate-tests.mjs"
+    "test:native-windows-candidate": "node scripts/run-native-windows-candidate-tests.mjs",
+    "build:native-windows:verify-repro": "node scripts/build-native-windows.mjs --verify-repro"
   },
   "engines": {
     "node": ">=22"
