@@ -27,6 +27,7 @@
 #include <windows.h>
 #include <cstring>
 #include <cwchar>
+#include <cstddef>
 #include <iostream>
 #include <utility>
 #include <string>
@@ -203,16 +204,48 @@ bool ntfsVolume(const std::wstring& root) {
     GetVolumeInformationW(volume, nullptr, 0, nullptr, nullptr, nullptr,
                           fs, MAX_PATH) != 0 && _wcsicmp(fs, L"NTFS") == 0;
 }
-bool normalOwnedFile(const std::wstring& full) {
-  Handle h(CreateFileW(full.c_str(), FILE_READ_ATTRIBUTES,
-      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-      nullptr, OPEN_EXISTING, FILE_FLAG_OPEN_REPARSE_POINT, nullptr));
-  if (!h.valid()) return false;
+// Operate on the exact object opened, rather than lstat(path) followed
+// by a second path lookup. Handles must be opened DELETE-capable for Win32
+// FileRenameInfo/FileDispositionInfo; NOFOLLOW is required even for scratch.
+bool normalOwnedOpen(HANDLE h, bool directory) {
   BY_HANDLE_FILE_INFORMATION info = {};
-  return GetFileInformationByHandle(h.h, &info) != 0 &&
-    (info.dwFileAttributes &
-     (FILE_ATTRIBUTE_DIRECTORY | FILE_ATTRIBUTE_REPARSE_POINT)) == 0 &&
-    info.nNumberOfLinks == 1;
+  if (!GetFileInformationByHandle(h, &info) ||
+      (info.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0 ||
+      info.nNumberOfLinks != 1) return false;
+  return ((info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0) ==
+      directory;
+}
+bool renameOwnedFileNoReplace(HANDLE source,
+                              HANDLE containingDir,
+                              const std::wstring& target,
+                              DWORD& lastError) {
+  // FILE_RENAME_INFO.RootDirectory resolves this single component
+  // relative to our already pinned NTFS scratch root. ReplaceIfExists=FALSE
+  // requests a collision refusal *inside* the kernel rename operation.
+  // A successful rename is NOT a parent-metadata durability attestation.
+  const size_t bytes=offsetof(FILE_RENAME_INFO, FileName) +
+      (target.size()+1) * sizeof(wchar_t);
+  std::vector<std::max_align_t> storage(
+      (bytes+sizeof(std::max_align_t)-1)/sizeof(std::max_align_t));
+  auto* info=reinterpret_cast<FILE_RENAME_INFO*>(storage.data());
+  info->ReplaceIfExists=FALSE;
+  info->RootDirectory=containingDir;
+  info->FileNameLength=static_cast<DWORD>(target.size()*sizeof(wchar_t));
+  std::memcpy(info->FileName, target.c_str(),
+              (target.size()+1)*sizeof(wchar_t));
+  const BOOL moved=SetFileInformationByHandle(source,FileRenameInfo,info,
+                                              static_cast<DWORD>(bytes));
+  if(!moved)lastError=GetLastError();
+  return moved!=0;
+}
+bool disposeOwnedHandle(HANDLE object,DWORD& lastError) {
+  FILE_DISPOSITION_INFO disposal = {};
+  disposal.DeleteFile=TRUE;
+  const BOOL disposed=SetFileInformationByHandle(
+      object,FileDispositionInfo,&disposal,sizeof(disposal));
+  if(!disposed)lastError=GetLastError();
+  // The actual namespace disappearance is pending until the handle closes.
+  return disposed!=0;
 }
 bool readBoundedStdin(std::vector<char>& payload) {
   HANDLE input = GetStdHandle(STD_INPUT_HANDLE);
@@ -313,21 +346,27 @@ int wmain(int argc, wchar_t* argv[]) {
     if (argc != 7 || !allowedName(argv[5]) ||
         !allowedName(argv[6]) || std::wstring(argv[5]) == argv[6])
       return 2;
-    const std::wstring source = join(root, argv[5]);
-    if (!normalOwnedFile(source)) return 4;
-    // MOVEFILE_REPLACE_EXISTING is deliberately not specified: the OS
-    // refuses to overwrite an occupied destination at the rename operation.
-    mayHaveMutated = true; // Attempted namespace mutation: inspect on error.
-    completed = MoveFileExW(source.c_str(), join(root, argv[6]).c_str(),
-                           MOVEFILE_WRITE_THROUGH) != 0;
-    if (!completed) err = GetLastError();
+    Handle source(CreateFileW(join(root,argv[5]).c_str(),
+      DELETE|FILE_READ_ATTRIBUTES,
+      FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
+      nullptr,OPEN_EXISTING,FILE_FLAG_OPEN_REPARSE_POINT,nullptr));
+    if(!source.valid() || !normalOwnedOpen(source.h,false))return 4;
+    mayHaveMutated = true; // An attempted OS mutation is never a proved no-op.
+    completed = renameOwnedFileNoReplace(source.h,rootHandle.h,
+                                         argv[6],err);
   } else if (op == L"unlink") {
     if (argc != 6 || !allowedName(argv[5])) return 2;
-    const std::wstring full = join(root, argv[5]);
-    if (!normalOwnedFile(full)) return 4;
+    // Disposition applies to the already-open file object. Never check
+    // one pathname and then DeleteFileW on a potentially different object.
+    Handle object(CreateFileW(join(root,argv[5]).c_str(),
+      DELETE|FILE_READ_ATTRIBUTES,
+      FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
+      nullptr,OPEN_EXISTING,FILE_FLAG_OPEN_REPARSE_POINT,nullptr));
+    if(!object.valid() || !normalOwnedOpen(object.h,false))return 4;
     mayHaveMutated = true;
-    completed = DeleteFileW(full.c_str()) != 0;
-    if (!completed) err = GetLastError();
+    completed = disposeOwnedHandle(object.h,err);
+    // The object must be closed before the root inventory is rechecked.
+    object=Handle();
   } else if (op == L"mkdir-exclusive") {
     if (argc != 6 || !allowedName(argv[5])) return 2;
     mayHaveMutated = true;
@@ -335,14 +374,17 @@ int wmain(int argc, wchar_t* argv[]) {
     if (!completed) err = GetLastError();
   } else if (op == L"rmdir-empty") {
     if (argc != 6 || !allowedName(argv[5])) return 2;
-    const std::wstring full = join(root, argv[5]);
-    const DWORD attrs = GetFileAttributesW(full.c_str());
-    if (attrs == INVALID_FILE_ATTRIBUTES ||
-        !(attrs & FILE_ATTRIBUTE_DIRECTORY) ||
-        (attrs & FILE_ATTRIBUTE_REPARSE_POINT)) return 4;
+    // The OS must enforce directory emptiness at disposition, not via a
+    // separate racy pre-enumeration. No recursive deletes are ever used.
+    Handle dir(CreateFileW(join(root,argv[5]).c_str(),
+      DELETE|FILE_READ_ATTRIBUTES,
+      FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
+      nullptr,OPEN_EXISTING,
+      FILE_FLAG_BACKUP_SEMANTICS|FILE_FLAG_OPEN_REPARSE_POINT,nullptr));
+    if(!dir.valid() || !normalOwnedOpen(dir.h,true))return 4;
     mayHaveMutated = true;
-    completed = RemoveDirectoryW(full.c_str()) != 0;
-    if (!completed) err = GetLastError();
+    completed = disposeOwnedHandle(dir.h,err);
+    dir=Handle();
   } else return 2;
 
   // A held directory handle remains the *same object* after a pathname
