@@ -50,6 +50,7 @@
     "scripts/validate-framework.mjs",
     "scripts/validate-framework.sh",
     ".github/workflows/validate.yml",
-    "prompts/02-plan-task.md"
+    "prompts/02-plan-task.md",
+    "lib/consumer-asset-health.mjs"
   ]
 }
