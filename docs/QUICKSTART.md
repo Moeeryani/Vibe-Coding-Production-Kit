@@ -241,3 +241,15 @@ Merge / release / observe
 ```
 
 For a completed worked example, see [`../examples/reference-saas-invite/`](../examples/reference-saas-invite/).
+
+## Stage14 safe consumer layout (development source, not released)
+
+New safe greenfield repositories receive concise `AGENTS.md` routing,
+selected starter engineering docs and explicitly chosen adapters/GitHub
+issue/PR hygiene. Source-only VCP framework documentation, package prompts,
+npm validation workflow and framework validators stay inside the VCP package.
+An established repository gets a far smaller brownfield routing surface
+and retains its real project-owned docs and CI. This is **not** an approved
+migration or a replacement for published v0.9.3. Read
+[Consumer Asset Separation](CONSUMER-ASSET-SEPARATION.md) before interpreting
+any preview, and note D-01/G-FENCE NO-GO remains in force.
