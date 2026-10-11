@@ -1,0 +1,78 @@
+
+> vibe-coding-production@0.9.3 test:stage13
+> node --test test/stage13-bootstrap-crash.test.mjs test/stage13-cli-adoption.test.mjs test/stage13-committed-orphan.test.mjs test/stage13-directory-ownership.test.mjs test/stage13-init-gate.test.mjs test/stage13-lock-finality.test.mjs test/stage13-materialize.test.mjs test/stage13-native-exchange.test.mjs test/stage13-nested-recovery.test.mjs test/stage13-recovery-lock.test.mjs test/stage13-recovery-provenance.test.mjs test/stage13-replan-contract.test.mjs test/stage13-section-exchange.test.mjs test/stage13-transaction-recovery.test.mjs test/stage13-windows-ntfs.test.mjs
+
+✔ empty .vcp after crash is unproven: no inferred ownership or deletion (13.450936ms)
+✔ orphan adopt lock preserves user file and remains read-only (24.44841ms)
+✔ prejournal staging belongs only to the lock operation id (17.780474ms)
+✔ foreign control files cannot be quarantined from guessed provenance (8.681007ms)
+✔ linked prejournal staging is never traversed (9.319936ms)
+✔ prejournal classifier refuses to reinterpret a durable WAL as orphan (4.442307ms)
+✔ Stage13 --adopt requires exact confirmation, never --yes alone (43.699881ms)
+✔ Stage13 exact fingerprint still cannot bypass G-FENCE (18.636458ms)
+✔ Stage13 dry-run exposes consent without creating managed state (7.987807ms)
+✔ Stage13 adoption recovery requires separate journal consent and archive permission (2.837779ms)
+✔ Stage13 adoption recovery is hard-fenced before inspecting candidate root (3.497058ms)
+✔ Stage13 committed orphan recognizes valid manifest, ledger and still-live lock (33.329508ms)
+✔ Stage13 committed orphan refuses changed original user document (12.263523ms)
+✔ Stage13 committed orphan never authorizes releasing the live lock (6.63633ms)
+✔ Stage13 stages first missing ancestor instead of creating unowned parent (13.119979ms)
+✔ Stage13 existing .github parent creates only missing child subtree (7.507787ms)
+✔ Stage13 never follows symlinked ancestor or claims foreign parent (3.312831ms)
+✔ Stage13 refuses source-file as parent and nonportable relative names (0.741072ms)
+✔ Stage13 directory ownership requires matching inode, never hash alone (0.551067ms)
+✔ Stage13 init rejects mutation before bootstrap and preserves existing bytes (17.659952ms)
+✔ Stage13 direct writer and recovery entrypoints both preserve G-FENCE (7.461398ms)
+✔ Stage13 adoption preflight is inspection-only without explicit consent (17.782827ms)
+✔ Stage13 recovery never infers ownership without its own journal (4.446533ms)
+✔ Stage13 refuses implicit re-adoption when forensic archive remains (4.09794ms)
+✔ Stage13 never accepts caller-fabricated lock objects as finality authority (2.727774ms)
+✔ Stage13 explicit user consent cannot create an empty managed adoption (0.602134ms)
+✔ Stage13 cannot forge kernel isolation with a matching boolean receipt (0.422795ms)
+✔ stage13 never converts stale preview into writer authority (2.65146ms)
+✔ stage13 materializes section while retaining exact user preimage bytes (5.585973ms)
+✔ stage13 CLAIM never overwrites a pre-existing path (0.97326ms)
+✔ stage13 materialization rejects old reader or unapproved action changes (0.540481ms)
+✔ Linux native RENAME_EXCHANGE retains both file inodes and contents (40.745887ms)
+✔ Linux native staged file and directory modes are exact under umask (31.597168ms)
+✔ Linux native exchange never fabricates missing file or overwrites source (9.678544ms)
+✔ nested claim rollback returns deepest-first owned directory removals (3.980553ms)
+✔ matching file bytes never excuse a replaced directory inode (0.768763ms)
+✔ committed adoption requires owned directory identity still present (0.605839ms)
+✔ journal transitions cannot rewrite pre-staged native directory identities (1.300682ms)
+✔ native 64-bit identities preserve precision beyond JS safe integers (0.518468ms)
+✔ Stage13 recovery refuses takeover while original lock owner is alive (40.438977ms)
+✔ Stage13 recovery reports fresh lock candidate without stealing any path (21.643129ms)
+✔ Stage13 recovery refuses foreign-operation adoption lock (14.38635ms)
+✔ Stage13 recovery direct writer does not read or mutate before hard gate (7.892715ms)
+✔ missing claim with staged inode is accounted for before apply (22.893477ms)
+✔ missing claim without stage or forensic archive must BLOCK (6.740976ms)
+✔ directory proof never treats absent namespace as safely removed (7.537602ms)
+✔ archived directory identity is recognized without restoring its name (4.060073ms)
+✔ Stage13 time-of-plan vs time-of-lock timestamp drift is not data drift (2.028574ms)
+✔ Stage13 rejects post-lock mode, adapter, baseline and action drift (1.393942ms)
+✔ Stage13 never grants authorization based on matching preview objects (0.397166ms)
+✔ Stage13 section exchange preview preserves both original/staged inode IDs (2.07197ms)
+✔ Stage13 section exchange never accepts a changed user preimage (1.210567ms)
+✔ Stage13 section writer rejects direct-import use before ANY filesystem operation (0.682594ms)
+✔ Stage13 journal only accepts authenticated adoption ledger and phases (4.51109ms)
+✔ Stage13 recovery restores exact user preimage and removes only owned claims (1.145449ms)
+✔ Stage13 user post-apply edits and foreign backup always block rollback (1.124948ms)
+✔ byte-identical replacement from a different inode is not owned (0.371197ms)
+✔ Stage13 committed status proves all file bytes, not only manifest hash (2.142365ms)
+✔ Stage13 old pre-state after restore is not a new managed state (0.404106ms)
+﹣ native Windows junction cannot be followed by project read or write (1.204878ms) # Native Windows host required; no Windows acceptance evidence on this platform
+﹣ native Windows file symlink cannot become a legacy fixture claim (0.241572ms) # Native Windows host required; no Windows acceptance evidence on this platform
+﹣ native Windows junction as missing adoption ancestor is refused (0.213701ms) # Native Windows host required; no Windows acceptance evidence on this platform
+﹣ native Windows linked pre-WAL staging remains blocked and untouched (0.236495ms) # Native Windows host required; no Windows acceptance evidence on this platform
+﹣ native Windows junction in recovery inventory cannot be adopted (0.197346ms) # Native Windows host required; no Windows acceptance evidence on this platform
+﹣ native Windows linked VCP state never becomes a trusted manifest (0.162344ms) # Native Windows host required; no Windows acceptance evidence on this platform
+﹣ native Windows path aliases, reserved names and escapes fail closed (0.257296ms) # Native Windows host required; no Windows acceptance evidence on this platform
+ℹ tests 66
+ℹ suites 0
+ℹ pass 59
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 7
+ℹ todo 0
+ℹ duration_ms 2527.269928
