@@ -25,7 +25,9 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <cstring>
+#include <cwchar>
 #include <iostream>
+#include <utility>
 #include <string>
 #include <vector>
 
@@ -40,6 +42,17 @@ struct Handle {
   ~Handle() { if (h != INVALID_HANDLE_VALUE) CloseHandle(h); }
   Handle(const Handle&) = delete;
   Handle& operator=(const Handle&) = delete;
+  Handle(Handle&& other) noexcept : h(other.h) {
+    other.h = INVALID_HANDLE_VALUE;
+  }
+  Handle& operator=(Handle&& other) noexcept {
+    if (this != &other) {
+      if (h != INVALID_HANDLE_VALUE) CloseHandle(h);
+      h = other.h;
+      other.h = INVALID_HANDLE_VALUE;
+    }
+    return *this;
+  }
   bool valid() const { return h != INVALID_HANDLE_VALUE; }
 };
 
@@ -55,6 +68,56 @@ bool allowedName(const std::wstring& name) {
     if (!((c >= L'a' && c <= L'z') ||
           (c >= L'0' && c <= L'9') || c == L'-' || c == L'_' ||
           c == L'.')) return false;
+  }
+  return true;
+}
+bool scratchRootUnderTemp(const std::wstring& root) {
+  wchar_t buf[MAX_PATH] = {};
+  const DWORD n = GetTempPathW(MAX_PATH, buf);
+  if (n == 0 || n >= MAX_PATH) return false;
+  std::wstring tmp(buf);
+  // GetTempPathW is environment-selected, NOT a privileged trust boundary.
+  // This is a containment restriction to reduce accidental misuse.
+  if (tmp.empty() || tmp.back() != L'\\') return false;
+  wchar_t canonical[MAX_PATH] = {};
+  const DWORD m = GetFullPathNameW(tmp.c_str(), MAX_PATH, canonical, nullptr);
+  if (m == 0 || m >= MAX_PATH) return false;
+  tmp.assign(canonical);
+  if (tmp.empty() || tmp.back() != L'\\') tmp += L'\\';
+  const std::wstring prefix = tmp + L"vcp-win-native-scratch-";
+  if (root.size() < prefix.size() + 6 ||
+      _wcsnicmp(root.c_str(), prefix.c_str(), prefix.size()) != 0)
+    return false;
+  const std::wstring suffix = root.substr(prefix.size());
+  // Only a direct, mkdtemp-style child of TMP/TEMP is accepted.
+  if (suffix.find_first_of(L"\\/:.") != std::wstring::npos) return false;
+  for (const wchar_t c : suffix) {
+    if (!((c >= L'A' && c <= L'Z') ||
+          (c >= L'a' && c <= L'z') ||
+          (c >= L'0' && c <= L'9') ||
+          c == L'-' || c == L'_')) return false;
+  }
+  return true;
+}
+// Keep no-delete handles to every ancestor and the selected scratch root
+// open throughout each operation. This narrows rename/swap windows under
+// NTFS sharing rules; it is NOT a descriptor-relative production writer.
+bool pinAncestorsNoRename(const std::wstring& root,
+                          std::vector<Handle>& pins) {
+  for (size_t i = 3; i <= root.size(); ++i) {
+    if (i == root.size() || root[i] == L'\\') {
+      if (i == 3) continue;
+      const std::wstring current = root.substr(0, i);
+      pins.emplace_back(CreateFileW(current.c_str(), FILE_READ_ATTRIBUTES,
+        FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING,
+        FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, nullptr));
+      if (!pins.back().valid()) return false;
+      BY_HANDLE_FILE_INFORMATION info = {};
+      if (!GetFileInformationByHandle(pins.back().h, &info) ||
+          !(info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ||
+          (info.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT))
+        return false;
+    }
   }
   return true;
 }
@@ -82,7 +145,7 @@ bool checkedRoot(const std::wstring& input, std::wstring& out) {
       }
     }
   }
-  return true;
+  return scratchRootUnderTemp(out);
 }
 bool rootIdentity(HANDLE root, BY_HANDLE_FILE_INFORMATION& info) {
   return GetFileInformationByHandle(root, &info) != 0 &&
@@ -184,7 +247,7 @@ bool writeExclusive(const std::wstring& full,
 }
 bool flushRoot(const std::wstring& root, DWORD& lastError) {
   Handle dir(CreateFileW(root.c_str(), FILE_WRITE_DATA | FILE_READ_ATTRIBUTES,
-      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+      FILE_SHARE_READ | FILE_SHARE_WRITE,
       nullptr, OPEN_EXISTING,
       FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, nullptr));
   if (!dir.valid()) { lastError = GetLastError(); return false; }
@@ -218,10 +281,12 @@ int wmain(int argc, wchar_t* argv[]) {
   // Operations are a closed ASCII allowlist below. Never interpolate a raw
   // unvalidated command into a machine-readable receipt.
   const std::string operation(op.begin(), op.end());
-  if (!checkedRoot(argv[2], root) || !ntfsVolume(root) ||
+  if (!checkedRoot(argv[2], root) || !ntfsVolume(root)) return 3;
+  std::vector<Handle> ancestorPins;
+  if (!pinAncestorsNoRename(root, ancestorPins) ||
       !safeInventory(root)) return 3;
   Handle rootHandle(CreateFileW(root.c_str(), FILE_READ_ATTRIBUTES,
-      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+      FILE_SHARE_READ | FILE_SHARE_WRITE,
       nullptr, OPEN_EXISTING,
       FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, nullptr));
   BY_HANDLE_FILE_INFORMATION first = {}, last = {};
@@ -279,7 +344,7 @@ int wmain(int argc, wchar_t* argv[]) {
   // swap, so comparing only that handle with itself is meaningless.
   // Reopen the ROOT PATH and compare its current identity as well.
   Handle freshRoot(CreateFileW(root.c_str(), FILE_READ_ATTRIBUTES,
-      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+      FILE_SHARE_READ | FILE_SHARE_WRITE,
       nullptr, OPEN_EXISTING,
       FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, nullptr));
   BY_HANDLE_FILE_INFORMATION fresh = {};
