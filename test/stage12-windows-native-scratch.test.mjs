@@ -5,7 +5,7 @@
 // attests power-loss durability.
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,writeFile,readFile,rm,lstat,symlink,access} from 'node:fs/promises';
+import {mkdtemp,writeFile,readFile,rm,lstat,symlink,access,link,mkdir} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
@@ -110,6 +110,34 @@ test('Windows native candidate never authorizes managed writes',async t=>{
   assert.deepEqual(await readFile(path.join(root,dst)),bytes);
   assert.deepEqual(await readFile(path.join(root,collision)),collisionBytes);
 
+  // A hard link aliases the exact foreign file identity without being a
+  // reparse point. The native DELETE-capable handle must reject nNumberOfLinks
+  // > 1 before disposition or rename, preserving both names and all bytes.
+  const hardAlias='vcp-stage12-hardlink.bin';
+  await link(foreignPath,path.join(root,hardAlias));
+  await assert.rejects(()=>candidate.unlink(hardAlias),e=>{
+    assert.equal(e.code,'E_WINDOWS_SCRATCH_HELPER_PROTOCOL');
+    assert.equal(e.nativeOutcomeUnknown,true);
+    assert.equal(e.requiresForensicInspection,true);
+    return true;
+  });
+  assert.deepEqual(await readFile(path.join(root,hardAlias)),foreignBytes);
+  assert.deepEqual(await readFile(foreignPath),foreignBytes);
+
+  // A directory disposition must refuse an occupied folder at the OS
+  // boundary. There must be no recursive deletion or fallback cleanup.
+  const occupied='vcp-stage12-occupied';
+  await mkdir(path.join(root,occupied));
+  const occupant=path.join(root,occupied,'unowned-user-file.txt');
+  const occupantBytes=Buffer.from('UNOWNED DIRECTORY CONTENTS\r\n');
+  await writeFile(occupant,occupantBytes);
+  await assert.rejects(()=>candidate.rmdirEmpty(occupied),e=>{
+    assert.equal(e.code,'E_WINDOWS_SCRATCH_OPERATION_FAILED');
+    assert.equal(e.nativeReceipt?.mayHaveMutated,true);
+    assert.equal(e.requiresForensicInspection,true);
+    return true;
+  });
+  assert.deepEqual(await readFile(occupant),occupantBytes);
   await assert.rejects(()=>candidate.unlink('../FOREIGN.txt'),{
     code:'E_WINDOWS_SCRATCH_NAME'
   });
@@ -117,6 +145,9 @@ test('Windows native candidate never authorizes managed writes',async t=>{
   await mutating(()=>candidate.rmdirEmpty('vcp-stage12-emptydir'));
   await mutating(()=>candidate.unlink(dst));
   await mutating(()=>candidate.unlink(collision));
+  // Test-only cleanup of an exactly created, known hardlink name. The
+  // candidate itself deliberately refuses to delete linked objects.
+  await rm(path.join(root,hardAlias));
   await assert.rejects(()=>lstat(path.join(root,dst)),{code:'ENOENT'});
 
   // Extra, untrusted root entry must block ALL operations, including
