@@ -35,7 +35,7 @@
     "test:stage14": "node --test test/stage14-consumer-assets.test.mjs test/stage14-dogfood.test.mjs test/stage14-legacy-validator.test.mjs",
     "check:stage14-contract": "node scripts/check-stage14-construction-contract.mjs",
     "build:native-windows": "cl /nologo /std:c++17 /EHsc /W4 /Fo:scripts\\native\\vcp-windows-fsops.obj /Fe:scripts\\native\\vcp-windows-fsops.exe scripts\\native\\vcp-windows-fsops.cpp",
-    "test:native-windows-candidate": "node --test test/stage12-windows-native-scratch.test.mjs"
+    "test:native-windows-candidate": "node scripts/run-native-windows-candidate-tests.mjs"
   },
   "engines": {
     "node": ">=22"
