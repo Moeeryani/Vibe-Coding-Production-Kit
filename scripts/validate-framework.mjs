@@ -23,8 +23,6 @@ const requiredFiles = [
   'docs/QUICKSTART.md',
   'docs/CONTEXT-PACKS.md',
   'docs/UPDATES.md',
-  'docs/CONSUMER-ASSET-SEPARATION.md',
-  'docs/STAGE14-ACCEPTANCE-MATRIX.md',
   'docs/product/PRODUCT-BRIEF.md',
   'docs/product/PRD.md',
   'docs/product/USER-FLOWS.md',
@@ -93,6 +91,10 @@ const providerMobileRequiredFiles = [
 // Only required in the new Stage14 development source/package; this does
 // not require them in any installed consumer project.
 const providerStage14RequiredFiles = [
+  // Required only for this version's provider source tree, not for the
+  // unmodified legacy v1 consumer validator bundled in historical fixtures.
+  'docs/CONSUMER-ASSET-SEPARATION.md',
+  'docs/STAGE14-ACCEPTANCE-MATRIX.md',
   'lib/asset-catalog.mjs',
   'lib/greenfield-routing.mjs',
   'lib/consumer-asset-retirement-plan.mjs',
