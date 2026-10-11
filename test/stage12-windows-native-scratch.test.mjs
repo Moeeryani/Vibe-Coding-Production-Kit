@@ -79,10 +79,21 @@ test('Windows native candidate never authorizes managed writes',async t=>{
 
   const bytes=Buffer.from('NATIVE DISPOSABLE FILE\r\n');
   const src='vcp-stage12-owned.bin',dst='vcp-stage12-moved.bin';
+  const before=await candidate.inspectEntry(src);
+  assert.deepEqual(before.entry,{
+    exists:false,kind:'ABSENT',identity:'',sizeBytes:'0'
+  });
   await mutating(()=>candidate.writeExclusive(src,bytes));
   assert.deepEqual(await readFile(path.join(root,src)),bytes);
+  const created=await candidate.inspectEntry(src);
+  assert.equal(created.entry.kind,'REGULAR');
+  assert.equal(created.entry.sizeBytes,String(bytes.length));
+  assert.match(created.entry.identity,/^[a-f0-9]{24}$/);
   await mutating(()=>candidate.renameNoReplace(src,dst));
   assert.deepEqual(await readFile(path.join(root,dst)),bytes);
+  const moved=await candidate.inspectEntry(dst);
+  assert.equal(moved.entry.identity,created.entry.identity);
+  assert.equal((await candidate.inspectEntry(src)).entry.exists,false);
   // A duplicate CREATE_NEW must preserve both the old bytes and the
   // "no mutation" receipt. Distinguish this from partial write failure.
   await assert.rejects(()=>candidate.writeExclusive(dst,
@@ -142,7 +153,11 @@ test('Windows native candidate never authorizes managed writes',async t=>{
     code:'E_WINDOWS_SCRATCH_NAME'
   });
   await mutating(()=>candidate.mkdirExclusive('vcp-stage12-emptydir'));
+  assert.equal((await candidate.inspectEntry('vcp-stage12-emptydir'))
+    .entry.kind,'DIRECTORY');
   await mutating(()=>candidate.rmdirEmpty('vcp-stage12-emptydir'));
+  assert.equal((await candidate.inspectEntry('vcp-stage12-emptydir'))
+    .entry.exists,false);
   await mutating(()=>candidate.unlink(dst));
   await mutating(()=>candidate.unlink(collision));
   // Empty files take a distinct Win32 path: no zero-byte WriteFile pointer
@@ -155,6 +170,8 @@ test('Windows native candidate never authorizes managed writes',async t=>{
   // candidate itself deliberately refuses to delete linked objects.
   await rm(path.join(root,hardAlias));
   await assert.rejects(()=>lstat(path.join(root,dst)),{code:'ENOENT'});
+  assert.equal((await candidate.inspectEntry(dst)).entry.exists,false);
+  assert.equal((await candidate.inspectEntry(collision)).entry.exists,false);
 
   // Extra, untrusted root entry must block ALL operations, including
   // capabilities. Never read through or delete the linked target.
