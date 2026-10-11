@@ -242,7 +242,7 @@ addressed at **source level**. The new/changed modules implement:
    detects Stage13 v3 journal, prejournal orphan, retired rollback and
    postcommit orphan states without mutation. `npm run
    check:stage13-contract` and `npm run test:stage13` have been
-   **added, NOT EXECUTED**. Ten Stage13 test modules were authored.
+   **added, NOT EXECUTED**. Eleven Stage13 test modules were authored, including a disposable native Linux RENAME_EXCHANGE and umask proof.
    Independent test protocol: `docs/STAGE13-INDEPENDENT-TEST-HANDOFF.md`.
 
 ### Exact construction/acceptance distinction
