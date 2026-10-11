@@ -249,6 +249,12 @@ bool renameOwnedFileNoReplace(HANDLE source,
   // Such a name-based workaround is NOT approved for selected-project
   // lifecycle writes. A separate production descriptor-bound design and
   // D-01 approval would be needed before wiring any managed operations.
+  // Defense in depth beyond wmain's allowlist: the fallback must NEVER
+  // accept a separator, drive prefix, "..", reparse route or arbitrary name.
+  if(!allowedName(targetLeaf) || !scratchRootUnderTemp(verifiedScratchRoot)){
+    lastError=ERROR_INVALID_NAME;
+    return false;
+  }
   const std::wstring target=join(verifiedScratchRoot,targetLeaf);
   if(target.size()>=MAX_PATH) {
     lastError=ERROR_FILENAME_EXCED_RANGE;
