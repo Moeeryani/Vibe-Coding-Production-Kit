@@ -10,6 +10,7 @@ import {
   classifyConsumerAsset,assetSurfaceSnapshot,selectPackagedPromptEligibility
 } from '../lib/asset-catalog.mjs';
 import {buildDesiredFiles} from '../lib/template.mjs';
+import {runCli} from '../lib/cli.mjs';
 import {resolvePackagedPrompt} from '../lib/prompt-resolver.mjs';
 import {planConsumerAssetRetirement} from '../lib/consumer-asset-retirement-plan.mjs';
 import {seedLegacyV1Fixture} from './helpers/legacy-v1-fixture.mjs';
@@ -209,4 +210,32 @@ test('Stage14 linked modified retirement path cannot be removed or trusted',asyn
   assert.ok(plan.actions.some(a=>a.path==='prompts/02-plan-task.md'&&
     a.classification==='CONFLICT'));
   assert.equal(await readFile(outside,'utf8'),'FOREIGN USER CONTENT\r\n');
+});
+
+test('Stage14 CLI asset-plan emits only read-only inspection JSON',async t=>{
+  const root=await scratch(t);
+  await seedLegacyV1Fixture({targetDir:root,agent:'generic',
+    stack:'generic',includeGitHub:false});
+  const before=await readFile(path.join(root,'AGENTS.md'));
+  const outputs=[];
+  t.mock.method(console,'log',x=>outputs.push(String(x)));
+  await runCli(['asset-plan',root,'--asset-set','greenfield-safe-v1','--json']);
+  const report=JSON.parse(outputs.at(-1));
+  assert.equal(report.readOnly,true);
+  assert.equal(report.executionAuthorized,false);
+  assert.equal(report.mutationGate,'D-01/G-FENCE_NO_GO');
+  assert.deepEqual(await readFile(path.join(root,'AGENTS.md')),before);
+});
+test('Stage14 CLI asset-plan refuses force/run/yes and absent target',async t=>{
+  const root=await scratch(t);
+  for(const flags of [
+    ['--asset-set','greenfield-safe-v1','--yes'],
+    ['--asset-set','greenfield-safe-v1','--force'],
+    ['--asset-set','greenfield-safe-v1','--run'],
+    ['--json']
+  ]){
+    await assert.rejects(()=>runCli(['asset-plan',root,...flags]),
+      /strictly read-only inventory/);
+  }
+  assert.deepEqual(await readdir(root),[]);
 });
