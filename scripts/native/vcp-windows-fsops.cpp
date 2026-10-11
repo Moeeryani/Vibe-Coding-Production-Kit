@@ -160,11 +160,15 @@ bool readBoundedStdin(std::vector<char>& payload) {
   }
 }
 bool writeExclusive(const std::wstring& full,
-                    const std::vector<char>& bytes, DWORD& lastError) {
+                    const std::vector<char>& bytes, DWORD& lastError,
+                    bool& mayHaveMutated) {
   Handle file(CreateFileW(full.c_str(), GENERIC_WRITE, 0, nullptr,
       CREATE_NEW, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_WRITE_THROUGH |
       FILE_FLAG_OPEN_REPARSE_POINT, nullptr));
   if (!file.valid()) { lastError = GetLastError(); return false; }
+  // CREATE_NEW has already changed the namespace. Later WriteFile or
+  // FlushFileBuffers failure MUST NOT be reported as a no-mutation failure.
+  mayHaveMutated = true;
   DWORD wrote = 0;
   const BOOL ok = WriteFile(file.h, bytes.data(),
       static_cast<DWORD>(bytes.size()), &wrote, nullptr);
@@ -187,10 +191,12 @@ bool flushRoot(const std::wstring& root, DWORD& lastError) {
   return true;
 }
 void printResult(const bool completed, const bool fileSynced,
-                 const bool parentSyncReturned, const DWORD osError) {
+                 const bool parentSyncReturned, const DWORD osError,
+                 const bool mayHaveMutated) {
   std::cout << "{\"kind\":\"VCP_WINDOWS_SCRATCH_NAMESPACE_CANDIDATE\","
     << "\"completed\":" << (completed ? "true" : "false") << ","
     << "\"fileFlushReturned\":" << (fileSynced ? "true" : "false") << ","
+    << "\"mayHaveMutated\":" << (mayHaveMutated ? "true" : "false") << ","
     << "\"directoryFlushReturned\":"
     << (parentSyncReturned ? "true" : "false") << ","
     << "\"lastWin32Error\":" << osError << ","
@@ -213,7 +219,7 @@ int wmain(int argc, wchar_t* argv[]) {
   BY_HANDLE_FILE_INFORMATION first = {}, last = {};
   if (!rootHandle.valid() || !rootIdentity(rootHandle.h, first)) return 3;
 
-  bool completed = false, fileSynced = false;
+  bool completed = false, fileSynced = false, mayHaveMutated = false;
   DWORD err = 0;
   if (op == L"capabilities" || op == L"sync-root") {
     if (argc != 5) return 2;
@@ -222,7 +228,8 @@ int wmain(int argc, wchar_t* argv[]) {
     if (argc != 6 || !allowedName(argv[5])) return 2;
     std::vector<char> payload;
     if (!readBoundedStdin(payload)) return 4;
-    completed = writeExclusive(join(root, argv[5]), payload, err);
+    completed = writeExclusive(join(root, argv[5]), payload, err,
+                               mayHaveMutated);
     fileSynced = completed;
   } else if (op == L"rename-no-replace") {
     if (argc != 7 || !allowedName(argv[5]) ||
@@ -232,6 +239,7 @@ int wmain(int argc, wchar_t* argv[]) {
     if (!normalOwnedFile(source)) return 4;
     // MOVEFILE_REPLACE_EXISTING is deliberately not specified: the OS
     // refuses to overwrite an occupied destination at the rename operation.
+    mayHaveMutated = true; // Attempted namespace mutation: inspect on error.
     completed = MoveFileExW(source.c_str(), join(root, argv[6]).c_str(),
                            MOVEFILE_WRITE_THROUGH) != 0;
     if (!completed) err = GetLastError();
@@ -239,10 +247,12 @@ int wmain(int argc, wchar_t* argv[]) {
     if (argc != 6 || !allowedName(argv[5])) return 2;
     const std::wstring full = join(root, argv[5]);
     if (!normalOwnedFile(full)) return 4;
+    mayHaveMutated = true;
     completed = DeleteFileW(full.c_str()) != 0;
     if (!completed) err = GetLastError();
   } else if (op == L"mkdir-exclusive") {
     if (argc != 6 || !allowedName(argv[5])) return 2;
+    mayHaveMutated = true;
     completed = CreateDirectoryW(join(root, argv[5]).c_str(), nullptr) != 0;
     if (!completed) err = GetLastError();
   } else if (op == L"rmdir-empty") {
@@ -252,6 +262,7 @@ int wmain(int argc, wchar_t* argv[]) {
     if (attrs == INVALID_FILE_ATTRIBUTES ||
         !(attrs & FILE_ATTRIBUTE_DIRECTORY) ||
         (attrs & FILE_ATTRIBUTE_REPARSE_POINT)) return 4;
+    mayHaveMutated = true;
     completed = RemoveDirectoryW(full.c_str()) != 0;
     if (!completed) err = GetLastError();
   } else return 2;
@@ -268,14 +279,16 @@ int wmain(int argc, wchar_t* argv[]) {
       !freshRoot.valid() || !rootIdentity(freshRoot.h, fresh) ||
       !sameIdentity(first, fresh) || !safeInventory(root)) {
     // Do not retry or cleanup. Preserve completed work for inspection.
-    printResult(completed, fileSynced, false, ERROR_INVALID_HANDLE);
+    printResult(completed, fileSynced, false, ERROR_INVALID_HANDLE,
+                mayHaveMutated);
     return 5;
   }
   DWORD syncErr = 0;
   // Capabilities deliberately attempts to measure namespace flush support,
   // but its exit code 0 is never evidence of durability.
   const bool directoryFlush = flushRoot(root, syncErr);
-  printResult(completed, fileSynced, directoryFlush, syncErr ? syncErr : err);
+  printResult(completed, fileSynced, directoryFlush, syncErr ? syncErr : err,
+              mayHaveMutated);
   if (!completed) return 6;
   if (op == L"capabilities") return 0;
   // DirectoryFlush failure remains a hard nonzero acknowledgement.
