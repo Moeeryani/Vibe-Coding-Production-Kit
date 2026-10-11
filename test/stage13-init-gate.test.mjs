@@ -59,3 +59,18 @@ test('Stage13 recovery never infers ownership without its own journal',async t=>
   assert.equal(report.writeAuthorized,false);
   assert.equal(await readFile(path.join(root,'user.txt'),'utf8'),'user owned');
 });
+
+test('Stage13 refuses implicit re-adoption when forensic archive remains',async t=>{
+  const root=await fixture(t);
+  await writeFile(path.join(root,'USER.txt'),'user content');
+  await writeFile(path.join(root,
+    '.vcp-adoption-retired-adopt-'+'a'.repeat(32)+'-'+'b'.repeat(40)),
+    'forensic archive placeholder');
+  const {inspectProject}=await import('../lib/adoption-inspect.mjs');
+  const report=await inspectProject(root);
+  assert.equal(report.classification,'BLOCKED');
+  assert.equal(report.reason,'RETIRED_ADOPTION_EVIDENCE_PRESENT');
+  assert.equal(await absent(root,'.vcp'),true);
+  assert.equal(await readFile(path.join(root,'USER.txt'),'utf8'),
+    'user content');
+});
