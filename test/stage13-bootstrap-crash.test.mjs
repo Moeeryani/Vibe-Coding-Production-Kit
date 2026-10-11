@@ -78,7 +78,7 @@ test('foreign control files cannot be quarantined from guessed provenance',async
     'do not delete');
 });
 test('linked prejournal staging is never traversed',async t=>{
-  if(process.platform==='win32')t.skip('native junction conformance pending');
+  if(process.platform==='win32')t.skip('native Windows pre-WAL staging junction is exercised by test/stage13-windows-ntfs.test.mjs');
   const root=await fixture(t);
   await initControl(root);
   await symlink(os.tmpdir(),path.join(root,'.vcp/stage'));
