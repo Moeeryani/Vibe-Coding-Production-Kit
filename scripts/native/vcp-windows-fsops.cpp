@@ -328,7 +328,7 @@ void printResult(const bool completed, const bool fileSynced,
                  const bool parentSyncReturned, const DWORD osError,
                  const bool mayHaveMutated, const std::string& operation) {
   std::cout << "{\"kind\":\"VCP_WINDOWS_SCRATCH_NAMESPACE_CANDIDATE\","
-    << "\"protocolVersion\":1,"
+    << "\"protocolVersion\":2,"
     << "\"operation\":\"" << operation << "\","
     << "\"completed\":" << (completed ? "true" : "false") << ","
     << "\"fileFlushReturned\":" << (fileSynced ? "true" : "false") << ","
