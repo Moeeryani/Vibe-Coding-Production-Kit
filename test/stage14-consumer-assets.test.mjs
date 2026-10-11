@@ -112,6 +112,7 @@ test('Stage14 historic full surface retains original compatibility assets',async
   // legacy-owned file list merely because they live under docs/.
   assert.equal(legacy.files.has('docs/CONSUMER-ASSET-SEPARATION.md'),false);
   assert.equal(legacy.files.has('docs/tasks/stage14-consumer-asset-separation.md'),false);
+  assert.equal(legacy.files.has('docs/STAGE14-ACCEPTANCE-MATRIX.md'),false);
 });
 test('Stage14 catalog retains legacy CI/package-only prompt but never in safe surface',()=>{
   for(const p of STAGE14_PACKAGE_RUNTIME){
