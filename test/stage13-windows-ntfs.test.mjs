@@ -183,6 +183,7 @@ test('native Windows adoption plan refuses symlinked external source evidence',a
   const plan=await planSmartInit(root);
   assert.equal(plan.blocked,true);
   assert.equal(plan.reason,'UNSAFE_PROJECT_PATH');
-  assert.equal(plan.executionAuthorized,false);
+  assert.equal(plan.zeroWrite,true);
+  assert.ok(plan.actions.every(action=>action.executionAuthorized===false));
   await foreignUnchanged(outside,original);
 });
