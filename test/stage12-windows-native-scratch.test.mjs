@@ -5,7 +5,7 @@
 // attests power-loss durability.
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,writeFile,readFile,rm,lstat,symlink,access,link,mkdir} from 'node:fs/promises';
+import {mkdtemp,writeFile,readFile,rm,lstat,symlink,access,link,mkdir,open} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
@@ -61,6 +61,35 @@ test('Windows native candidate never authorizes managed writes',async t=>{
   assert.equal(caps.completed,true);
   assert.equal(caps.managedMutationAuthorized,false);
   assert.equal(caps.directoryDurabilityProven,false);
+
+  // The original Windows regression occurred at the EOF of Node's
+  // anonymous child stdin pipe: ReadFile returned ERROR_BROKEN_PIPE.
+  // Repeat the SAME 24-byte payload with an actual file stdin descriptor
+  // to prove both Win32 input endings are accepted, without ever touching
+  // a real user project. The direct invocation must emit a typed receipt.
+  const nativePayload=Buffer.from('NATIVE DISPOSABLE FILE\\r\\n'.replace(/\\r/g,'\r')
+    .replace(/\\n/g,'\n'));
+  const inputFile=path.join(foreign,'native-stdin-payload.bin');
+  await writeFile(inputFile,nativePayload);
+  const fd=await open(inputFile,'r');
+  let redirected;
+  try{
+    redirected=spawnSync(DEFAULT_WINDOWS_SCRATCH_HELPER,[
+      '--scratch-root',root,'--op','write-exclusive',
+      'vcp-stage12-file-stdin.bin'
+    ],{
+      stdio:[fd.fd,'pipe','pipe'],encoding:'utf8',windowsHide:true,
+      env:{...process.env,TMP:os.tmpdir(),TEMP:os.tmpdir()}
+    });
+  }finally{await fd.close();}
+  assert.equal(redirected.error,undefined);
+  assert.ok([0,7].includes(redirected.status),redirected.stderr);
+  const redirectedReceipt=JSON.parse(redirected.stdout.trim());
+  assert.equal(redirectedReceipt.completed,true);
+  assert.equal(redirectedReceipt.operation,'write-exclusive');
+  assert.equal(redirectedReceipt.protocolVersion,3);
+  assert.deepEqual(await readFile(path.join(root,'vcp-stage12-file-stdin.bin')),
+    nativePayload);
 
   async function mutating(call){
     try{
@@ -160,6 +189,7 @@ test('Windows native candidate never authorizes managed writes',async t=>{
     .entry.exists,false);
   await mutating(()=>candidate.unlink(dst));
   await mutating(()=>candidate.unlink(collision));
+  await mutating(()=>candidate.unlink('vcp-stage12-file-stdin.bin'));
   // Empty files take a distinct Win32 path: no zero-byte WriteFile pointer
   // is dereferenced, but the new file is still flushed and disposed.
   const empty='vcp-stage12-empty.bin';
