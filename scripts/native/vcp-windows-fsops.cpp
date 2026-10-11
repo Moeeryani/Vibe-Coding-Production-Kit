@@ -4,13 +4,14 @@
 //   npm run build:native-windows
 // Invoke only on an EMPTY scratch directory with the exact marker created
 // manually: "VCP_STAGE12_DISPOSABLE_TEST_ROOT_ONLY\n".
-//   vcp-windows-fsops.exe --scratch-root D:\scratch --op capabilities
+//   vcp-windows-fsops.exe --scratch-root %TMP%\vcp-win-native-scratch-ABC123 --op capabilities
 //   ... --op write-exclusive vcp-stage12-file.bin < payload
 //   ... --op rename-no-replace vcp-stage12-file.bin vcp-stage12-moved.bin
 //   ... --op unlink vcp-stage12-moved.bin
 //
-// Every path operation uses a flat, reserved vcp-stage12-* name. The binary
-// refuses extra/linked contents, non-NTFS volumes, UNC, linked ancestors,
+// Every path operation uses a flat, reserved vcp-stage12-* name under a
+// direct vcp-win-native-scratch-* child of OS TEMP. The binary refuses
+// extra/linked contents, non-NTFS volumes, UNC, linked ancestors,
 // any invocation outside an operator-marked disposable directory.
 // This is research source; do not route selected-root writers to it.
 // There is no production trust grant merely because an operator can create
@@ -235,12 +236,16 @@ bool writeExclusive(const std::wstring& full,
   // CREATE_NEW has already changed the namespace. Later WriteFile or
   // FlushFileBuffers failure MUST NOT be reported as a no-mutation failure.
   mayHaveMutated = true;
-  DWORD wrote = 0;
-  const BOOL ok = WriteFile(file.h, bytes.data(),
-      static_cast<DWORD>(bytes.size()), &wrote, nullptr);
-  if (!ok || wrote != static_cast<DWORD>(bytes.size())) {
-    lastError = ok ? ERROR_WRITE_FAULT : GetLastError();
-    return false; // partial file is deliberately retained
+  // Avoid passing a potentially null vector::data() for zero-length
+  // payloads. An empty new file still receives FlushFileBuffers below.
+  if (!bytes.empty()) {
+    DWORD wrote = 0;
+    const BOOL ok = WriteFile(file.h, bytes.data(),
+        static_cast<DWORD>(bytes.size()), &wrote, nullptr);
+    if (!ok || wrote != static_cast<DWORD>(bytes.size())) {
+      lastError = ok ? ERROR_WRITE_FAULT : GetLastError();
+      return false; // partial file is deliberately retained
+    }
   }
   if (!FlushFileBuffers(file.h)) { lastError = GetLastError(); return false; }
   return true;
