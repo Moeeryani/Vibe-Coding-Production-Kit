@@ -13,6 +13,9 @@
 // refuses extra/linked contents, non-NTFS volumes, UNC, linked ancestors,
 // any invocation outside an operator-marked disposable directory.
 // This is research source; do not route selected-root writers to it.
+// There is no production trust grant merely because an operator can create
+// a marker in a folder. Full ACL/MAC isolation and durable namespace
+// semantics must be separately approved before any user-root integration.
 //
 // IMPORTANT: Win32 completion, FlushFileBuffers(file), and even a successful
 // directory FlushFileBuffers do not prove journal/power-loss durability.
@@ -104,9 +107,9 @@ bool readMarker(const std::wstring& root) {
       info.nNumberOfLinks != 1) return false;
   char bytes[64] = {};
   DWORD size = 0;
-  const DWORD expected = static_cast<DWORD>(strlen(kMarkerBytes));
+  const DWORD expected = static_cast<DWORD>(std::strlen(kMarkerBytes));
   if (!ReadFile(file.h, bytes, sizeof(bytes), &size, nullptr)) return false;
-  return size == expected && memcmp(bytes, kMarkerBytes, expected) == 0;
+  return size == expected && std::memcmp(bytes, kMarkerBytes, expected) == 0;
 }
 bool safeInventory(const std::wstring& root) {
   WIN32_FIND_DATAW entry = {};
