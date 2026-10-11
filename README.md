@@ -460,3 +460,19 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) if you want to help.
 ## License
 
 MIT — use it in personal, commercial, and open-source projects.
+
+## Stage 14 construction — consumer asset separation (not released)
+
+The Stage14 source candidate makes safe greenfield installs use an explicit
+starter inventory and mature brownfield adoption a minimal routing surface.
+VCP's canonical prompts, framework references, legacy validation scripts and
+historical npm CI workflow remain inside the package, **not automatically copied
+into a safe consumer repository**. Customized local prompt overrides take
+precedence over packaged fallback. See
+[Consumer Asset Separation](docs/CONSUMER-ASSET-SEPARATION.md).
+
+`vcp asset-plan . --asset-set greenfield-safe-v1 --json` previews a legacy
+managed project's potential package-only asset retirements without changing
+files. **No cleanup/apply command exists**. This is build-only work; Stage12/13
+completion and Checkpoint A are unverified, and D-01/G-FENCE remain NO-GO. The
+published `v0.9.3` package is not changed.
