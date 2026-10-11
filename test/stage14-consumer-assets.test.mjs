@@ -108,6 +108,10 @@ test('Stage14 historic full surface retains original compatibility assets',async
     'docs/CLI.md','docs/ROADMAP.md','prompts/02-plan-task.md',
     'scripts/validate-framework.mjs','.github/workflows/validate.yml'
   ])assert.equal(legacy.files.has(relative),true,relative);
+  // New provider-only Stage14 docs cannot silently expand the historic
+  // legacy-owned file list merely because they live under docs/.
+  assert.equal(legacy.files.has('docs/CONSUMER-ASSET-SEPARATION.md'),false);
+  assert.equal(legacy.files.has('docs/tasks/stage14-consumer-asset-separation.md'),false);
 });
 test('Stage14 catalog retains legacy CI/package-only prompt but never in safe surface',()=>{
   for(const p of STAGE14_PACKAGE_RUNTIME){
