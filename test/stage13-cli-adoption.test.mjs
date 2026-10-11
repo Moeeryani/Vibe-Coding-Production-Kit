@@ -46,3 +46,23 @@ test('Stage13 dry-run exposes consent without creating managed state',async t=>{
   assert.match(preview.stage13Consent.intentFingerprint,/^[a-f0-9]{64}$/);
   assert.deepEqual(await readdir(root),['package.json']);
 });
+
+test('Stage13 adoption recovery requires separate journal consent and archive permission',async t=>{
+  const root=await fixture(t);
+  t.mock.method(console,'log',()=>{});
+  await assert.rejects(()=>runCli(['adoption-recover',root,'--yes']),
+    /--confirm-recovery/);
+  await assert.rejects(()=>runCli(['adoption-recover',root,'--yes',
+    '--confirm-recovery','f'.repeat(64)]),/--allow-forensic-archive/);
+  await assert.rejects(()=>runCli(['recovery-plan',root,
+    '--allow-forensic-archive']),/only to adoption-recover/);
+  assert.deepEqual(await readdir(root),['package.json']);
+});
+test('Stage13 adoption recovery is hard-fenced before inspecting candidate root',async t=>{
+  const root=await fixture(t);
+  t.mock.method(console,'log',()=>{});
+  await assert.rejects(()=>runCli(['adoption-recover',root,'--yes',
+    '--confirm-recovery','f'.repeat(64),'--allow-forensic-archive']),
+    {code:'E_G_FENCE_NO_GO'});
+  assert.deepEqual(await readdir(root),['package.json']);
+});
