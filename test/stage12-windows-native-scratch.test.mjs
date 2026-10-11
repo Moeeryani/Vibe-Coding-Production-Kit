@@ -67,8 +67,7 @@ test('Windows native candidate never authorizes managed writes',async t=>{
   // Repeat the SAME 24-byte payload with an actual file stdin descriptor
   // to prove both Win32 input endings are accepted, without ever touching
   // a real user project. The direct invocation must emit a typed receipt.
-  const nativePayload=Buffer.from('NATIVE DISPOSABLE FILE\\r\\n'.replace(/\\r/g,'\r')
-    .replace(/\\n/g,'\n'));
+  const nativePayload=Buffer.from('NATIVE DISPOSABLE FILE\r\n');
   const inputFile=path.join(foreign,'native-stdin-payload.bin');
   await writeFile(inputFile,nativePayload);
   const fd=await open(inputFile,'r');
