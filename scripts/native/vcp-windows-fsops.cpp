@@ -18,9 +18,12 @@
 // a marker in a folder. Full ACL/MAC isolation and durable namespace
 // semantics must be separately approved before any user-root integration.
 //
-// IMPORTANT: Handle-relative rename and disposition require DELETE-capable
-// file handles; they narrow pathname TOCTOU but do not make the remaining
-// create/mkdir calls descriptor-relative or the namespace power-loss durable.
+// IMPORTANT: FileRenameInfo uses a *scratch-restricted* absolute leaf path
+// because independent Windows 11 probes rejected RootDirectory+relative name.
+// This is NOT a descriptor-relative production rename. All ancestor handles
+// remain pinned without FILE_SHARE_DELETE until verified completion.
+// Disposition uses DELETE-capable handles; other operations remain name-based.
+// None of these calls prove namespace power-loss durability.
 // Directory disposition is still a candidate to be checked on real NTFS.
 // IMPORTANT: Win32 completion, FlushFileBuffers(file), and even a successful
 // directory FlushFileBuffers do not prove journal/power-loss durability.
@@ -229,22 +232,39 @@ bool normalOwnedOpen(HANDLE h, bool directory) {
       directory;
 }
 bool renameOwnedFileNoReplace(HANDLE source,
-                              HANDLE containingDir,
-                              const std::wstring& target,
+                              const std::wstring& verifiedScratchRoot,
+                              const std::wstring& targetLeaf,
                               DWORD& lastError) {
-  // FILE_RENAME_INFO.RootDirectory resolves this single component
-  // relative to our already pinned NTFS scratch root. ReplaceIfExists=FALSE
-  // requests a collision refusal *inside* the kernel rename operation.
-  // A successful rename is NOT a parent-metadata durability attestation.
+  // IMPORTANT, SCRATCH-ONLY COMPATIBILITY WORKAROUND:
+  // Independent Windows 11 build 26200 / NTFS probes show that
+  // SetFileInformationByHandle(FileRenameInfo) with RootDirectory != NULL
+  // and a relative FileName fails with ERROR_INVALID_PARAMETER (87);
+  // the Win32 API instead accepts RootDirectory=NULL + an absolute name.
+  //
+  // Absolute path use is ONLY permitted here because this executable
+  // already refuses every target outside a marked, direct OS-TEMP scratch
+  // root, validates a single reserved leaf component, opens every ancestor
+  // including the scratch root WITHOUT FILE_SHARE_DELETE for the duration
+  // of the operation, and checks the root and file identities afterwards.
+  // Such a name-based workaround is NOT approved for selected-project
+  // lifecycle writes. A separate production descriptor-bound design and
+  // D-01 approval would be needed before wiring any managed operations.
+  const std::wstring target=join(verifiedScratchRoot,targetLeaf);
+  if(target.size()>=MAX_PATH) {
+    lastError=ERROR_FILENAME_EXCED_RANGE;
+    return false;
+  }
+  // ReplaceIfExists=FALSE must remain enforced by the kernel. Never
+  // lstat+remove a destination or retry with REPLACE_EXISTING.
   const size_t bytes=offsetof(FILE_RENAME_INFO, FileName) +
       (target.size()+1) * sizeof(wchar_t);
   std::vector<std::max_align_t> storage(
       (bytes+sizeof(std::max_align_t)-1)/sizeof(std::max_align_t));
   auto* info=reinterpret_cast<FILE_RENAME_INFO*>(storage.data());
   info->ReplaceIfExists=FALSE;
-  info->RootDirectory=containingDir;
+  info->RootDirectory=nullptr;
   info->FileNameLength=static_cast<DWORD>(target.size()*sizeof(wchar_t));
-  std::memcpy(info->FileName, target.c_str(),
+  std::memcpy(info->FileName,target.c_str(),
               (target.size()+1)*sizeof(wchar_t));
   const BOOL moved=SetFileInformationByHandle(source,FileRenameInfo,info,
                                               static_cast<DWORD>(bytes));
@@ -442,12 +462,11 @@ int wmain(int argc, wchar_t* argv[]) {
   std::vector<Handle> ancestorPins;
   if (!pinAncestorsNoRename(root, ancestorPins) ||
       !safeInventory(root)) return 3;
-  // FILE_RENAME_INFO.RootDirectory is an actual target-directory handle.
-  // FILE_ADD_FILE authorizes creating the renamed directory entry there.
-  const DWORD scratchRootAccess = FILE_READ_ATTRIBUTES |
-      (op == L"rename-no-replace" ? FILE_ADD_FILE : 0);
+  // Root handle is intentionally read-only and denies FILE_SHARE_DELETE:
+  // the scratch-only Win32 fallback below must not follow a moved root
+  // between the validated preflight and the absolute-name rename.
   Handle rootHandle(CreateFileW(root.c_str(),
-      scratchRootAccess,
+      FILE_READ_ATTRIBUTES,
       FILE_SHARE_READ | FILE_SHARE_WRITE,
       nullptr, OPEN_EXISTING,
       FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, nullptr));
@@ -480,8 +499,7 @@ int wmain(int argc, wchar_t* argv[]) {
       nullptr,OPEN_EXISTING,FILE_FLAG_OPEN_REPARSE_POINT,nullptr));
     if(!source.valid() || !normalOwnedOpen(source.h,false))return 4;
     mayHaveMutated = true; // An attempted OS mutation is never a proved no-op.
-    completed = renameOwnedFileNoReplace(source.h,rootHandle.h,
-                                         argv[6],err);
+    completed = renameOwnedFileNoReplace(source.h,root,argv[6],err);
     if(completed && !verifyRenamedFileIdentity(root,argv[5],argv[6],
                                                source.h)) {
       completed=false;
