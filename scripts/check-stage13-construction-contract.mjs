@@ -39,7 +39,8 @@ export async function inspectStage13ConstructionContract() {
     'lib/stage13-recovery-lock.mjs',
     'lib/stage13-committed-orphan-lock.mjs',
     'lib/stage13-section-exchange.mjs',
-    'lib/stage13-recovery-provenance.mjs'
+    'lib/stage13-recovery-provenance.mjs',
+    'lib/stage13-replan-contract.mjs'
   ];
   const contents=new Map(await Promise.all(files.map(async name=>
     [name,await read(name)])));
@@ -59,6 +60,7 @@ export async function inspectStage13ConstructionContract() {
   includes(part(files[5]),"mode:'adopt'",files[5]);
   includes(part(files[5]),'stage13ClaimStagingPath',files[5]);
   includes(part(files[5]),'provider.moveNoReplace',files[5]);
+  includes(part(files[5]),'assertStage13PostLockIdentity',files[5]);
   includes(part(files[5]),'assertStage13SectionIsolationAvailable',files[5]);
   includes(part(files[5]),'exchangeStage13Section',files[5]);
   includes(part(files[5]),'controlWriteAttempted&&journal===null',files[5]);
@@ -81,6 +83,8 @@ export async function inspectStage13ConstructionContract() {
   includes(part(files[10]),'E_STAGE13_NATIVE_IDENTITY_UNPROVEN',files[10]);
   includes(part(files[15]),'9007199254740993',files[15]);
   includes(part(files[11]),'inspectOwnedAdoptionBootstrap',files[11]);
+  includes(part(files[11]),'assertOwnedLifecycleLock',files[11]);
+  includes(part(files[11]),'ownedLockInodes',files[11]);
   includes(part(files[12]),'ownedBootstrapLock',files[12]);
   includes(part(files[12]),'RETIRED_ADOPTION_EVIDENCE_PRESENT',files[12]);
   includes(part(files[13]),'--confirm-adoption',files[13]);
@@ -100,6 +104,8 @@ export async function inspectStage13ConstructionContract() {
   includes(part(files[20]),'kernelVerifiedIsolation',files[20]);
   includes(part(files[21]),'ABSENT_CLAIM_WITHOUT_STAGING_OR_ARCHIVE_PROOF',files[21]);
   includes(part(files[21]),'ABSENT_DIRECTORY_WITHOUT_STAGED_OR_ARCHIVE_PROOF',files[21]);
+  includes(part(files[22]),'timestampDifferenceAllowed:true',files[22]);
+  includes(part(files[22]),'E_STAGE13_POSTLOCK_MANIFEST_CHANGED',files[22]);
   return Object.freeze({
     status:'STAGE13_SOURCE_CONSTRUCTION_PRESENT_ONLY',
     fullStage13Accepted:false,
