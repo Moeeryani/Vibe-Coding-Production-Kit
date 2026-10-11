@@ -242,6 +242,32 @@ bool renameOwnedFileNoReplace(HANDLE source,
   if(!moved)lastError=GetLastError();
   return moved!=0;
 }
+bool verifyRenamedFileIdentity(const std::wstring& root,
+                               const std::wstring& oldName,
+                               const std::wstring& newName,
+                               HANDLE source) {
+  // An OS rename returning success alone does not tell us that some
+  // unexpected pathname replacement or alias was not observed later.
+  // Verify the new name still denotes the same held file identity.
+  Handle target(CreateFileW(join(root,newName).c_str(),
+      FILE_READ_ATTRIBUTES,FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
+      nullptr,OPEN_EXISTING,FILE_FLAG_OPEN_REPARSE_POINT,nullptr));
+  BY_HANDLE_FILE_INFORMATION fromInfo = {}, toInfo = {};
+  if(!target.valid() || !normalOwnedOpen(target.h,false) ||
+     !GetFileInformationByHandle(source,&fromInfo) ||
+     !GetFileInformationByHandle(target.h,&toInfo) ||
+     !sameIdentity(fromInfo,toInfo)) return false;
+  // Any surviving old-name entry is unsafe or a competing writer.
+  const DWORD attrs=GetFileAttributesW(join(root,oldName).c_str());
+  return attrs==INVALID_FILE_ATTRIBUTES &&
+      GetLastError()==ERROR_FILE_NOT_FOUND;
+}
+bool verifyRemovedName(const std::wstring& root,
+                       const std::wstring& name) {
+  const DWORD attrs=GetFileAttributesW(join(root,name).c_str());
+  return attrs==INVALID_FILE_ATTRIBUTES &&
+      GetLastError()==ERROR_FILE_NOT_FOUND;
+}
 bool disposeOwnedHandle(HANDLE object,DWORD& lastError) {
   FILE_DISPOSITION_INFO disposal = {};
   disposal.DeleteFile=TRUE;
@@ -361,6 +387,11 @@ int wmain(int argc, wchar_t* argv[]) {
     mayHaveMutated = true; // An attempted OS mutation is never a proved no-op.
     completed = renameOwnedFileNoReplace(source.h,rootHandle.h,
                                          argv[6],err);
+    if(completed && !verifyRenamedFileIdentity(root,argv[5],argv[6],
+                                               source.h)) {
+      completed=false;
+      err=ERROR_INVALID_DATA; // mayHaveMutated remains true
+    }
   } else if (op == L"unlink") {
     if (argc != 6 || !allowedName(argv[5])) return 2;
     // Disposition applies to the already-open file object. Never check
@@ -374,6 +405,10 @@ int wmain(int argc, wchar_t* argv[]) {
     completed = disposeOwnedHandle(object.h,err);
     // The object must be closed before the root inventory is rechecked.
     object=Handle();
+    if(completed && !verifyRemovedName(root,argv[5])) {
+      completed=false;
+      err=ERROR_INVALID_DATA;
+    }
   } else if (op == L"mkdir-exclusive") {
     if (argc != 6 || !allowedName(argv[5])) return 2;
     mayHaveMutated = true;
@@ -392,6 +427,10 @@ int wmain(int argc, wchar_t* argv[]) {
     mayHaveMutated = true;
     completed = disposeOwnedHandle(dir.h,err);
     dir=Handle();
+    if(completed && !verifyRemovedName(root,argv[5])) {
+      completed=false;
+      err=ERROR_INVALID_DATA;
+    }
   } else return 2;
 
   // A held directory handle remains the *same object* after a pathname
