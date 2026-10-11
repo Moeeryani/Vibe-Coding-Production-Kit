@@ -57,6 +57,9 @@
 #ifndef RENAME_NOREPLACE
 #define RENAME_NOREPLACE (1U << 0)
 #endif
+#ifndef RENAME_EXCHANGE
+#define RENAME_EXCHANGE (1U << 1)
+#endif
 #ifndef SYS_renameat2
 #if defined(__x86_64__)
 #define SYS_renameat2 316
