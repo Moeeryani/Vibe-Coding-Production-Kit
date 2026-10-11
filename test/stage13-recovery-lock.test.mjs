@@ -15,6 +15,11 @@ async function fixture(t,{pid=process.pid,lockId=id}={}) {
   t.after(()=>rm(root,{recursive:true,force:true}));
   await mkdir(path.join(root,'.vcp/backups',id),{recursive:true});
   await writeFile(path.join(root,'USER.txt'),'USER ORIGINAL BYTES');
+  const staged=path.join(root,'.vcp/stage',id,'files','AGENTS.md');
+  await mkdir(path.dirname(staged),{recursive:true});
+  const stageBytes=Buffer.from('STAGE13 NEW OWNED FILE\n');
+  await writeFile(staged,stageBytes);
+  const stageInfo=await lstat(staged,{bigint:true});
   const rootInfo=await lstat(root);
   const rootIdentity=sha(Buffer.from(root+'|'+rootInfo.dev+'|'+rootInfo.ino));
   const journal=describeStage13Transaction({
@@ -22,8 +27,9 @@ async function fixture(t,{pid=process.pid,lockId=id}={}) {
     manifestSha256:'c'.repeat(64),minimumReaderVersion:'0.9.4',
     phase:'snapshotted',createdAt:'2026-10-11T00:00:00.000Z',
     items:[{path:'AGENTS.md',kind:'whole-file',oldSha256:null,
-      newSha256:'d'.repeat(64),baselineSha256:'e'.repeat(64),
-      stagedDev:'7',stagedIno:'9'}]
+      newSha256:sha(stageBytes),baselineSha256:sha(stageBytes),
+      stagedDev:stageInfo.dev.toString(),
+      stagedIno:stageInfo.ino.toString()}]
   });
   await writeFile(path.join(root,'.vcp/transaction.json'),
     JSON.stringify(journal,null,2)+'\n');
