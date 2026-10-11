@@ -38,7 +38,8 @@ export async function inspectStage13ConstructionContract() {
     'lib/stage13-bootstrap-retire.mjs',
     'lib/stage13-recovery-lock.mjs',
     'lib/stage13-committed-orphan-lock.mjs',
-    'lib/stage13-section-exchange.mjs'
+    'lib/stage13-section-exchange.mjs',
+    'lib/stage13-recovery-provenance.mjs'
   ];
   const contents=new Map(await Promise.all(files.map(async name=>
     [name,await read(name)])));
@@ -47,6 +48,7 @@ export async function inspectStage13ConstructionContract() {
   includes(part(files[0]),'managedV2MutationAuthorized:false',files[0]);
   includes(part(files[1]),'EXPLICIT_ADOPTION_DECISION_REQUIRED',files[1]);
   includes(part(files[1]),'intentFingerprint',files[1]);
+  includes(part(files[1]),'NO_MUTATING_ACTIONS_TO_ADOPT',files[1]);
   includes(part(files[2]),'composeInitialManagedSection',files[2]);
   includes(part(files[2]),'E_STAGE13_PREIMAGE_CHANGED',files[2]);
   includes(part(files[3]),'firstMissingAncestor',files[3]);
@@ -59,22 +61,28 @@ export async function inspectStage13ConstructionContract() {
   includes(part(files[5]),'provider.moveNoReplace',files[5]);
   includes(part(files[5]),'assertStage13SectionIsolationAvailable',files[5]);
   includes(part(files[5]),'exchangeStage13Section',files[5]);
+  includes(part(files[5]),'controlWriteAttempted&&journal===null',files[5]);
+  includes(part(files[5]),'lstat(root,{bigint:true})',files[5]);
   if(part(files[5]).includes('await rename('))
     fail('Stage13 adopted a racy plain rename fallback');
   includes(part(files[6]),'CREATED_INODE_NOT_OWNED',files[6]);
   includes(part(files[6]),'CREATED_DIRECTORY_REPLACED',files[6]);
   includes(part(files[7]),'exactNativeIdentity',files[7]);
+  includes(part(files[7]),'inspectStage13AbsentClaims',files[7]);
+  includes(part(files[7]),'inspectStage13AbsentDirectories',files[7]);
   includes(part(files[8]),'assertManagedMigrationGate();',files[8]);
   includes(part(files[8]),'archiveOwnedDirectory',files[8]);
   includes(part(files[8]),'acquireStage13RecoveryLock',files[8]);
   if(part(files[8]).includes('recursive:true'))
     fail('Stage13 recovery adopted unbounded recursive deletion');
   includes(part(files[9]),'inspectCommittedStage13',files[9]);
+  includes(part(files[9]),'E_STAGE13_FINAL_BACKUP_LEDGER_CHANGED',files[9]);
   includes(part(files[9]),"'.vcp/transaction.json'",files[9]);
   includes(part(files[10]),'E_STAGE13_NATIVE_IDENTITY_UNPROVEN',files[10]);
   includes(part(files[15]),'9007199254740993',files[15]);
   includes(part(files[11]),'inspectOwnedAdoptionBootstrap',files[11]);
   includes(part(files[12]),'ownedBootstrapLock',files[12]);
+  includes(part(files[12]),'RETIRED_ADOPTION_EVIDENCE_PRESENT',files[12]);
   includes(part(files[13]),'--confirm-adoption',files[13]);
   includes(part(files[13]),'--adopt',files[13]);
   includes(part(files[14]),'devExact',files[14]);
@@ -90,6 +98,8 @@ export async function inspectStage13ConstructionContract() {
   includes(part(files[19]),'retireStage13CommittedOrphanLock',files[19]);
   includes(part(files[20]),'exchangeNames',files[20]);
   includes(part(files[20]),'kernelVerifiedIsolation',files[20]);
+  includes(part(files[21]),'ABSENT_CLAIM_WITHOUT_STAGING_OR_ARCHIVE_PROOF',files[21]);
+  includes(part(files[21]),'ABSENT_DIRECTORY_WITHOUT_STAGED_OR_ARCHIVE_PROOF',files[21]);
   return Object.freeze({
     status:'STAGE13_SOURCE_CONSTRUCTION_PRESENT_ONLY',
     fullStage13Accepted:false,
