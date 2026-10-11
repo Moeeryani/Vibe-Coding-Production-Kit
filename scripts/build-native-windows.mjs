@@ -4,7 +4,7 @@
 // Outputs are deliberately outside package.json's npm "files" directories.
 import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {lstat,mkdir,readFile,stat} from 'node:fs/promises';
+import {lstat,mkdir,readFile,stat,writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
@@ -21,6 +21,7 @@ const buildRoot=path.join(repo,'build');
 const outputDir=path.join(buildRoot,'native-windows');
 const exe=path.join(outputDir,'vcp-windows-fsops.exe');
 const obj=path.join(outputDir,'vcp-windows-fsops.obj');
+const receiptPath=path.join(outputDir,'build-receipt.json');
 
 async function refuseLink(dir){
   const st=await lstat(dir);
@@ -72,4 +73,7 @@ const receipt={
   d01Approved:false,
   managedMutationAuthorized:false
 };
+await writeFile(receiptPath,JSON.stringify(receipt,null,2)+'\n',{
+  flag:'w',mode:0o600
+});
 console.log(JSON.stringify(receipt,null,2));
