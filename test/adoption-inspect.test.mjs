@@ -138,7 +138,7 @@ test('inspect: non-directory and oversized manifest fail closed', async t => {
 });
 
 test('inspect: linked root, .vcp state and manifest are never trusted', async t => {
-  if (process.platform === 'win32') t.skip('Native Windows reparse/junction conformance pending');
+  if (process.platform === 'win32') return t.skip('Native Windows linked-root/state/manifest checks delegated to test/stage13-windows-ntfs.test.mjs');
   const root = await fixture(t);
   const linkedRoot = root + '-alias';
   t.after(async () => { await rm(linkedRoot, { force: true }); });
@@ -159,7 +159,7 @@ test('inspect: linked root, .vcp state and manifest are never trusted', async t 
 });
 
 test('inspect: symlinked parent component is rejected even for in-root target', async t => {
-  if (process.platform === 'win32') t.skip('Native Windows reparse/junction conformance pending');
+  if (process.platform === 'win32') return t.skip('Native Windows in-root linked parent delegated to test/stage13-windows-ntfs.test.mjs');
   const root = await fixture(t);
   await mkdir(path.join(root, 'real'));
   await symlink(path.join(root, 'real'), path.join(root, 'alias'), 'dir');
