@@ -57,7 +57,7 @@ test('fixture refuses non-vcp temporary directory before any writes',async t=>{
 });
 
 test('fixture refuses an in-project linked template file without following it',async t=>{
-  if(process.platform==='win32')return t.skip('native symlink creation may require OS privilege; covered by Windows security suite');
+  if(process.platform==='win32')return t.skip('native Windows file symlink is exercised by test/stage13-windows-ntfs.test.mjs');
   const root=await scratch(t);
   const outside=await scratch(t,'outside-fixture-');
   const victim=path.join(outside,'user.md');
