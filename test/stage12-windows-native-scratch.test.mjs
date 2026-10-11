@@ -117,6 +117,20 @@ test('Windows native candidate never authorizes managed writes',async t=>{
   assert.equal(created.entry.kind,'REGULAR');
   assert.equal(created.entry.sizeBytes,String(bytes.length));
   assert.match(created.entry.identity,/^[a-f0-9]{24}$/);
+  // Verify the native entrypoint itself refuses a path separator BEFORE
+  // invoking the new scratch-only absolute-path Win32 fallback. Merely
+  // validating names in Node would not protect direct native invocations.
+  const escapeAttempt=spawnSync(DEFAULT_WINDOWS_SCRATCH_HELPER,[
+    '--scratch-root',root,'--op','rename-no-replace',
+    src,'vcp-stage12-nested/escape'
+  ],{
+    shell:false,encoding:'utf8',windowsHide:true,
+    env:{...process.env,TMP:os.tmpdir(),TEMP:os.tmpdir()}
+  });
+  assert.equal(escapeAttempt.error,undefined);
+  assert.equal(escapeAttempt.status,2);
+  assert.deepEqual(await readFile(path.join(root,src)),bytes);
+  assert.equal((await candidate.inspectEntry(dst)).entry.exists,false);
   await mutating(()=>candidate.renameNoReplace(src,dst));
   assert.deepEqual(await readFile(path.join(root,dst)),bytes);
   const moved=await candidate.inspectEntry(dst);
