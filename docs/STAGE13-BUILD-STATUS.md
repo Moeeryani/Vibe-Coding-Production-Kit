@@ -312,3 +312,40 @@ schema-v2 reader, live crash/power-loss validation, or outstanding
 independent D-01 owner approval. Such facts cannot be manufactured
 from green source checks. **Stage13 is still not accepted, and main
 remains untouched.**
+
+## 2026-10-11 terminal source-integrity pass — unexecuted
+
+The latest construction pass closed additional **source-level** gaps:
+
+- New `stage13-replan-contract.mjs` enforces the same action set,
+  consent fingerprint, bytes, original modes, section identity,
+  baselines and semantic manifest across pre-lock vs post-lock plans.
+  Only `installedAt` and `updatedAt` are allowed to differ because
+  `buildManifest()` generates these on every materialization. A raw
+  manifest-byte comparison would have rejected every legitimate
+  unchanged replan; that defect is corrected.
+- The owned lock now has an unforgeable in-process object identity and
+  a `WeakMap` containing **exact bigint** lock-file and `.vcp`
+  device/inode identities. Finalization and recovery compare the live
+  owned object, disk lock token, operation ID, process and inode **both
+  before mutation and immediately before terminal retirement**.
+- The terminal finalizer checks native `directorySynced` receipts for
+  every empty staging directory removal and journal unlink. Receipt
+  failure does not become a successful Commit response.
+- A native Linux forensic `list-names` operation is now bounded in
+  entry count and encoded bytes; large untrusted directories refuse
+  rather than allocate unbounded memory.
+- Added deferred negative cases for caller-fabricated locks, fake
+  kernel isolation receipts, zero-action adoption, absent-file
+  provenance and post-lock timestamp vs user-byte drift. Both
+  `npm run test:stage13` and the static contract checker include
+  these files; neither was executed.
+
+**Construction status:** all planned Stage13 modules and public CLI
+handoffs have been authored. This is a **source-complete candidate under
+a deliberate security block**, NOT independently accepted Stage13 DONE.
+The independent test agent must still freeze an integrated HEAD,
+compile/run native code, and evaluate real crash fault injections.
+The OS-enforced section writer isolation issuer and real Windows
+durability remain external Stage12/D-01 dependencies; no source-only
+claim can replace their proofs. D-01 is DEFERRED and G-FENCE NO-GO.
