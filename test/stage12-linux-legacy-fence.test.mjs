@@ -22,13 +22,15 @@ const WRITER_UID = 60012, WRITER_GID = 60012;
 const ROOT = process.geteuid?.() === 0;
 
 async function makeProvider(t) {
-  if (!LINUX) t.skip('linux-only');
+  if (!LINUX) return t.skip('linux-only');
   const { LinuxFsProvider } = await import('../lib/linux-fs-provider.mjs');
   const p = new LinuxFsProvider();
   try { await p.probeCapabilities(); }
   catch (e) {
-    if (e?.code === 'E_NATIVE_HELPER_MISSING')
+    if (e?.code === 'E_NATIVE_HELPER_MISSING') {
       t.skip('native helper not built (npm run build:native-linux)');
+      return null;
+    }
     throw e;
   }
   return p;
@@ -63,7 +65,7 @@ function asLegacy(code, cwd) {
 }
 
 test('planLegacyFence is read-only and reports kernel state', async t => {
-  await makeProvider(t);
+  if (!(await makeProvider(t))) return;
   const dir = await fixture(t);
   const plan = await planLegacyFence(dir, {
     protectedPaths: ['.vcp', 'AGENTS.md'],
@@ -75,7 +77,7 @@ test('planLegacyFence is read-only and reports kernel state', async t => {
 });
 
 test('enforce refuses without privilege', async t => {
-  if (!LINUX) t.skip('linux-only');
+  if (!LINUX) return t.skip('linux-only');
   const dir = await fixture(t);
   // Stage the modules where the legacy UID can read them (/home/hatch is
   // not traversable by other UIDs — itself a correct OS denial).
@@ -97,9 +99,9 @@ test('enforce refuses without privilege', async t => {
 });
 
 test('enforced fence: kernel denies legacy writes (EACCES), bytes unchanged', async t => {
-  if (!LINUX) t.skip('linux-only');
-  if (!ROOT) t.skip('needs privilege (chown)');
-  await makeProvider(t);
+  if (!LINUX) return t.skip('linux-only');
+  if (!ROOT) return t.skip('needs privilege (chown)');
+  if (!(await makeProvider(t))) return;
   const dir = await fixture(t);
   // Fixture owned by the legacy principal so writes would succeed unfenced.
   const own = async d => {
@@ -136,9 +138,9 @@ test('enforced fence: kernel denies legacy writes (EACCES), bytes unchanged', as
 });
 
 test('verify detects ownership, mode and replacement violations', async t => {
-  if (!LINUX) t.skip('linux-only');
-  if (!ROOT) t.skip('needs privilege (chown)');
-  await makeProvider(t);
+  if (!LINUX) return t.skip('linux-only');
+  if (!ROOT) return t.skip('needs privilege (chown)');
+  if (!(await makeProvider(t))) return;
   const dir = await fixture(t);
   const receipt = await enforceLegacyFence(dir, {
     protectedPaths: ['.vcp'], writerUid: WRITER_UID, writerGid: WRITER_GID,
@@ -171,9 +173,9 @@ test('verify detects ownership, mode and replacement violations', async t => {
 });
 
 test('enforce refuses a symlinked control tree', async t => {
-  if (!LINUX) t.skip('linux-only');
-  if (!ROOT) t.skip('needs privilege (chown)');
-  await makeProvider(t);
+  if (!LINUX) return t.skip('linux-only');
+  if (!ROOT) return t.skip('needs privilege (chown)');
+  if (!(await makeProvider(t))) return;
   const dir = await fixture(t);
   await rm(path.join(dir, '.vcp'), { recursive: true, force: true });
   await symlink('/tmp', path.join(dir, '.vcp'));
@@ -183,9 +185,10 @@ test('enforce refuses a symlinked control tree', async t => {
 });
 
 test('immutable backend reports honestly when the capability is absent', async t => {
-  if (!LINUX) t.skip('linux-only');
-  if (!ROOT) t.skip('needs privilege (chown)');
+  if (!LINUX) return t.skip('linux-only');
+  if (!ROOT) return t.skip('needs privilege (chown)');
   const p = await makeProvider(t);
+  if (!p) return;
   const caps = await p.probeCapabilities();
   const dir = await fixture(t);
   if (!caps.immutableSettable) {

@@ -25,6 +25,9 @@ async function git(cwd, ...args) {
 async function workspaceFixture() {
   const root = await tempDir();
   const project = path.join(root, 'packages', 'api');
+  // Fixture helper never invents a nested root; create it explicitly
+  // inside the mkdtemp-owned sandbox before seeding legacy state.
+  await mkdir(project,{recursive:true});
   await initProject({ targetDir: project, agent: 'generic', stack: 'generic', includeGitHub: false });
   await git(root, 'init');
   await mkdir(path.join(root, 'docs', 'platform'), { recursive: true });
