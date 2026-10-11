@@ -506,9 +506,20 @@ static int op_list_names(int rootfd, const std::string& rel) {
   std::string names = "[";
   bool first = true;
   struct dirent* e;
+  size_t count = 0;
+  // Forensic inventory is bounded: a hostile tree with millions of
+  // entries must yield an explicit refusal, never an unbounded allocation
+  // or a truncated JSON success receipt.
+  constexpr size_t MAX_NAMES = 4096;
+  constexpr size_t MAX_ENCODED_NAMES = 1024 * 1024;
   while ((e = readdir(d))) {
     std::string n(e->d_name);
     if (n == "." || n == "..") continue;
+    if (++count > MAX_NAMES || names.size() + n.size()*6 + 8 >
+                               MAX_ENCODED_NAMES) {
+      closedir(d);
+      return fail_usage(op, "directory inventory limit");
+    }
     if (!first) names += ",";
     first = false;
     names += jstr(n);
