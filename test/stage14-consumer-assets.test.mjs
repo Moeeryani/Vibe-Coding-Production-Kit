@@ -13,6 +13,7 @@ import {buildDesiredFiles} from '../lib/template.mjs';
 import {runCli} from '../lib/cli.mjs';
 import {resolvePackagedPrompt} from '../lib/prompt-resolver.mjs';
 import {planConsumerAssetRetirement} from '../lib/consumer-asset-retirement-plan.mjs';
+import {inspectConsumerAssetHealth} from '../lib/consumer-asset-health.mjs';
 import {seedLegacyV1Fixture} from './helpers/legacy-v1-fixture.mjs';
 import {MANAGED_SCHEMA_MIGRATION_GATE} from '../lib/managed-migration.mjs';
 
@@ -238,4 +239,35 @@ test('Stage14 CLI asset-plan refuses force/run/yes and absent target',async t=>{
       /strictly read-only inventory/);
   }
   assert.deepEqual(await readdir(root),[]);
+});
+
+test('Stage14 consumer health exposes contradictory managed ownership without authorizing deletion',()=>{
+  const manifest={
+    schemaVersion:2,
+    install:{assetSet:'greenfield-safe-v1'},
+    managedFiles:{
+      'AGENTS.md':{},
+      'docs/product/PRD.md':{},
+      'prompts/02-plan-task.md':{}
+    }
+  };
+  const report=inspectConsumerAssetHealth(manifest);
+  assert.equal(report.status,'fail');
+  assert.equal(report.readOnly,true);
+  assert.ok(report.issues.some(x=>x.path==='prompts/02-plan-task.md'&&
+    x.reason==='SAFE_SURFACE_CLAIMS_PACKAGE_ONLY'));
+  assert.equal(report.counts['runtime-required'],1);
+  const historical=inspectConsumerAssetHealth({
+    schemaVersion:1,managedFiles:manifest.managedFiles});
+  assert.equal(historical.status,'pass');
+  assert.equal(historical.assetSet,'legacy-full-v1');
+});
+test('Stage14 health never mistakes untracked project docs for manifest-owned assets',()=>{
+  const report=inspectConsumerAssetHealth({
+    schemaVersion:2,install:{assetSet:'brownfield-minimal-v1'},
+    managedFiles:{'AGENTS.md':{}}
+  });
+  assert.equal(report.status,'pass');
+  assert.equal(report.doesNotInspectUnownedFiles,true);
+  assert.equal(report.counts['greenfield-starter'],0);
 });
