@@ -11,6 +11,5 @@
 # (build with: npm run build:native-linux)
 scripts/native/vcp-linux-fsops
 
-# Stage12/13 Windows NTFS scratch candidate: compilation outputs only
-scripts/native/vcp-windows-fsops.exe
-scripts/native/vcp-windows-fsops.obj
+# Stage12/13 native Windows scratch candidate: local unshipped outputs
+build/
