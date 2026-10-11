@@ -64,7 +64,7 @@ test('JS/TS marker family resolves TypeScript deterministically', async t => {
 });
 
 test('symlinked source evidence fails closed without reading outside root', async t => {
-  if (process.platform === 'win32') t.skip('Native Windows junction test pending');
+  if (process.platform === 'win32') return t.skip('Native Windows source evidence symlink case is covered by test/stage13-windows-ntfs.test.mjs');
   const root = await fixture(t);
   await symlink('/etc/hosts', path.join(root, 'pyproject.toml'));
   const plan = await planSmartInit(root);

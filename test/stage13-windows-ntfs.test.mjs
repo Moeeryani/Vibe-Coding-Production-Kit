@@ -13,6 +13,7 @@ import {inspectStage13BootstrapResidue} from '../lib/stage13-bootstrap-recovery.
 import {inspectRecoveryOwnedTree} from '../lib/owned-tree-inventory.mjs';
 import {inspectProject} from '../lib/adoption-inspect.mjs';
 import {seedLegacyV1Fixture} from './helpers/legacy-v1-fixture.mjs';
+import {planSmartInit} from '../lib/adoption-plan.mjs';
 
 async function pair(t) {
   const root=await mkdtemp(path.join(os.tmpdir(),'vcp-stage13-winntfs-'));
@@ -126,5 +127,63 @@ test('native Windows path aliases, reserved names and escapes fail closed',async
       purpose:'write-new'
     }),{code:'E_VCP_PATH'});
   }
+  await foreignUnchanged(outside,original);
+});
+
+test('native Windows linked selected root and in-root alias are rejected',async t=>{
+  if(!windowsOnly(t))return;
+  const {root,outside,original}=await pair(t);
+  await mkdir(path.join(root,'real'));
+  await writeFile(path.join(root,'real','f'),'keep');
+  await symlink(path.join(root,'real'),path.join(root,'alias'),'junction');
+  const inspected=await inspectProject(path.join(root,'alias'));
+  assert.equal(inspected.classification,'BLOCKED');
+  assert.equal(inspected.reason,'ROOT_LINK_REFUSED');
+  await assert.rejects(()=>resolveProjectPath(path.join(root,'alias'),'f'),
+    {code:'E_VCP_PATH'});
+  await foreignUnchanged(outside,original);
+});
+test('native Windows provider inspection rejects a junction-selected root',async t=>{
+  if(!windowsOnly(t))return;
+  const {root,outside,original}=await pair(t);
+  await symlink(root,path.join(outside,'linked-root'),'junction');
+  const inspected=await inspectProject(path.join(outside,'linked-root'));
+  assert.equal(inspected.classification,'BLOCKED');
+  assert.equal(inspected.reason,'ROOT_LINK_REFUSED');
+  await foreignUnchanged(outside,original);
+});
+test('native Windows inspection refuses symlinked manifest without reading its target',async t=>{
+  if(!windowsOnly(t))return;
+  const {root,outside,original}=await pair(t);
+  await mkdir(path.join(root,'.vcp'));
+  await symlink(path.join(outside,'secret.txt'),
+    path.join(root,'.vcp','manifest.json'),'file');
+  const inspected=await inspectProject(root);
+  assert.equal(inspected.classification,'BLOCKED');
+  assert.equal(inspected.reason,'MANIFEST_NOT_REGULAR');
+  await foreignUnchanged(outside,original);
+});
+test('native Windows path guard rejects internal and external file symlinks',async t=>{
+  if(!windowsOnly(t))return;
+  const {root,outside,original}=await pair(t);
+  await mkdir(path.join(root,'real'));
+  await writeFile(path.join(root,'real','f'),'safe');
+  await symlink(path.join(root,'real','f'),path.join(root,'int'),'file');
+  await symlink(path.join(outside,'secret.txt'),path.join(root,'ext'),'file');
+  for(const relative of ['int','ext']){
+    await assert.rejects(()=>resolveProjectPath(root,relative),
+      {code:'E_VCP_PATH'});
+  }
+  await foreignUnchanged(outside,original);
+});
+test('native Windows adoption plan refuses symlinked external source evidence',async t=>{
+  if(!windowsOnly(t))return;
+  const {root,outside,original}=await pair(t);
+  await symlink(path.join(outside,'secret.txt'),path.join(root,'pyproject.toml'),'file');
+  const plan=await planSmartInit(root);
+  assert.equal(plan.blocked,true);
+  assert.equal(plan.reason,'UNSAFE_PROJECT_PATH');
+  assert.equal(plan.zeroWrite,true);
+  assert.ok(plan.actions.every(action=>action.executionAuthorized===false));
   await foreignUnchanged(outside,original);
 });
