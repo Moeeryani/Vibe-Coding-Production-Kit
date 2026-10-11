@@ -124,3 +124,22 @@ implementation fix, which are external GO gates, and which are regression
 to pre-Stage13. The final gate is **NO-GO** when any required proof is missing.
 
 No assertion in this document is evidence that the tests have run.
+
+## Source continuation: forensic replay and explicit recovery CLI
+
+The follow-up construction pass added the following acceptance points:
+
+| ID | Scenario | Required result |
+|---|---|---|
+| A13-23 | Missing owned file after an interrupted apply/rollback | Exact staged or archived inode + SHA-256 is required; unknown disappearance BLOCKED |
+| A13-24 | Missing created project directory after crash | Exact original native device/inode in staged or forensic directory archive; lost/replaced names BLOCKED |
+| A13-25 | Root inode high-bit collision | Journal root identity uses lossless `lstat(...,{bigint:true})`; reject changed namespace identity |
+| A13-26 | Pre-WAL failure after first private write attempt | Keep original adopt lock and operation ID; refuse auto-cleanup or unrelated lock takeover |
+| A13-27 | Empty adopt plan / compatible adapters | Do not create a zero-action transaction or mutable state; explicit no-op refusal |
+| A13-28 | Committed journal cleanup | Verify complete backup ledger, original managed-section preimages and selected-root identity **before** clearing WAL |
+| A13-29 | Archived adoption residue at project root | `inspect` and new `init --adopt` are BLOCKED pending owner review |
+| A13-30 | Recovery CLI consent | `vcp adoption-recover <directory> --yes --confirm-recovery <SHA256> --allow-forensic-archive` requires exact journal approval, and remains G-FENCE blocked before project I/O |
+
+The independent agent must treat A13-23–A13-30 as an addition to A13-01–A13-22, not as replacement. Run all on the **same final frozen HEAD**. Include `test/stage13-recovery-provenance.test.mjs` in the focused Stage13 suite. Do not assert that a missing file is safely restored merely because `lstat` returns ENOENT; require original inode provenance in staging or in a forensic archive. Unknown errno, inaccessible directories, linked prefixes and altered journals are BLOCKED rather than presumed absent.
+
+The `adoption-recover` CLI is an explicit writer interface but is currently **inoperative by policy**: the hard D-01 gate still throws before any project access. A successful synthetic unit test cannot authorize it. The native selected-root and published-old-CLI proof, independently accepted D-01 decision, Linux writer isolation and Windows durability must remain separate evidence packages.
