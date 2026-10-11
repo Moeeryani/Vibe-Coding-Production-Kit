@@ -1,0 +1,17 @@
+
+> vibe-coding-production@0.9.3 validate
+> node scripts/validate-framework.mjs && npm run check && npm run check:stage12-contract && npm test
+
+Framework validation passed.
+
+> vibe-coding-production@0.9.3 check
+> node scripts/check-syntax.mjs
+
+/home/hatch/workspace/stage13-test/vcp-stage13-linux-test/lib/stage13-transaction.mjs:69
+      refuse('E_STAGE13_TRANSACTION_ITEM');
+      ^^^^^^
+
+SyntaxError: Unexpected identifier 'refuse'
+    at checkSyntax (node:internal/main/check_syntax:72:5)
+
+Node.js v24.20.0
