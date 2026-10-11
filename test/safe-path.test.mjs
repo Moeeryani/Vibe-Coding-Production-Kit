@@ -29,7 +29,7 @@ test('reject traversal, alternate separators, absolute and reserved components',
  }
 });
 test('reject external and internal symlinks, linked parent and linked selected root',async t=>{
- if(process.platform==='win32') t.skip('native junction conformance pending');
+ if(process.platform==='win32') return t.skip('Native Windows internal/external links and linked roots delegated to test/stage13-windows-ntfs.test.mjs');
  const root=await fixture(t);
  await mkdir(path.join(root,'real')); await writeFile(path.join(root,'real','f'),'value');
  await symlink('real',path.join(root,'alias'));
