@@ -471,8 +471,10 @@ int wmain(int argc, wchar_t* argv[]) {
   // Root handle is intentionally read-only and denies FILE_SHARE_DELETE:
   // the scratch-only Win32 fallback below must not follow a moved root
   // between the validated preflight and the absolute-name rename.
+  const DWORD rootAccess=FILE_READ_ATTRIBUTES|
+      (op==L"rename-no-replace" ? FILE_ADD_FILE : 0);
   Handle rootHandle(CreateFileW(root.c_str(),
-      FILE_READ_ATTRIBUTES,
+      rootAccess,
       FILE_SHARE_READ | FILE_SHARE_WRITE,
       nullptr, OPEN_EXISTING,
       FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, nullptr));
