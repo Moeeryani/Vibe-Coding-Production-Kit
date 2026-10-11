@@ -50,6 +50,13 @@ async function fixture(t,{pid=process.pid,lockId=id}={}) {
 test('Stage13 recovery refuses takeover while original lock owner is alive',async t=>{
   const root=await fixture(t);
   const plan=await planStage13RecoveryLock(root);
+  if(process.platform==='win32') {
+    assert.equal(plan.classification,'BLOCKED');
+    assert.equal(plan.reason,'E_STAGE13_NATIVE_PROVIDER_UNAVAILABLE');
+    assert.equal(plan.writeAuthorized,false);
+    assert.equal((await readdir(path.join(root,'.vcp'))).includes('update.lock'),true);
+    return;
+  }
   assert.equal(plan.classification,'LOCK_OWNER_MAY_BE_ALIVE');
   assert.equal(plan.writeAuthorized,false);
   assert.equal(plan.mayDeleteLock,false);
@@ -59,6 +66,14 @@ test('Stage13 recovery refuses takeover while original lock owner is alive',asyn
 test('Stage13 recovery reports fresh lock candidate without stealing any path',async t=>{
   const root=await fixture(t,{pid:null});
   const plan=await planStage13RecoveryLock(root);
+  if(process.platform==='win32') {
+    assert.equal(plan.classification,'BLOCKED');
+    assert.equal(plan.reason,'E_STAGE13_NATIVE_PROVIDER_UNAVAILABLE');
+    assert.equal(plan.writeAuthorized,false);
+    assert.equal(await readFile(path.join(root,'USER.txt'),'utf8'),
+      'USER ORIGINAL BYTES');
+    return;
+  }
   assert.equal(plan.classification,'FRESH_RECOVERY_LOCK_CANDIDATE');
   assert.equal(plan.lockSha256,null);
   assert.equal(plan.requiresOwnerApproval,true);
@@ -68,6 +83,12 @@ test('Stage13 recovery reports fresh lock candidate without stealing any path',a
 test('Stage13 recovery refuses foreign-operation adoption lock',async t=>{
   const root=await fixture(t,{lockId:'adopt-'+'8'.repeat(32)});
   const plan=await planStage13RecoveryLock(root);
+  if(process.platform==='win32') {
+    assert.equal(plan.classification,'BLOCKED');
+    assert.equal(plan.reason,'E_STAGE13_NATIVE_PROVIDER_UNAVAILABLE');
+    assert.equal(plan.writeAuthorized,false);
+    return;
+  }
   assert.equal(plan.classification,'BLOCKED');
   assert.equal(plan.reason,'E_STAGE13_RECOVERY_LOCK_FOREIGN');
 });
