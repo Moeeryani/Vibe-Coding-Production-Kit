@@ -46,7 +46,7 @@ if(sourceBytes.byteLength===0)fail('Empty C++ source');
 
 const command='cl.exe';
 const args=[
-  '/nologo','/std:c++17','/EHsc','/W4',
+  '/nologo','/std:c++17','/EHsc','/W4','/WX',
   '/Fo:'+obj,'/Fe:'+exe,source,
   // MSVC link.exe normally places a wall-clock timestamp into PE headers.
   // /Brepro replaces that nondeterministic field with a content-derived
