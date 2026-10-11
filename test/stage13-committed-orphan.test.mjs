@@ -41,7 +41,7 @@ async function fixture(t) {
     consentFingerprint:consent,bootstrapPriorVcpAbsent:true,
     startedAt:new Date().toISOString()})+'\n';
   await writeFile(path.join(root,'.vcp/update.lock'),lock);
-  const rootInfo=await lstat(root);
+  const rootInfo=await lstat(root,{bigint:true});
   const rootIdentity=sha(Buffer.from(root+'|'+rootInfo.dev+'|'+rootInfo.ino));
   await writeFile(path.join(root,'.vcp/backups',ID,'backup.json'),
     JSON.stringify({kind:'stage13-complete-recovery-point',formatVersion:3,
