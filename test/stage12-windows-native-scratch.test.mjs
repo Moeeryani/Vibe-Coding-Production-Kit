@@ -145,6 +145,12 @@ test('Windows native candidate never authorizes managed writes',async t=>{
   await mutating(()=>candidate.rmdirEmpty('vcp-stage12-emptydir'));
   await mutating(()=>candidate.unlink(dst));
   await mutating(()=>candidate.unlink(collision));
+  // Empty files take a distinct Win32 path: no zero-byte WriteFile pointer
+  // is dereferenced, but the new file is still flushed and disposed.
+  const empty='vcp-stage12-empty.bin';
+  await mutating(()=>candidate.writeExclusive(empty,Buffer.alloc(0)));
+  assert.equal((await readFile(path.join(root,empty))).byteLength,0);
+  await mutating(()=>candidate.unlink(empty));
   // Test-only cleanup of an exactly created, known hardlink name. The
   // candidate itself deliberately refuses to delete linked objects.
   await rm(path.join(root,hardAlias));
