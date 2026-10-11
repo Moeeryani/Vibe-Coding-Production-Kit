@@ -24,8 +24,11 @@ test('Windows native candidate never authorizes managed writes',async t=>{
     }),{code:'E_WINDOWS_NATIVE_REQUIRED'});
     return t.skip('native Windows NTFS required for scratch filesystem operations');
   }
-  // Windows acceptance may not silently skip because the native tool was
-  // never built. The stage acceptance agent must compile and prove identity.
+  if(process.env.VCP_TEST_REQUIRE_NATIVE_WINDOWS_SCRATCH!=='1'){
+    return t.skip('native scratch candidate requires explicit test:native-windows-candidate');
+  }
+  // Explicit Windows acceptance cannot skip a missing native binary. The
+  // compiled helper must exist and the next call must emit a valid receipt.
   await access(DEFAULT_WINDOWS_SCRATCH_HELPER);
   const root=await mkdtemp(path.join(os.tmpdir(),'vcp-win-native-scratch-'));
   const foreign=await mkdtemp(path.join(os.tmpdir(),'vcp-win-native-foreign-'));
