@@ -51,6 +51,7 @@
     "scripts/validate-framework.sh",
     ".github/workflows/validate.yml",
     "prompts/02-plan-task.md",
-    "lib/consumer-asset-health.mjs"
+    "lib/consumer-asset-health.mjs",
+    "docs/STAGE14-ACCEPTANCE-MATRIX.md"
   ]
 }
