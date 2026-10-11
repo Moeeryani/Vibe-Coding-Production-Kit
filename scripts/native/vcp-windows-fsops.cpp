@@ -337,7 +337,16 @@ bool readBoundedStdin(std::vector<char>& payload) {
   char block[8192];
   while (true) {
     DWORD count = 0;
-    if (!ReadFile(input, block, sizeof(block), &count, nullptr)) return false;
+    if (!ReadFile(input, block, sizeof(block), &count, nullptr)) {
+      const DWORD error = GetLastError();
+      // With Node's anonymous stdin pipe, a closed write-end reports
+      // ERROR_BROKEN_PIPE rather than a successful zero-byte read.
+      // ERROR_HANDLE_EOF is the equivalent EOF signal for some file handles.
+      // All other errors remain fatal before CREATE_NEW is attempted.
+      if (error == ERROR_BROKEN_PIPE || error == ERROR_HANDLE_EOF)
+        return true;
+      return false;
+    }
     if (count == 0) return true;
     if (payload.size() + count > kMaxPayload) return false;
     payload.insert(payload.end(), block, block + count);
@@ -409,9 +418,26 @@ int wmain(int argc, wchar_t* argv[]) {
   if (argc < 5 || argc > 7 || std::wstring(argv[1]) != L"--scratch-root" ||
       std::wstring(argv[3]) != L"--op") return 2;
   std::wstring root, op(argv[4]);
-  // Operations are a closed ASCII allowlist below. Never interpolate a raw
-  // unvalidated command into a machine-readable receipt.
-  const std::string operation(op.begin(), op.end());
+  // Translate only a closed known-command allowlist to ASCII receipts.
+  // A wide->narrow iterator conversion previously triggered MSVC C4244 and
+  // could silently truncate arbitrary non-ASCII input.
+  struct OpName { const wchar_t* wide; const char* ascii; };
+  const OpName approved[] = {
+    {L"capabilities","capabilities"}, {L"sync-root","sync-root"},
+    {L"inspect-entry","inspect-entry"},
+    {L"write-exclusive","write-exclusive"},
+    {L"rename-no-replace","rename-no-replace"},
+    {L"unlink","unlink"}, {L"mkdir-exclusive","mkdir-exclusive"},
+    {L"rmdir-empty","rmdir-empty"}
+  };
+  std::string operation;
+  for (const OpName& item : approved) {
+    if (op == item.wide) {
+      operation = item.ascii;
+      break;
+    }
+  }
+  if (operation.empty()) return 2;
   if (!checkedRoot(argv[2], root) || !ntfsVolume(root)) return 3;
   std::vector<Handle> ancestorPins;
   if (!pinAncestorsNoRename(root, ancestorPins) ||
