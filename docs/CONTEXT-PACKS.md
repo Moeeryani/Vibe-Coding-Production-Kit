@@ -350,3 +350,14 @@ Merge / release / observe
 A context pack is a **transport format**, not a replacement for repository-native documentation, task state, accepted decisions, or executable evidence.
 
 Do not persist entire chat transcripts merely to make context “complete.” Preserve the durable engineering truth that a fresh agent actually needs.
+
+## Stage14 package prompts and consumer assets (candidate, not released)
+
+Safe consumer asset sets do not install canonical `prompts/*.md` by default.
+Context resolves a bounded, allowlisted prompt from an existing safe project
+override first, then from the fixed VCP package; the chosen bytes and
+`vcp:` identity count against the existing context budget. Packaged prompts
+are operational guidance only and cannot satisfy a project's accepted
+Source-of-Truth table. No omission of starter docs is permission to synthesize
+new governance references. See
+[Consumer Asset Separation](CONSUMER-ASSET-SEPARATION.md).
