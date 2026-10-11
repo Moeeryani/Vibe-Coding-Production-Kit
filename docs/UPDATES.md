@@ -252,3 +252,22 @@ conformance is still unverified.
 Update paths are repository-relative and validated against traversal and symlink escapes. VCP state paths under `.vcp` receive the same no-symlink treatment.
 
 A lock prevents update and rollback processes from mutating the same project concurrently. A lock owned by a dead process on the same host can be reclaimed immediately for recovery. A lock from another host, or malformed lock metadata, is only reclaimed after the configured stale interval so VCP does not guess that a remote writer has disappeared.
+
+## Stage14 source-candidate asset retirement (read-only)
+
+Stage14 introduces a strictly nonmutating `vcp asset-plan` preview. It
+distinguishes unmodified legacy package-only assets from customized user
+documents, project-owned files and conflicts by comparing original managed
+baseline hashes to the current selected-root bytes. It **never performs
+cleanup**. Source-only assets remain in the npm package for old lifecycle
+compatibility, and `legacy-full-v1` ownership records are not silently
+relabelled to `greenfield-safe-v1` or `brownfield-minimal-v1`.
+Missing/foreign/linked files, corrupted provenance or section-host ambiguity
+block a future transition; a preview is not an executable saved plan.
+
+Before any actual detach/removal operation in a future version, the real
+published-v0.9.3 compatibility fence, durable native Windows provider,
+versioned recovery, writer isolation, a fresh owned-lock/precondition review,
+explicit human approval and independent acceptance all remain mandatory.
+**D-01=DEFERRED; G-FENCE=NO-GO**. See
+[Consumer Asset Separation](CONSUMER-ASSET-SEPARATION.md).
