@@ -195,3 +195,71 @@ protocol and native interruption tests remain required before marking
 BUILD COMPLETE. Managed-section replacement still requires demonstrably
 enforced writer isolation/atomic concurrency protections. No code/tests
 have been executed in this increment.
+
+## 2026-10-11 full Stage13 construction extension — all paths authored, gated
+
+The earlier TODOs about directory provenance and post-lock recovery are now
+addressed at **source level**. The new/changed modules implement:
+
+1. **Pre-journal orphan bootstraps.** The first-adoption `update.lock`
+   carries a fresh `adopt-<operationId>` and exact consent fingerprint
+   BEFORE any staging. `stage13-bootstrap-recovery.mjs` inventories
+   only that operation's control prefixes. Empty `.vcp` without a lock
+   is intrinsically unproven and BLOCKED, not auto-removed.
+   `stage13-bootstrap-retire.mjs` requires owner approval and a dead
+   same-host process, then moves the entire state directory to an
+   in-root forensic archive using native NOREPLACE. Any foreign entry,
+   symlink or changed control ID blocks retirement.
+2. **No-delete rollback.** New files are moved into transaction-owned
+   `rollback-claims` forensic storage. Native-owned empty directories
+   are moved into flat `rollback-directories` storage (not recursively
+   deleted). Unknown bytes are preserved and surfaced for review.
+3. **Crash-recovery lock handoff.** `stage13-recovery-lock.mjs` proves
+   an exact v3 transaction and lock PID/host/nonce, rejects a live owner,
+   archives the old lock using NOREPLACE, then acquires a new recovery
+   lock tied to the same `adopt-` transaction ID. Consent is bound to
+   root + journal SHA + lock SHA. No age-only lock stealing.
+4. **Managed sections: reversible native operation.** The Linux helper
+   and provider expose `renameat2(RENAME_EXCHANGE)` without a
+   rename-replace fallback. The v3 ledger now binds the **original**
+   user file inode and the **staged** new file inode, both encoded as
+   lossless uint64 strings. `stage13-section-exchange.mjs` implements
+   forward and inverse exchanges with exact byte/inode checks.
+   Committed finalization archives the displaced original inode before
+   clearing the journal. Direct writer and recovery calls still fail
+   closed when their kernel-enforced isolation token is unavailable.
+5. **Postcommit orphan lock.** `stage13-committed-orphan-lock.mjs`
+   verifies the committed v2 manifest, v3 backup ledger, exact native
+   owned file/directory inode identities, baseline hashes and any
+   displaced original section inode. The old lock may only be retained
+   under a transaction backup name with owner approval; it is not
+   silently deleted.
+6. **Real filesystem modes.** The native writer and mkdir path use
+   descriptor-bound `fchmod` and fsync to defeat umask-induced
+   permission mismatch. `RENAME_EXCHANGE` remains a native syscall with
+   explicit unsupported-kernel failure, never a JS fallback.
+7. **Reviewable CLI and focused test entrypoints.** `recovery-plan`
+   detects Stage13 v3 journal, prejournal orphan, retired rollback and
+   postcommit orphan states without mutation. `npm run
+   check:stage13-contract` and `npm run test:stage13` have been
+   **added, NOT EXECUTED**. Ten Stage13 test modules were authored.
+   Independent test protocol: `docs/STAGE13-INDEPENDENT-TEST-HANDOFF.md`.
+
+### Exact construction/acceptance distinction
+
+**Source construction is extensive, but Stage13 is NOT ACCEPTED and is
+not an authorized production writer.** The Linux exclusive-writer
+isolation capability used for existing user documents has deliberately
+no minting backend. Neither user-supplied booleans nor JSON receipts can
+bypass its private native-proof boundary. Establishing such an issuer
+requires verified MAC or an equivalent OS enforcement design and a
+separate D-01 owner decision. This is an **outstanding product
+dependency**, not a test failure that can be waived.
+
+Native Windows/NTFS durability and reader version greater than 0.9.3
+also remain unavailable in this branch. The project's own feature-Done
+standard requires final-head independent checks, crash/restart proof,
+cross-platform conformance and owner gates. Do not mark Stage13 DONE
+until those separate obligations are resolved. No main merge, release
+or publish. **No tests, native build, npm checks or CLI execution were
+run during the construction phase.**
