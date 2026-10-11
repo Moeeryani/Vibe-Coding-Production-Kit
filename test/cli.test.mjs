@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -49,14 +49,18 @@ test('adds thin adapters only when the selected tool needs them', async () => {
 
 test('refuses to overwrite existing managed paths without --force', async () => {
   const target = await tempDir();
-  await writeFile(path.join(target, 'AGENTS.md'), 'existing policy\n');
+  const original = Buffer.from('existing policy\n');
+  await writeFile(path.join(target, 'AGENTS.md'), original);
 
+  // Stage13 now reaches the stronger D-01/G-FENCE refusal before adoption.
+  // Assert the stable safety contract, not an obsolete human-facing message.
   await assert.rejects(
     publicInitProject({ targetDir: target, agent: 'generic', includeGitHub: false }),
-    /Stage12 Existing-repository Smart Init is zero-write preview only/
+    {code:'E_G_FENCE_NO_GO'}
   );
 
-  assert.equal(await readFile(path.join(target, 'AGENTS.md'), 'utf8'), 'existing policy\n');
+  assert.deepEqual(await readFile(path.join(target, 'AGENTS.md')), original);
+  assert.deepEqual(await readdir(target), ['AGENTS.md']);
 });
 
 test('dry-run performs no writes', async () => {
