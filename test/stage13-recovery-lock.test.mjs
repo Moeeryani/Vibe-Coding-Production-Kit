@@ -20,7 +20,7 @@ async function fixture(t,{pid=process.pid,lockId=id}={}) {
   const stageBytes=Buffer.from('STAGE13 NEW OWNED FILE\n');
   await writeFile(staged,stageBytes);
   const stageInfo=await lstat(staged,{bigint:true});
-  const rootInfo=await lstat(root);
+  const rootInfo=await lstat(root,{bigint:true});
   const rootIdentity=sha(Buffer.from(root+'|'+rootInfo.dev+'|'+rootInfo.ino));
   const journal=describeStage13Transaction({
     id,rootIdentity,consentFingerprint:consent,
