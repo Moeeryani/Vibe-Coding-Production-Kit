@@ -1,0 +1,12 @@
+
+> vibe-coding-production@0.9.3 check
+> node scripts/check-syntax.mjs
+
+/home/hatch/workspace/stage13-test/vcp-stage14-linux-test/lib/asset-catalog.mjs:103
+        assetSet==='greenfield-safe-v1'||!starter.has(path))))
+                                                             ^
+
+SyntaxError: missing ) after argument list
+    at checkSyntax (node:internal/main/check_syntax:72:5)
+
+Node.js v24.20.0

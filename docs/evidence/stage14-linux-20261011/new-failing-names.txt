@@ -1,0 +1,97 @@
+✖ --policy is scoped to release-check
+✖ CLI help advertises --dir for context and verification
+✖ CLI help advertises plugin inspection and digest authoring
+✖ D-03: selected no-follow contract also rejects in-root links and linked parents
+✖ D-06: DEFERRED is not PROPOSED, and the executable checker reports every state
+✖ canonical reference Task Pack passes readiness and produces verification plan
+✖ enforce refuses without privilege
+✖ fitness --config accepts an explicit project-relative configuration path
+✖ fitness --config cannot leak onto unrelated commands
+✖ fitness CLI help advertises the Stage 8 command and config option
+✖ fitness CLI human report exposes module ownership and dependency direction
+✖ fitness CLI passes the reference SaaS and exposes deterministic JSON
+✖ fitness CLI refuses to invent architecture when config is absent
+✖ fitness CLI rejects config traversal outside the selected project
+✖ fitness CLI returns non-zero JSON report for a public-contract violation
+✖ fitness requires project root through --dir instead of ambiguous positional semantics
+✖ fresh workspace checkout reconstructs bounded package context, verification evidence, and root-aware review
+✖ legacy delivery paths are explicit compatibility inputs, not a second slug namespace
+✖ plugins --digest reproduces the canonical fixture pin without selecting or mutating trust
+✖ plugins CLI human report preserves the HUMAN DECISION boundary
+✖ plugins CLI inspects the pinned reference fixture as JSON without applying proposals
+✖ plugins rejects positional project roots and keeps --digest scoped to the plugins command
+✖ prompt-eval CLI returns non-zero and structured failure for false verification reporting
+✖ prompt-eval all evaluates the complete canonical reference suite through the public CLI
+✖ prompt-eval all returns non-zero when a required canonical response is missing
+✖ prompt-eval evaluates one canonical reference record through the public CLI
+✖ prompt-eval human failure output includes the failed property and assertion detail
+✖ prompt-eval list exposes canonical scenarios and all Stage 7 properties as JSON
+✖ realistic nested project path boundaries reject sibling, root-output, and workspace traversal escapes
+✖ reference SaaS builds plan, implement, and review context from its checked-in canonical Task Pack
+✖ release-check human output states that release approval remains a human decision
+✖ release-check preview is exposed through the public CLI as structured evidence
+✖ release-check rejects a non-numeric timeout instead of silently using a default
+✖ release-check requires an explicit candidate version
+✖ task, ready, context, and verify share one selected project root
+✖ test/adoption-inspect.test.mjs
+✖ test/adoption-plan.test.mjs
+✖ test/architecture-fitness.test.mjs
+✖ test/check-command.test.mjs
+✖ test/cli.test.mjs
+✖ test/community-plugins.test.mjs
+✖ test/context.test.mjs
+✖ test/doctor-coverage.test.mjs
+✖ test/doctor-stack-profile.test.mjs
+✖ test/git-review-context.test.mjs
+✖ test/helpers/legacy-v1-fixture.mjs
+✖ test/legacy-v1-fixture-boundaries.test.mjs
+✖ test/react-native-detection.test.mjs
+✖ test/readiness.test.mjs
+✖ test/release-check.test.mjs
+✖ test/release-portability.test.mjs
+✖ test/review-evidence.test.mjs
+✖ test/security-profiles.test.mjs
+✖ test/source-truth-authority.test.mjs
+✖ test/source-truth-references.test.mjs
+✖ test/stage12-adoption-boundaries.test.mjs
+✖ test/stage12-doctor-install-health.test.mjs
+✖ test/stage12-doctor-paths.test.mjs
+✖ test/stage12-init-gate.test.mjs
+✖ test/stage12-preview-security.test.mjs
+✖ test/stage12-recovery-invariants.test.mjs
+✖ test/stage12-schema-contract.test.mjs
+✖ test/stage12-terminal-detach-linux.test.mjs
+✖ test/stage12-terminal-retirement.test.mjs
+✖ test/stage13-bootstrap-crash.test.mjs
+✖ test/stage13-cli-adoption.test.mjs
+✖ test/stage13-committed-orphan.test.mjs
+✖ test/stage13-directory-ownership.test.mjs
+✖ test/stage13-init-gate.test.mjs
+✖ test/stage13-lock-finality.test.mjs
+✖ test/stage13-materialize.test.mjs
+✖ test/stage13-nested-recovery.test.mjs
+✖ test/stage13-recovery-lock.test.mjs
+✖ test/stage13-recovery-provenance.test.mjs
+✖ test/stage13-section-exchange.test.mjs
+✖ test/stage13-transaction-recovery.test.mjs
+✖ test/stage13-windows-ntfs.test.mjs
+✖ test/stage14-consumer-assets.test.mjs
+✖ test/stage14-dogfood.test.mjs
+✖ test/task-finalization.test.mjs
+✖ test/update-cli.test.mjs
+✖ test/update-concurrency.test.mjs
+✖ test/update-init-guard.test.mjs
+✖ test/update-lifecycle.test.mjs
+✖ test/update-manage.test.mjs
+✖ test/update-planner.test.mjs
+✖ test/update-regressions.test.mjs
+✖ test/update-removal-guard.test.mjs
+✖ test/update-rollback-guard.test.mjs
+✖ test/update-safety.test.mjs
+✖ test/update-stage-cleanup.test.mjs
+✖ test/update-status.test.mjs
+✖ test/update-transaction.test.mjs
+✖ test/verification-scope.test.mjs
+✖ test/verify.test.mjs
+✖ test/workspace-path-reservation.test.mjs
+✖ test/workspace-source-truth.test.mjs

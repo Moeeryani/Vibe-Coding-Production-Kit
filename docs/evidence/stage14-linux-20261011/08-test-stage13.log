@@ -1,0 +1,306 @@
+
+> vibe-coding-production@0.9.3 test:stage13
+> node --test test/stage13-bootstrap-crash.test.mjs test/stage13-cli-adoption.test.mjs test/stage13-committed-orphan.test.mjs test/stage13-directory-ownership.test.mjs test/stage13-init-gate.test.mjs test/stage13-lock-finality.test.mjs test/stage13-materialize.test.mjs test/stage13-native-exchange.test.mjs test/stage13-nested-recovery.test.mjs test/stage13-recovery-lock.test.mjs test/stage13-recovery-provenance.test.mjs test/stage13-replan-contract.test.mjs test/stage13-section-exchange.test.mjs test/stage13-transaction-recovery.test.mjs test/stage13-windows-ntfs.test.mjs
+
+file:///home/hatch/workspace/stage13-test/vcp-stage14-linux-test/lib/asset-catalog.mjs:103
+        assetSet==='greenfield-safe-v1'||!starter.has(path))))
+                                                             ^
+
+SyntaxError: missing ) after argument list
+    at compileSourceTextModule (node:internal/modules/esm/utils:319:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:89:18)
+    at #translate (node:internal/modules/esm/loader:438:20)
+    at afterLoad (node:internal/modules/esm/loader:506:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:511:12)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:564:36)
+    at afterResolve (node:internal/modules/esm/loader:611:52)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:617:12)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:276:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:381:17)
+
+Node.js v24.20.0
+✖ test/stage13-bootstrap-crash.test.mjs (130.048735ms)
+file:///home/hatch/workspace/stage13-test/vcp-stage14-linux-test/lib/asset-catalog.mjs:103
+        assetSet==='greenfield-safe-v1'||!starter.has(path))))
+                                                             ^
+
+SyntaxError: missing ) after argument list
+    at compileSourceTextModule (node:internal/modules/esm/utils:319:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:89:18)
+    at #translate (node:internal/modules/esm/loader:438:20)
+    at afterLoad (node:internal/modules/esm/loader:506:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:511:12)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:564:36)
+    at afterResolve (node:internal/modules/esm/loader:611:52)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:617:12)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:276:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:381:17)
+
+Node.js v24.20.0
+✖ test/stage13-cli-adoption.test.mjs (128.000571ms)
+file:///home/hatch/workspace/stage13-test/vcp-stage14-linux-test/lib/asset-catalog.mjs:103
+        assetSet==='greenfield-safe-v1'||!starter.has(path))))
+                                                             ^
+
+SyntaxError: missing ) after argument list
+    at compileSourceTextModule (node:internal/modules/esm/utils:319:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:89:18)
+    at #translate (node:internal/modules/esm/loader:438:20)
+    at afterLoad (node:internal/modules/esm/loader:506:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:511:12)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:564:36)
+    at afterResolve (node:internal/modules/esm/loader:611:52)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:617:12)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:276:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:381:17)
+
+Node.js v24.20.0
+✖ test/stage13-committed-orphan.test.mjs (117.227905ms)
+file:///home/hatch/workspace/stage13-test/vcp-stage14-linux-test/lib/asset-catalog.mjs:103
+        assetSet==='greenfield-safe-v1'||!starter.has(path))))
+                                                             ^
+
+SyntaxError: missing ) after argument list
+    at compileSourceTextModule (node:internal/modules/esm/utils:319:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:89:18)
+    at #translate (node:internal/modules/esm/loader:438:20)
+    at afterLoad (node:internal/modules/esm/loader:506:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:511:12)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:564:36)
+    at afterResolve (node:internal/modules/esm/loader:611:52)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:617:12)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:276:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:381:17)
+
+Node.js v24.20.0
+✖ test/stage13-directory-ownership.test.mjs (111.810485ms)
+file:///home/hatch/workspace/stage13-test/vcp-stage14-linux-test/lib/asset-catalog.mjs:103
+        assetSet==='greenfield-safe-v1'||!starter.has(path))))
+                                                             ^
+
+SyntaxError: missing ) after argument list
+    at compileSourceTextModule (node:internal/modules/esm/utils:319:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:89:18)
+    at #translate (node:internal/modules/esm/loader:438:20)
+    at afterLoad (node:internal/modules/esm/loader:506:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:511:12)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:564:36)
+    at afterResolve (node:internal/modules/esm/loader:611:52)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:617:12)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:276:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:381:17)
+
+Node.js v24.20.0
+✖ test/stage13-init-gate.test.mjs (97.208712ms)
+file:///home/hatch/workspace/stage13-test/vcp-stage14-linux-test/lib/asset-catalog.mjs:103
+        assetSet==='greenfield-safe-v1'||!starter.has(path))))
+                                                             ^
+
+SyntaxError: missing ) after argument list
+    at compileSourceTextModule (node:internal/modules/esm/utils:319:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:89:18)
+    at #translate (node:internal/modules/esm/loader:438:20)
+    at afterLoad (node:internal/modules/esm/loader:506:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:511:12)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:564:36)
+    at afterResolve (node:internal/modules/esm/loader:611:52)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:617:12)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:276:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:381:17)
+
+Node.js v24.20.0
+✖ test/stage13-lock-finality.test.mjs (110.36126ms)
+file:///home/hatch/workspace/stage13-test/vcp-stage14-linux-test/lib/asset-catalog.mjs:103
+        assetSet==='greenfield-safe-v1'||!starter.has(path))))
+                                                             ^
+
+SyntaxError: missing ) after argument list
+    at compileSourceTextModule (node:internal/modules/esm/utils:319:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:89:18)
+    at #translate (node:internal/modules/esm/loader:438:20)
+    at afterLoad (node:internal/modules/esm/loader:506:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:511:12)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:564:36)
+    at afterResolve (node:internal/modules/esm/loader:611:52)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:617:12)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:276:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:381:17)
+
+Node.js v24.20.0
+✖ test/stage13-materialize.test.mjs (106.879485ms)
+✔ Linux native RENAME_EXCHANGE retains both file inodes and contents (47.30477ms)
+✔ Linux native staged file and directory modes are exact under umask (26.68762ms)
+✔ Linux native exchange never fabricates missing file or overwrites source (9.367888ms)
+file:///home/hatch/workspace/stage13-test/vcp-stage14-linux-test/lib/asset-catalog.mjs:103
+        assetSet==='greenfield-safe-v1'||!starter.has(path))))
+                                                             ^
+
+SyntaxError: missing ) after argument list
+    at compileSourceTextModule (node:internal/modules/esm/utils:319:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:89:18)
+    at #translate (node:internal/modules/esm/loader:438:20)
+    at afterLoad (node:internal/modules/esm/loader:506:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:511:12)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:564:36)
+    at afterResolve (node:internal/modules/esm/loader:611:52)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:617:12)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:276:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:381:17)
+
+Node.js v24.20.0
+✖ test/stage13-nested-recovery.test.mjs (100.257497ms)
+file:///home/hatch/workspace/stage13-test/vcp-stage14-linux-test/lib/asset-catalog.mjs:103
+        assetSet==='greenfield-safe-v1'||!starter.has(path))))
+                                                             ^
+
+SyntaxError: missing ) after argument list
+    at compileSourceTextModule (node:internal/modules/esm/utils:319:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:89:18)
+    at #translate (node:internal/modules/esm/loader:438:20)
+    at afterLoad (node:internal/modules/esm/loader:506:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:511:12)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:564:36)
+    at afterResolve (node:internal/modules/esm/loader:611:52)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:617:12)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:276:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:381:17)
+
+Node.js v24.20.0
+✖ test/stage13-recovery-lock.test.mjs (121.095929ms)
+file:///home/hatch/workspace/stage13-test/vcp-stage14-linux-test/lib/asset-catalog.mjs:103
+        assetSet==='greenfield-safe-v1'||!starter.has(path))))
+                                                             ^
+
+SyntaxError: missing ) after argument list
+    at compileSourceTextModule (node:internal/modules/esm/utils:319:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:89:18)
+    at #translate (node:internal/modules/esm/loader:438:20)
+    at afterLoad (node:internal/modules/esm/loader:506:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:511:12)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:564:36)
+    at afterResolve (node:internal/modules/esm/loader:611:52)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:617:12)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:276:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:381:17)
+
+Node.js v24.20.0
+✖ test/stage13-recovery-provenance.test.mjs (116.070127ms)
+✔ Stage13 time-of-plan vs time-of-lock timestamp drift is not data drift (2.967212ms)
+✔ Stage13 rejects post-lock mode, adapter, baseline and action drift (2.726883ms)
+✔ Stage13 never grants authorization based on matching preview objects (0.409224ms)
+file:///home/hatch/workspace/stage13-test/vcp-stage14-linux-test/lib/asset-catalog.mjs:103
+        assetSet==='greenfield-safe-v1'||!starter.has(path))))
+                                                             ^
+
+SyntaxError: missing ) after argument list
+    at compileSourceTextModule (node:internal/modules/esm/utils:319:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:89:18)
+    at #translate (node:internal/modules/esm/loader:438:20)
+    at afterLoad (node:internal/modules/esm/loader:506:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:511:12)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:564:36)
+    at afterResolve (node:internal/modules/esm/loader:611:52)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:617:12)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:276:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:381:17)
+
+Node.js v24.20.0
+✖ test/stage13-section-exchange.test.mjs (102.641604ms)
+file:///home/hatch/workspace/stage13-test/vcp-stage14-linux-test/lib/asset-catalog.mjs:103
+        assetSet==='greenfield-safe-v1'||!starter.has(path))))
+                                                             ^
+
+SyntaxError: missing ) after argument list
+    at compileSourceTextModule (node:internal/modules/esm/utils:319:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:89:18)
+    at #translate (node:internal/modules/esm/loader:438:20)
+    at afterLoad (node:internal/modules/esm/loader:506:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:511:12)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:564:36)
+    at afterResolve (node:internal/modules/esm/loader:611:52)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:617:12)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:276:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:381:17)
+
+Node.js v24.20.0
+✖ test/stage13-transaction-recovery.test.mjs (141.305758ms)
+file:///home/hatch/workspace/stage13-test/vcp-stage14-linux-test/lib/asset-catalog.mjs:103
+        assetSet==='greenfield-safe-v1'||!starter.has(path))))
+                                                             ^
+
+SyntaxError: missing ) after argument list
+    at compileSourceTextModule (node:internal/modules/esm/utils:319:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:89:18)
+    at #translate (node:internal/modules/esm/loader:438:20)
+    at afterLoad (node:internal/modules/esm/loader:506:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:511:12)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:564:36)
+    at afterResolve (node:internal/modules/esm/loader:611:52)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:617:12)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:276:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:381:17)
+
+Node.js v24.20.0
+✖ test/stage13-windows-ntfs.test.mjs (105.068457ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 6
+ℹ fail 13
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1845.889036
+
+✖ failing tests:
+
+test at test/stage13-bootstrap-crash.test.mjs:1:1
+✖ test/stage13-bootstrap-crash.test.mjs (130.048735ms)
+  'test failed'
+
+test at test/stage13-cli-adoption.test.mjs:1:1
+✖ test/stage13-cli-adoption.test.mjs (128.000571ms)
+  'test failed'
+
+test at test/stage13-committed-orphan.test.mjs:1:1
+✖ test/stage13-committed-orphan.test.mjs (117.227905ms)
+  'test failed'
+
+test at test/stage13-directory-ownership.test.mjs:1:1
+✖ test/stage13-directory-ownership.test.mjs (111.810485ms)
+  'test failed'
+
+test at test/stage13-init-gate.test.mjs:1:1
+✖ test/stage13-init-gate.test.mjs (97.208712ms)
+  'test failed'
+
+test at test/stage13-lock-finality.test.mjs:1:1
+✖ test/stage13-lock-finality.test.mjs (110.36126ms)
+  'test failed'
+
+test at test/stage13-materialize.test.mjs:1:1
+✖ test/stage13-materialize.test.mjs (106.879485ms)
+  'test failed'
+
+test at test/stage13-nested-recovery.test.mjs:1:1
+✖ test/stage13-nested-recovery.test.mjs (100.257497ms)
+  'test failed'
+
+test at test/stage13-recovery-lock.test.mjs:1:1
+✖ test/stage13-recovery-lock.test.mjs (121.095929ms)
+  'test failed'
+
+test at test/stage13-recovery-provenance.test.mjs:1:1
+✖ test/stage13-recovery-provenance.test.mjs (116.070127ms)
+  'test failed'
+
+test at test/stage13-section-exchange.test.mjs:1:1
+✖ test/stage13-section-exchange.test.mjs (102.641604ms)
+  'test failed'
+
+test at test/stage13-transaction-recovery.test.mjs:1:1
+✖ test/stage13-transaction-recovery.test.mjs (141.305758ms)
+  'test failed'
+
+test at test/stage13-windows-ntfs.test.mjs:1:1
+✖ test/stage13-windows-ntfs.test.mjs (105.068457ms)
+  'test failed'

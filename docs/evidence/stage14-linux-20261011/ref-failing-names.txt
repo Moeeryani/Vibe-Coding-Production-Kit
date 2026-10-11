@@ -1,0 +1,64 @@
+✖ D-03: selected no-follow contract also rejects in-root links and linked parents
+✖ D-06: DEFERRED is not PROPOSED, and the executable checker reports every state
+✖ Git comparison options are review-only, non-blank, and head requires an explicit base
+✖ Git review evidence counts against the existing context byte budget
+✖ Git workspace root project is represented by portable dot project path
+✖ Git-aware review fails clearly outside a Git worktree
+✖ Git-backed evidence records dirty state before verification without blocking execution
+✖ JavaScript package check script is represented as CHECK_COMMAND in generated tasks
+✖ React Native app markers must be real selected-root files/directories, not symlinks
+✖ binary changes are identified by Git rather than represented as complete text content
+✖ built-in React Native profile and Stage 10 community plugin remain separate additive authorities
+✖ committed gitlink changes remain visible when repository config ignores submodules
+✖ context CLI emits a usable bounded pack with planned paths
+✖ context CLI forwards explicit Git base/head into review mode
+✖ context composes selected guidance and labels verification commands as proposals without mutating AGENTS
+✖ context pack bundles task, repository rules, mode prompt, and source-of-truth documents
+✖ context pack exposes portable slash-separated paths on every OS
+✖ context pack rejects repository escape paths and enforces the context budget
+✖ context pack supports explicit includes and safe repository-local output
+✖ customized source docs remove starter-template readiness warnings
+✖ dirty submodule is visible even when .gitmodules requests ignore=all
+✖ doctor exposes active profiles and baseline fallback without warning old projects
+✖ doctor fails visibly for invalid explicit security profile state
+✖ doctor fails when an interrupted update transaction is present
+✖ doctor fails when update transaction state is corrupted
+✖ draft security profile declaration cannot govern security review
+✖ enforce refuses without privilege
+✖ explicit invalid profile state fails security context instead of silently falling back
+✖ first-party React Native fixture dogfoods init, task verification, and bounded context without plugins
+✖ fresh generated task is not ready for planning
+✖ guidance is mode-bounded while plugin identity and proposals remain visible
+✖ implement context supports explicit planned paths for greenfield files
+✖ implementation-ready task passes but warns when referenced source docs are still starter templates
+✖ interrupted-update rollback removes its staged subtree and empty stage directory
+✖ invalid Git base fails visibly instead of producing an incomplete review surface
+✖ invalid security declaration remains isolated from non-security context modes
+✖ missing profile declaration remains backward compatible and still applies baseline
+✖ nested project verification runs in selected project root and persists workspace-relative evidence
+✖ non-Git verification preserves execution and reports project-only scope
+✖ packaged baseline fallback works when an older project lacks Stage 6 local assets
+✖ planned paths are implement-only and must not already exist
+✖ plugin guidance participates in the normal context budget and manifest
+✖ preflight refuses blocked ancestor before writing any template or vcp state
+✖ readiness and verification reports expose slash-separated task paths
+✖ ready detects unsafe source references and CLI supports JSON output
+✖ review context binds task and Source of Truth to an explicit Git base/head surface
+✖ review context surfaces dirty working-tree state separately from the committed comparison
+✖ security context includes baseline plus selected project-sensitive profiles and manifest identities
+✖ security profile document identity must match the selected profile
+✖ security profiles are not auto-included outside security mode
+✖ symlinked package.json cannot grant React Native authority but preserves historical Node fallback
+✖ symlinked project paths canonicalize for Git provenance without changing the selected target
+✖ task and ready CLIs print slash-separated paths on every host OS
+✖ task creation reports a portable repository-relative path
+✖ task generator creates a bounded task and imports configured verification commands
+✖ task generator does not turn reasoned n/a decisions into executable commands
+✖ task generator refuses overwrite and supports dry-run
+✖ task, ready, context, and verify share one selected project root
+✖ update planning adds Stage 6 assets to a simulated pre-Stage-6 project
+✖ update planning preserves project-owned security profile selection
+✖ verify CLI supports explicit execution and JSON output
+✖ verify executes and persists CHECK_COMMAND alongside unit tests
+✖ verify run records passing evidence and can write JSON inside the repo
+✖ verify stops after the first failed command
