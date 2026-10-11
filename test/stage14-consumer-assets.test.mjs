@@ -276,3 +276,35 @@ test('Stage14 health never mistakes untracked project docs for manifest-owned as
   assert.equal(report.doesNotInspectUnownedFiles,true);
   assert.equal(report.counts['greenfield-starter'],0);
 });
+
+test('Stage14 legacy and brownfield preserve an intentionally unowned AGENTS path',()=>{
+  const legacy=inspectConsumerAssetHealth({
+    schemaVersion:1,managedFiles:{'docs/CLI.md':{}}
+  });
+  assert.equal(legacy.status,'pass');
+  const brownfield=inspectConsumerAssetHealth({
+    schemaVersion:2,install:{assetSet:'brownfield-minimal-v1'},
+    managedFiles:{'CLAUDE.md':{}}
+  });
+  assert.equal(brownfield.status,'pass');
+  const newMissingRouter=inspectConsumerAssetHealth({
+    schemaVersion:2,install:{assetSet:'greenfield-safe-v1'},
+    managedFiles:{'docs/product/PRD.md':{}}
+  });
+  assert.equal(newMissingRouter.status,'fail');
+  assert.ok(newMissingRouter.issues.some(v=>v.reason==='ROUTING_NOT_MANAGED'));
+});
+test('Stage14 nested-workspace planning never copies or reads sibling project content',async t=>{
+  const sandbox=await scratch(t);
+  const workspace=path.join(sandbox,'packages','api');
+  const sibling=path.join(sandbox,'packages','web');
+  await mkdir(workspace,{recursive:true});
+  await mkdir(sibling,{recursive:true});
+  await writeFile(path.join(sibling,'USER.md'),'WEB SECRET USER BYTES\r\n');
+  const before=await readFile(path.join(sibling,'USER.md'));
+  const selected=await buildDesiredFiles({targetDir:workspace,assetSet:'brownfield-minimal-v1',
+    agent:'generic',stack:'generic',includeGitHub:false});
+  assert.deepEqual([...selected.files.keys()],['AGENTS.md']);
+  assert.deepEqual(await readdir(workspace),[]);
+  assert.deepEqual(await readFile(path.join(sibling,'USER.md')),before);
+});
