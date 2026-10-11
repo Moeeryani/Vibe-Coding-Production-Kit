@@ -137,3 +137,19 @@ in-root links. D-02's proposed strict/non-strict truth table still
 needs explicit maintainer acceptance and conformance receipts; existing
 Doctor output is not itself a new D-02 policy decision. Native Windows
 lock durability remains unproven and full v2 recovery stays gated.
+
+## Stage14 asset-surface diagnostics (source only; acceptance pending)
+
+The Stage14 development Doctor output includes the selected lifecycle
+`assetSet`, a categorized count of manifest-owned assets, and an explicit
+`ciCoverage` object reporting verification coverage as `unassessed`.
+The existing applicable install-health classification remains separate from
+informational governance. On `greenfield-safe-v1` and
+`brownfield-minimal-v1`, absent provider-source npm CI or framework
+validator is intentional, **not an install-health defect**; a configured
+project CI file does not prove VCP coverage. Legacy installs retain their
+historical asset and validation expectations. Unknown/incompatible manifests
+and ownership mismatches still fail closed.
+
+See [Consumer Asset Separation](CONSUMER-ASSET-SEPARATION.md).
+No release, D-01 approval or Stage14 acceptance follows from this diagnostic.
