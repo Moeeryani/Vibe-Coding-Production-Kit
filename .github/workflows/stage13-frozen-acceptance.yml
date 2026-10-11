@@ -1,0 +1,92 @@
+name: Stage13 Frozen Acceptance (No Mutations)
+
+on:
+  push:
+    branches:
+      - ci/stage13-frozen-acceptance-20261011
+
+permissions:
+  contents: read
+
+jobs:
+  focused_acceptance:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    timeout-minutes: 35
+    steps:
+      - name: Checkout exact frozen source
+        uses: actions/checkout@v4
+        with:
+          ref: 0915868a1450fa446574021f2aeabf3c12b452f1
+          persist-credentials: false
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify immutable SHA and environment
+        run: |
+          mkdir -p stage13-acceptance-evidence
+          {
+            echo "expected=0915868a1450fa446574021f2aeabf3c12b452f1"
+            echo "actual=$(git rev-parse HEAD)"
+            node --version
+            npm --version
+            git status --short
+            uname -a || true
+          } > stage13-acceptance-evidence/environment.txt 2>&1
+          cat stage13-acceptance-evidence/environment.txt
+          test "$(git rev-parse HEAD)" = "0915868a1450fa446574021f2aeabf3c12b452f1"
+      - name: Execute all read-only or disposable acceptance commands; save exact exit codes
+        run: |
+          set +e
+          evidence=stage13-acceptance-evidence
+          run_capture() {
+            title="$1"
+            shift
+            echo "RUN: $title"
+            "$@" > "$evidence/$title.log" 2>&1
+            code=$?
+            printf '%s=%s\n' "$title" "$code" >> "$evidence/exit-codes.txt"
+            tail -n 45 "$evidence/$title.log"
+          }
+          run_capture npm_ci npm ci --ignore-scripts
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            run_capture native_linux npm run build:native-linux
+            sha256sum scripts/native/vcp-linux-fsops > "$evidence/native-helper.sha256" 2>&1 || true
+          else
+            echo 'native_linux=SKIPPED_WINDOWS_NO_PROVIDER' >> "$evidence/exit-codes.txt"
+          fi
+          run_capture syntax npm run check
+          run_capture stage12_contract npm run check:stage12-contract
+          run_capture stage13_contract npm run check:stage13-contract
+          run_capture focused_stage13 npm run test:stage13
+          run_capture full_suite npm test
+          run_capture validate npm run validate
+          git status --short > "$evidence/git-status.txt" 2>&1
+          printf '%s\n' "Frozen SHA: $(git rev-parse HEAD)" > "$evidence/receipt.txt"
+          cat "$evidence/exit-codes.txt"
+      - name: Upload independent-runner evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage13-frozen-${{ runner.os }}-evidence
+          path: stage13-acceptance-evidence/
+          retention-days: 14
+      - name: Signal any command failure (never declare GO)
+        if: always()
+        run: |
+          if [ ! -f stage13-acceptance-evidence/exit-codes.txt ]; then
+            echo "Missing receipts => NO-GO"
+            exit 1
+          fi
+          if grep -E '=[1-9][0-9]*$' stage13-acceptance-evidence/exit-codes.txt; then
+            echo "At least one command failed => NO-GO"
+            exit 1
+          fi
+          echo "Command exit codes zero; product acceptance still NO-GO pending independent native/security evidence and owner approval."
