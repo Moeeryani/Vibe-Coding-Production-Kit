@@ -66,10 +66,40 @@ test('Windows native candidate never authorizes managed writes',async t=>{
   assert.deepEqual(await readFile(path.join(root,src)),bytes);
   await mutating(()=>candidate.renameNoReplace(src,dst));
   assert.deepEqual(await readFile(path.join(root,dst)),bytes);
-  await assert.rejects(()=>candidate.writeExclusive(dst,bytes));
+  // A duplicate CREATE_NEW must preserve both the old bytes and the
+  // "no mutation" receipt. Distinguish this from partial write failure.
+  await assert.rejects(()=>candidate.writeExclusive(dst,
+    Buffer.from('ATTACKER REPLACEMENT')),e=>{
+      assert.equal(e.code,'E_WINDOWS_SCRATCH_OPERATION_FAILED');
+      assert.equal(e.nativeReceipt?.completed,false);
+      assert.equal(e.nativeReceipt?.mayHaveMutated,false);
+      assert.equal(e.requiresForensicInspection,false);
+      return true;
+    });
+  assert.deepEqual(await readFile(path.join(root,dst)),bytes);
+
+  // A no-replace collision is never a license to remove/overwrite either
+  // side. The outcome is conservatively classified as "attempted".
+  const collision='vcp-stage12-collision.bin';
+  const collisionBytes=Buffer.from('PREEXISTING USER BYTES\r\n');
+  await mutating(()=>candidate.writeExclusive(collision,collisionBytes));
+  await assert.rejects(()=>candidate.renameNoReplace(dst,collision),e=>{
+    assert.equal(e.code,'E_WINDOWS_SCRATCH_OPERATION_FAILED');
+    assert.equal(e.nativeReceipt?.completed,false);
+    assert.equal(e.nativeReceipt?.mayHaveMutated,true);
+    assert.equal(e.requiresForensicInspection,true);
+    return true;
+  });
+  assert.deepEqual(await readFile(path.join(root,dst)),bytes);
+  assert.deepEqual(await readFile(path.join(root,collision)),collisionBytes);
+
+  await assert.rejects(()=>candidate.unlink('../FOREIGN.txt'),{
+    code:'E_WINDOWS_SCRATCH_NAME'
+  });
   await mutating(()=>candidate.mkdirExclusive('vcp-stage12-emptydir'));
   await mutating(()=>candidate.rmdirEmpty('vcp-stage12-emptydir'));
   await mutating(()=>candidate.unlink(dst));
+  await mutating(()=>candidate.unlink(collision));
   await assert.rejects(()=>lstat(path.join(root,dst)),{code:'ENOENT'});
 
   // Extra, untrusted root entry must block ALL operations, including
