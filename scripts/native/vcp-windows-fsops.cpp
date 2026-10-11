@@ -468,7 +468,7 @@ int wmain(int argc, wchar_t* argv[]) {
   std::vector<Handle> ancestorPins;
   if (!pinAncestorsNoRename(root, ancestorPins) ||
       !safeInventory(root)) return 3;
-  // Root handle is intentionally read-only and denies FILE_SHARE_DELETE:
+  // Scratch root denies FILE_SHARE_DELETE; rename requests FILE_ADD_FILE:
   // the scratch-only Win32 fallback below must not follow a moved root
   // between the validated preflight and the absolute-name rename.
   const DWORD rootAccess=FILE_READ_ATTRIBUTES|
