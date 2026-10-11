@@ -183,7 +183,23 @@ const providerRuntimePresent = await existsNonEmpty('lib/prompt-eval.mjs');
 const providerReleasePresent = await existsNonEmpty('lib/release-check.mjs');
 const providerPluginPresent = await existsNonEmpty('lib/community-plugins.mjs');
 const providerMobilePresent = await existsNonEmpty('lib/stack-provenance.mjs');
-const providerStage14Present = await existsNonEmpty('lib/consumer-asset-retirement-plan.mjs');
+// Provider identity must be anchored outside the Stage14 required inventory.
+// A required module cannot identify its own requiredness: if it is removed,
+// the validator must still refuse the source tree rather than silently pass.
+// Historical legacy-v1 consumer templates contain neither the provider CLI bin
+// nor the provider package manifest and continue using the v1 file contract.
+async function isProviderPackageRoot() {
+  try {
+    const manifest = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
+    return manifest?.name === 'vibe-coding-production' &&
+      manifest?.bin?.vcp === 'bin/vibe-coding-production.mjs';
+  } catch (error) {
+    if (error?.code === 'ENOENT') return false;
+    throw error;
+  }
+}
+const providerStage14Present = await isProviderPackageRoot() ||
+  await existsNonEmpty('bin/vibe-coding-production.mjs');
 const effectiveRequiredFiles = [
   ...requiredFiles,
   ...(providerRuntimePresent ? providerRuntimeRequiredFiles : []),
