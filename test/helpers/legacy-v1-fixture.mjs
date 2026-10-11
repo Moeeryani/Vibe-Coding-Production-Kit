@@ -73,7 +73,14 @@ export async function seedLegacyV1Fixture({
       const prior=await lstat(dest);
       if(!prior.isFile()||prior.isSymbolicLink())refused('existing unsafe path: '+relative);
       exists=true;
-    }catch(error){if(error.code!=='ENOENT')throw error;}
+    }catch(error){
+      // lstat of a descendant can return ENOTDIR before the typed VCP
+      // boundary has inspected the intervening non-directory component.
+      // Let the guard classify it consistently on Linux and native NTFS.
+      if(error?.code==='ENOTDIR')
+        await resolveProjectPath(root,relative,{purpose:'read-existing'});
+      if(error?.code!=='ENOENT')throw error;
+    }
     await resolveProjectPath(root,relative,{
       purpose:exists?'read-existing':'write-new'
     });
