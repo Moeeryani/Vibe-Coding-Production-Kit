@@ -1,0 +1,16 @@
+01-npm-ci exit=0 duration=1s
+02-validate-framework exit=0 duration=1s
+03-check exit=0 duration=13s
+04-check-stage12-contract exit=0 duration=2s
+05-check-stage13-contract exit=0 duration=1s
+06-check-stage14-contract exit=0 duration=1s
+07-doctor exit=0 duration=0s
+08-test-cli exit=1 duration=17s
+09-test-stage13 exit=0 duration=1s
+10-test-stage14 exit=0 duration=5s
+11-node-test-stage13-windows-ntfs exit=0 duration=1s
+12-node-test-stage14-legacy-validator exit=0 duration=5s
+13-node-test-legacy-v1-fixture-boundaries exit=0 duration=1s
+14-npm-test exit=1 duration=47s
+15-npm-validate exit=1 duration=64s
+16-pack-check exit=0 duration=3s

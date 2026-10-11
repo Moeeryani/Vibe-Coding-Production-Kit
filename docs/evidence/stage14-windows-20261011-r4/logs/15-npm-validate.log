@@ -1,0 +1,1978 @@
+=== GATE: 15-npm-validate ===
+=== CMD: npm run validate ===
+=== CWD: /d/vcp-stage14-r4 ===
+=== START: 2026-10-11T05:54:57Z ===
+
+> vibe-coding-production@0.9.3 validate
+> node scripts/validate-framework.mjs && npm run check && npm run check:stage12-contract && npm run check:stage13-contract && npm run check:stage14-contract && npm test
+
+Framework validation passed.
+
+> vibe-coding-production@0.9.3 check
+> node scripts/check-syntax.mjs
+
+Syntax check passed for 115 module(s).
+
+> vibe-coding-production@0.9.3 check:stage12-contract
+> node scripts/check-stage12-readonly-contract.mjs
+
+{
+  "status": "PASS_READ_ONLY_BOUNDARIES",
+  "gFence": "NO_GO",
+  "stage12FullAccepted": false,
+  "readOnlySubsetAccepted": false,
+  "legacyV1FixtureProductionImports": 0,
+  "receipts": [
+    {
+      "platform": "linux",
+      "scenarios": 12,
+      "unsafe": 7,
+      "conclusion": "NO_GO__LEGACY_USER_EDIT_LOSS_WITNESSES"
+    },
+    {
+      "platform": "win32",
+      "scenarios": 13,
+      "unsafe": 8,
+      "conclusion": "NO_GO__LEGACY_USER_EDIT_LOSS_WITNESSES"
+    }
+  ]
+}
+
+> vibe-coding-production@0.9.3 check:stage13-contract
+> node scripts/check-stage13-construction-contract.mjs
+
+{
+  "status": "STAGE13_SOURCE_CONSTRUCTION_PRESENT_ONLY",
+  "fullStage13Accepted": false,
+  "approvalRequired": true,
+  "gFence": "NO_GO",
+  "testEvidenceProvided": false,
+  "sourceFilesInspected": 23
+}
+
+> vibe-coding-production@0.9.3 check:stage14-contract
+> node scripts/check-stage14-construction-contract.mjs
+
+STAGE14_SOURCE_CONSTRUCTION_PRESENT_ONLY; CHECKPOINT_A_PENDING; D01_NO_GO
+
+> vibe-coding-production@0.9.3 test
+> node --test
+
+✔ fixture journey remains deterministic without a device (0.8574ms)
+✔ keeps Android and iOS behavior explicit (0.8497ms)
+✔ normalizes trusted deep-link scheme and rejects other inputs (1.3693ms)
+✔ accept and revoke racing from the same pending snapshot allow exactly one terminal transition (2.7677ms)
+✔ organization query returns only records owned by that organization across statuses (2.0638ms)
+✔ organization query returns detached copies instead of mutable repository state (1.8684ms)
+✔ organization query is status-neutral and does not define active-list expiry policy (0.3213ms)
+✔ active listing requires an authenticated actor with members.invite (1.843ms)
+✔ active listing is tenant-scoped, excludes terminal records, and returns only administration-safe fields (3.6404ms)
+✔ expiry at exactly now remains visible and is projected as expired (0.3738ms)
+✔ active listing returns an empty list for an organization with no invitations (0.2111ms)
+✔ authorized admin issues an invite and repository stores only its hash (2.9412ms)
+✔ issuer must belong to target org (0.7156ms)
+✔ issuer must have members.invite permission (0.2565ms)
+✔ reissuing for same org and email revokes previous pending invitation (0.4025ms)
+✔ intended verified user can accept exactly once (0.9259ms)
+✔ acceptance rejects verified-email mismatch (0.4945ms)
+✔ acceptance rejects expired invitation (0.579ms)
+✔ reissued invitation makes old token unusable while new token works (0.4864ms)
+✔ unknown token fails with coarse application error (0.4397ms)
+✔ authorized admin revokes a pending invitation in their own org (2.1261ms)
+✔ revoked invitation token can no longer be accepted (0.6428ms)
+✔ actor without members.invite cannot revoke (0.6153ms)
+✔ cross-org admin and unknown id fail indistinguishably and leave the invitation pending (0.5616ms)
+✔ accepted invitation cannot be revoked and stays accepted (0.5514ms)
+✔ revocation is not repeatable and revoked stays terminal (0.5537ms)
+✔ expired-but-pending invitation can still be revoked (0.3582ms)
+✔ domain revocation only accepts pending invitations (0.3808ms)
+✔ repository compare-and-set refuses to revoke non-pending or unknown records (0.3694ms)
+✔ formats a valid order id with the shared workspace prefix (0.9739ms)
+✔ trims caller whitespace before formatting (0.1667ms)
+✔ rejects empty identifiers after trimming (1.6072ms)
+✔ rejects non-string identifiers (0.2066ms)
+✔ current proposed decision register and S/T regression anchors are coherent (16.2116ms)
+✖ D-06: DEFERRED is not PROPOSED, and the executable checker reports every state (276.1195ms)
+✔ D-06: complete ACCEPTED-record validator checks independent map, metadata and document (27.3624ms)
+✖ D-03: selected no-follow contract also rejects in-root links and linked parents (6.8754ms)
+✔ detect duplicate canonical decision rows (83.2918ms)
+✔ detect missing D-12 and regression of explicit old CLI fence (9.7515ms)
+✔ local evidence receipt SHA-256 matches retained UTF-8 log bytes (1.3041ms)
+✔ local gate runner refuses missing exact SHA/evidence directory before running npm (170.8951ms)
+✔ local gate runner refuses relative evidence directory (184.1752ms)
+✔ strengthened anchors fail when normative text is removed (13.2134ms)
+✔ C-14 hygiene forbids the phantom A15 amendment ID in either doc (11.5041ms)
+✔ D-06: independent required-anchor inventory catches missing S/T/Task/Local Gates coverage (2.0673ms)
+✔ D-06: acceptance cannot bypass independent coverage review or amend its own expected clause (1.6346ms)
+✔ D-06: accepted location duplicates cannot count as separate coverage (1.386ms)
+✔ D-06: every independently declared required section explicitly names its decision and normative clause (33.2348ms)
+✔ D-06: critical D-01 and D-03 roadmap/CLI/update-doc anchors cannot vanish from coverage map (1.5103ms)
+✔ D-06: canonical ledger and Stage12 roadmap anchors stay mandatory (1.897ms)
+✔ Stage12 reconciliation: T preserves final #87 checkpoint DONE and polyglot blocks (2.8215ms)
+✔ inspect: completely empty root is NEW and has zero side effects (12.5717ms)
+✔ inspect: existing unmanaged files remain byte-identical and unclaimed (10.2073ms)
+✔ inspect: valid managed schema-v1 root returns only approved metadata (16.07ms)
+✔ inspect: unrecognized v1 metadata is blocked, never silently tolerated (9.4277ms)
+✔ inspect: v1 install.assetSet is refused (never a released-0.9.3 field) (11.8341ms)
+✔ inspect CLI: JSON and human output, blocked states return nonzero (1193.9397ms)
+✔ inspect: partial, corrupt, future and ambiguous managed states fail closed (54.797ms)
+✔ inspect: non-directory and oversized manifest fail closed (13.9495ms)
+﹣ inspect: linked root, .vcp state and manifest are never trusted (0.6083ms) # Native Windows linked-root/state/manifest checks delegated to test/stage13-windows-ntfs.test.mjs
+﹣ inspect: symlinked parent component is rejected even for in-root target (0.3461ms) # Native Windows in-root linked parent delegated to test/stage13-windows-ntfs.test.mjs
+✔ inspect: mutating CLI flags are rejected before touching files (1464.4917ms)
+✔ new root yields zero-write greenfield plan with unapproved CLAIM actions (54.422ms)
+✔ existing unmanaged content is only skipped, never adopted or overwritten (44.1506ms)
+✔ ambiguous JS/Python root reports generic and competing evidence (36.1755ms)
+✔ JS/TS marker family resolves TypeScript deterministically (13.5075ms)
+﹣ symlinked source evidence fails closed without reading outside root (0.7336ms) # Native Windows source evidence symlink case is covered by test/stage13-windows-ntfs.test.mjs
+✔ managed v1 root blocks init plan and remains intact (22.0206ms)
+✔ fitness CLI passes the reference SaaS and exposes deterministic JSON (489.0832ms)
+✔ fitness CLI human report exposes module ownership and dependency direction (414.4142ms)
+✔ fitness CLI returns non-zero JSON report for a public-contract violation (567.7113ms)
+✔ fitness CLI refuses to invent architecture when config is absent (327.138ms)
+✔ fitness --config accepts an explicit project-relative configuration path (615.5361ms)
+✔ fitness requires project root through --dir instead of ambiguous positional semantics (375.7999ms)
+✔ fitness CLI help advertises the Stage 8 command and config option (365.2585ms)
+✔ fitness CLI rejects config traversal outside the selected project (579.3844ms)
+✔ fitness --config cannot leak onto unrelated commands (296.7623ms)
+✔ reference SaaS passes explicit Stage 8 architecture fitness (41.0281ms)
+✔ missing config fails instead of inferring architecture (3.4179ms)
+✔ config validation rejects overlapping roots, unknown dependencies, and invalid public entries (4.0647ms)
+✔ unowned configured source file turns ownership lane red (193.7073ms)
+✔ forbidden dependency direction turns dependency lane red (214.9125ms)
+✔ cross-module deep import bypassing public entrypoint turns public-contract lane red (362.8663ms)
+✔ realized module cycle turns cycle lane red even when both directions are allowed (175.2613ms)
+✔ missing exact local import target fails visibly (195.4657ms)
+✔ local import outside configured source roots fails visibly (280.5444ms)
+✔ non-literal dynamic dependency expressions are not silently treated as safe (323.6978ms)
+✔ architecture contract marker regression turns governing-contract lane red (429.1464ms)
+✔ governing ADR must remain Accepted (263.3675ms)
+✔ duplicate governing marker is a regression rather than an implicit pass (225.1782ms)
+✔ unsupported static import syntax fails instead of disappearing from analysis (256.4952ms)
+✔ missing declared module roots and public entries fail visibly (486.8349ms)
+✔ governing ADR must have exactly one status section (281.872ms)
+✔ canonical VCP ADR metadata status format is accepted (319.4047ms)
+✔ empty configured source roots cannot produce a vacuous green result (798.931ms)
+✔ same-line second import cannot hide a forbidden dependency (253.2984ms)
+✔ dense cyclic module graph reports one bounded strongly connected component (52.1227ms)
+✔ architecture source roots refuse symlinked path components (520.175ms)
+✔ compact static re-export syntax still contributes dependency edges and cycles (219.5717ms)
+✔ dependency lookalikes in comments strings and template raw text do not create false edges (210.1548ms)
+✔ dynamic import inside a template expression remains visible to the analyzer (228.6479ms)
+✔ comment trivia cannot hide non-literal dynamic dependency expressions (1394.7864ms)
+✔ import.meta usage is valid analyzer syntax and does not create dependency evidence (731.432ms)
+✔ architecture contract markers inside fenced examples do not satisfy governing contracts (363.5701ms)
+✔ Accepted text inside a fenced ADR example does not create governing status authority (490.8148ms)
+✔ regex-literal quote cannot mask a later forbidden dependency (704.39ms)
+✔ escaped runtime-relative module specifier cannot bypass architecture boundaries (559.6551ms)
+✖ JavaScript package check script is represented as CHECK_COMMAND in generated tasks (2169.5683ms)
+✔ JavaScript profile keeps lint unresolved when neither lint nor general check is configured (1806.3793ms)
+✖ verify executes and persists CHECK_COMMAND alongside unit tests (2064.677ms)
+✔ historical v1 fixture includes the original core framework and GitHub assets (2614.8218ms)
+✔ adds thin adapters only when the selected tool needs them (2369.5756ms)
+✔ refuses to overwrite existing managed paths without --force (9.9936ms)
+✔ dry-run performs no writes (52.6133ms)
+✔ test-only historical fixture preserves unrelated existing directories (1546.2206ms)
+✔ auto-detects TypeScript and fills commands proven by package scripts (2963.8649ms)
+✔ auto-detects JavaScript package projects and imports existing check/test scripts (4925.5785ms)
+✔ Go stack installs stable verification commands (2518.487ms)
+✔ auto-detects Python tooling only when configuration provides evidence (1247.3827ms)
+✔ doctor fails when the framework is not installed (37.5657ms)
+✔ doctor warns for untouched templates in a historical preinstalled fixture (1352.9237ms)
+✔ doctor reports explicit stack commands as resolved (1761.0627ms)
+✖ task generator creates a bounded task and imports configured verification commands (1721.8914ms)
+✖ task generator does not turn reasoned n/a decisions into executable commands (1333.6074ms)
+✖ task generator refuses overwrite and supports dry-run (1000.0931ms)
+✔ task generator validates kebab-case slugs (2.0754ms)
+✔ CLI help advertises plugin inspection and digest authoring (473.9304ms)
+✔ plugins CLI inspects the pinned reference fixture as JSON without applying proposals (367.467ms)
+✔ plugins CLI human report preserves the HUMAN DECISION boundary (364.5424ms)
+✔ plugins --digest reproduces the canonical fixture pin without selecting or mutating trust (404.8567ms)
+✔ plugins rejects positional project roots and keeps --digest scoped to the plugins command (693.3814ms)
+✔ reference community profile fixture is pinned, deterministic, and inspection-only (52.3989ms)
+✔ bundle presence alone never grants plugin authority and nested projects do not inherit parent selection (30.0323ms)
+✔ canonical plugin digest is stable across CRLF and LF text checkouts (34.3732ms)
+✖ context composes selected guidance and labels verification commands as proposals without mutating AGENTS (2168.7821ms)
+✖ built-in React Native profile and Stage 10 community plugin remain separate additive authorities (2415.9717ms)
+✖ guidance is mode-bounded while plugin identity and proposals remain visible (1693.2686ms)
+✖ plugin guidance participates in the normal context budget and manifest (3159.9284ms)
+✔ Doctor passes old projects with no declaration and passes valid pinned selections (7849.0985ms)
+✔ Doctor fails tampered selected plugins instead of silently dropping them (1470.5918ms)
+✔ init and update lifecycle do not invent or manage project plugin declarations/bundles (1740.1905ms)
+✔ digest mismatch detects any reviewed bundle edit (45.4436ms)
+✔ selection rejects traversal, URLs, and Windows drive-style paths before loading (53.1845ms)
+✔ selection and digest authoring are confined to the project-owned community-plugins namespace (41.0182ms)
+✔ plugin paths use portable ASCII segments and reject Windows-reserved names (114.1637ms)
+✔ every bundle entry path is portable even when the file is not a declared contribution (31.6859ms)
+✔ plugin schema strings and text files reject terminal/control characters (84.975ms)
+✔ selection requires canonical lowercase digest text (38.8249ms)
+✔ selection cannot grant a capability the plugin manifest does not declare (56.049ms)
+✔ selected plugins are returned in deterministic id order independent of declaration order (81.1628ms)
+✔ plugin ids and versions reject leading or trailing Unicode whitespace instead of trimming exact pins (55.3097ms)
+✔ selection rejects duplicate ids, paths, and grants deterministically (57.1371ms)
+✔ declaration schema and unknown selection keys are rejected before plugin loading (14.1842ms)
+✔ manifest rejects duplicate guidance paths and verification proposal keys (99.4794ms)
+✔ missing declared guidance fails instead of silently dropping plugin context (61.7901ms)
+✔ manifest rejects unsupported schema, kind, capability, executable-style keys, and empty guidance modes (354.5919ms)
+✔ manifest id/version/VCP compatibility must match the explicit project selection (176.0147ms)
+✔ verification proposals require an explicit project capability grant (37.0072ms)
+✔ verification proposals reject unknown slots, placeholders, and multi-line commands (559.8512ms)
+✔ case-insensitive path collision contract is host-independent (0.5013ms)
+✔ authoritative bundle path casing must match the filesystem exactly (14.2279ms)
+✔ plugin declaration treats case-only path variants as duplicate selections (26.2691ms)
+✔ plugin declaration rejects mismatched bundle-root casing for a single selection (58.519ms)
+✔ plugin bundles reject excessive file count and normalized text size before context rendering (191.1976ms)
+✔ community plugin declaration is size-bounded before JSON parsing (8.6308ms)
+✔ bundle traversal is entry-bounded even when excess entries are empty directories (171.2548ms)
+✔ community plugin declaration caps selected plugin count (8.1256ms)
+✔ v1 rejects invalid UTF-8 even when a file uses an allowed text extension (25.155ms)
+✔ v1 rejects executable or binary-style files anywhere in a plugin bundle (37.1417ms)
+✔ bundle and nested symlinks are refused when the host permits symlinks (59.1531ms)
+✖ context pack bundles task, repository rules, mode prompt, and source-of-truth documents (2139.8818ms)
+✖ context pack supports explicit includes and safe repository-local output (1804.0724ms)
+✖ implement context supports explicit planned paths for greenfield files (1986.8598ms)
+✖ planned paths are implement-only and must not already exist (2870.5252ms)
+✖ context pack rejects repository escape paths and enforces the context budget (5127.1745ms)
+✖ context pack exposes portable slash-separated paths on every OS (2269.3996ms)
+✖ context CLI emits a usable bounded pack with planned paths (1237.107ms)
+✔ historical published-v0.9.3 Linux receipt proves seven unsafe old-CLI witnesses, never GO (11.9074ms)
+✔ historical receipt tampering cannot turn missing old-CLI negative witness into approval (4.1794ms)
+✔ native Windows 13-case witness records lock-blind old-init user loss without granting GO (5.0508ms)
+✔ Windows result tampering never hides the eighth post-backup user edit loss (3.1791ms)
+✔ doctor strict can be green while explicitly reporting unassessed decision templates (2853.6499ms)
+✔ doctor reports auto-selected generic profile as eligible when concrete evidence appears (2765.7555ms)
+✔ doctor explains that explicit generic provenance preserves the installed profile (2655.9918ms)
+✔ doctor explains that legacy unknown provenance preserves generic conservatively (3153.2403ms)
+✖ review context binds task and Source of Truth to an explicit Git base/head surface (2384.0174ms)
+✖ review context surfaces dirty working-tree state separately from the committed comparison (2457.1661ms)
+✖ Git comparison options are review-only, non-blank, and head requires an explicit base (1670.7891ms)
+✖ invalid Git base fails visibly instead of producing an incomplete review surface (2937.5251ms)
+✖ Git-aware review fails clearly outside a Git worktree (4785.4046ms)
+✖ Git review evidence counts against the existing context byte budget (2972.6238ms)
+✖ binary changes are identified by Git rather than represented as complete text content (1237.1386ms)
+✖ committed gitlink changes remain visible when repository config ignores submodules (1054.3339ms)
+✖ context CLI forwards explicit Git base/head into review mode (1487.4747ms)
+✔ CLI rejects explicitly blank equals-form Git refs before command dispatch (419.4203ms)
+✔ test\helpers\legacy-v1-fixture.mjs (329.0275ms)
+✔ historical fixture creates only valid v1 claims and matching baseline bytes (2355.5568ms)
+✔ historical fixture preserves preexisting AGENTS bytes and does not claim them (2469.6399ms)
+✔ preflight refuses blocked ancestor before writing any template or vcp state (151.8487ms)
+✔ historical fixture accepts a precreated nested project inside its vcp-* sandbox (2622.9528ms)
+✔ fixture never creates an unproved nested project directory (3.3431ms)
+✔ a vcp-* final directory under a foreign temp sandbox is still refused (38.8612ms)
+✔ fixture refuses a linked ancestor inside an otherwise valid vcp-* sandbox (37.6343ms)
+✔ fixture refuses non-vcp temporary directory before any writes (3.44ms)
+﹣ fixture refuses an in-project linked template file without following it (0.5893ms) # native Windows file symlink is exercised by test/stage13-windows-ntfs.test.mjs
+✔ managed sections preserve outside bytes: BOM, CRLF, LF and Unicode (7.9119ms)
+✔ ignore marker-shaped text inside triple fenced Markdown (2.9442ms)
+✔ reject orphan, nested, repeated, mismatched and malformed markers (1.5677ms)
+✔ refuse unknown region and marker injection (1.1918ms)
+✔ 0.9.0 projects have an explicit migration path to 0.9.1 (5.0135ms)
+✔ older 0.8.0 projects can compose through 0.9.0 to 0.9.1 (0.6138ms)
+✔ 0.9.1 projects have an explicit migration path to 0.9.2 (3.9641ms)
+✔ 0.9.0 projects compose through 0.9.1 to 0.9.2 (2.2091ms)
+✔ older 0.8.0 projects compose through the full migration chain to 0.9.2 (0.4508ms)
+✔ 0.9.2 projects have an explicit migration path to 0.9.3 (3.4228ms)
+✔ 0.9.1 projects compose through 0.9.2 to 0.9.3 (1.933ms)
+✔ 0.8.0 projects compose through the complete retained chain to 0.9.3 (0.4892ms)
+✔ migrations remain bounded to existing released Schema-v1 chain (4.6089ms)
+✔ legacy compareVersions delegates to strict new comparator (1.8752ms)
+✔ published-old-CLI POC harness file hashing self-test (not old binary) (238.5966ms)
+✔ published-old-CLI POC refuses to claim evidence without npm tarball/integrity (226.0158ms)
+✔ published-old-CLI POC documents observation scenarios (155.1148ms)
+✔ prompt-eval list exposes canonical scenarios and all Stage 7 properties as JSON (408.1035ms)
+✔ prompt-eval evaluates one canonical reference record through the public CLI (417.8887ms)
+✔ prompt-eval all evaluates the complete canonical reference suite through the public CLI (381.5705ms)
+✔ prompt-eval CLI returns non-zero and structured failure for false verification reporting (393.9935ms)
+✔ prompt-eval all returns non-zero when a required canonical response is missing (396.3394ms)
+✔ prompt-eval human failure output includes the failed property and assertion detail (366.5901ms)
+✔ canonical Stage 7 suite covers every roadmap behavior property (20.7882ms)
+✔ reference prompt behavior suite passes every scenario, property, and assertion (38.6055ms)
+✔ verification behavior can pass while accurately reporting an executed failed check (14.6695ms)
+✔ free-form wording is ignored by deterministic behavior evaluation (15.6988ms)
+✔ every Stage 7 property has a mutation fixture that turns that property red (37.702ms)
+✔ missing required observation fields fail visibly instead of defaulting to pass (23.802ms)
+✔ scenario id and prompt identity mismatches fail visibly (25.8192ms)
+✔ canonical scenario listing is deterministic and exposes property coverage (24.5374ms)
+✔ single-scenario evaluation rejects unknown ids and reports unsafe response paths as failure evidence (19.6605ms)
+✔ suite reports missing response files as failed scenarios and properties (24.5667ms)
+✔ duplicate structured observation identities are rejected as ambiguous evidence (16.9107ms)
+✔ unexpected plan slices and verification checks cannot hide inside an otherwise passing record (8.2832ms)
+✔ required vertical slices need explicit non-empty scope (5.3074ms)
+✔ unresolved human decisions cannot be relabeled as discovered facts or negative decisions (6.1895ms)
+✔ approved and negative decisions cannot be reopened into the wrong decision class (5.3778ms)
+✔ bounded vertical plan rejects over-broad scope and extra acceptance evidence (7.9704ms)
+✔ follow-up evaluation rejects silently implemented or unknown follow-up work (6.6491ms)
+✔ prompt response paths reject traversal even when normalization would return inside the project (4.8879ms)
+✔ canonical reference records are bound to the current suite and prompt blobs (10.0217ms)
+✔ scenario ground truth is internally consistent and exact for bounded slices (4.4092ms)
+✔ canonical stimuli and evaluator ground truth agree on decision identities (5.5168ms)
+✔ canonical scenario prompt paths cannot traverse or escape the prompts root (5.1682ms)
+✔ react-native is an explicit supported stack and generates its first-party profile without Go fallthrough (2234.1914ms)
+✔ explicit JavaScript selection is preserved even when React Native evidence is present (2256.0481ms)
+✔ React Native detection accepts every canonical application marker (150.8939ms)
+✔ TypeScript React Native specializes before TypeScript and maps configured fixture verification (43.125ms)
+✔ marker-only projects remain in the Node family (33.3736ms)
+✔ peer/dev dependency references do not activate React Native application detection (20.564ms)
+✔ runtime dependency without an application marker remains Node-family (31.6793ms)
+✔ malformed package.json never activates React Native detection (23.865ms)
+✔ Go and Python precedence remains above React Native (25.1313ms)
+✖ symlinked package.json cannot grant React Native authority but preserves historical Node fallback (66.4519ms)
+✖ React Native app markers must be real selected-root files/directories, not symlinks (43.997ms)
+✔ selected-root detection never recursively inherits parent or sibling mobile evidence (66.9401ms)
+✔ React Native TypeScript/build/E2E applicability stays explicit when scripts are missing (33.2317ms)
+✔ obvious sensitive-effect mobile scripts are not imported into general verification (41.3501ms)
+✖ first-party React Native fixture dogfoods init, task verification, and bounded context without plugins (3088.1014ms)
+✔ Doctor reports auto-selected JavaScript as React Native specialization and lifecycle-transition eligible (5551.7461ms)
+✔ Doctor reports auto-selected TypeScript and generic profiles as React Native specialization eligible (4634.552ms)
+✔ Doctor withholds specialization for explicit and legacy-unknown lifecycle choices (3149.5785ms)
+✖ fresh generated task is not ready for planning (2224.9177ms)
+✔ core-complete task can enter planning while operational gaps remain warnings (2305.3306ms)
+✖ implementation-ready task passes but warns when referenced source docs are still starter templates (1635.8479ms)
+✖ customized source docs remove starter-template readiness warnings (3102.3529ms)
+✔ implementation readiness fails when verify cannot build an executable plan (4792.1697ms)
+✔ readiness rejects duplicate task sections instead of parsing an ambiguous first copy (2883.1542ms)
+✖ ready detects unsafe source references and CLI supports JSON output (1476.6616ms)
+✔ reference SaaS prompt snapshots stay identical to canonical prompts (24.7837ms)
+✔ reference SaaS builds plan, implement, and review context from its checked-in canonical Task Pack (1565.6587ms)
+✔ release-check preview is exposed through the public CLI as structured evidence (3269.3154ms)
+✔ release-check human output states that release approval remains a human decision (3417.622ms)
+✔ release-check requires an explicit candidate version (183.4001ms)
+✔ release-check rejects a non-numeric timeout instead of silently using a default (249.9255ms)
+✔ --policy is scoped to release-check (183.9103ms)
+✔ preview validates a clean candidate while retaining tag/publish HUMAN_DECISION boundaries (2822.6477ms)
+✔ repository policy locks the immutable v0.9.2 tag object and release commit identities (1.4804ms)
+✔ dirty candidate worktree fails exact-revision evidence (2826.632ms)
+✔ package version mismatch fails even when other candidate metadata is coherent (8288.3257ms)
+✔ fenced changelog headings cannot satisfy release authority (3852.4632ms)
+✔ duplicate Unreleased headings fail release authority (2004.8628ms)
+✔ Unreleased bullets block a prepared release candidate (3029.7522ms)
+✔ release notes require candidate version identity in the top-level title (1877.4494ms)
+✔ candidate release marker inside a fenced example is not release authority (2396.6691ms)
+✔ missing candidate migration chain fails rather than defaulting release-ready (2156.5493ms)
+✔ existing candidate tag at a different commit fails and is never moved (1871.431ms)
+✔ retained previous tag identity mismatch fails visibly (2210.6157ms)
+✔ release evidence output is preflighted, overwrite-protected, and excludes command logs (1686.789ms)
+✔ custom release policy symlinks are refused when the host supports symlinks (965.6382ms)
+✔ release policy previous tag must exactly match the declared previous version (849.7437ms)
+✔ lockfile root package name must match the release package identity (1542.4925ms)
+✔ release-authority file symlinks are refused when the host supports symlinks (1059.2823ms)
+✔ Windows alias execution succeeds through cmd.exe when the .cmd path contains spaces (89.0645ms)
+✔ Windows alias command preserves a spaced .cmd path behind the /s outer quote pair (0.4943ms)
+✔ package-surface validator turns red when a required packed file is missing (0.2568ms)
+✔ install evidence validator turns red on missing CLI alias and wrong version output (0.4079ms)
+✔ lifecycle evidence validator turns red on conflicts, blocked apply, Doctor failure, and non-idempotence (0.4423ms)
+✔ published shell entrypoint is LF-only and has a portable shebang (10.1876ms)
+✔ template text normalization canonicalizes CRLF before hashing or installation (0.5529ms)
+✔ repository attributes force text files to LF checkouts (2.7097ms)
+✖ task creation reports a portable repository-relative path (2161.5813ms)
+✖ readiness and verification reports expose slash-separated task paths (2276.5392ms)
+✖ task and ready CLIs print slash-separated paths on every host OS (1954.8551ms)
+✔ generated Task Packs provide a bounded durable review-evidence contract (2.2729ms)
+✔ fresh review context reconstructs persisted findings without prior reviewer chat (47.7126ms)
+✔ purposes enforce read/write/state separation and reserved paths (26.6344ms)
+✔ reject traversal, alternate separators, absolute and reserved components (4.072ms)
+﹣ reject external and internal symlinks, linked parent and linked selected root (1.202ms) # Native Windows internal/external links and linked roots delegated to test/stage13-windows-ntfs.test.mjs
+✔ reject nonregular paths and keep project bytes and paths unchanged (15.4062ms)
+✔ security profile parser composes baseline before explicit profiles (5.0036ms)
+✔ security profile parser keeps baseline mandatory for an explicit empty selection (0.4285ms)
+✔ security profile parser rejects unknown, duplicate, malformed, and missing-section declarations (0.9588ms)
+✖ security context includes baseline plus selected project-sensitive profiles and manifest identities (2167.2228ms)
+✖ missing profile declaration remains backward compatible and still applies baseline (2263.3282ms)
+✖ packaged baseline fallback works when an older project lacks Stage 6 local assets (1555.4704ms)
+✖ security profiles are not auto-included outside security mode (3055.8086ms)
+✖ explicit invalid profile state fails security context instead of silently falling back (4785.7054ms)
+✔ lifecycle ownership preserves project selection and merge-manages canonical guidance (102.8601ms)
+✔ reference SaaS selects all project-sensitive Stage 6 profiles explicitly (2.0832ms)
+✖ draft security profile declaration cannot govern security review (2473.9131ms)
+✖ security profile document identity must match the selected profile (1243.9712ms)
+✔ reference SaaS security context dogfoods all Stage 6 profiles (54.3517ms)
+✖ doctor exposes active profiles and baseline fallback without warning old projects (971.9153ms)
+✖ doctor fails visibly for invalid explicit security profile state (1191.4179ms)
+✖ invalid security declaration remains isolated from non-security context modes (1470.4949ms)
+✖ update planning adds Stage 6 assets to a simulated pre-Stage-6 project (1394.3345ms)
+✖ update planning preserves project-owned security profile selection (1242.9826ms)
+✔ canonical profiles retain the Stage 6 security coverage contract (3.7717ms)
+✔ SemVer pre-release chain and release precedence (2.5081ms)
+✔ SemVer build metadata does not influence ordering (0.2991ms)
+✔ SemVer numeric precision and lexical alphanumeric identifiers (0.485ms)
+✔ SemVer malformed or leading-zero versions fail closed (1.1428ms)
+✔ SemVer minimum-reader compatibility is explicit (0.3265ms)
+✔ authority examples below the document preamble do not become metadata (3.1021ms)
+✔ authority parser keeps legacy compatibility and rejects ambiguous explicit markers (3.4078ms)
+✔ legacy and ACCEPTED documents remain implementation-ready (93.6994ms)
+✔ DRAFT is plan-usable but cannot authorize implementation (108.8575ms)
+✔ SUPERSEDED and ARCHIVED material cannot silently govern current execution (141.2568ms)
+✔ invalid explicit authority fails visibly instead of falling back to legacy behavior (53.7604ms)
+✔ accepted negative decisions stay in context while historical material requires deliberate include (75.9823ms)
+✔ reference SaaS reconstructs accepted current policy and keeps superseded policy historical (126.263ms)
+✔ parser ignores ordinary code spans and reads explicit table/labeled references (4.5427ms)
+✔ parser supports plain or linked values in the canonical Reference column (0.7444ms)
+✔ parser preserves malformed explicit references for readiness diagnostics and ignores reasoned n/a (0.7633ms)
+✔ readiness does not interpret Source-of-Truth prose code spans as repository paths (2251.6316ms)
+✔ context includes only explicit Source-of-Truth files from mixed prose (2252.9407ms)
+✔ brownfield minimal excludes fictional starter truth and consumer CI (4.6858ms)
+✔ brownfield plan leaves original nested project documents byte-identical (121.1583ms)
+✔ unclaimed compatible Claude file remains project-owned NOOP (54.474ms)
+✔ code-fenced routing example is not enough to prove compatible Claude authority (8.3271ms)
+✔ unclaimed VCP markers are a conflict, not permission to replace sections (88.5829ms)
+✔ initial section insertion preserves BOM and all user bytes outside new region (1.4229ms)
+✔ optional missing parents are absent while linked ancestors remain forbidden (4.0431ms)
+✔ Stage12 subset guard refuses to mistake negative Linux/Windows witness evidence for migration GO (143.251ms)
+✔ D-01 never authorizes managed writes even with all declared observations (4.9433ms)
+✔ published 0.9.3 cannot share new-writer security identity (0.7765ms)
+✔ missing-manifest old init and old new races are mandatory on both hosts (1.4767ms)
+✔ isolation not effective if published old binary can run privileged (0.5494ms)
+✔ D-01 must reject CLI-level exit failure pretending to be OS denial (0.4971ms)
+✔ D-01 must reject altered user-tree hashes and unsigned policy scope (0.4521ms)
+✔ missing independent native evidence never looks approved (0.8085ms)
+✔ accepted D02: absent source-only brownfield docs and v1 manifest are not install failure (93.0726ms)
+✔ accepted D02: actual missing managed file remains an applicable install FAIL (2746.2845ms)
+✔ D-02 public exit excludes governance-only WARN/FAIL but not installation hazards (0.5891ms)
+✔ Doctor refuses linked selected root rather than reading another project (30.5145ms)
+✔ stack evidence reader refuses linked package metadata, not project-owned commands (143.5168ms)
+✔ NEW init is blocked by D-01 before any .vcp or user file creation (14.4085ms)
+✔ missing-target init cannot create even the first root directory before gate (3.6297ms)
+✔ missing-target dry-run returns a zero-write blocked plan and never creates root (5.2816ms)
+✔ existing unmanaged project cannot be adopted and original bytes remain untouched (7.8601ms)
+✔ existing historical managed state is never overwritten by new init (2014.4232ms)
+﹣ probe reports kernel, filesystem and capability matrix (18.5617ms) # native helper not built (npm run build:native-linux)
+﹣ writeFileSynced creates exclusive, synced files; second create fails (6.3547ms) # native helper not built (npm run build:native-linux)
+﹣ replaceFileAtomic swaps content and leaves no staging files (6.1379ms) # native helper not built (npm run build:native-linux)
+﹣ moveNoReplace succeeds fresh and refuses collisions atomically (8.1013ms) # native helper not built (npm run build:native-linux)
+﹣ moveNoReplace refuses symlink at destination and symlink parents (6.6117ms) # native helper not built (npm run build:native-linux)
+﹣ hardlink destination collision is refused; source hardlink survives move (5.7515ms) # native helper not built (npm run build:native-linux)
+﹣ cross-filesystem rename fails closed with E_CROSS_FILESYSTEM (5.0701ms) # native helper not built (npm run build:native-linux)
+﹣ deleteFile and removeEmptyDirectory sync parents; ENOTEMPTY is safe (5.1678ms) # native helper not built (npm run build:native-linux)
+﹣ reapStaging removes only provider staging files (4.4615ms) # native helper not built (npm run build:native-linux)
+﹣ interrupted replace leaves original intact and staging is reapable (6.1529ms) # native helper not built (npm run build:native-linux)
+﹣ SIGKILL during a write burst leaves no torn committed files (5.2391ms) # native helper not built (npm run build:native-linux)
+﹣ path validation rejects escapes before touching the helper (5.5988ms) # native helper not built (npm run build:native-linux)
+﹣ planLegacyFence is read-only and reports kernel state (1.7765ms) # linux-only
+﹣ enforce refuses without privilege (0.4974ms) # linux-only
+﹣ enforced fence: kernel denies legacy writes (EACCES), bytes unchanged (0.4529ms) # linux-only
+﹣ verify detects ownership, mode and replacement violations (0.4857ms) # linux-only
+﹣ enforce refuses a symlinked control tree (0.3129ms) # linux-only
+﹣ immutable backend reports honestly when the capability is absent (0.4072ms) # linux-only
+✔ brownfield init preview is stable, content-free and leaves all user bytes alone (88.8767ms)
+✔ linked vendor instructions are never read as adoptable user authority (18.7032ms)
+✔ bounded selected-root reader refuses oversized input without altering bytes (32.6962ms)
+✔ linked project parent rejects path resolution including in-root links (20.4415ms)
+✔ orphaned final lock is reported read-only and never implicitly retired (66.9511ms)
+✔ Windows durability stays NO-GO and lock preflight never creates state (5.789ms)
+✔ terminal absence proof refuses empty owned directories without reading user bytes (59.4581ms)
+✔ recovery inventory refuses portable case aliases and file ancestors (1.7893ms)
+✔ ownership inventory refuses Windows device names and reserved Git components (0.5205ms)
+✔ rollback inventory recognizes strictly enumerated nested files only (41.7079ms)
+✔ unexpected project-owned nested file prevents rollback proposal (24.2944ms)
+✔ unexpected empty folder is still foreign state (51.021ms)
+﹣ symlinks anywhere in initial rollback tree refuse ownership (0.6114ms) # native Windows recovery-inventory junction is exercised by test/stage13-windows-ntfs.test.mjs
+✔ staging quarantine proposal preserves bytes and has no destructive actions (65.9453ms)
+✔ unknown transaction staging names cannot be implicitly quarantined (41.9177ms)
+✔ unproved committed journal is not a cleanup candidate (22.9582ms)
+✔ staging and committed cleanup writers are hard gated before any writes (6.1612ms)
+✔ legacy v1 is strictly enumerable and preserves installed whole-file ownership (7.2743ms)
+✔ legacy manifest refuses unrecognized behavior fields and redirected baseline (1.2477ms)
+✔ conversion refuses unknown historical v1 authority rather than dropping it (0.5463ms)
+✔ v1 owned and ignored paths refuse portable aliases and parent collisions (1.3427ms)
+✔ v2 owned and ignored paths refuse parent-child aliases (1.0948ms)
+✔ v2 validator rejects unknown fields at root, install, file and ownership (1.3275ms)
+✔ schema-v2 is never advertised as readable by published 0.9.3 (2.6852ms)
+✔ v2 reader blocks older reader and missing or malformed ownership metadata (1.2025ms)
+✔ explicit adapter provenance is a separate owner claim, never mere observation (1.816ms)
+✔ schema migration backup identity and prior-state must match operation (0.7817ms)
+✔ schema update transaction requires one exact target manifest digest (0.6235ms)
+✔ versioned backup and journal reject case-colliding owned paths (1.1156ms)
+✔ committed journal cleanup requires valid operation-matched v2 state (2.0311ms)
+✔ terminal journal cannot clear while project or backup controls survive (24.8853ms)
+✔ journal transition enforces exact ownership and terminal phase ordering (1.8064ms)
+✔ missing backup allowed only for exact terminal init cleanup (0.9103ms)
+✔ terminal cleanup journal requires exact init backup evidence (0.8345ms)
+✔ first-init recovery refuses a forged partial ownership ledger (0.6716ms)
+✔ versioned ledgers reject file/directory overlap and invalid backup modes (0.7683ms)
+✔ direct versioned write modules remain gated by D-01 (12.3156ms)
+✔ new versioned writers remain disabled before any filesystem interaction (23.6955ms)
+﹣ happy path: verify -> move -> ack, archive holds pinned identity (15.8131ms) # native helper not built (npm run build:native-linux)
+﹣ crash before move: resume completes exactly one detach (7.0692ms) # native helper not built (npm run build:native-linux)
+﹣ crash after move before ack: resume detects detached-evidence, no re-move (5.6659ms) # native helper not built (npm run build:native-linux)
+﹣ crash after ack: re-run is an idempotent no-op (7.329ms) # native helper not built (npm run build:native-linux)
+﹣ destination collision: advisory check AND atomic OS check both refuse (6.5677ms) # native helper not built (npm run build:native-linux)
+﹣ symlink at destination name is never replaced (5.8151ms) # native helper not built (npm run build:native-linux)
+﹣ lock changed between verify and move aborts the detach (6.537ms) # native helper not built (npm run build:native-linux)
+﹣ journal hash mismatch and corrupt journal fail verification (4.5256ms) # native helper not built (npm run build:native-linux)
+﹣ foreign user file at root during cleanup fails verification (4.4533ms) # native helper not built (npm run build:native-linux)
+﹣ sibling archive requires an explicit approval object (15.0959ms) # native helper not built (npm run build:native-linux)
+﹣ two detaches produce distinct archives; old archive untouched (14.7359ms) # native helper not built (npm run build:native-linux)
+﹣ retention: prune plans by age, executes only with approval + re-verify (11.2066ms) # native helper not built (npm run build:native-linux)
+﹣ retention: manifest change between plan and execute aborts prune (11.8171ms) # native helper not built (npm run build:native-linux)
+﹣ retention: symlink inside archive aborts prune (6.8444ms) # native helper not built (npm run build:native-linux)
+✔ terminal retirement never asserts D-01 or native durability (2.0237ms)
+✔ terminal retirement rejects foreign data, missing journal or foreign lock (0.9131ms)
+✔ native no-replace boundary refuses unsafe sibling scope and never falls back (3.3272ms)
+✔ Linux native no-replace probe is disposable and not an attestation (10.6003ms)
+✔ terminal candidate refuses mutation before touching unknown root (1.0053ms)
+✔ NTFS evidence never bypasses known unsupported production fsync (3.6665ms)
+✔ missing true power-loss replay or a native cleanup phase remains NO-GO (0.6735ms)
+✔ native probe is diagnostic and not a production durability authority (7.9925ms)
+✔ empty .vcp after crash is unproven: no inferred ownership or deletion (18.3029ms)
+✔ orphan adopt lock preserves user file and remains read-only (70.2727ms)
+✔ prejournal staging belongs only to the lock operation id (70.5817ms)
+✔ foreign control files cannot be quarantined from guessed provenance (18.481ms)
+﹣ linked prejournal staging is never traversed (24.6667ms) # native Windows pre-WAL staging junction is exercised by test/stage13-windows-ntfs.test.mjs
+✔ prejournal classifier refuses to reinterpret a durable WAL as orphan (16.3679ms)
+✔ Stage13 --adopt requires exact confirmation, never --yes alone (131.6236ms)
+✔ Stage13 exact fingerprint still cannot bypass G-FENCE (166.7473ms)
+✔ Stage13 dry-run exposes consent without creating managed state (68.3376ms)
+✔ Stage13 adoption recovery requires separate journal consent and archive permission (44.0443ms)
+✔ Stage13 adoption recovery is hard-fenced before inspecting candidate root (16.3484ms)
+✔ Stage13 committed orphan recognizes valid manifest, ledger and still-live lock (65.6019ms)
+✔ Stage13 committed orphan refuses changed original user document (77.9242ms)
+✔ Stage13 committed orphan never authorizes releasing the live lock (35.7613ms)
+✔ Stage13 stages first missing ancestor instead of creating unowned parent (23.7763ms)
+✔ Stage13 existing .github parent creates only missing child subtree (14.3555ms)
+﹣ Stage13 never follows symlinked ancestor or claims foreign parent (12.9829ms) # native Windows adoption-ancestor junction is exercised by test/stage13-windows-ntfs.test.mjs
+✔ Stage13 refuses source-file as parent and nonportable relative names (0.8378ms)
+✔ Stage13 directory ownership requires matching inode, never hash alone (0.7794ms)
+✔ Stage13 init rejects mutation before bootstrap and preserves existing bytes (24.9797ms)
+✔ Stage13 direct writer and recovery entrypoints both preserve G-FENCE (6.2158ms)
+✔ Stage13 adoption preflight is inspection-only without explicit consent (69.9698ms)
+✔ Stage13 recovery never infers ownership without its own journal (13.245ms)
+✔ Stage13 refuses implicit re-adoption when forensic archive remains (19.0308ms)
+✔ Stage13 never accepts caller-fabricated lock objects as finality authority (3.9194ms)
+✔ Stage13 explicit user consent cannot create an empty managed adoption (1.0403ms)
+✔ Stage13 cannot forge kernel isolation with a matching boolean receipt (0.6279ms)
+✔ stage13 never converts stale preview into writer authority (3.8505ms)
+✔ stage13 materializes section while retaining exact user preimage bytes (9.4055ms)
+✔ stage13 CLAIM never overwrites a pre-existing path (1.4772ms)
+✔ stage13 materialization rejects old reader or unapproved action changes (0.9607ms)
+﹣ Linux native RENAME_EXCHANGE retains both file inodes and contents (1.7569ms) # Native Linux-only preservation proof
+﹣ Linux native staged file and directory modes are exact under umask (0.4526ms) # Native Linux-only preservation proof
+﹣ Linux native exchange never fabricates missing file or overwrites source (0.4264ms) # Native Linux-only preservation proof
+✔ nested claim rollback returns deepest-first owned directory removals (7.2509ms)
+✔ matching file bytes never excuse a replaced directory inode (0.9359ms)
+✔ committed adoption requires owned directory identity still present (0.7172ms)
+✔ journal transitions cannot rewrite pre-staged native directory identities (1.8681ms)
+✔ native 64-bit identities preserve precision beyond JS safe integers (0.865ms)
+✔ Stage13 recovery refuses takeover while original lock owner is alive (118.4166ms)
+✔ Stage13 recovery reports fresh lock candidate without stealing any path (99.2958ms)
+✔ Stage13 recovery refuses foreign-operation adoption lock (47.1143ms)
+✔ Stage13 recovery direct writer does not read or mutate before hard gate (29.6578ms)
+✔ missing claim with staged inode is accounted for before apply (164.2675ms)
+✔ missing claim without stage or forensic archive must BLOCK (57.5519ms)
+✔ directory proof never treats absent namespace as safely removed (20.4823ms)
+✔ archived directory identity is recognized without restoring its name (29.3585ms)
+✔ Stage13 time-of-plan vs time-of-lock timestamp drift is not data drift (3.186ms)
+✔ Stage13 rejects post-lock mode, adapter, baseline and action drift (2.0713ms)
+✔ Stage13 never grants authorization based on matching preview objects (0.4925ms)
+✔ Stage13 section exchange preview preserves both original/staged inode IDs (2.9523ms)
+✔ Stage13 section exchange never accepts a changed user preimage (1.9282ms)
+✔ Stage13 section writer rejects direct-import use before ANY filesystem operation (1.1722ms)
+✔ Stage13 journal only accepts authenticated adoption ledger and phases (8.7386ms)
+✔ Stage13 recovery restores exact user preimage and removes only owned claims (1.9822ms)
+✔ Stage13 user post-apply edits and foreign backup always block rollback (1.8906ms)
+✔ byte-identical replacement from a different inode is not owned (0.6205ms)
+✔ Stage13 committed status proves all file bytes, not only manifest hash (0.9292ms)
+✔ Stage13 old pre-state after restore is not a new managed state (0.5578ms)
+✔ native Windows junction cannot be followed by project read or write (34.5711ms)
+✔ native Windows file symlink cannot become a legacy fixture claim (182.8922ms)
+✔ native Windows junction as missing adoption ancestor is refused (12.1672ms)
+✔ native Windows linked pre-WAL staging remains blocked and untouched (33.571ms)
+✔ native Windows junction in recovery inventory cannot be adopted (40.4097ms)
+✔ native Windows linked VCP state never becomes a trusted manifest (18.2124ms)
+✔ native Windows path aliases, reserved names and escapes fail closed (11.8316ms)
+✔ native Windows linked selected root and in-root alias are rejected (23.6667ms)
+✔ native Windows provider inspection rejects a junction-selected root (18.9651ms)
+✔ native Windows inspection refuses symlinked manifest without reading its target (12.5834ms)
+✔ native Windows path guard rejects internal and external file symlinks (16.3494ms)
+✔ native Windows adoption plan refuses symlinked external source evidence (33.5047ms)
+✔ Stage14 catalog exports stable three-version assetSet and four explicit classes (4.2894ms)
+✔ Stage14 catalog refuses unknown source identity, aliases and untrusted paths (2.1098ms)
+✔ Stage14 explicit manifest categorizes all supplied inventory with no inferred ownership (19.3307ms)
+✔ Stage14 safe greenfield exact golden inventory never sweeps package sources (59.4824ms)
+✔ Stage14 greenfield explicit --no-GitHub cannot introduce scaffolding or CI (39.7435ms)
+✔ Stage14 brownfield stays minimal, even if package gains more docs (6.216ms)
+✔ Stage14 historic full surface retains original compatibility assets (164.9704ms)
+✔ Stage14 catalog retains legacy CI/package-only prompt but never in safe surface (0.8731ms)
+✔ Stage14 only canonical packaged prompts are eligible, not arbitrary package files (0.3987ms)
+✔ Stage14 prompt override retains exact user content, absent override falls back to package (29.2506ms)
+✔ Stage14 unmanaged root can never be retired by preview (12.7399ms)
+✔ Stage14 legacy retirement preview preserves edited prompts and retains user bytes (3115.6876ms)
+✔ Stage14 consumer-retirement preview cannot convert an empty target to authorization (3.2297ms)
+✔ Stage14 original D-01 migration gate remains unmodified and blocking (0.2782ms)
+✔ Stage14 linked modified retirement path cannot be removed or trusted (3430.1274ms)
+✔ Stage14 CLI asset-plan emits only read-only inspection JSON (5821.3283ms)
+✔ Stage14 CLI asset-plan refuses force/run/yes and absent target (2.858ms)
+✔ Stage14 consumer health exposes contradictory managed ownership without authorizing deletion (0.795ms)
+✔ Stage14 health never mistakes untracked project docs for manifest-owned assets (0.2755ms)
+✔ Stage14 legacy and brownfield preserve an intentionally unowned AGENTS path (0.3991ms)
+✔ Stage14 nested-workspace planning never copies or reads sibling project content (19.3179ms)
+✔ Stage14 first-use dry-run measures legacy/full vs safe/minimal noise without writing (302.5896ms)
+✔ Stage14 real init writer stays gated even with a new short catalog (8.0431ms)
+✔ Stage14 legacy managed dogfood measures candidate noise yet never erases user edits (3012.2056ms)
+✔ Stage14 validator keeps provider docs mandatory only for provider source (2598.6076ms)
+✔ Stage14 provider validator refuses missing required docs and self-sentinel module (9021.9197ms)
+✔ workspace fixture prompt snapshots remain canonical (25.9611ms)
+✔ fresh workspace checkout reconstructs bounded package context, verification evidence, and root-aware review (7424.6609ms)
+✔ realistic nested project path boundaries reject sibling, root-output, and workspace traversal escapes (6007.9988ms)
+✔ reference example exposes one canonical machine-readable Task Pack (13.9097ms)
+✔ canonical reference Task Pack passes readiness and produces verification plan (1190.6983ms)
+✔ legacy delivery paths are explicit compatibility inputs, not a second slug namespace (809.9625ms)
+✔ shipped delivery TASK-TEMPLATE is a compatibility pointer, not a competing template (1.3466ms)
+✔ generated Task Packs define a bounded finalization contract (3.281ms)
+✔ Slice C dogfood tasks are finalized without stale pending verification text (9.0993ms)
+✔ CLI help advertises --dir for context and verification (377.2866ms)
+✖ task, ready, context, and verify share one selected project root (562.9953ms)
+✔ public CLI init refuses NEW schema writes before creating a manifest (358.1875ms)
+✔ test-only historical v1 fixture enables downstream CLI update conformance (2073.3929ms)
+✔ CLI update check works offline without registry access (1806.726ms)
+✔ CLI update check reports eligible automatic stack profile changes (3662.3061ms)
+✔ CLI update dry-run is machine-readable and write-free (5174.4857ms)
+✔ CLI dry-run exits non-zero on conflicts without repairing them silently (2913.292ms)
+✔ CLI manage ignore and track preserve local content (1601.6262ms)
+✔ CLI update and rollback restore the previous manifest version (4492.8854ms)
+✔ a second updater cannot plan against stale state while the first updater holds the lock (56.3201ms)
+✔ manage mutations are rejected while an updater holds the lifecycle lock (25.8404ms)
+✔ init --force refuses a managed repository without replacing manifest or user files (2237.5879ms)
+✔ fresh auto install records requested stack separately from resolved stack (2226.7983ms)
+✔ fresh v0.9 install is update-idempotent (2190.2403ms)
+✔ proven automatic generic install re-profiles when deterministic evidence appears (10087.8463ms)
+✔ automatic re-profiling does not overwrite a local verification-command decision (2325.007ms)
+✔ explicit generic install stays generic when new stack evidence appears (1753.3716ms)
+✔ legacy generic install with unknown stack provenance stays generic (2225.3745ms)
+✔ auto-selected generic specializes transactionally to React Native and is idempotent (5675.0471ms)
+✔ auto-selected JavaScript and TypeScript specialize to React Native while retaining auto provenance (8027.9774ms)
+✔ explicit and legacy-unknown concrete selections do not specialize to React Native (2677.7075ms)
+✔ auto-selected Go and Python profiles are not generalized into React Native specialization (2362.6397ms)
+✔ React Native specialization respects local AGENTS verification decisions and blocks on conflict (1333.4515ms)
+✔ local AGENTS edits are preserved on same-version planning (1119.0619ms)
+✔ manage ignore and track change ownership without deleting local content (790.8934ms)
+✔ doctor fails when an existing VCP manifest is corrupted (764.5379ms)
+✖ doctor fails when update transaction state is corrupted (724.3073ms)
+✖ doctor fails when an interrupted update transaction is present (827.798ms)
+✔ 0.8 manifest migrates transactionally to the current 0.9 release and can roll back (4281.5014ms)
+✔ track is a no-op for an already managed path (44.1133ms)
+✔ ignore commits detachment before a baseline cleanup failure (21.713ms)
+✔ untouched managed files update directly when upstream changes (41.3823ms)
+✔ local-only edits are preserved when upstream is unchanged (29.341ms)
+✔ independent local and upstream edits auto-merge (33.0174ms)
+✔ overlapping local and upstream edits become conflicts (34.5766ms)
+✔ customized preserve-owned documents are never overwritten (25.7007ms)
+✔ generated files conflict when both local and upstream change (17.3614ms)
+✔ deleted managed files conflict instead of being silently recreated (17.3934ms)
+✔ new missing target files are added (13.5915ms)
+✔ matching pre-existing new files are adopted (15.7981ms)
+✔ different pre-existing new files become conflicts (14.7584ms)
+✔ explicit migration removal deletes untouched managed files (31.2454ms)
+✔ explicit migration removal detaches locally modified files (42.8935ms)
+✔ explicit migration renames tracked files (36.1725ms)
+✔ tampered baseline snapshots block planning (34.0894ms)
+✔ running CLI refuses a target version it does not contain (23.8914ms)
+✔ downgrades are rejected (27.4637ms)
+✔ planner leaves project files unchanged (25.6707ms)
+✔ three-way merge preserves a local final-newline removal while merging unrelated upstream edits (2.791ms)
+✔ three-way merge preserves an upstream final-newline removal with unrelated local edits (0.5505ms)
+✔ update check delegates to the project that was actually checked (26.0806ms)
+✔ managed files cannot disappear from a template without an explicit migration removal (35.5531ms)
+✔ rollback refuses an older historical backup and accepts the newest recovery point (114.9911ms)
+✔ semantic versions compare deterministically (2.4002ms)
+✔ migration resolver finds the supported 0.8 -> 0.9 path (1.7883ms)
+✔ migration metadata composes chained renames and removals (0.8383ms)
+✔ three-way merge preserves independent local and upstream edits (1.5858ms)
+✔ three-way merge reports overlapping edits as conflicts (0.7193ms)
+✔ three-way merge handles an empty baseline without crashing (0.548ms)
+✔ three-way merge refuses unbounded quadratic work (1.8879ms)
+✔ planner refuses implicit managed-file removal without migration metadata (39.4765ms)
+✔ public update JSON never exposes desired or file content (0.8225ms)
+✔ stable releases sort after prereleases with the same core version (2.4638ms)
+✔ SemVer prerelease identifiers use numeric and lexical precedence (2.0111ms)
+✔ build metadata does not affect precedence (0.3807ms)
+✔ invalid numeric prerelease identifiers are rejected (0.9294ms)
+✔ successful update removes its stage subtree and the empty stage directory (10253.9151ms)
+✖ interrupted-update rollback removes its staged subtree and empty stage directory (4518.0565ms)
+✔ stage cleanup never sweeps unrelated non-empty stage content (4650.8089ms)
+✔ update check exits zero and reports no-work when nothing is pending (2672.4114ms)
+✔ update check exits zero and reports available when lifecycle work is pending (3092.4305ms)
+✔ dry-run reports available without changing the existing zero exit contract (5676.3606ms)
+✔ blocked dry-run exits one with a valid blocked lifecycle report (3082.4518ms)
+✔ successful apply reports applied and exits zero (3172.0281ms)
+✔ execution failure exits one through the error channel, not a normal lifecycle report (1967.8638ms)
+✔ update lock prevents a second live updater (37.7966ms)
+✔ dead same-host update locks are reclaimed immediately (21.2909ms)
+✔ fresh foreign-host locks are not reclaimed (10.1294ms)
+✔ rollback refuses to race a live update lock (23.361ms)
+✔ future manifest schemas are rejected (5.0685ms)
+✔ corrupt transaction state is rejected explicitly (7.095ms)
+✔ managed path traversal is rejected (0.8034ms)
+✔ baseline reads refuse symlink traversal inside VCP state (11.2681ms)
+✔ backup identifiers cannot escape .vcp/backups (2.4903ms)
+✔ backup ids are unique even for adjacent backups (15.065ms)
+✔ agent verification parser includes project check and excludes reasoned non-applicable values (3.6745ms)
+✔ task verification parser includes arbitrary configured keys and excludes reasoned non-applicable values (1.4905ms)
+✖ non-Git verification preserves execution and reports project-only scope (2202.6093ms)
+✔ Git provenance remains deterministic under a localized caller environment (3685.5189ms)
+✖ Git workspace root project is represented by portable dot project path (8413.0651ms)
+✖ nested project verification runs in selected project root and persists workspace-relative evidence (2680.0965ms)
+✖ symlinked project paths canonicalize for Git provenance without changing the selected target (3807.9696ms)
+✖ Git-backed evidence records dirty state before verification without blocking execution (3347.1656ms)
+✔ preview refuses active external clean filters before Git status can execute them (3510.2134ms)
+✖ dirty submodule is visible even when .gitmodules requests ignore=all (5540.66ms)
+✔ verify preview does not execute repository commands (2338.2147ms)
+✖ verify run records passing evidence and can write JSON inside the repo (2880.5273ms)
+✖ verify stops after the first failed command (5064.3064ms)
+✖ verify CLI supports explicit execution and JSON output (3419.5759ms)
+✔ verify refuses an existing evidence path before executing commands (1245.6995ms)
+✔ verify refuses to run a task that has not passed implementation readiness (1104.1994ms)
+✔ workspace qualifier is rejected for planned project-local paths (2131.376ms)
+✔ leading whitespace cannot bypass workspace qualifier rejection for planned paths (2889.7451ms)
+✔ workspace qualifier is rejected for project-local output paths (5376.375ms)
+✔ leading whitespace cannot bypass workspace qualifier rejection for output paths (3030.8101ms)
+✔ leading whitespace preserves the dedicated workspace include refusal (1244.4336ms)
+✔ project-local references preserve existing selected-project behavior (2276.5863ms)
+✔ nested project can explicitly use accepted workspace authority without inheriting unrelated root or sibling files (4092.251ms)
+✔ workspace-qualified starter templates still trigger the existing readiness warning (4841.855ms)
+✔ workspace freshness rules match project-local governing authority rules (2917.5242ms)
+✔ workspace reference fails clearly when selected project is outside Git (1375.9042ms)
+✔ workspace references reject traversal and filesystem symlink or junction escape (1759.8638ms)
+✔ workspace root discovery ignores ambient Git directory/worktree overrides (2098.5769ms)
+✔ workspace qualifier is not a general cross-root include escape hatch (1416.7088ms)
+ℹ tests 677
+ℹ suites 0
+ℹ pass 572
+ℹ fail 62
+ℹ cancelled 0
+ℹ skipped 43
+ℹ todo 0
+ℹ duration_ms 52519.7549
+
+✖ failing tests:
+
+test at test\adaptive-local-gates.test.mjs:30:1
+✖ D-06: DEFERRED is not PROPOSED, and the executable checker reports every state (276.1195ms)
+  AssertionError [ERR_ASSERTION]: DOC-CONTRACT-FAIL D-02: independent anchor map is NOT maintainer-reviewed (coverageReview must be APPROVED)
+  DOC-CONTRACT-FAIL D-03: independent anchor map is NOT maintainer-reviewed (coverageReview must be APPROVED)
+  DOC-CONTRACT-FAIL D-04: independent anchor map is NOT maintainer-reviewed (coverageReview must be APPROVED)
+  DOC-CONTRACT-FAIL D-05: independent anchor map is NOT maintainer-reviewed (coverageReview must be APPROVED)
+  DOC-CONTRACT-FAIL D-06: independent anchor map is NOT maintainer-reviewed (coverageReview must be APPROVED)
+  DOC-CONTRACT-FAIL D-12: independent anchor map is NOT maintainer-reviewed (coverageReview must be APPROVED)
+  
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/adaptive-local-gates.test.mjs:38:10)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual'
+  }
+
+test at test\adaptive-local-gates.test.mjs:108:1
+✖ D-03: selected no-follow contract also rejects in-root links and linked parents (6.8754ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /AC-010 \(D-03 PROPOSED\):[^\n]*even for in-root targets/. Input:
+  
+  '# Task — Stage 12 Safe Adoption Planning (DRAFT / BLOCKED)\n' +
+    '\n' +
+    'Status: Plan\n' +
+    'Readiness: BUILD IN PROGRESS; live schema-v2 mutation, final verification and acceptance remain blocked by D-01/G-FENCE and unproved Windows durability.\n' +
+    'Slug: `stage12-safe-adoption-planning`\n' +
+    'Audited baseline: `8ccb276545fdb3cc301ce7ce324812eb4c314586`\n' +
+    '\n' +
+    '## Stage12.0 historical gate triage and current full-scope decision\n' +
+    '\n' +
+    "The first preparatory PR12.1a **characterization-only** work is in draft PR #91 (no product-code changes). PR #89's authentic published old-CLI Linux POC found 7 unsafe protected-file mutations; default **D-01 option C: keep live managed schema-v2 migration BLOCKED**. The directory sentinel was disproven by the native Windows old-init witness when the manifest was missing; it is NOT an approved fence. Atomic installation, concurrency and crash safety still lack proof.\n" +
+    '\n' +
+    "Decision-ratification packet: `docs/decisions/stage12-d01-d03-d06-ratification-packet.md`. **D-02, D-03, D-04, D-05, D-06 and D-12 were ACCEPTED as design policies by the maintainer on 2026-10-10T19:02:43Z.** Implementation conformance and required-anchor coverage remain unverified; D-01 remains DEFERRED and G-FENCE remains NO-GO. PR #90's focused regression checks and Linux cooperative receipt are not remotely trusted merge enforcement or completed G-DOCS; a final-HEAD local evidence run and independently complete accepted-ID reference coverage are required. This is a status of **preparatory test work started**, not a product-code GO or Stage12 Task Pack Ready/Done transition.\n" +
+    '\n' +
+    '**Binding scope as of 2026-10-10:** FULL ORIGINAL STAGE12 SCOPE.\n' +
+    'The six accepted policy choices are not proof of implementation. The old CLI\n' +
+    'compatibility fence, Windows durability and managed-v2 lifecycle remain\n' +
+    'Stage12 engineering tasks. Stage13 alone covers first mutating adoption of\n' +
+    'an unmanaged existing repository. Never activate v2 writers while G-FENCE\n' +
+    'is NO-GO; no main merge or npm release is authorized.\n' +
+    '\n' +
+    '## Outcome\n' +
+    '\n' +
+    'Enable trustworthy, bounded, zero-write adoption *planning* for unmanaged existing repositories, while keeping v1 lifecycle compatibility and implementing managed schema-v2 migration ONLY after real previous-release CLI mutation-safety proof. First mutating unmanaged brownfield adoption and rollback-to-absence belong to Stage 13.\n' +
+    '\n' +
+    '## Source of truth\n' +
+    '\n' +
+    '**D-06 (ACCEPTED POLICY; COVERAGE NOT YET APPROVED):** The canonical decision register and separately reviewed required-anchor inventory are review controls; neither a Draft PR nor a passing local smoke guard implies that any decision is accepted. The register must remain authoritative over historical S/T Appendix Z rows.\n' +
+    '\n' +
+    '\n' +
+    '- `docs/ADAPTIVE-VCP-IMPLEMENTATION-PLAN.md` (strategic S; current text must be reconciled)\n' +
+    '- `docs/ADAPTIVE-VCP-CODE-INTEGRATION-ANALYSIS.md` (technical T; current text must be reconciled)\n' +
+    '- `docs/ADAPTIVE-VCP-DECISIONS.md` (D-02/D-03/D-04/D-05/D-06/D-12 ACCEPTED as policy; D-01 DEFERRED; implementation and required-anchor review outstanding)\n' +
+    '- `docs/UPDATES.md`, `docs/CLI.md`, `docs/DOCTOR.md`, `docs/TASK-PACKS.md`, `docs/TASK-READINESS.md`, `docs/ROADMAP.md`\n' +
+    '- `lib/state.mjs`, `lib/update-apply.mjs`, `lib/update-plan.mjs`, `lib/init.mjs`, `lib/verify.mjs`, `lib/doctor.mjs`\n' +
+    '- `docs/tasks/stage11-mobile-profiles-implementation.md` (historic Windows finalization rerun gap remains historical, not backfilled)\n' +
+    '\n' +
+    '**Important:** This Task Pack is a planning artifact, not approved Source-of-Truth migration instructions. G-ENTRY and D-01 remain blocking.\n' +
+    '\n' +
+    '## Requirement restatement\n' +
+    '\n' +
+    'Inspect existing repositories without writing to them, distinguish new/unmanaged/managed/conflict, preserve project-authored content and adapter prose, use a single versioned lifecycle engine for managed state, avoid invented verification commands, provide truthful Doctor/task/ready/context/verify behavior, and never claim old CLI is safe unless the actual published binary proves the exact guarantee.\n' +
+    '\n' +
+    '## Acceptance criteria\n' +
+    '\n' +
+    '- [ ] AC-001: Fresh current-main full SHA, clean checkout, Node/npm/Git/OS and distinct validation/pack exit logs recorded; historical Stage11 Windows rerun not fabricated.\n' +
+    '- [ ] AC-002: Normative S/T amendments C-01–C-14 reconciled with canonical accepted decision records and reviewed register references.\n' +
+    '- [ ] AC-003: v2 manifest reader/writer schema, minimumReaderVersion, default-raise/INERT enumerator, unknown assetSet fail-closed and writer audits.\n' +
+    '- [ ] AC-004: Real v0.9.3 package test proves D-01 safety invariant before any live v1→v2 mutation (old update/manage/rollback/init; POSIX/Windows; dead/aged/foreign lock; concurrency; no changed user edits).\n' +
+    '- [ ] AC-005: Versioned managed backup/journal, stale journal quarantine and crash recovery available **in Stage12**, independent of Stage13 first-adoption recovery.\n' +
+    '- [ ] AC-006: Guarded v1→v2 migration retains old installed surface as legacy-full-v1, whole-file ownership and all project changes; idempotent and recoverable.\n' +
+    '- [ ] AC-007 (D-05 ACCEPTED POLICY): Markdown section parser with owned-region authorship, malformed-marker conflict and byte-identical outside text, including BOM/CRLF/mixed endings.\n' +
+    '- [ ] AC-008: assetSet values legacy-full-v1 / greenfield-safe-v1 / brownfield-minimal-v1 retained by every writer; update never re-adds intentionally omitted assets.\n' +
+    '- [ ] AC-009: Selected-root and VCP-state classification before guessing maturity; explicit agent/GitHub/stack provenance; nested and polyglot cases covered.\n' +
+    '- [ ] AC-010 (D-03 ACCEPTED POLICY): Common purpose-aware read-existing/write-new/managed-state path policy refuses traversal, linked parents and symlink/junction/reparse traversal by default even for in-root targets; only reviewed purpose-specific exceptions; native Windows fixtures required and no false race-freedom promise.\n' +
+    '- [ ] AC-011 (D-12 ACCEPTED POLICY): Command authority handles duplicate/conflicting commands, migrated destructive-command reconfirmation and execution-time `verify --run` guard; `--yes` cannot waive HUMAN DECISION.\n' +
+    '- [ ] AC-012: assetSet-aware prompt resolver and packaged fallback do not reference omitted starter paths; generated Task Pack does not invent governance docs.\n' +
+    '- [ ] AC-013: Doctor install-health and governance separated, approved D-02 `--strict` truth table, green synthetic minimal fixture and legacy fixture regressions.\n' +
+    '- [ ] AC-014: Greenfield-safe consumer surface excludes source-only npm validation CI while legacy-full compatibility remains intact.\n' +
+    '- [ ] AC-015 (D-04 ACCEPTED POLICY): Init planner JSON planVersion=1, planKind=init, CLAIM, separate skippedPaths, no file contents, determinism and zero writes for EXISTING unmanaged; non-dry-run apply refuses in Stage12.\n' +
+    '- [ ] AC-016: Golden negative fixtures, `npm run validate` / `npm run pack:check`, package smoke, review/finalization exact-head rerun, supported-platform evidence; Stage12 exit is not adoption Checkpoint A.\n' +
+    '\n' +
+    '## Scope\n' +
+    '\n' +
+    '### In scope\n' +
+    '\n' +
+    '- Managed lifecycle: state, migration, update plan/apply/restore, transaction and backup, managed recovery, source/destination reader compatibility.\n' +
+    '- Sections, asset catalog, project inspection, CLI option provenance, command authority, prompt/task/context/verify/Doctor integration.\n' +
+    '- Nonmutating brownfield init preview and greenfield-safe init compatibility.\n' +
+    '- Tests, documentation changes and real published-0.9.3 release smoke.\n' +
+    '\n' +
+    '### Out of scope\n' +
+    '\n' +
+    '- Stage13 first mutating unmanaged brownfield adoption, rollback to true absence, public first-adoption recovery and answers-file reuse.\n' +
+    '- Phases 2–10 (capabilities, DSL, Skills, workflow levels, gate, CI enforcement, broad conformance).\n' +
+    '- New independent `vcp adopt` verb, saved executable plans, cryptographic signing, speculative dependency graph and released v0.9.3 rewrites.\n' +
+    '\n' +
+    '## Security, privacy, ownership and human authority\n' +
+    '\n' +
+    '- No claim that visible markers prove authorship; manifest + ownership context controls writes.\n' +
+    '- No `--yes` for HUMAN DECISION; conflicting command authority blocks VCP-controlled execution.\n' +
+    '- `verify --run` executes Task Pack shell strings today; block any universal protection claim until actual execution path guarded.\n' +
+    '- Never infer that a newer backup prevents an old CLI from erasing later user edits.\n' +
+    '- Do not read or follow paths escaping selected root. Never include source files/secrets in content-free init JSON.\n' +
+    '\n' +
+    '## Failure modes and recovery\n' +
+    '\n' +
+    '- Too-new reader/schema, unknown assetSet, malformed `.vcp`, corrupt markers, conflict/approval → fail closed, do not rewrite project files.\n' +
+    '- Crash after managed migration lock, after journal/backup/manifest transition → deterministic validated managed recovery in Stage12.\n' +
+    '- Old-CLI rollback mutating schema-v2 user data, stale journal selecting v1 backup, or old/new interleaving → **NO-GO**.\n' +
+    '- Unmanaged EXISTING dry-run changing any file or `.vcp` state → **NO-GO**.\n' +
+    '\n' +
+    '## Implementation plan\n' +
+    '\n' +
+    '1. PR-00: accept S/T fixes, canonical decision registration, exact baseline and this Task Pack.\n' +
+    '2. POC-FENCE: actual published v0.9.3 cross-platform safety experiments; no enabled migration.\n' +
+    '3. PR12.1a: semver/path helpers and centrally validated v2 manifest/field-enumeration rules.\n' +
+    '4. PR12.1b: managed journal/backup/recovery with proven lock safety.\n' +
+    '5. PR12.1c: enable guarded managed v1→v2 migration only on passing D-01 evidence.\n' +
+    '6. PR12.2: Markdown section ownership and merge/track/ignore.\n' +
+    '7. PR12.3: asset catalog, classifier and option provenance.\n' +
+    '8. PR12.4: commands, prompt fallback, task/ready/context/verify/Doctor and CI floor.\n' +
+    '9. PR12.5: public zero-write init plan JSON, full integration and release smoke.\n' +
+    '10. Independent review → Task-only finalization → exact-final-HEAD rerun; no merge on unverified high-severity claims.\n' +
+    '\n' +
+    '## Verification commands\n' +
+    '\n' +
+    'These are planned and have NOT been run on this branch:\n' +
+    '\n' +
+    '- `CHECK_COMMAND`: `npm run check`\n' +
+    '- `UNIT_TEST_COMMAND`: `npm test`\n' +
+    '- `INTEGRATION_TEST_COMMAND`: `npm run validate`\n' +
+    '- `BUILD_COMMAND`: `npm run pack:check`\n' +
+    '\n' +
+    'Published-old-CLI, Windows n'... 1987 more characters
+  
+      at TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/adaptive-local-gates.test.mjs:113:10)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: "# Task — Stage 12 Safe Adoption Planning (DRAFT / BLOCKED)\n\nStatus: Plan\nReadiness: BUILD IN PROGRESS; live schema-v2 mutation, final verification and acceptance remain blocked by D-01/G-FENCE and unproved Windows durability.\nSlug: `stage12-safe-adoption-planning`\nAudited baseline: `8ccb276545fdb3cc301ce7ce324812eb4c314586`\n\n## Stage12.0 historical gate triage and current full-scope decision\n\nThe first preparatory PR12.1a **characterization-only** work is in draft PR #91 (no product-code changes). PR #89's authentic published old-CLI Linux POC found 7 unsafe protected-file mutations; default **D-01 option C: keep live managed schema-v2 migration BLOCKED**. The directory sentinel was disproven by the native Windows old-init witness when the manifest was missing; it is NOT an approved fence. Atomic installation, concurrency and crash safety still lack proof.\n\nDecision-ratification packet: `docs/decisions/stage12-d01-d03-d06-ratification-packet.md`. **D-02, D-03, D-04, D-05, D-06 and D-12 were ACCEPTED as design policies by the maintainer on 2026-10-10T19:02:43Z.** Implementation conformance and required-anchor coverage remain unverified; D-01 remains DEFERRED and G-FENCE remains NO-GO. PR #90's focused regression checks and Linux cooperative receipt are not remotely trusted merge enforcement or completed G-DOCS; a final-HEAD local evidence run and independently complete accepted-ID reference coverage are required. This is a status of **preparatory test work started**, not a product-code GO or Stage12 Task Pack Ready/Done transition.\n\n**Binding scope as of 2026-10-10:** FULL ORIGINAL STAGE12 SCOPE.\nThe six accepted policy choices are not proof of implementation. The old CLI\ncompatibility fence, Windows durability and managed-v2 lifecycle remain\nStage12 engineering tasks. Stage13 alone covers first mutating adoption of\nan unmanaged existing repository. Never activate v2 writers while G-FENCE\nis NO-GO; no main merge or npm release is authorized.\n\n## Outcome\n\nEnable trustworthy, bounded, zero-write adoption *planning* for unmanaged existing repositories, while keeping v1 lifecycle compatibility and implementing managed schema-v2 migration ONLY after real previous-release CLI mutation-safety proof. First mutating unmanaged brownfield adoption and rollback-to-absence belong to Stage 13.\n\n## Source of truth\n\n**D-06 (ACCEPTED POLICY; COVERAGE NOT YET APPROVED):** The canonical decision register and separately reviewed required-anchor inventory are review controls; neither a Draft PR nor a passing local smoke guard implies that any decision is accepted. The register must remain authoritative over historical S/T Appendix Z rows.\n\n\n- `docs/ADAPTIVE-VCP-IMPLEMENTATION-PLAN.md` (strategic S; current text must be reconciled)\n- `docs/ADAPTIVE-VCP-CODE-INTEGRATION-ANALYSIS.md` (technical T; current text must be reconciled)\n- `docs/ADAPTIVE-VCP-DECISIONS.md` (D-02/D-03/D-04/D-05/D-06/D-12 ACCEPTED as policy; D-01 DEFERRED; implementation and required-anchor review outstanding)\n- `docs/UPDATES.md`, `docs/CLI.md`, `docs/DOCTOR.md`, `docs/TASK-PACKS.md`, `docs/TASK-READINESS.md`, `docs/ROADMAP.md`\n- `lib/state.mjs`, `lib/update-apply.mjs`, `lib/update-plan.mjs`, `lib/init.mjs`, `lib/verify.mjs`, `lib/doctor.mjs`\n- `docs/tasks/stage11-mobile-profiles-implementation.md` (historic Windows finalization rerun gap remains historical, not backfilled)\n\n**Important:** This Task Pack is a planning artifact, not approved Source-of-Truth migration instructions. G-ENTRY and D-01 remain blocking.\n\n## Requirement restatement\n\nInspect existing repositories without writing to them, distinguish new/unmanaged/managed/conflict, preserve project-authored content and adapter prose, use a single versioned lifecycle engine for managed state, avoid invented verification commands, provide truthful Doctor/task/ready/context/verify behavior, and never claim old CLI is safe unless the actual published binary proves the exact guarantee.\n\n## Acceptance criteria\n\n- [ ] AC-001: Fresh current-main full SHA, clean checkout, Node/npm/Git/OS and distinct validation/pack exit logs recorded; historical Stage11 Windows rerun not fabricated.\n- [ ] AC-002: Normative S/T amendments C-01–C-14 reconciled with canonical accepted decision records and reviewed register references.\n- [ ] AC-003: v2 manifest reader/writer schema, minimumReaderVersion, default-raise/INERT enumerator, unknown assetSet fail-closed and writer audits.\n- [ ] AC-004: Real v0.9.3 package test proves D-01 safety invariant before any live v1→v2 mutation (old update/manage/rollback/init; POSIX/Windows; dead/aged/foreign lock; concurrency; no changed user edits).\n- [ ] AC-005: Versioned managed backup/journal, stale journal quarantine and crash recovery available **in Stage12**, independent of Stage13 first-adoption recovery.\n- [ ] AC-006: Guarded v1→v2 migration retains old installed surface as legacy-full-v1, whole-file ownership and all project changes; idempotent and recoverable.\n- [ ] AC-007 (D-05 ACCEPTED POLICY): Markdown section parser with owned-region authorship, malformed-marker conflict and byte-identical outside text, including BOM/CRLF/mixed endings.\n- [ ] AC-008: assetSet values legacy-full-v1 / greenfield-safe-v1 / brownfield-minimal-v1 retained by every writer; update never re-adds intentionally omitted assets.\n- [ ] AC-009: Selected-root and VCP-state classification before guessing maturity; explicit agent/GitHub/stack provenance; nested and polyglot cases covered.\n- [ ] AC-010 (D-03 ACCEPTED POLICY): Common purpose-aware read-existing/write-new/managed-state path policy refuses traversal, linked parents and symlink/junction/reparse traversal by default even for in-root targets; only reviewed purpose-specific exceptions; native Windows fixtures required and no false race-freedom promise.\n- [ ] AC-011 (D-12 ACCEPTED POLICY): Command authority handles duplicate/conflicting commands, migrated destructive-command reconfirmation and execution-time `verify --run` guard; `--yes` cannot waive HUMAN DECISION.\n- [ ] AC-012: assetSet-aware prompt resolver and packaged fallback do not reference omitted starter paths; generated Task Pack does not invent governance docs.\n- [ ] AC-013: Doctor install-health and governance separated, approved D-02 `--strict` truth table, green synthetic minimal fixture and legacy fixture regressions.\n- [ ] AC-014: Greenfield-safe consumer surface excludes source-only npm validation CI while legacy-full compatibility remains intact.\n- [ ] AC-015 (D-04 ACCEPTED POLICY): Init planner JSON planVersion=1, planKind=init, CLAIM, separate skippedPaths, no file contents, determinism and zero writes for EXISTING unmanaged; non-dry-run apply refuses in Stage12.\n- [ ] AC-016: Golden negative fixtures, `npm run validate` / `npm run pack:check`, package smoke, review/finalization exact-head rerun, supported-platform evidence; Stage12 exit is not adoption Checkpoint A.\n\n## Scope\n\n### In scope\n\n- Managed lifecycle: state, migration, update plan/apply/restore, transaction and backup, managed recovery, source/destination reader compatibility.\n- Sections, asset catalog, project inspection, CLI option provenance, command authority, prompt/task/context/verify/Doctor integration.\n- Nonmutating brownfield init preview and greenfield-safe init compatibility.\n- Tests, documentation changes and real published-0.9.3 release smoke.\n\n### Out of scope\n\n- Stage13 first mutating unmanaged brownfield adoption, rollback to true absence, public first-adoption recovery and answers-file reuse.\n- Phases 2–10 (capabilities, DSL, Skills, workflow levels, gate, CI enforcement, broad conformance).\n- New independent `vcp adopt` verb, saved executable plans, cryptographic signing, speculative dependency graph and released v0.9.3 rewrites.\n\n## Security, privacy, ownership and human authority\n\n- No claim that visible markers prove authorship; manifest + ownership context controls writes.\n- No `--yes` for HUMAN DECISION; conflicting command authority blocks VCP-controlled execution.\n- `verify --run` executes Task Pack shell strings today; block any universal protection claim until actual execution path guarded.\n- Never infer that a newer backup prevents an old CLI from erasing later user edits.\n- Do not read or follow paths escaping selected root. Never include source files/secrets in content-free init JSON.\n\n## Failure modes and recovery\n\n- Too-new reader/schema, unknown assetSet, malformed `.vcp`, corrupt markers, conflict/approval → fail closed, do not rewrite project files.\n- Crash after managed migration lock, after journal/backup/manifest transition → deterministic validated managed recovery in Stage12.\n- Old-CLI rollback mutating schema-v2 user data, stale journal selecting v1 backup, or old/new interleaving → **NO-GO**.\n- Unmanaged EXISTING dry-run changing any file or `.vcp` state → **NO-GO**.\n\n## Implementation plan\n\n1. PR-00: accept S/T fixes, canonical decision registration, exact baseline and this Task Pack.\n2. POC-FENCE: actual published v0.9.3 cross-platform safety experiments; no enabled migration.\n3. PR12.1a: semver/path helpers and centrally validated v2 manifest/field-enumeration rules.\n4. PR12.1b: managed journal/backup/recovery with proven lock safety.\n5. PR12.1c: enable guarded managed v1→v2 migration only on passing D-01 evidence.\n6. PR12.2: Markdown section ownership and merge/track/ignore.\n7. PR12.3: asset catalog, classifier and option provenance.\n8. PR12.4: commands, prompt fallback, task/ready/context/verify/Doctor and CI floor.\n9. PR12.5: public zero-write init plan JSON, full integration and release smoke.\n10. Independent review → Task-only finalization → exact-final-HEAD rerun; no merge on unverified high-severity claims.\n\n## Verification commands\n\nThese are planned and have NOT been run on this branch:\n\n- `CHECK_COMMAND`: `npm run check`\n- `UNIT_TEST_COMMAND`: `npm test`\n- `INTEGRATION_TEST_COMMAND`: `npm run validate`\n- `BUILD_COMMAND`: `npm run pack:check`\n\nPublished-old-CLI, Windows n"... 1987 more characters,
+    expected: /AC-010 \(D-03 PROPOSED\):[^\n]*even for in-root targets/,
+    operator: 'match'
+  }
+
+test at test\check-command.test.mjs:21:1
+✖ JavaScript package check script is represented as CHECK_COMMAND in generated tasks (2169.5683ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/check-command.test.mjs:38:16)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:332:3) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\check-command.test.mjs:61:1
+✖ verify executes and persists CHECK_COMMAND alongside unit tests (2064.677ms)
+  Error: Task is not ready for implementation (1 readiness failure(s)). Run vcp ready check-evidence --stage implement first.
+      at runVerification (file:///D:/vcp-stage14-r4/lib/verify.mjs:373:11)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/check-command.test.mjs:66:18)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7)
+
+test at test\cli.test.mjs:204:1
+✖ task generator creates a bounded task and imports configured verification commands (1721.8914ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/cli.test.mjs:218:18)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\cli.test.mjs:233:1
+✖ task generator does not turn reasoned n/a decisions into executable commands (1333.6074ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/cli.test.mjs:247:18)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\cli.test.mjs:260:1
+✖ task generator refuses overwrite and supports dry-run (1000.0931ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/cli.test.mjs:263:3)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\community-plugins.test.mjs:133:1
+✖ context composes selected guidance and labels verification commands as proposals without mutating AGENTS (2168.7821ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/community-plugins.test.mjs:135:3)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\community-plugins.test.mjs:162:1
+✖ built-in React Native profile and Stage 10 community plugin remain separate additive authorities (2415.9717ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/community-plugins.test.mjs:189:3)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\community-plugins.test.mjs:213:1
+✖ guidance is mode-bounded while plugin identity and proposals remain visible (1693.2686ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/community-plugins.test.mjs:215:3)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\community-plugins.test.mjs:228:1
+✖ plugin guidance participates in the normal context budget and manifest (3159.9284ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/community-plugins.test.mjs:231:3)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\context.test.mjs:19:1
+✖ context pack bundles task, repository rules, mode prompt, and source-of-truth documents (2139.8818ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/context.test.mjs:22:3)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:332:3) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\context.test.mjs:37:1
+✖ context pack supports explicit includes and safe repository-local output (1804.0724ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/context.test.mjs:40:3)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\context.test.mjs:69:1
+✖ implement context supports explicit planned paths for greenfield files (1986.8598ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/context.test.mjs:72:3)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\context.test.mjs:88:1
+✖ planned paths are implement-only and must not already exist (2870.5252ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/context.test.mjs:91:3)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\context.test.mjs:116:1
+✖ context pack rejects repository escape paths and enforces the context budget (5127.1745ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/context.test.mjs:119:3)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\context.test.mjs:137:1
+✖ context pack exposes portable slash-separated paths on every OS (2269.3996ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/context.test.mjs:140:3)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\context.test.mjs:155:1
+✖ context CLI emits a usable bounded pack with planned paths (1237.107ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/context.test.mjs:158:3)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\git-review-context.test.mjs:48:1
+✖ review context binds task and Source of Truth to an explicit Git base/head surface (2384.0174ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async fixture (file:///D:/vcp-stage14-r4/test/git-review-context.test.mjs:31:3)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/git-review-context.test.mjs:49:34)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:332:3) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\git-review-context.test.mjs:75:1
+✖ review context surfaces dirty working-tree state separately from the committed comparison (2457.1661ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async fixture (file:///D:/vcp-stage14-r4/test/git-review-context.test.mjs:31:3)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/git-review-context.test.mjs:76:34)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\git-review-context.test.mjs:92:1
+✖ Git comparison options are review-only, non-blank, and head requires an explicit base (1670.7891ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async fixture (file:///D:/vcp-stage14-r4/test/git-review-context.test.mjs:31:3)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/git-review-context.test.mjs:93:28)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\git-review-context.test.mjs:121:1
+✖ invalid Git base fails visibly instead of producing an incomplete review surface (2937.5251ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async fixture (file:///D:/vcp-stage14-r4/test/git-review-context.test.mjs:31:3)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/git-review-context.test.mjs:122:22)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\git-review-context.test.mjs:135:1
+✖ Git-aware review fails clearly outside a Git worktree (4785.4046ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/git-review-context.test.mjs:138:3)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\git-review-context.test.mjs:151:1
+✖ Git review evidence counts against the existing context byte budget (2972.6238ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async fixture (file:///D:/vcp-stage14-r4/test/git-review-context.test.mjs:31:3)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/git-review-context.test.mjs:152:28)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\git-review-context.test.mjs:167:1
+✖ binary changes are identified by Git rather than represented as complete text content (1237.1386ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async fixture (file:///D:/vcp-stage14-r4/test/git-review-context.test.mjs:31:3)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/git-review-context.test.mjs:168:28)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\git-review-context.test.mjs:184:1
+✖ committed gitlink changes remain visible when repository config ignores submodules (1054.3339ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async fixture (file:///D:/vcp-stage14-r4/test/git-review-context.test.mjs:31:3)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/git-review-context.test.mjs:185:40)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\git-review-context.test.mjs:206:1
+✖ context CLI forwards explicit Git base/head into review mode (1487.4747ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async fixture (file:///D:/vcp-stage14-r4/test/git-review-context.test.mjs:31:3)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/git-review-context.test.mjs:207:34)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\react-native-detection.test.mjs:188:1
+✖ symlinked package.json cannot grant React Native authority but preserves historical Node fallback (66.4519ms)
+  Error: Unsafe project path: LINK_REFUSED
+      at refusal (file:///D:/vcp-stage14-r4/lib/safe-path.mjs:7:17)
+      at resolveProjectPath (file:///D:/vcp-stage14-r4/lib/safe-path.mjs:61:37)
+      at async exists (file:///D:/vcp-stage14-r4/lib/stacks.mjs:17:5)
+      at async readNodePackage (file:///D:/vcp-stage14-r4/lib/stacks.mjs:46:30)
+      at async isReactNativeApplication (file:///D:/vcp-stage14-r4/lib/stacks.mjs:74:15)
+      at async detectStack (file:///D:/vcp-stage14-r4/lib/stacks.mjs:87:7)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/react-native-detection.test.mjs:208:16)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_VCP_PATH'
+  }
+
+test at test\react-native-detection.test.mjs:216:1
+✖ React Native app markers must be real selected-root files/directories, not symlinks (43.997ms)
+  Error: Unsafe project path: LINK_REFUSED
+      at refusal (file:///D:/vcp-stage14-r4/lib/safe-path.mjs:7:17)
+      at resolveProjectPath (file:///D:/vcp-stage14-r4/lib/safe-path.mjs:61:37)
+      at async exists (file:///D:/vcp-stage14-r4/lib/stacks.mjs:17:5)
+      at async hasReactNativeApplicationMarker (file:///D:/vcp-stage14-r4/lib/stacks.mjs:68:9)
+      at async detectStack (file:///D:/vcp-stage14-r4/lib/stacks.mjs:87:7)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/react-native-detection.test.mjs:236:16)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_VCP_PATH'
+  }
+
+test at test\react-native-detection.test.mjs:294:1
+✖ first-party React Native fixture dogfoods init, task verification, and bounded context without plugins (3088.1014ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/react-native-detection.test.mjs:313:16)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\readiness.test.mjs:41:1
+✖ fresh generated task is not ready for planning (2224.9177ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/readiness.test.mjs:44:3)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:332:3) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\readiness.test.mjs:64:1
+✖ implementation-ready task passes but warns when referenced source docs are still starter templates (1635.8479ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/readiness.test.mjs:70:10)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual'
+  }
+
+test at test\readiness.test.mjs:79:1
+✖ customized source docs remove starter-template readiness warnings (3102.3529ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/readiness.test.mjs:86:10)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual'
+  }
+
+test at test\readiness.test.mjs:114:1
+✖ ready detects unsafe source references and CLI supports JSON output (1476.6616ms)
+  Error: Command failed: C:\Program Files\nodejs\node.exe D:\vcp-stage14-r4\bin\vibe-coding-production.mjs ready json-ready --dir D:\vcp-r4-tmp\vcp-ready-zspuYG --stage implement --json
+  
+      at genericNodeError (node:internal/errors:985:15)
+      at wrappedFn (node:internal/errors:539:14)
+      at ChildProcess.exithandler (node:child_process:417:12)
+      at ChildProcess.emit (node:events:507:28)
+      at maybeClose (node:internal/child_process:1101:16)
+      at ChildProcess._handle.onexit (node:internal/child_process:305:5) {
+    code: 1,
+    killed: false,
+    signal: null,
+    cmd: 'C:\\Program Files\\nodejs\\node.exe D:\\vcp-stage14-r4\\bin\\vibe-coding-production.mjs ready json-ready --dir D:\\vcp-r4-tmp\\vcp-ready-zspuYG --stage implement --json',
+    stdout: '{\n  "target": "D:\\\\vcp-r4-tmp\\\\vcp-ready-zspuYG",\n  "task": "docs/tasks/json-ready.md",\n  "stage": "implement",\n  "checks": [\n    {\n      "status": "pass",\n      "id": "task-file",\n      "title": "Task file",\n      "detail": "docs/tasks/json-ready.md is readable.",\n      "remediation": null\n    },\n    {\n      "status": "pass",\n      "id": "duplicate-sections",\n      "title": "Task structure",\n      "detail": "No duplicate level-two task sections were found.",\n      "remediation": null\n    },\n    {\n      "status": "pass",\n      "id": "outcome",\n      "title": "Outcome",\n      "detail": "A concrete task outcome is defined.",\n      "remediation": null\n    },\n    {\n      "status": "pass",\n      "id": "source-truth",\n      "title": "Source of truth",\n      "detail": "2 repository reference(s) resolve successfully.",\n      "remediation": null\n    },\n    {\n      "status": "pass",\n      "id": "acceptance",\n      "title": "Acceptance criteria",\n      "detail": "2 concrete acceptance criterion/criteria defined.",\n      "remediation": null\n    },\n    {\n      "status": "pass",\n      "id": "scope",\n      "title": "Scope boundaries",\n      "detail": "Both in-scope and out-of-scope boundaries are explicit.",\n      "remediation": null\n    },\n    {\n      "status": "pass",\n      "id": "boundaries",\n      "title": "Affected boundaries",\n      "detail": "Module, contract, data, and integration impact are addressed.",\n      "remediation": null\n    },\n    {\n      "status": "pass",\n      "id": "domain",\n      "title": "Domain invariants",\n      "detail": "Relevant invariants or a reasoned non-applicability statement is present.",\n      "remediation": null\n    },\n    {\n      "status": "pass",\n      "id": "security",\n      "title": "Security and privacy",\n      "detail": "Security/trust-boundary questions are explicitly answered.",\n      "remediation": null\n    },\n    {\n      "status": "pass",\n      "id": "failures",\n      "title": "Failure modes and edge cases",\n      "detail": "3 concrete failure/edge case item(s) defined.",\n      "remediation": null\n    },\n    {\n      "status": "pass",\n      "id": "observability",\n      "title": "Observability",\n      "detail": "Operational visibility is addressed.",\n      "remediation": null\n    },\n    {\n      "status": "pass",\n      "id": "tests",\n      "title": "Test plan",\n      "detail": "Every test layer is addressed or explicitly marked non-applicable with a reason.",\n      "remediation": null\n    },\n    {\n      "status": "pass",\n      "id": "rollout",\n      "title": "Rollout and recovery",\n      "detail": "Deployment, migration, and recovery are addressed.",\n      "remediation": null\n    },\n    {\n      "status": "pass",\n      "id": "implementation-plan",\n      "title": "Implementation plan",\n      "detail": "3 concrete implementation step(s) defined.",\n      "remediation": null\n    },\n    {\n      "status": "pass",\n      "id": "verification-plan",\n      "title": "Verification plan",\n      "detail": "1 executable verification command(s) are defined in the task.",\n      "remediation": null\n    },\n    {\n      "status": "fail",\n      "id": "command-authority",\n      "title": "Executable command authority",\n      "detail": "E_COMMAND_STALE",\n      "remediation": "Resolve duplicate/conflicting commands, refresh Task Pack, or obtain exact human approval before verify --run."\n    }\n  ],\n  "summary": {\n    "pass": 15,\n    "warn": 0,\n    "fail": 1\n  }\n}\n',
+    stderr: ''
+  }
+
+test at test\release-portability.test.mjs:33:1
+✖ task creation reports a portable repository-relative path (2161.5813ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/release-portability.test.mjs:37:18)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\release-portability.test.mjs:43:1
+✖ readiness and verification reports expose slash-separated task paths (2276.5392ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/release-portability.test.mjs:46:3)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\release-portability.test.mjs:57:1
+✖ task and ready CLIs print slash-separated paths on every host OS (1954.8551ms)
+  Error: Command failed: C:\Program Files\nodejs\node.exe D:\vcp-stage14-r4\bin\vibe-coding-production.mjs task demo --title Demo --dir D:\vcp-r4-tmp\vcp-portable-cli-pOkV1v
+  
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+  
+      at genericNodeError (node:internal/errors:985:15)
+      at wrappedFn (node:internal/errors:539:14)
+      at ChildProcess.exithandler (node:child_process:417:12)
+      at ChildProcess.emit (node:events:507:28)
+      at maybeClose (node:internal/child_process:1101:16)
+      at ChildProcess._handle.onexit (node:internal/child_process:305:5) {
+    code: 1,
+    killed: false,
+    signal: null,
+    cmd: 'C:\\Program Files\\nodejs\\node.exe D:\\vcp-stage14-r4\\bin\\vibe-coding-production.mjs task demo --title Demo --dir D:\\vcp-r4-tmp\\vcp-portable-cli-pOkV1v',
+    stdout: '',
+    stderr: '\nError: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.\n'
+  }
+
+test at test\security-profiles.test.mjs:57:1
+✖ security context includes baseline plus selected project-sensitive profiles and manifest identities (2167.2228ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async project (file:///D:/vcp-stage14-r4/test/security-profiles.test.mjs:18:3)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/security-profiles.test.mjs:58:18)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\security-profiles.test.mjs:80:1
+✖ missing profile declaration remains backward compatible and still applies baseline (2263.3282ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async project (file:///D:/vcp-stage14-r4/test/security-profiles.test.mjs:18:3)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/security-profiles.test.mjs:81:18)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\security-profiles.test.mjs:91:1
+✖ packaged baseline fallback works when an older project lacks Stage 6 local assets (1555.4704ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async project (file:///D:/vcp-stage14-r4/test/security-profiles.test.mjs:18:3)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/security-profiles.test.mjs:92:18)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\security-profiles.test.mjs:103:1
+✖ security profiles are not auto-included outside security mode (3055.8086ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async project (file:///D:/vcp-stage14-r4/test/security-profiles.test.mjs:18:3)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/security-profiles.test.mjs:104:18)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\security-profiles.test.mjs:119:1
+✖ explicit invalid profile state fails security context instead of silently falling back (4785.7054ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async project (file:///D:/vcp-stage14-r4/test/security-profiles.test.mjs:18:3)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/security-profiles.test.mjs:120:18)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\security-profiles.test.mjs:155:1
+✖ draft security profile declaration cannot govern security review (2473.9131ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async project (file:///D:/vcp-stage14-r4/test/security-profiles.test.mjs:18:3)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/security-profiles.test.mjs:156:18)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\security-profiles.test.mjs:169:1
+✖ security profile document identity must match the selected profile (1243.9712ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async project (file:///D:/vcp-stage14-r4/test/security-profiles.test.mjs:18:3)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/security-profiles.test.mjs:170:18)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\security-profiles.test.mjs:204:1
+✖ doctor exposes active profiles and baseline fallback without warning old projects (971.9153ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async project (file:///D:/vcp-stage14-r4/test/security-profiles.test.mjs:18:3)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/security-profiles.test.mjs:205:18)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\security-profiles.test.mjs:216:1
+✖ doctor fails visibly for invalid explicit security profile state (1191.4179ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async project (file:///D:/vcp-stage14-r4/test/security-profiles.test.mjs:18:3)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/security-profiles.test.mjs:217:18)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\security-profiles.test.mjs:233:1
+✖ invalid security declaration remains isolated from non-security context modes (1470.4949ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async project (file:///D:/vcp-stage14-r4/test/security-profiles.test.mjs:18:3)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/security-profiles.test.mjs:234:18)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\security-profiles.test.mjs:247:1
+✖ update planning adds Stage 6 assets to a simulated pre-Stage-6 project (1394.3345ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async project (file:///D:/vcp-stage14-r4/test/security-profiles.test.mjs:18:3)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/security-profiles.test.mjs:248:18)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\security-profiles.test.mjs:275:1
+✖ update planning preserves project-owned security profile selection (1242.9826ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async project (file:///D:/vcp-stage14-r4/test/security-profiles.test.mjs:18:3)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/security-profiles.test.mjs:276:18)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\stage12-linux-fs-provider.test.mjs:40:1
+﹣ probe reports kernel, filesystem and capability matrix (18.5617ms) # native helper not built (npm run build:native-linux)
+  Error: E_NATIVE_HELPER_MISSING: build it: npm run build:native-linux
+      at fail (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:38:13)
+      at LinuxFsProvider._run (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:96:9)
+      at LinuxFsProvider.probeCapabilities (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:133:24)
+      at async makeProvider (file:///D:/vcp-stage14-r4/test/stage12-linux-fs-provider.test.mjs:21:5)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/stage12-linux-fs-provider.test.mjs:41:13)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:332:3) {
+    code: 'E_NATIVE_HELPER_MISSING'
+  }
+
+test at test\stage12-linux-fs-provider.test.mjs:61:1
+﹣ writeFileSynced creates exclusive, synced files; second create fails (6.3547ms) # native helper not built (npm run build:native-linux)
+  Error: E_NATIVE_HELPER_MISSING: build it: npm run build:native-linux
+      at fail (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:38:13)
+      at LinuxFsProvider._run (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:96:9)
+      at LinuxFsProvider.probeCapabilities (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:133:24)
+      at async makeProvider (file:///D:/vcp-stage14-r4/test/stage12-linux-fs-provider.test.mjs:21:5)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/stage12-linux-fs-provider.test.mjs:62:13)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_NATIVE_HELPER_MISSING'
+  }
+
+test at test\stage12-linux-fs-provider.test.mjs:76:1
+﹣ replaceFileAtomic swaps content and leaves no staging files (6.1379ms) # native helper not built (npm run build:native-linux)
+  Error: E_NATIVE_HELPER_MISSING: build it: npm run build:native-linux
+      at fail (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:38:13)
+      at LinuxFsProvider._run (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:96:9)
+      at LinuxFsProvider.probeCapabilities (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:133:24)
+      at async makeProvider (file:///D:/vcp-stage14-r4/test/stage12-linux-fs-provider.test.mjs:21:5)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/stage12-linux-fs-provider.test.mjs:77:13)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_NATIVE_HELPER_MISSING'
+  }
+
+test at test\stage12-linux-fs-provider.test.mjs:89:1
+﹣ moveNoReplace succeeds fresh and refuses collisions atomically (8.1013ms) # native helper not built (npm run build:native-linux)
+  Error: E_NATIVE_HELPER_MISSING: build it: npm run build:native-linux
+      at fail (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:38:13)
+      at LinuxFsProvider._run (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:96:9)
+      at LinuxFsProvider.probeCapabilities (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:133:24)
+      at async makeProvider (file:///D:/vcp-stage14-r4/test/stage12-linux-fs-provider.test.mjs:21:5)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/stage12-linux-fs-provider.test.mjs:90:13)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_NATIVE_HELPER_MISSING'
+  }
+
+test at test\stage12-linux-fs-provider.test.mjs:108:1
+﹣ moveNoReplace refuses symlink at destination and symlink parents (6.6117ms) # native helper not built (npm run build:native-linux)
+  Error: E_NATIVE_HELPER_MISSING: build it: npm run build:native-linux
+      at fail (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:38:13)
+      at LinuxFsProvider._run (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:96:9)
+      at LinuxFsProvider.probeCapabilities (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:133:24)
+      at async makeProvider (file:///D:/vcp-stage14-r4/test/stage12-linux-fs-provider.test.mjs:21:5)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/stage12-linux-fs-provider.test.mjs:109:13)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_NATIVE_HELPER_MISSING'
+  }
+
+test at test\stage12-linux-fs-provider.test.mjs:125:1
+﹣ hardlink destination collision is refused; source hardlink survives move (5.7515ms) # native helper not built (npm run build:native-linux)
+  Error: E_NATIVE_HELPER_MISSING: build it: npm run build:native-linux
+      at fail (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:38:13)
+      at LinuxFsProvider._run (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:96:9)
+      at LinuxFsProvider.probeCapabilities (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:133:24)
+      at async makeProvider (file:///D:/vcp-stage14-r4/test/stage12-linux-fs-provider.test.mjs:21:5)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/stage12-linux-fs-provider.test.mjs:126:13)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_NATIVE_HELPER_MISSING'
+  }
+
+test at test\stage12-linux-fs-provider.test.mjs:136:1
+﹣ cross-filesystem rename fails closed with E_CROSS_FILESYSTEM (5.0701ms) # native helper not built (npm run build:native-linux)
+  Error: E_NATIVE_HELPER_MISSING: build it: npm run build:native-linux
+      at fail (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:38:13)
+      at LinuxFsProvider._run (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:96:9)
+      at LinuxFsProvider.probeCapabilities (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:133:24)
+      at async makeProvider (file:///D:/vcp-stage14-r4/test/stage12-linux-fs-provider.test.mjs:21:5)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/stage12-linux-fs-provider.test.mjs:137:13)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_NATIVE_HELPER_MISSING'
+  }
+
+test at test\stage12-linux-fs-provider.test.mjs:162:1
+﹣ deleteFile and removeEmptyDirectory sync parents; ENOTEMPTY is safe (5.1678ms) # native helper not built (npm run build:native-linux)
+  Error: E_NATIVE_HELPER_MISSING: build it: npm run build:native-linux
+      at fail (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:38:13)
+      at LinuxFsProvider._run (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:96:9)
+      at LinuxFsProvider.probeCapabilities (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:133:24)
+      at async makeProvider (file:///D:/vcp-stage14-r4/test/stage12-linux-fs-provider.test.mjs:21:5)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/stage12-linux-fs-provider.test.mjs:163:13)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_NATIVE_HELPER_MISSING'
+  }
+
+test at test\stage12-linux-fs-provider.test.mjs:177:1
+﹣ reapStaging removes only provider staging files (4.4615ms) # native helper not built (npm run build:native-linux)
+  Error: E_NATIVE_HELPER_MISSING: build it: npm run build:native-linux
+      at fail (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:38:13)
+      at LinuxFsProvider._run (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:96:9)
+      at LinuxFsProvider.probeCapabilities (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:133:24)
+      at async makeProvider (file:///D:/vcp-stage14-r4/test/stage12-linux-fs-provider.test.mjs:21:5)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/stage12-linux-fs-provider.test.mjs:178:13)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_NATIVE_HELPER_MISSING'
+  }
+
+test at test\stage12-linux-fs-provider.test.mjs:190:1
+﹣ interrupted replace leaves original intact and staging is reapable (6.1529ms) # native helper not built (npm run build:native-linux)
+  Error: E_NATIVE_HELPER_MISSING: build it: npm run build:native-linux
+      at fail (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:38:13)
+      at LinuxFsProvider._run (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:96:9)
+      at LinuxFsProvider.probeCapabilities (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:133:24)
+      at async makeProvider (file:///D:/vcp-stage14-r4/test/stage12-linux-fs-provider.test.mjs:21:5)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/stage12-linux-fs-provider.test.mjs:191:13)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_NATIVE_HELPER_MISSING'
+  }
+
+test at test\stage12-linux-fs-provider.test.mjs:204:1
+﹣ SIGKILL during a write burst leaves no torn committed files (5.2391ms) # native helper not built (npm run build:native-linux)
+  Error: E_NATIVE_HELPER_MISSING: build it: npm run build:native-linux
+      at fail (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:38:13)
+      at LinuxFsProvider._run (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:96:9)
+      at LinuxFsProvider.probeCapabilities (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:133:24)
+      at async makeProvider (file:///D:/vcp-stage14-r4/test/stage12-linux-fs-provider.test.mjs:21:5)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/stage12-linux-fs-provider.test.mjs:205:13)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_NATIVE_HELPER_MISSING'
+  }
+
+test at test\stage12-linux-fs-provider.test.mjs:233:1
+﹣ path validation rejects escapes before touching the helper (5.5988ms) # native helper not built (npm run build:native-linux)
+  Error: E_NATIVE_HELPER_MISSING: build it: npm run build:native-linux
+      at fail (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:38:13)
+      at LinuxFsProvider._run (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:96:9)
+      at LinuxFsProvider.probeCapabilities (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:133:24)
+      at async makeProvider (file:///D:/vcp-stage14-r4/test/stage12-linux-fs-provider.test.mjs:21:5)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/stage12-linux-fs-provider.test.mjs:234:13)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_NATIVE_HELPER_MISSING'
+  }
+
+test at test\stage12-terminal-detach-linux.test.mjs:62:1
+﹣ happy path: verify -> move -> ack, archive holds pinned identity (15.8131ms) # native helper not built (npm run build:native-linux)
+  Error: E_NATIVE_HELPER_MISSING: build it: npm run build:native-linux
+      at fail (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:38:13)
+      at LinuxFsProvider._run (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:96:9)
+      at LinuxFsProvider.probeCapabilities (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:133:24)
+      at async provider (file:///D:/vcp-stage14-r4/test/stage12-terminal-detach-linux.test.mjs:35:9)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/stage12-terminal-detach-linux.test.mjs:63:3)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:332:3) {
+    code: 'E_NATIVE_HELPER_MISSING'
+  }
+
+test at test\stage12-terminal-detach-linux.test.mjs:89:1
+﹣ crash before move: resume completes exactly one detach (7.0692ms) # native helper not built (npm run build:native-linux)
+  Error: E_NATIVE_HELPER_MISSING: build it: npm run build:native-linux
+      at fail (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:38:13)
+      at LinuxFsProvider._run (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:96:9)
+      at LinuxFsProvider.probeCapabilities (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:133:24)
+      at async provider (file:///D:/vcp-stage14-r4/test/stage12-terminal-detach-linux.test.mjs:35:9)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/stage12-terminal-detach-linux.test.mjs:90:3)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_NATIVE_HELPER_MISSING'
+  }
+
+test at test\stage12-terminal-detach-linux.test.mjs:101:1
+﹣ crash after move before ack: resume detects detached-evidence, no re-move (5.6659ms) # native helper not built (npm run build:native-linux)
+  Error: E_NATIVE_HELPER_MISSING: build it: npm run build:native-linux
+      at fail (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:38:13)
+      at LinuxFsProvider._run (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:96:9)
+      at LinuxFsProvider.probeCapabilities (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:133:24)
+      at async provider (file:///D:/vcp-stage14-r4/test/stage12-terminal-detach-linux.test.mjs:35:9)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/stage12-terminal-detach-linux.test.mjs:102:3)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_NATIVE_HELPER_MISSING'
+  }
+
+test at test\stage12-terminal-detach-linux.test.mjs:116:1
+﹣ crash after ack: re-run is an idempotent no-op (7.329ms) # native helper not built (npm run build:native-linux)
+  Error: E_NATIVE_HELPER_MISSING: build it: npm run build:native-linux
+      at fail (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:38:13)
+      at LinuxFsProvider._run (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:96:9)
+      at LinuxFsProvider.probeCapabilities (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:133:24)
+      at async provider (file:///D:/vcp-stage14-r4/test/stage12-terminal-detach-linux.test.mjs:35:9)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/stage12-terminal-detach-linux.test.mjs:117:3)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_NATIVE_HELPER_MISSING'
+  }
+
+test at test\stage12-terminal-detach-linux.test.mjs:136:1
+﹣ destination collision: advisory check AND atomic OS check both refuse (6.5677ms) # native helper not built (npm run build:native-linux)
+  Error: E_NATIVE_HELPER_MISSING: build it: npm run build:native-linux
+      at fail (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:38:13)
+      at LinuxFsProvider._run (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:96:9)
+      at LinuxFsProvider.probeCapabilities (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:133:24)
+      at async provider (file:///D:/vcp-stage14-r4/test/stage12-terminal-detach-linux.test.mjs:35:9)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/stage12-terminal-detach-linux.test.mjs:137:3)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_NATIVE_HELPER_MISSING'
+  }
+
+test at test\stage12-terminal-detach-linux.test.mjs:154:1
+﹣ symlink at destination name is never replaced (5.8151ms) # native helper not built (npm run build:native-linux)
+  Error: E_NATIVE_HELPER_MISSING: build it: npm run build:native-linux
+      at fail (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:38:13)
+      at LinuxFsProvider._run (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:96:9)
+      at LinuxFsProvider.probeCapabilities (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:133:24)
+      at async provider (file:///D:/vcp-stage14-r4/test/stage12-terminal-detach-linux.test.mjs:35:9)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/stage12-terminal-detach-linux.test.mjs:155:3)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_NATIVE_HELPER_MISSING'
+  }
+
+test at test\stage12-terminal-detach-linux.test.mjs:167:1
+﹣ lock changed between verify and move aborts the detach (6.537ms) # native helper not built (npm run build:native-linux)
+  Error: E_NATIVE_HELPER_MISSING: build it: npm run build:native-linux
+      at fail (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:38:13)
+      at LinuxFsProvider._run (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:96:9)
+      at LinuxFsProvider.probeCapabilities (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:133:24)
+      at async provider (file:///D:/vcp-stage14-r4/test/stage12-terminal-detach-linux.test.mjs:35:9)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/stage12-terminal-detach-linux.test.mjs:168:3)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_NATIVE_HELPER_MISSING'
+  }
+
+test at test\stage12-terminal-detach-linux.test.mjs:178:1
+﹣ journal hash mismatch and corrupt journal fail verification (4.5256ms) # native helper not built (npm run build:native-linux)
+  Error: E_NATIVE_HELPER_MISSING: build it: npm run build:native-linux
+      at fail (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:38:13)
+      at LinuxFsProvider._run (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:96:9)
+      at LinuxFsProvider.probeCapabilities (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:133:24)
+      at async provider (file:///D:/vcp-stage14-r4/test/stage12-terminal-detach-linux.test.mjs:35:9)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/stage12-terminal-detach-linux.test.mjs:179:3)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_NATIVE_HELPER_MISSING'
+  }
+
+test at test\stage12-terminal-detach-linux.test.mjs:187:1
+﹣ foreign user file at root during cleanup fails verification (4.4533ms) # native helper not built (npm run build:native-linux)
+  Error: E_NATIVE_HELPER_MISSING: build it: npm run build:native-linux
+      at fail (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:38:13)
+      at LinuxFsProvider._run (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:96:9)
+      at LinuxFsProvider.probeCapabilities (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:133:24)
+      at async provider (file:///D:/vcp-stage14-r4/test/stage12-terminal-detach-linux.test.mjs:35:9)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/stage12-terminal-detach-linux.test.mjs:188:3)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_NATIVE_HELPER_MISSING'
+  }
+
+test at test\stage12-terminal-detach-linux.test.mjs:195:1
+﹣ sibling archive requires an explicit approval object (15.0959ms) # native helper not built (npm run build:native-linux)
+  Error: E_NATIVE_HELPER_MISSING: build it: npm run build:native-linux
+      at fail (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:38:13)
+      at LinuxFsProvider._run (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:96:9)
+      at LinuxFsProvider.probeCapabilities (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:133:24)
+      at async provider (file:///D:/vcp-stage14-r4/test/stage12-terminal-detach-linux.test.mjs:35:9)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/stage12-terminal-detach-linux.test.mjs:196:3)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_NATIVE_HELPER_MISSING'
+  }
+
+test at test\stage12-terminal-detach-linux.test.mjs:222:1
+﹣ two detaches produce distinct archives; old archive untouched (14.7359ms) # native helper not built (npm run build:native-linux)
+  Error: E_NATIVE_HELPER_MISSING: build it: npm run build:native-linux
+      at fail (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:38:13)
+      at LinuxFsProvider._run (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:96:9)
+      at LinuxFsProvider.probeCapabilities (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:133:24)
+      at async provider (file:///D:/vcp-stage14-r4/test/stage12-terminal-detach-linux.test.mjs:35:9)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/stage12-terminal-detach-linux.test.mjs:223:3)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_NATIVE_HELPER_MISSING'
+  }
+
+test at test\stage12-terminal-detach-linux.test.mjs:248:1
+﹣ retention: prune plans by age, executes only with approval + re-verify (11.2066ms) # native helper not built (npm run build:native-linux)
+  Error: E_NATIVE_HELPER_MISSING: build it: npm run build:native-linux
+      at fail (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:38:13)
+      at LinuxFsProvider._run (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:96:9)
+      at LinuxFsProvider.probeCapabilities (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:133:24)
+      at async provider (file:///D:/vcp-stage14-r4/test/stage12-terminal-detach-linux.test.mjs:35:9)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/stage12-terminal-detach-linux.test.mjs:249:13)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_NATIVE_HELPER_MISSING'
+  }
+
+test at test\stage12-terminal-detach-linux.test.mjs:284:1
+﹣ retention: manifest change between plan and execute aborts prune (11.8171ms) # native helper not built (npm run build:native-linux)
+  Error: E_NATIVE_HELPER_MISSING: build it: npm run build:native-linux
+      at fail (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:38:13)
+      at LinuxFsProvider._run (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:96:9)
+      at LinuxFsProvider.probeCapabilities (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:133:24)
+      at async provider (file:///D:/vcp-stage14-r4/test/stage12-terminal-detach-linux.test.mjs:35:9)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/stage12-terminal-detach-linux.test.mjs:285:3)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_NATIVE_HELPER_MISSING'
+  }
+
+test at test\stage12-terminal-detach-linux.test.mjs:306:1
+﹣ retention: symlink inside archive aborts prune (6.8444ms) # native helper not built (npm run build:native-linux)
+  Error: E_NATIVE_HELPER_MISSING: build it: npm run build:native-linux
+      at fail (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:38:13)
+      at LinuxFsProvider._run (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:96:9)
+      at LinuxFsProvider.probeCapabilities (file:///D:/vcp-stage14-r4/lib/linux-fs-provider.mjs:133:24)
+      at async provider (file:///D:/vcp-stage14-r4/test/stage12-terminal-detach-linux.test.mjs:35:9)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/stage12-terminal-detach-linux.test.mjs:307:3)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_NATIVE_HELPER_MISSING'
+  }
+
+test at test\task-root-semantics.test.mjs:38:1
+✖ task, ready, context, and verify share one selected project root (562.9953ms)
+  Error: Command failed: C:\Program Files\nodejs\node.exe D:\vcp-stage14-r4\bin\vibe-coding-production.mjs task root-owned --dir D:\vcp-r4-tmp\vcp-task-root-cCQYyl\workspace\app --title Project-root ownership
+  
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+  
+      at genericNodeError (node:internal/errors:985:15)
+      at wrappedFn (node:internal/errors:539:14)
+      at ChildProcess.exithandler (node:child_process:417:12)
+      at ChildProcess.emit (node:events:507:28)
+      at maybeClose (node:internal/child_process:1101:16)
+      at ChildProcess._handle.onexit (node:internal/child_process:305:5) {
+    code: 1,
+    killed: false,
+    signal: null,
+    cmd: 'C:\\Program Files\\nodejs\\node.exe D:\\vcp-stage14-r4\\bin\\vibe-coding-production.mjs task root-owned --dir D:\\vcp-r4-tmp\\vcp-task-root-cCQYyl\\workspace\\app --title Project-root ownership',
+    stdout: '',
+    stderr: '\nError: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.\n'
+  }
+
+test at test\update-lifecycle.test.mjs:336:1
+✖ doctor fails when update transaction state is corrupted (724.3073ms)
+  TypeError [Error]: Cannot read properties of undefined (reading 'status')
+      at TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/update-lifecycle.test.mjs:343:28)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7)
+
+test at test\update-lifecycle.test.mjs:347:1
+✖ doctor fails when an interrupted update transaction is present (827.798ms)
+  TypeError [Error]: Cannot read properties of undefined (reading 'status')
+      at TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/update-lifecycle.test.mjs:362:28)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7)
+
+test at test\update-stage-cleanup.test.mjs:43:1
+✖ interrupted-update rollback removes its staged subtree and empty stage directory (4518.0565ms)
+  Error: Recovery state cannot be trusted before acquiring a legacy lock.
+      at rollbackProject (file:///D:/vcp-stage14-r4/lib/update-apply.mjs:242:11)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/update-stage-cleanup.test.mjs:58:22)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7)
+
+test at test\verification-scope.test.mjs:132:1
+✖ non-Git verification preserves execution and reports project-only scope (2202.6093ms)
+  Error: Task is not ready for implementation (1 readiness failure(s)). Run vcp ready non-git --stage implement first.
+      at runVerification (file:///D:/vcp-stage14-r4/lib/verify.mjs:373:11)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/verification-scope.test.mjs:136:18)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:332:3)
+
+test at test\verification-scope.test.mjs:172:1
+✖ Git workspace root project is represented by portable dot project path (8413.0651ms)
+  Error: Task is not ready for implementation (1 readiness failure(s)). Run vcp ready root-project --stage implement first.
+      at runVerification (file:///D:/vcp-stage14-r4/lib/verify.mjs:373:11)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/verification-scope.test.mjs:179:18)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7)
+
+test at test\verification-scope.test.mjs:185:1
+✖ nested project verification runs in selected project root and persists workspace-relative evidence (2680.0965ms)
+  Error: Task is not ready for implementation (1 readiness failure(s)). Run vcp ready nested-project --stage implement first.
+      at runVerification (file:///D:/vcp-stage14-r4/lib/verify.mjs:373:11)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/verification-scope.test.mjs:194:18)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7)
+
+test at test\verification-scope.test.mjs:212:1
+✖ symlinked project paths canonicalize for Git provenance without changing the selected target (3807.9696ms)
+  Error: Unsafe project path: ROOT_LINK
+      at refusal (file:///D:/vcp-stage14-r4/lib/safe-path.mjs:7:17)
+      at resolveProjectPath (file:///D:/vcp-stage14-r4/lib/safe-path.mjs:46:38)
+      at async readProjectTaskPack (file:///D:/vcp-stage14-r4/lib/task-read.mjs:14:14)
+      at async buildVerificationPlan (file:///D:/vcp-stage14-r4/lib/verify.mjs:335:14)
+      at async runVerification (file:///D:/vcp-stage14-r4/lib/verify.mjs:358:16)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/verification-scope.test.mjs:224:18)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_VCP_PATH'
+  }
+
+test at test\verification-scope.test.mjs:232:1
+✖ Git-backed evidence records dirty state before verification without blocking execution (3347.1656ms)
+  Error: Task is not ready for implementation (1 readiness failure(s)). Run vcp ready dirty-project --stage implement first.
+      at runVerification (file:///D:/vcp-stage14-r4/lib/verify.mjs:373:11)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/verification-scope.test.mjs:241:18)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7)
+
+test at test\verification-scope.test.mjs:264:1
+✖ dirty submodule is visible even when .gitmodules requests ignore=all (5540.66ms)
+  Error: Task is not ready for implementation (1 readiness failure(s)). Run vcp ready submodule-project --stage implement first.
+      at runVerification (file:///D:/vcp-stage14-r4/lib/verify.mjs:373:11)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/verification-scope.test.mjs:281:18)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7)
+
+test at test\verify.test.mjs:43:1
+✖ verify run records passing evidence and can write JSON inside the repo (2880.5273ms)
+  Error: Task is not ready for implementation (1 readiness failure(s)). Run vcp ready passing --stage implement first.
+      at runVerification (file:///D:/vcp-stage14-r4/lib/verify.mjs:373:11)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/verify.test.mjs:51:18)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7)
+
+test at test\verify.test.mjs:66:1
+✖ verify stops after the first failed command (5064.3064ms)
+  Error: Task is not ready for implementation (1 readiness failure(s)). Run vcp ready failure --stage implement first.
+      at runVerification (file:///D:/vcp-stage14-r4/lib/verify.mjs:373:11)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/verify.test.mjs:74:18)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7)
+
+test at test\verify.test.mjs:81:1
+✖ verify CLI supports explicit execution and JSON output (3419.5759ms)
+  Error: Command failed: C:\Program Files\nodejs\node.exe D:\vcp-stage14-r4\bin\vibe-coding-production.mjs verify cli-verify --dir D:\vcp-r4-tmp\vcp-verify-cVIf2q --run --json
+  
+  Error: Task is not ready for implementation (1 readiness failure(s)). Run vcp ready cli-verify --stage implement first.
+  
+      at genericNodeError (node:internal/errors:985:15)
+      at wrappedFn (node:internal/errors:539:14)
+      at ChildProcess.exithandler (node:child_process:417:12)
+      at ChildProcess.emit (node:events:507:28)
+      at maybeClose (node:internal/child_process:1101:16)
+      at ChildProcess._handle.onexit (node:internal/child_process:305:5) {
+    code: 1,
+    killed: false,
+    signal: null,
+    cmd: 'C:\\Program Files\\nodejs\\node.exe D:\\vcp-stage14-r4\\bin\\vibe-coding-production.mjs verify cli-verify --dir D:\\vcp-r4-tmp\\vcp-verify-cVIf2q --run --json',
+    stdout: '',
+    stderr: '\nError: Task is not ready for implementation (1 readiness failure(s)). Run vcp ready cli-verify --stage implement first.\n'
+  }
+=== END: 2026-10-11T05:56:01Z ===
+=== DURATION_SECONDS: 64 ===
+=== EXIT_CODE: 1 ===

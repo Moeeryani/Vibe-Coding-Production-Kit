@@ -1,0 +1,2 @@
+C: DriveFormat=NTFS VolumeLabel=OS TotalGB=632.1 FreeGB=3.82
+D: DriveFormat=NTFS VolumeLabel=New Volume TotalGB=295.3 FreeGB=4.29

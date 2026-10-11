@@ -1,0 +1,43 @@
+Linux native RENAME_EXCHANGE retains both file inodes and contents # Native Linux-only preservation proof
+Linux native exchange never fabricates missing file or overwrites source # Native Linux-only preservation proof
+Linux native staged file and directory modes are exact under umask # Native Linux-only preservation proof
+SIGKILL during a write burst leaves no torn committed files # native helper not built (npm run build:native-linux)
+Stage13 never follows symlinked ancestor or claims foreign parent # native Windows adoption-ancestor junction is exercised by test/stage13-windows-ntfs.test.mjs
+crash after ack: re-run is an idempotent no-op # native helper not built (npm run build:native-linux)
+crash after move before ack: resume detects detached-evidence, no re-move # native helper not built (npm run build:native-linux)
+crash before move: resume completes exactly one detach # native helper not built (npm run build:native-linux)
+cross-filesystem rename fails closed with E_CROSS_FILESYSTEM # native helper not built (npm run build:native-linux)
+deleteFile and removeEmptyDirectory sync parents; ENOTEMPTY is safe # native helper not built (npm run build:native-linux)
+destination collision: advisory check AND atomic OS check both refuse # native helper not built (npm run build:native-linux)
+enforce refuses a symlinked control tree # linux-only
+enforce refuses without privilege # linux-only
+enforced fence: kernel denies legacy writes (EACCES), bytes unchanged # linux-only
+fixture refuses an in-project linked template file without following it # native Windows file symlink is exercised by test/stage13-windows-ntfs.test.mjs
+foreign user file at root during cleanup fails verification # native helper not built (npm run build:native-linux)
+happy path: verify -> move -> ack, archive holds pinned identity # native helper not built (npm run build:native-linux)
+hardlink destination collision is refused; source hardlink survives move # native helper not built (npm run build:native-linux)
+immutable backend reports honestly when the capability is absent # linux-only
+inspect: linked root, .vcp state and manifest are never trusted # Native Windows linked-root/state/manifest checks delegated to test/stage13-windows-ntfs.test.mjs
+inspect: symlinked parent component is rejected even for in-root target # Native Windows in-root linked parent delegated to test/stage13-windows-ntfs.test.mjs
+interrupted replace leaves original intact and staging is reapable # native helper not built (npm run build:native-linux)
+journal hash mismatch and corrupt journal fail verification # native helper not built (npm run build:native-linux)
+linked prejournal staging is never traversed # native Windows pre-WAL staging junction is exercised by test/stage13-windows-ntfs.test.mjs
+lock changed between verify and move aborts the detach # native helper not built (npm run build:native-linux)
+moveNoReplace refuses symlink at destination and symlink parents # native helper not built (npm run build:native-linux)
+moveNoReplace succeeds fresh and refuses collisions atomically # native helper not built (npm run build:native-linux)
+path validation rejects escapes before touching the helper # native helper not built (npm run build:native-linux)
+planLegacyFence is read-only and reports kernel state # linux-only
+probe reports kernel, filesystem and capability matrix # native helper not built (npm run build:native-linux)
+reapStaging removes only provider staging files # native helper not built (npm run build:native-linux)
+reject external and internal symlinks, linked parent and linked selected root # Native Windows internal/external links and linked roots delegated to test/stage13-windows-ntfs.test.mjs
+replaceFileAtomic swaps content and leaves no staging files # native helper not built (npm run build:native-linux)
+retention: manifest change between plan and execute aborts prune # native helper not built (npm run build:native-linux)
+retention: prune plans by age, executes only with approval + re-verify # native helper not built (npm run build:native-linux)
+retention: symlink inside archive aborts prune # native helper not built (npm run build:native-linux)
+sibling archive requires an explicit approval object # native helper not built (npm run build:native-linux)
+symlink at destination name is never replaced # native helper not built (npm run build:native-linux)
+symlinked source evidence fails closed without reading outside root # Native Windows source evidence symlink case is covered by test/stage13-windows-ntfs.test.mjs
+symlinks anywhere in initial rollback tree refuse ownership # native Windows recovery-inventory junction is exercised by test/stage13-windows-ntfs.test.mjs
+two detaches produce distinct archives; old archive untouched # native helper not built (npm run build:native-linux)
+verify detects ownership, mode and replacement violations # linux-only
+writeFileSynced creates exclusive, synced files; second create fails # native helper not built (npm run build:native-linux)

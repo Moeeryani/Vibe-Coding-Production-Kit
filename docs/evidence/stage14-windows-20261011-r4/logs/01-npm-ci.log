@@ -1,0 +1,11 @@
+=== GATE: 01-npm-ci ===
+=== CMD: npm ci ===
+=== CWD: /d/vcp-stage14-r4 ===
+=== START: 2026-10-11T05:47:53Z ===
+
+up to date, audited 1 package in 789ms
+
+found 0 vulnerabilities
+=== END: 2026-10-11T05:47:54Z ===
+=== DURATION_SECONDS: 1 ===
+=== EXIT_CODE: 0 ===

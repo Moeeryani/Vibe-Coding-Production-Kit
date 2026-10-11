@@ -1,0 +1,27 @@
+=== GATE: 11-node-test-stage13-windows-ntfs ===
+=== CMD: node --test test/stage13-windows-ntfs.test.mjs ===
+=== CWD: /d/vcp-stage14-r4 ===
+=== START: 2026-10-11T05:51:16Z ===
+✔ native Windows junction cannot be followed by project read or write (108.7195ms)
+✔ native Windows file symlink cannot become a legacy fixture claim (81.0631ms)
+✔ native Windows junction as missing adoption ancestor is refused (5.0122ms)
+✔ native Windows linked pre-WAL staging remains blocked and untouched (15.7287ms)
+✔ native Windows junction in recovery inventory cannot be adopted (13.2427ms)
+✔ native Windows linked VCP state never becomes a trusted manifest (5.7155ms)
+✔ native Windows path aliases, reserved names and escapes fail closed (5.2011ms)
+✔ native Windows linked selected root and in-root alias are rejected (5.1941ms)
+✔ native Windows provider inspection rejects a junction-selected root (5.8958ms)
+✔ native Windows inspection refuses symlinked manifest without reading its target (6.296ms)
+✔ native Windows path guard rejects internal and external file symlinks (6.067ms)
+✔ native Windows adoption plan refuses symlinked external source evidence (6.1144ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 367.0576
+=== END: 2026-10-11T05:51:17Z ===
+=== DURATION_SECONDS: 1 ===
+=== EXIT_CODE: 0 ===

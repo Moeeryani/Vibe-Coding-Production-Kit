@@ -1,0 +1,11 @@
+external file: D:\vcp-r4-tmp\r4-hashdemo-foreign-Gb9EWc\secret.txt
+SHA256 BEFORE: f2ba4c7f531cdf05ede6dc9e95af32f40b206af3fcb2dd61239903f5637ce7b6
+junction created, lstat.isSymbolicLink = true
+junction read refused: E_VCP_PATH - Unsafe project path: LINK_REFUSED
+junction write refused: E_VCP_PATH - Unsafe project path: LINK_REFUSED
+file symlink created, lstat.isSymbolicLink = true
+file symlink refused: E_VCP_PATH - Unsafe project path: LINK_REFUSED
+junction-selected root: BLOCKED ROOT_LINK_REFUSED
+SHA256 AFTER:  f2ba4c7f531cdf05ede6dc9e95af32f40b206af3fcb2dd61239903f5637ce7b6
+PRESERVATION: PASS (external bytes unchanged)
+temp dirs cleaned

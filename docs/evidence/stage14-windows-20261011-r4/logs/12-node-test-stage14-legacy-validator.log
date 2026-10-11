@@ -1,0 +1,17 @@
+=== GATE: 12-node-test-stage14-legacy-validator ===
+=== CMD: node --test test/stage14-legacy-validator.test.mjs ===
+=== CWD: /d/vcp-stage14-r4 ===
+=== START: 2026-10-11T05:51:17Z ===
+✔ Stage14 validator keeps provider docs mandatory only for provider source (791.0782ms)
+✔ Stage14 provider validator refuses missing required docs and self-sentinel module (3382.3745ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4405.8474
+=== END: 2026-10-11T05:51:22Z ===
+=== DURATION_SECONDS: 5 ===
+=== EXIT_CODE: 0 ===

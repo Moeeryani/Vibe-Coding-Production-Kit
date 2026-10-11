@@ -1,0 +1,572 @@
+--policy is scoped to release-check
+0.8 manifest migrates transactionally to the current 0.9 release and can roll back
+0.8.0 projects compose through the complete retained chain to 0.9.3
+0.9.0 projects compose through 0.9.1 to 0.9.2
+0.9.0 projects have an explicit migration path to 0.9.1
+0.9.1 projects compose through 0.9.2 to 0.9.3
+0.9.1 projects have an explicit migration path to 0.9.2
+0.9.2 projects have an explicit migration path to 0.9.3
+Accepted text inside a fenced ADR example does not create governing status authority
+C-14 hygiene forbids the phantom A15 amendment ID in either doc
+CLI dry-run exits non-zero on conflicts without repairing them silently
+CLI help advertises --dir for context and verification
+CLI help advertises plugin inspection and digest authoring
+CLI manage ignore and track preserve local content
+CLI rejects explicitly blank equals-form Git refs before command dispatch
+CLI update and rollback restore the previous manifest version
+CLI update check reports eligible automatic stack profile changes
+CLI update check works offline without registry access
+CLI update dry-run is machine-readable and write-free
+D-01 must reject CLI-level exit failure pretending to be OS denial
+D-01 must reject altered user-tree hashes and unsigned policy scope
+D-01 never authorizes managed writes even with all declared observations
+D-02 public exit excludes governance-only WARN/FAIL but not installation hazards
+D-06: acceptance cannot bypass independent coverage review or amend its own expected clause
+D-06: accepted location duplicates cannot count as separate coverage
+D-06: canonical ledger and Stage12 roadmap anchors stay mandatory
+D-06: complete ACCEPTED-record validator checks independent map, metadata and document
+D-06: critical D-01 and D-03 roadmap/CLI/update-doc anchors cannot vanish from coverage map
+D-06: every independently declared required section explicitly names its decision and normative clause
+D-06: independent required-anchor inventory catches missing S/T/Task/Local Gates coverage
+DRAFT is plan-usable but cannot authorize implementation
+Doctor fails tampered selected plugins instead of silently dropping them
+Doctor passes old projects with no declaration and passes valid pinned selections
+Doctor refuses linked selected root rather than reading another project
+Doctor reports auto-selected JavaScript as React Native specialization and lifecycle-transition eligible
+Doctor reports auto-selected TypeScript and generic profiles as React Native specialization eligible
+Doctor withholds specialization for explicit and legacy-unknown lifecycle choices
+Git provenance remains deterministic under a localized caller environment
+Go and Python precedence remains above React Native
+Go stack installs stable verification commands
+JS/TS marker family resolves TypeScript deterministically
+JavaScript profile keeps lint unresolved when neither lint nor general check is configured
+Linux native no-replace probe is disposable and not an attestation
+NEW init is blocked by D-01 before any .vcp or user file creation
+NTFS evidence never bypasses known unsupported production fsync
+React Native TypeScript/build/E2E applicability stays explicit when scripts are missing
+React Native detection accepts every canonical application marker
+React Native specialization respects local AGENTS verification decisions and blocks on conflict
+SUPERSEDED and ARCHIVED material cannot silently govern current execution
+SemVer build metadata does not influence ordering
+SemVer malformed or leading-zero versions fail closed
+SemVer minimum-reader compatibility is explicit
+SemVer numeric precision and lexical alphanumeric identifiers
+SemVer pre-release chain and release precedence
+SemVer prerelease identifiers use numeric and lexical precedence
+Slice C dogfood tasks are finalized without stale pending verification text
+Stage12 reconciliation: T preserves final #87 checkpoint DONE and polyglot blocks
+Stage12 subset guard refuses to mistake negative Linux/Windows witness evidence for migration GO
+Stage13 --adopt requires exact confirmation, never --yes alone
+Stage13 adoption preflight is inspection-only without explicit consent
+Stage13 adoption recovery is hard-fenced before inspecting candidate root
+Stage13 adoption recovery requires separate journal consent and archive permission
+Stage13 cannot forge kernel isolation with a matching boolean receipt
+Stage13 committed orphan never authorizes releasing the live lock
+Stage13 committed orphan recognizes valid manifest, ledger and still-live lock
+Stage13 committed orphan refuses changed original user document
+Stage13 committed status proves all file bytes, not only manifest hash
+Stage13 direct writer and recovery entrypoints both preserve G-FENCE
+Stage13 directory ownership requires matching inode, never hash alone
+Stage13 dry-run exposes consent without creating managed state
+Stage13 exact fingerprint still cannot bypass G-FENCE
+Stage13 existing .github parent creates only missing child subtree
+Stage13 explicit user consent cannot create an empty managed adoption
+Stage13 init rejects mutation before bootstrap and preserves existing bytes
+Stage13 journal only accepts authenticated adoption ledger and phases
+Stage13 never accepts caller-fabricated lock objects as finality authority
+Stage13 never grants authorization based on matching preview objects
+Stage13 old pre-state after restore is not a new managed state
+Stage13 recovery direct writer does not read or mutate before hard gate
+Stage13 recovery never infers ownership without its own journal
+Stage13 recovery refuses foreign-operation adoption lock
+Stage13 recovery refuses takeover while original lock owner is alive
+Stage13 recovery reports fresh lock candidate without stealing any path
+Stage13 recovery restores exact user preimage and removes only owned claims
+Stage13 refuses implicit re-adoption when forensic archive remains
+Stage13 refuses source-file as parent and nonportable relative names
+Stage13 rejects post-lock mode, adapter, baseline and action drift
+Stage13 section exchange never accepts a changed user preimage
+Stage13 section exchange preview preserves both original/staged inode IDs
+Stage13 section writer rejects direct-import use before ANY filesystem operation
+Stage13 stages first missing ancestor instead of creating unowned parent
+Stage13 time-of-plan vs time-of-lock timestamp drift is not data drift
+Stage13 user post-apply edits and foreign backup always block rollback
+Stage14 CLI asset-plan emits only read-only inspection JSON
+Stage14 CLI asset-plan refuses force/run/yes and absent target
+Stage14 brownfield stays minimal, even if package gains more docs
+Stage14 catalog exports stable three-version assetSet and four explicit classes
+Stage14 catalog refuses unknown source identity, aliases and untrusted paths
+Stage14 catalog retains legacy CI/package-only prompt but never in safe surface
+Stage14 consumer health exposes contradictory managed ownership without authorizing deletion
+Stage14 consumer-retirement preview cannot convert an empty target to authorization
+Stage14 explicit manifest categorizes all supplied inventory with no inferred ownership
+Stage14 first-use dry-run measures legacy/full vs safe/minimal noise without writing
+Stage14 greenfield explicit --no-GitHub cannot introduce scaffolding or CI
+Stage14 health never mistakes untracked project docs for manifest-owned assets
+Stage14 historic full surface retains original compatibility assets
+Stage14 legacy and brownfield preserve an intentionally unowned AGENTS path
+Stage14 legacy managed dogfood measures candidate noise yet never erases user edits
+Stage14 legacy retirement preview preserves edited prompts and retains user bytes
+Stage14 linked modified retirement path cannot be removed or trusted
+Stage14 nested-workspace planning never copies or reads sibling project content
+Stage14 only canonical packaged prompts are eligible, not arbitrary package files
+Stage14 original D-01 migration gate remains unmodified and blocking
+Stage14 prompt override retains exact user content, absent override falls back to package
+Stage14 provider validator refuses missing required docs and self-sentinel module
+Stage14 real init writer stays gated even with a new short catalog
+Stage14 safe greenfield exact golden inventory never sweeps package sources
+Stage14 unmanaged root can never be retired by preview
+Stage14 validator keeps provider docs mandatory only for provider source
+TypeScript React Native specializes before TypeScript and maps configured fixture verification
+Unreleased bullets block a prepared release candidate
+Windows alias command preserves a spaced .cmd path behind the /s outer quote pair
+Windows alias execution succeeds through cmd.exe when the .cmd path contains spaces
+Windows durability stays NO-GO and lock preflight never creates state
+Windows result tampering never hides the eighth post-backup user edit loss
+a second updater cannot plan against stale state while the first updater holds the lock
+a vcp-* final directory under a foreign temp sandbox is still refused
+accept and revoke racing from the same pending snapshot allow exactly one terminal transition
+acceptance rejects expired invitation
+acceptance rejects verified-email mismatch
+accepted D02: absent source-only brownfield docs and v1 manifest are not install failure
+accepted D02: actual missing managed file remains an applicable install FAIL
+accepted invitation cannot be revoked and stays accepted
+accepted negative decisions stay in context while historical material requires deliberate include
+active listing is tenant-scoped, excludes terminal records, and returns only administration-safe fields
+active listing requires an authenticated actor with members.invite
+active listing returns an empty list for an organization with no invitations
+actor without members.invite cannot revoke
+adds thin adapters only when the selected tool needs them
+agent verification parser includes project check and excludes reasoned non-applicable values
+ambiguous JS/Python root reports generic and competing evidence
+approved and negative decisions cannot be reopened into the wrong decision class
+architecture contract marker regression turns governing-contract lane red
+architecture contract markers inside fenced examples do not satisfy governing contracts
+architecture source roots refuse symlinked path components
+archived directory identity is recognized without restoring its name
+authoritative bundle path casing must match the filesystem exactly
+authority examples below the document preamble do not become metadata
+authority parser keeps legacy compatibility and rejects ambiguous explicit markers
+authorized admin issues an invite and repository stores only its hash
+authorized admin revokes a pending invitation in their own org
+auto-detects JavaScript package projects and imports existing check/test scripts
+auto-detects Python tooling only when configuration provides evidence
+auto-detects TypeScript and fills commands proven by package scripts
+auto-selected Go and Python profiles are not generalized into React Native specialization
+auto-selected JavaScript and TypeScript specialize to React Native while retaining auto provenance
+auto-selected generic specializes transactionally to React Native and is idempotent
+automatic re-profiling does not overwrite a local verification-command decision
+backup identifiers cannot escape .vcp/backups
+backup ids are unique even for adjacent backups
+baseline reads refuse symlink traversal inside VCP state
+blocked dry-run exits one with a valid blocked lifecycle report
+bounded selected-root reader refuses oversized input without altering bytes
+bounded vertical plan rejects over-broad scope and extra acceptance evidence
+brownfield init preview is stable, content-free and leaves all user bytes alone
+brownfield minimal excludes fictional starter truth and consumer CI
+brownfield plan leaves original nested project documents byte-identical
+build metadata does not affect precedence
+bundle and nested symlinks are refused when the host permits symlinks
+bundle presence alone never grants plugin authority and nested projects do not inherit parent selection
+bundle traversal is entry-bounded even when excess entries are empty directories
+byte-identical replacement from a different inode is not owned
+candidate release marker inside a fenced example is not release authority
+canonical Stage 7 suite covers every roadmap behavior property
+canonical VCP ADR metadata status format is accepted
+canonical plugin digest is stable across CRLF and LF text checkouts
+canonical profiles retain the Stage 6 security coverage contract
+canonical reference Task Pack passes readiness and produces verification plan
+canonical reference records are bound to the current suite and prompt blobs
+canonical scenario listing is deterministic and exposes property coverage
+canonical scenario prompt paths cannot traverse or escape the prompts root
+canonical stimuli and evaluator ground truth agree on decision identities
+case-insensitive path collision contract is host-independent
+code-fenced routing example is not enough to prove compatible Claude authority
+comment trivia cannot hide non-literal dynamic dependency expressions
+committed adoption requires owned directory identity still present
+committed journal cleanup requires valid operation-matched v2 state
+community plugin declaration caps selected plugin count
+community plugin declaration is size-bounded before JSON parsing
+compact static re-export syntax still contributes dependency edges and cycles
+config validation rejects overlapping roots, unknown dependencies, and invalid public entries
+context includes only explicit Source-of-Truth files from mixed prose
+conversion refuses unknown historical v1 authority rather than dropping it
+core-complete task can enter planning while operational gaps remain warnings
+corrupt transaction state is rejected explicitly
+cross-module deep import bypassing public entrypoint turns public-contract lane red
+cross-org admin and unknown id fail indistinguishably and leave the invitation pending
+current proposed decision register and S/T regression anchors are coherent
+custom release policy symlinks are refused when the host supports symlinks
+customized preserve-owned documents are never overwritten
+dead same-host update locks are reclaimed immediately
+declaration schema and unknown selection keys are rejected before plugin loading
+deleted managed files conflict instead of being silently recreated
+dense cyclic module graph reports one bounded strongly connected component
+dependency lookalikes in comments strings and template raw text do not create false edges
+detect duplicate canonical decision rows
+detect missing D-12 and regression of explicit old CLI fence
+different pre-existing new files become conflicts
+digest mismatch detects any reviewed bundle edit
+direct versioned write modules remain gated by D-01
+directory proof never treats absent namespace as safely removed
+dirty candidate worktree fails exact-revision evidence
+doctor explains that explicit generic provenance preserves the installed profile
+doctor explains that legacy unknown provenance preserves generic conservatively
+doctor fails when an existing VCP manifest is corrupted
+doctor fails when the framework is not installed
+doctor reports auto-selected generic profile as eligible when concrete evidence appears
+doctor reports explicit stack commands as resolved
+doctor strict can be green while explicitly reporting unassessed decision templates
+doctor warns for untouched templates in a historical preinstalled fixture
+domain revocation only accepts pending invitations
+downgrades are rejected
+dry-run performs no writes
+dry-run reports available without changing the existing zero exit contract
+duplicate Unreleased headings fail release authority
+duplicate governing marker is a regression rather than an implicit pass
+duplicate structured observation identities are rejected as ambiguous evidence
+dynamic import inside a template expression remains visible to the analyzer
+empty .vcp after crash is unproven: no inferred ownership or deletion
+empty configured source roots cannot produce a vacuous green result
+escaped runtime-relative module specifier cannot bypass architecture boundaries
+every Stage 7 property has a mutation fixture that turns that property red
+every bundle entry path is portable even when the file is not a declared contribution
+execution failure exits one through the error channel, not a normal lifecycle report
+existing candidate tag at a different commit fails and is never moved
+existing historical managed state is never overwritten by new init
+existing unmanaged content is only skipped, never adopted or overwritten
+existing unmanaged project cannot be adopted and original bytes remain untouched
+expired-but-pending invitation can still be revoked
+expiry at exactly now remains visible and is projected as expired
+explicit JavaScript selection is preserved even when React Native evidence is present
+explicit adapter provenance is a separate owner claim, never mere observation
+explicit and legacy-unknown concrete selections do not specialize to React Native
+explicit generic install stays generic when new stack evidence appears
+explicit migration removal deletes untouched managed files
+explicit migration removal detaches locally modified files
+explicit migration renames tracked files
+fenced changelog headings cannot satisfy release authority
+first-init recovery refuses a forged partial ownership ledger
+fitness --config accepts an explicit project-relative configuration path
+fitness --config cannot leak onto unrelated commands
+fitness CLI help advertises the Stage 8 command and config option
+fitness CLI human report exposes module ownership and dependency direction
+fitness CLI passes the reference SaaS and exposes deterministic JSON
+fitness CLI refuses to invent architecture when config is absent
+fitness CLI rejects config traversal outside the selected project
+fitness CLI returns non-zero JSON report for a public-contract violation
+fitness requires project root through --dir instead of ambiguous positional semantics
+fixture journey remains deterministic without a device
+fixture never creates an unproved nested project directory
+fixture refuses a linked ancestor inside an otherwise valid vcp-* sandbox
+fixture refuses non-vcp temporary directory before any writes
+follow-up evaluation rejects silently implemented or unknown follow-up work
+forbidden dependency direction turns dependency lane red
+foreign control files cannot be quarantined from guessed provenance
+formats a valid order id with the shared workspace prefix
+free-form wording is ignored by deterministic behavior evaluation
+fresh auto install records requested stack separately from resolved stack
+fresh foreign-host locks are not reclaimed
+fresh review context reconstructs persisted findings without prior reviewer chat
+fresh v0.9 install is update-idempotent
+fresh workspace checkout reconstructs bounded package context, verification evidence, and root-aware review
+future manifest schemas are rejected
+generated Task Packs define a bounded finalization contract
+generated Task Packs provide a bounded durable review-evidence contract
+generated files conflict when both local and upstream change
+governing ADR must have exactly one status section
+governing ADR must remain Accepted
+historical fixture accepts a precreated nested project inside its vcp-* sandbox
+historical fixture creates only valid v1 claims and matching baseline bytes
+historical fixture preserves preexisting AGENTS bytes and does not claim them
+historical published-v0.9.3 Linux receipt proves seven unsafe old-CLI witnesses, never GO
+historical receipt tampering cannot turn missing old-CLI negative witness into approval
+historical v1 fixture includes the original core framework and GitHub assets
+ignore commits detachment before a baseline cleanup failure
+ignore marker-shaped text inside triple fenced Markdown
+implementation readiness fails when verify cannot build an executable plan
+import.meta usage is valid analyzer syntax and does not create dependency evidence
+independent local and upstream edits auto-merge
+init --force refuses a managed repository without replacing manifest or user files
+init and update lifecycle do not invent or manage project plugin declarations/bundles
+initial section insertion preserves BOM and all user bytes outside new region
+inspect CLI: JSON and human output, blocked states return nonzero
+inspect: completely empty root is NEW and has zero side effects
+inspect: existing unmanaged files remain byte-identical and unclaimed
+inspect: mutating CLI flags are rejected before touching files
+inspect: non-directory and oversized manifest fail closed
+inspect: partial, corrupt, future and ambiguous managed states fail closed
+inspect: unrecognized v1 metadata is blocked, never silently tolerated
+inspect: v1 install.assetSet is refused (never a released-0.9.3 field)
+inspect: valid managed schema-v1 root returns only approved metadata
+install evidence validator turns red on missing CLI alias and wrong version output
+intended verified user can accept exactly once
+invalid explicit authority fails visibly instead of falling back to legacy behavior
+invalid numeric prerelease identifiers are rejected
+isolation not effective if published old binary can run privileged
+issuer must belong to target org
+issuer must have members.invite permission
+journal transition enforces exact ownership and terminal phase ordering
+journal transitions cannot rewrite pre-staged native directory identities
+keeps Android and iOS behavior explicit
+leading whitespace cannot bypass workspace qualifier rejection for output paths
+leading whitespace cannot bypass workspace qualifier rejection for planned paths
+leading whitespace preserves the dedicated workspace include refusal
+legacy and ACCEPTED documents remain implementation-ready
+legacy compareVersions delegates to strict new comparator
+legacy delivery paths are explicit compatibility inputs, not a second slug namespace
+legacy generic install with unknown stack provenance stays generic
+legacy manifest refuses unrecognized behavior fields and redirected baseline
+legacy v1 is strictly enumerable and preserves installed whole-file ownership
+lifecycle evidence validator turns red on conflicts, blocked apply, Doctor failure, and non-idempotence
+lifecycle ownership preserves project selection and merge-manages canonical guidance
+linked project parent rejects path resolution including in-root links
+linked vendor instructions are never read as adoptable user authority
+local AGENTS edits are preserved on same-version planning
+local evidence receipt SHA-256 matches retained UTF-8 log bytes
+local gate runner refuses missing exact SHA/evidence directory before running npm
+local gate runner refuses relative evidence directory
+local import outside configured source roots fails visibly
+local-only edits are preserved when upstream is unchanged
+lockfile root package name must match the release package identity
+malformed package.json never activates React Native detection
+manage ignore and track change ownership without deleting local content
+manage mutations are rejected while an updater holds the lifecycle lock
+managed files cannot disappear from a template without an explicit migration removal
+managed path traversal is rejected
+managed sections preserve outside bytes: BOM, CRLF, LF and Unicode
+managed v1 root blocks init plan and remains intact
+manifest id/version/VCP compatibility must match the explicit project selection
+manifest rejects duplicate guidance paths and verification proposal keys
+manifest rejects unsupported schema, kind, capability, executable-style keys, and empty guidance modes
+marker-only projects remain in the Node family
+matching file bytes never excuse a replaced directory inode
+matching pre-existing new files are adopted
+migration metadata composes chained renames and removals
+migration resolver finds the supported 0.8 -> 0.9 path
+migrations remain bounded to existing released Schema-v1 chain
+missing backup allowed only for exact terminal init cleanup
+missing candidate migration chain fails rather than defaulting release-ready
+missing claim with staged inode is accounted for before apply
+missing claim without stage or forensic archive must BLOCK
+missing config fails instead of inferring architecture
+missing declared guidance fails instead of silently dropping plugin context
+missing declared module roots and public entries fail visibly
+missing exact local import target fails visibly
+missing independent native evidence never looks approved
+missing required observation fields fail visibly instead of defaulting to pass
+missing true power-loss replay or a native cleanup phase remains NO-GO
+missing-manifest old init and old new races are mandatory on both hosts
+missing-target dry-run returns a zero-write blocked plan and never creates root
+missing-target init cannot create even the first root directory before gate
+native 64-bit identities preserve precision beyond JS safe integers
+native Windows 13-case witness records lock-blind old-init user loss without granting GO
+native Windows adoption plan refuses symlinked external source evidence
+native Windows file symlink cannot become a legacy fixture claim
+native Windows inspection refuses symlinked manifest without reading its target
+native Windows junction as missing adoption ancestor is refused
+native Windows junction cannot be followed by project read or write
+native Windows junction in recovery inventory cannot be adopted
+native Windows linked VCP state never becomes a trusted manifest
+native Windows linked pre-WAL staging remains blocked and untouched
+native Windows linked selected root and in-root alias are rejected
+native Windows path aliases, reserved names and escapes fail closed
+native Windows path guard rejects internal and external file symlinks
+native Windows provider inspection rejects a junction-selected root
+native no-replace boundary refuses unsafe sibling scope and never falls back
+native probe is diagnostic and not a production durability authority
+nested claim rollback returns deepest-first owned directory removals
+nested project can explicitly use accepted workspace authority without inheriting unrelated root or sibling files
+new missing target files are added
+new root yields zero-write greenfield plan with unapproved CLAIM actions
+new versioned writers remain disabled before any filesystem interaction
+non-literal dynamic dependency expressions are not silently treated as safe
+normalizes trusted deep-link scheme and rejects other inputs
+obvious sensitive-effect mobile scripts are not imported into general verification
+older 0.8.0 projects can compose through 0.9.0 to 0.9.1
+older 0.8.0 projects compose through the full migration chain to 0.9.2
+optional missing parents are absent while linked ancestors remain forbidden
+organization query is status-neutral and does not define active-list expiry policy
+organization query returns detached copies instead of mutable repository state
+organization query returns only records owned by that organization across statuses
+orphan adopt lock preserves user file and remains read-only
+orphaned final lock is reported read-only and never implicitly retired
+overlapping local and upstream edits become conflicts
+ownership inventory refuses Windows device names and reserved Git components
+package version mismatch fails even when other candidate metadata is coherent
+package-surface validator turns red when a required packed file is missing
+parser ignores ordinary code spans and reads explicit table/labeled references
+parser preserves malformed explicit references for readiness diagnostics and ignores reasoned n/a
+parser supports plain or linked values in the canonical Reference column
+peer/dev dependency references do not activate React Native application detection
+planner leaves project files unchanged
+planner refuses implicit managed-file removal without migration metadata
+plugin bundles reject excessive file count and normalized text size before context rendering
+plugin declaration rejects mismatched bundle-root casing for a single selection
+plugin declaration treats case-only path variants as duplicate selections
+plugin ids and versions reject leading or trailing Unicode whitespace instead of trimming exact pins
+plugin paths use portable ASCII segments and reject Windows-reserved names
+plugin schema strings and text files reject terminal/control characters
+plugins --digest reproduces the canonical fixture pin without selecting or mutating trust
+plugins CLI human report preserves the HUMAN DECISION boundary
+plugins CLI inspects the pinned reference fixture as JSON without applying proposals
+plugins rejects positional project roots and keeps --digest scoped to the plugins command
+preflight refuses blocked ancestor before writing any template or vcp state
+prejournal classifier refuses to reinterpret a durable WAL as orphan
+prejournal staging belongs only to the lock operation id
+preview refuses active external clean filters before Git status can execute them
+preview validates a clean candidate while retaining tag/publish HUMAN_DECISION boundaries
+project-local references preserve existing selected-project behavior
+prompt response paths reject traversal even when normalization would return inside the project
+prompt-eval CLI returns non-zero and structured failure for false verification reporting
+prompt-eval all evaluates the complete canonical reference suite through the public CLI
+prompt-eval all returns non-zero when a required canonical response is missing
+prompt-eval evaluates one canonical reference record through the public CLI
+prompt-eval human failure output includes the failed property and assertion detail
+prompt-eval list exposes canonical scenarios and all Stage 7 properties as JSON
+proven automatic generic install re-profiles when deterministic evidence appears
+public CLI init refuses NEW schema writes before creating a manifest
+public update JSON never exposes desired or file content
+published 0.9.3 cannot share new-writer security identity
+published shell entrypoint is LF-only and has a portable shebang
+published-old-CLI POC documents observation scenarios
+published-old-CLI POC harness file hashing self-test (not old binary)
+published-old-CLI POC refuses to claim evidence without npm tarball/integrity
+purposes enforce read/write/state separation and reserved paths
+react-native is an explicit supported stack and generates its first-party profile without Go fallthrough
+readiness does not interpret Source-of-Truth prose code spans as repository paths
+readiness rejects duplicate task sections instead of parsing an ambiguous first copy
+realistic nested project path boundaries reject sibling, root-output, and workspace traversal escapes
+realized module cycle turns cycle lane red even when both directions are allowed
+recovery inventory refuses portable case aliases and file ancestors
+reference SaaS builds plan, implement, and review context from its checked-in canonical Task Pack
+reference SaaS passes explicit Stage 8 architecture fitness
+reference SaaS prompt snapshots stay identical to canonical prompts
+reference SaaS reconstructs accepted current policy and keeps superseded policy historical
+reference SaaS security context dogfoods all Stage 6 profiles
+reference SaaS selects all project-sensitive Stage 6 profiles explicitly
+reference community profile fixture is pinned, deterministic, and inspection-only
+reference example exposes one canonical machine-readable Task Pack
+reference prompt behavior suite passes every scenario, property, and assertion
+refuse unknown region and marker injection
+refuses to overwrite existing managed paths without --force
+regex-literal quote cannot mask a later forbidden dependency
+reissued invitation makes old token unusable while new token works
+reissuing for same org and email revokes previous pending invitation
+reject nonregular paths and keep project bytes and paths unchanged
+reject orphan, nested, repeated, mismatched and malformed markers
+reject traversal, alternate separators, absolute and reserved components
+rejects empty identifiers after trimming
+rejects non-string identifiers
+release evidence output is preflighted, overwrite-protected, and excludes command logs
+release notes require candidate version identity in the top-level title
+release policy previous tag must exactly match the declared previous version
+release-authority file symlinks are refused when the host supports symlinks
+release-check human output states that release approval remains a human decision
+release-check preview is exposed through the public CLI as structured evidence
+release-check rejects a non-numeric timeout instead of silently using a default
+release-check requires an explicit candidate version
+repository attributes force text files to LF checkouts
+repository compare-and-set refuses to revoke non-pending or unknown records
+repository policy locks the immutable v0.9.2 tag object and release commit identities
+required vertical slices need explicit non-empty scope
+retained previous tag identity mismatch fails visibly
+revocation is not repeatable and revoked stays terminal
+revoked invitation token can no longer be accepted
+rollback inventory recognizes strictly enumerated nested files only
+rollback refuses an older historical backup and accepts the newest recovery point
+rollback refuses to race a live update lock
+running CLI refuses a target version it does not contain
+runtime dependency without an application marker remains Node-family
+same-line second import cannot hide a forbidden dependency
+scenario ground truth is internally consistent and exact for bounded slices
+scenario id and prompt identity mismatches fail visibly
+schema migration backup identity and prior-state must match operation
+schema update transaction requires one exact target manifest digest
+schema-v2 is never advertised as readable by published 0.9.3
+security profile parser composes baseline before explicit profiles
+security profile parser keeps baseline mandatory for an explicit empty selection
+security profile parser rejects unknown, duplicate, malformed, and missing-section declarations
+selected plugins are returned in deterministic id order independent of declaration order
+selected-root detection never recursively inherits parent or sibling mobile evidence
+selection and digest authoring are confined to the project-owned community-plugins namespace
+selection cannot grant a capability the plugin manifest does not declare
+selection rejects duplicate ids, paths, and grants deterministically
+selection rejects traversal, URLs, and Windows drive-style paths before loading
+selection requires canonical lowercase digest text
+semantic versions compare deterministically
+shipped delivery TASK-TEMPLATE is a compatibility pointer, not a competing template
+single-scenario evaluation rejects unknown ids and reports unsafe response paths as failure evidence
+stable releases sort after prereleases with the same core version
+stack evidence reader refuses linked package metadata, not project-owned commands
+stage cleanup never sweeps unrelated non-empty stage content
+stage13 CLAIM never overwrites a pre-existing path
+stage13 materialization rejects old reader or unapproved action changes
+stage13 materializes section while retaining exact user preimage bytes
+stage13 never converts stale preview into writer authority
+staging and committed cleanup writers are hard gated before any writes
+staging quarantine proposal preserves bytes and has no destructive actions
+strengthened anchors fail when normative text is removed
+successful apply reports applied and exits zero
+successful update removes its stage subtree and the empty stage directory
+suite reports missing response files as failed scenarios and properties
+tampered baseline snapshots block planning
+task generator validates kebab-case slugs
+task verification parser includes arbitrary configured keys and excludes reasoned non-applicable values
+template text normalization canonicalizes CRLF before hashing or installation
+terminal absence proof refuses empty owned directories without reading user bytes
+terminal candidate refuses mutation before touching unknown root
+terminal cleanup journal requires exact init backup evidence
+terminal journal cannot clear while project or backup controls survive
+terminal retirement never asserts D-01 or native durability
+terminal retirement rejects foreign data, missing journal or foreign lock
+test-only historical fixture preserves unrelated existing directories
+test-only historical v1 fixture enables downstream CLI update conformance
+test\helpers\legacy-v1-fixture.mjs
+three-way merge handles an empty baseline without crashing
+three-way merge preserves a local final-newline removal while merging unrelated upstream edits
+three-way merge preserves an upstream final-newline removal with unrelated local edits
+three-way merge preserves independent local and upstream edits
+three-way merge refuses unbounded quadratic work
+three-way merge reports overlapping edits as conflicts
+track is a no-op for an already managed path
+trims caller whitespace before formatting
+unclaimed VCP markers are a conflict, not permission to replace sections
+unclaimed compatible Claude file remains project-owned NOOP
+unexpected empty folder is still foreign state
+unexpected plan slices and verification checks cannot hide inside an otherwise passing record
+unexpected project-owned nested file prevents rollback proposal
+unknown token fails with coarse application error
+unknown transaction staging names cannot be implicitly quarantined
+unowned configured source file turns ownership lane red
+unproved committed journal is not a cleanup candidate
+unresolved human decisions cannot be relabeled as discovered facts or negative decisions
+unsupported static import syntax fails instead of disappearing from analysis
+untouched managed files update directly when upstream changes
+update check delegates to the project that was actually checked
+update check exits zero and reports available when lifecycle work is pending
+update check exits zero and reports no-work when nothing is pending
+update lock prevents a second live updater
+v1 owned and ignored paths refuse portable aliases and parent collisions
+v1 rejects executable or binary-style files anywhere in a plugin bundle
+v1 rejects invalid UTF-8 even when a file uses an allowed text extension
+v2 owned and ignored paths refuse parent-child aliases
+v2 reader blocks older reader and missing or malformed ownership metadata
+v2 validator rejects unknown fields at root, install, file and ownership
+verification behavior can pass while accurately reporting an executed failed check
+verification proposals reject unknown slots, placeholders, and multi-line commands
+verification proposals require an explicit project capability grant
+verify preview does not execute repository commands
+verify refuses an existing evidence path before executing commands
+verify refuses to run a task that has not passed implementation readiness
+versioned backup and journal reject case-colliding owned paths
+versioned ledgers reject file/directory overlap and invalid backup modes
+workspace fixture prompt snapshots remain canonical
+workspace freshness rules match project-local governing authority rules
+workspace qualifier is not a general cross-root include escape hatch
+workspace qualifier is rejected for planned project-local paths
+workspace qualifier is rejected for project-local output paths
+workspace reference fails clearly when selected project is outside Git
+workspace references reject traversal and filesystem symlink or junction escape
+workspace root discovery ignores ambient Git directory/worktree overrides
+workspace-qualified starter templates still trigger the existing readiness warning

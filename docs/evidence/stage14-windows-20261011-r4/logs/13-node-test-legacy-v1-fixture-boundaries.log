@@ -1,0 +1,24 @@
+=== GATE: 13-node-test-legacy-v1-fixture-boundaries ===
+=== CMD: node --test test/legacy-v1-fixture-boundaries.test.mjs ===
+=== CWD: /d/vcp-stage14-r4 ===
+=== START: 2026-10-11T05:51:23Z ===
+✔ historical fixture creates only valid v1 claims and matching baseline bytes (513.2727ms)
+✔ historical fixture preserves preexisting AGENTS bytes and does not claim them (357.7153ms)
+✔ preflight refuses blocked ancestor before writing any template or vcp state (45.0676ms)
+✔ historical fixture accepts a precreated nested project inside its vcp-* sandbox (377.5533ms)
+✔ fixture never creates an unproved nested project directory (1.8211ms)
+✔ a vcp-* final directory under a foreign temp sandbox is still refused (3.1283ms)
+✔ fixture refuses a linked ancestor inside an otherwise valid vcp-* sandbox (5.307ms)
+✔ fixture refuses non-vcp temporary directory before any writes (1.5272ms)
+﹣ fixture refuses an in-project linked template file without following it (0.4038ms) # native Windows file symlink is exercised by test/stage13-windows-ntfs.test.mjs
+ℹ tests 9
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 1433.8026
+=== END: 2026-10-11T05:51:24Z ===
+=== DURATION_SECONDS: 1 ===
+=== EXIT_CODE: 0 ===

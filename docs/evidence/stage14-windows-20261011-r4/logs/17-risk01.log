@@ -1,0 +1,7 @@
+Framework validation passed.
+positive exit=0
+ERROR: required file missing or empty: lib/asset-catalog.mjs
+negative-asset-catalog exit=1
+restore exit=0
+ERROR: required file missing or empty: docs/STAGE14-ACCEPTANCE-MATRIX.md
+negative-acceptance-matrix exit=1

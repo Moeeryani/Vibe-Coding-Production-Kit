@@ -1,0 +1,73 @@
+=== GATE: 08-test-cli ===
+=== CMD: npm run test:cli ===
+=== CWD: /d/vcp-stage14-r4 ===
+=== START: 2026-10-11T05:49:15Z ===
+
+> vibe-coding-production@0.9.3 test:cli
+> node --test test/cli.test.mjs
+
+✔ historical v1 fixture includes the original core framework and GitHub assets (547.9366ms)
+✔ adds thin adapters only when the selected tool needs them (415.971ms)
+✔ refuses to overwrite existing managed paths without --force (3.174ms)
+✔ dry-run performs no writes (17.3407ms)
+✔ test-only historical fixture preserves unrelated existing directories (464.1227ms)
+✔ auto-detects TypeScript and fills commands proven by package scripts (374.3884ms)
+✔ auto-detects JavaScript package projects and imports existing check/test scripts (400.9233ms)
+✔ Go stack installs stable verification commands (368.0322ms)
+✔ auto-detects Python tooling only when configuration provides evidence (502.4729ms)
+✔ doctor fails when the framework is not installed (133.2309ms)
+✔ doctor warns for untouched templates in a historical preinstalled fixture (2679.8423ms)
+✔ doctor reports explicit stack commands as resolved (2700.0376ms)
+✖ task generator creates a bounded task and imports configured verification commands (2608.3461ms)
+✖ task generator does not turn reasoned n/a decisions into executable commands (2376.6517ms)
+✖ task generator refuses overwrite and supports dry-run (2625.8967ms)
+✔ task generator validates kebab-case slugs (2.852ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 13
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 16449.7989
+
+✖ failing tests:
+
+test at test\cli.test.mjs:204:1
+✖ task generator creates a bounded task and imports configured verification commands (2608.3461ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/cli.test.mjs:218:18)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\cli.test.mjs:233:1
+✖ task generator does not turn reasoned n/a decisions into executable commands (2376.6517ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/cli.test.mjs:247:18)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+
+test at test\cli.test.mjs:260:1
+✖ task generator refuses overwrite and supports dry-run (2625.8967ms)
+  Error: D-01/G-FENCE NO-GO: managed schema-v2 writes disabled pending published-old-CLI safety proof and maintainer approval.
+      at assertManagedMigrationGate (file:///D:/vcp-stage14-r4/lib/managed-migration.mjs:48:15)
+      at createOwnedPathExclusively (file:///D:/vcp-stage14-r4/lib/safe-create.mjs:15:3)
+      at createTaskPack (file:///D:/vcp-stage14-r4/lib/task.mjs:89:13)
+      at async TestContext.<anonymous> (file:///D:/vcp-stage14-r4/test/cli.test.mjs:263:3)
+      at async Test.run (node:internal/test_runner/test:1088:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:763:7) {
+    code: 'E_G_FENCE_NO_GO'
+  }
+=== END: 2026-10-11T05:49:32Z ===
+=== DURATION_SECONDS: 17 ===
+=== EXIT_CODE: 1 ===
