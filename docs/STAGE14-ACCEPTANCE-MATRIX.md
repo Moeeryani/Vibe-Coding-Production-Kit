@@ -1,7 +1,10 @@
 # Stage 14 — Phase-2 consumer asset separation acceptance matrix
 
-**Status: SOURCE-CONSTRUCTION REVIEW / EXECUTION UNTESTED.**
-This file is an inventory of source and proposed witnesses, NOT a PASS receipt.
+**Status: REVIEW-REMEDIATION CANDIDATE / EXECUTION UNTESTED AT NEW SHA.**
+The preceding immutable `d6be7420` candidate has independent scoped Linux and
+native Windows build GO receipts, but its full suite remains red. New source
+fixes do **not** inherit those receipts. This matrix describes the new
+source candidate's witnesses, NOT a PASS receipt.
 Version `0.9.3` remains unchanged. D-01=DEFERRED,
 G-FENCE=NO-GO, `managedV2MutationAuthorized=false`.
 
@@ -40,6 +43,39 @@ activation remains blocked.
 7. Verify the actual old published `0.9.3` native Linux/Windows writers cannot destroy edits under the future accepted D-01 design. A Stage14 plan/read-only denial is **not** that proof.
 8. Mechanically complete Checkpoint A against mature brownfield sample applications: preview vs actual fresh locked apply, modified-preview replan, exactly preserved CI/instructions/sections, staged crash recovery and rollback-to-absence; record time/noise/questions/bytes, then maintainer GO/SIMPLIFY/STOP-DEFER. None can be marked PASS while D-01 and native writers are unavailable.
 9. Independent review all blocking issues, resolve or preserve NO-GO, freeze source again if fixed, then re-run the required final exact-HEAD campaign. Preserve logs and SHA256SUMS on evidence branches, not just local D: or unverified chat excerpts.
+
+## Post-campaign review remediation (RISK-01 / COVERAGE-02 / W-5 / W-6)
+
+This is a **new candidate** after immutable `d6be7420`; no new Linux or
+native Windows acceptance claim is made by these source changes alone.
+
+- **RISK-01:** provider identity now comes from the package's CLI metadata
+  and/or the existing CLI binary, never from an entry inside the Stage14
+  required-files list. Deleting `lib/consumer-asset-retirement-plan.mjs`
+  must still raise a missing-required-file error. Historic legacy-v1
+  consumer validator must still succeed without provider-only documents.
+- **COVERAGE-02:** `test/stage14-legacy-validator.test.mjs` builds an isolated
+  copy of the actual provider source and checks a positive validator run,
+  then separately removes each new provider doc and two Stage14 runtime
+  files, requiring a diagnostic and nonzero exit. Originals are restored
+  in the isolated copy only. The actual repository is never modified.
+- **W-5:** fixture preflight `ENOTDIR` is reclassified by the established
+  typed project-path guard rather than weakening the `E_VCP_PATH` test.
+- **W-6:** former Windows `pending` skips now name native Windows tests
+  added to `test/stage13-windows-ntfs.test.mjs`:
+
+| Skipped source assertion | Native Windows delegate/assertion | Acceptance boundary |
+|---|---|---|
+| `test/adoption-inspect.test.mjs`: linked root, state and manifest | Native linked VCP state (existing), junction-selected root and symlinked manifest (new) | Requires real Windows/NTFS execution |
+| `test/adoption-inspect.test.mjs`: symlinked parent | Native in-root linked selected project/parent (new) | Requires real Windows/NTFS execution |
+| `test/safe-path.test.mjs`: external/internal symlinks, linked parent/root | Native junction read/write (existing), internal/external file links, linked selected root (new) | Requires real Windows/NTFS execution |
+| `test/adoption-plan.test.mjs`: symlinked source evidence | Native adoption-plan external source-evidence link refusal and foreign-byte preservation (new) | Requires real Windows/NTFS execution |
+
+**No delegate is considered accepted until the Windows agent confirms each
+exact test name PASS with NTFS, temporary-volume, reparse permissions and
+byte-preservation evidence.** These tests are not a native durable-writer
+replacement. The 26 native-helper skips, Windows durability, Checkpoint A,
+Stage12/13 full gates and old published CLI fence remain independent.
 
 ## Current safety boundary
 
