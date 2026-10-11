@@ -1,6 +1,7 @@
 # Task — Stage 14 Consumer Asset Separation (BUILD ONLY / NOT ACCEPTED)
 
-Status: Plan
+Status: Review
+Readiness: SOURCE CONSTRUCTION COMPLETE (not tested or accepted); Checkpoint A and D-01 remain NO-GO.
 Slug: `stage14-consumer-asset-separation`
 Tracking issue: https://github.com/Moeeryani/Vibe-Coding-Production-Kit/issues/103
 Development base: `98cb12e9a68129ba35f551195241ce426d6af802`
@@ -105,3 +106,28 @@ Additional final checks: `npm run check:stage12-contract`; `npm run check:stage1
 
 **PLAN / BUILD ONLY / CHECKPOINT A PENDING / D-01 NO-GO.**
 The user authorized moving **construction effort** to Stage14 and pausing tests. No exit/GO, production write permission, Stage12/13 closure, or release approval has been inferred.
+
+## Construction closeout — source only, no executable acceptance
+
+Phase-2 implementation source has been authored across: strict four-class
+`lib/asset-catalog.mjs`; stable legacy+explicit greenfield/minimal
+`lib/template.mjs`; slim `lib/greenfield-routing.mjs`;
+read-only `lib/consumer-asset-retirement-plan.mjs`; metadata-only
+`lib/consumer-asset-health.mjs` wired into Doctor; `vcp asset-plan`
+CLI with strictly refused mutation flags; package/framework/release-policy
+retention; 24 authored focused and preflight dogfood tests across
+`test/stage14-consumer-assets.test.mjs` and
+`test/stage14-dogfood.test.mjs`; developer docs and the
+`docs/STAGE14-ACCEPTANCE-MATRIX.md` handoff.
+
+Safety review included excluding newly added provider-only Stage14 docs
+from legacy-full installation, preserving unowned historical AGENTS files,
+no accidental CI assumption, catalog case/NFC/path collision refusal and
+keeping published 0.9.3/Windows-writer/D-01 boundaries intact.
+
+**This closes construction of the source slice, NOT any acceptance criterion
+requiring executable evidence.** No `npm test`, check, validate, native
+Linux/Windows, package smoke or Stage12/13/A13 final campaign was executed
+for this new branch during source construction. Final exact-SHA freeze and
+independent evidence are required before `Done`; Checkpoint A currently
+remains PENDING/NO-GO, and A14-15/A14-16 are NOT RUN/NO-GO respectively.
