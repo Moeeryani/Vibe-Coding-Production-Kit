@@ -263,3 +263,52 @@ cross-platform conformance and owner gates. Do not mark Stage13 DONE
 until those separate obligations are resolved. No main merge, release
 or publish. **No tests, native build, npm checks or CLI execution were
 run during the construction phase.**
+
+## 2026-10-11 continuity hardening — source authored; tests still deferred
+
+A follow-up engineering review found and fixed additional recovery and
+ownership gaps **without executing any check/CLI/compiler/test command**:
+
+- `lib/stage13-recovery-provenance.mjs`: exact staged or archival proof
+  is required for every missing v3 claimed file and every missing
+  created directory. A missing pathname by itself is not evidence that
+  rollback succeeded. The recovery planner fails closed when the
+  original inode disappears without its staged or forensic counterpart.
+- `lib/stage13-apply.mjs`: a failed **pre-WAL** private-state mutation
+  now leaves its adopt lock and operation-ID receipt in place for
+  bounded manual forensic classification, instead of releasing the
+  identifying lock and leaving unattributable control residue.
+- `lib/stage13-brownfield-preflight.mjs`: refuses a zero-action
+  transaction; the consent fingerprint also binds observed compatible
+  adapters and section ownership proposals.
+- `lib/stage13-recovery-lock.mjs`: can never treat a BLOCKED recovery
+  snapshot as permission to take over an old lock.
+- `lib/stage13-finalize.mjs`: finalization verifies the exact
+  selected-root identity, complete persisted backup ledger and original
+  managed-section preimages before clearing the terminal journal.
+- Selected-root IDs are now lossless `bigint` device/inode hashes in
+  apply, recovery, finalization and committed orphan handling; test
+  fixtures were updated to the same contract.
+- No silent first-adoption retry over forensic archives: read-only
+  `inspectProject` returns
+  `RETIRED_ADOPTION_EVIDENCE_PRESENT`, not EXISTING.
+- An in-root `.vcp-adoption-retired-...` archive requires explicit
+  consent in the recovery-approval object
+  (`allowInRootForensicArchive:true`).
+- CLI now exposes `adoption-recover` with explicit
+  `--yes --confirm-recovery <SHA256> --allow-forensic-archive`.
+  The **D-01 prewrite gate is invoked first**, so this command
+  cannot perform project I/O or mutations under current policy.
+- New source fixtures:
+  `test/stage13-recovery-provenance.test.mjs` and additional CLI,
+  retired-archive and recovery-lock regressions.
+  `scripts/check-stage13-construction-contract.mjs` pins these
+  safeguards but **has not been run**.
+
+This further narrows the source-development backlog. It does **not**
+resolve independently enforced same-UID/MAC writer isolation,
+Windows NTFS namespace durability, the unreleased greater-than-0.9.3
+schema-v2 reader, live crash/power-loss validation, or outstanding
+independent D-01 owner approval. Such facts cannot be manufactured
+from green source checks. **Stage13 is still not accepted, and main
+remains untouched.**
