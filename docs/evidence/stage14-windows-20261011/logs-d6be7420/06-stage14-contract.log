@@ -1,0 +1,7 @@
+----- BEGIN 06-stage14-contract :: npm run check:stage14-contract -----
+
+> vibe-coding-production@0.9.3 check:stage14-contract
+> node scripts/check-stage14-construction-contract.mjs
+
+STAGE14_SOURCE_CONSTRUCTION_PRESENT_ONLY; CHECKPOINT_A_PENDING; D01_NO_GO
+----- END 06-stage14-contract exit=0 elapsed=1s -----

@@ -1,0 +1,7 @@
+----- BEGIN 03-check-syntax :: npm run check -----
+
+> vibe-coding-production@0.9.3 check
+> node scripts/check-syntax.mjs
+
+Syntax check passed for 115 module(s).
+----- END 03-check-syntax exit=0 elapsed=6s -----

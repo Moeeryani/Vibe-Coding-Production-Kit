@@ -1,0 +1,43 @@
+Linux native RENAME_EXCHANGE retains both file inodes and contents | SKIP_REASON: Native Linux-only preservation proof
+Linux native exchange never fabricates missing file or overwrites source | SKIP_REASON: Native Linux-only preservation proof
+Linux native staged file and directory modes are exact under umask | SKIP_REASON: Native Linux-only preservation proof
+SIGKILL during a write burst leaves no torn committed files | SKIP_REASON: native helper not built (npm run build:native-linux)
+Stage13 never follows symlinked ancestor or claims foreign parent | SKIP_REASON: native Windows adoption-ancestor junction is exercised by test/stage13-windows-ntfs.test.mjs
+crash after ack: re-run is an idempotent no-op | SKIP_REASON: native helper not built (npm run build:native-linux)
+crash after move before ack: resume detects detached-evidence, no re-move | SKIP_REASON: native helper not built (npm run build:native-linux)
+crash before move: resume completes exactly one detach | SKIP_REASON: native helper not built (npm run build:native-linux)
+cross-filesystem rename fails closed with E_CROSS_FILESYSTEM | SKIP_REASON: native helper not built (npm run build:native-linux)
+deleteFile and removeEmptyDirectory sync parents; ENOTEMPTY is safe | SKIP_REASON: native helper not built (npm run build:native-linux)
+destination collision: advisory check AND atomic OS check both refuse | SKIP_REASON: native helper not built (npm run build:native-linux)
+enforce refuses a symlinked control tree | SKIP_REASON: linux-only
+enforce refuses without privilege | SKIP_REASON: linux-only
+enforced fence: kernel denies legacy writes (EACCES), bytes unchanged | SKIP_REASON: linux-only
+fixture refuses an in-project linked template file without following it | SKIP_REASON: native Windows file symlink is exercised by test/stage13-windows-ntfs.test.mjs
+foreign user file at root during cleanup fails verification | SKIP_REASON: native helper not built (npm run build:native-linux)
+happy path: verify -> move -> ack, archive holds pinned identity | SKIP_REASON: native helper not built (npm run build:native-linux)
+hardlink destination collision is refused; source hardlink survives move | SKIP_REASON: native helper not built (npm run build:native-linux)
+immutable backend reports honestly when the capability is absent | SKIP_REASON: linux-only
+inspect: linked root, .vcp state and manifest are never trusted | SKIP_REASON: Native Windows reparse/junction conformance pending
+inspect: symlinked parent component is rejected even for in-root target | SKIP_REASON: Native Windows reparse/junction conformance pending
+interrupted replace leaves original intact and staging is reapable | SKIP_REASON: native helper not built (npm run build:native-linux)
+journal hash mismatch and corrupt journal fail verification | SKIP_REASON: native helper not built (npm run build:native-linux)
+linked prejournal staging is never traversed | SKIP_REASON: native Windows pre-WAL staging junction is exercised by test/stage13-windows-ntfs.test.mjs
+lock changed between verify and move aborts the detach | SKIP_REASON: native helper not built (npm run build:native-linux)
+moveNoReplace refuses symlink at destination and symlink parents | SKIP_REASON: native helper not built (npm run build:native-linux)
+moveNoReplace succeeds fresh and refuses collisions atomically | SKIP_REASON: native helper not built (npm run build:native-linux)
+path validation rejects escapes before touching the helper | SKIP_REASON: native helper not built (npm run build:native-linux)
+planLegacyFence is read-only and reports kernel state | SKIP_REASON: linux-only
+probe reports kernel, filesystem and capability matrix | SKIP_REASON: native helper not built (npm run build:native-linux)
+reapStaging removes only provider staging files | SKIP_REASON: native helper not built (npm run build:native-linux)
+reject external and internal symlinks, linked parent and linked selected root | SKIP_REASON: native junction conformance pending
+replaceFileAtomic swaps content and leaves no staging files | SKIP_REASON: native helper not built (npm run build:native-linux)
+retention: manifest change between plan and execute aborts prune | SKIP_REASON: native helper not built (npm run build:native-linux)
+retention: prune plans by age, executes only with approval + re-verify | SKIP_REASON: native helper not built (npm run build:native-linux)
+retention: symlink inside archive aborts prune | SKIP_REASON: native helper not built (npm run build:native-linux)
+sibling archive requires an explicit approval object | SKIP_REASON: native helper not built (npm run build:native-linux)
+symlink at destination name is never replaced | SKIP_REASON: native helper not built (npm run build:native-linux)
+symlinked source evidence fails closed without reading outside root | SKIP_REASON: Native Windows junction test pending
+symlinks anywhere in initial rollback tree refuse ownership | SKIP_REASON: native Windows recovery-inventory junction is exercised by test/stage13-windows-ntfs.test.mjs
+two detaches produce distinct archives; old archive untouched | SKIP_REASON: native helper not built (npm run build:native-linux)
+verify detects ownership, mode and replacement violations | SKIP_REASON: linux-only
+writeFileSynced creates exclusive, synced files; second create fails | SKIP_REASON: native helper not built (npm run build:native-linux)

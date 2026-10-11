@@ -1,0 +1,4 @@
+----- BEGIN 12-pack-check :: env PATH=<REDACTED host PATH prefixed with C:/Windows/System32> npm run pack:check -----
+wsl: Unknown key 'wsl2.localharddriveaccess' in C:\Users\<REDACTED_USER>\.wslconfig:4
+<3>WSL (10 - Relay) ERROR: CreateProcessCommon:798: execvpe(/bin/bash) failed: No such file or directory
+----- END 12-pack-check exit=1 elapsed=4s -----

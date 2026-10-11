@@ -1,0 +1,31 @@
+campaign=stage14-windows-d6be7420
+started_utc=2026-10-11T04:48:19Z
+host_platform=win32 x64
+node_version=v24.5.0
+npm_version=11.5.2
+git_version=git version 2.49.0.windows.1
+TEMP=D:\vcp-stage14-tmp
+TMP=D:\vcp-stage14-tmp
+npm_config_cache=D:\vcp-stage14-npmcache
+os_tmpdir_as_seen_by_node=D:\vcp-stage14-tmp
+00-integrity                 exit=0   elapsed=0s
+head=d6be7420b21484ca33c9c9837fbcd781ebaa01df
+tree=aa0b04125850b1d1d1518ce3f6a55260a85415cc
+status_porcelain_lines=0
+01-npm-ci                    exit=0   elapsed=1s
+02-validate-framework        exit=0   elapsed=0s
+03-check-syntax              exit=0   elapsed=6s
+04-stage12-contract          exit=0   elapsed=0s
+05-stage13-contract          exit=0   elapsed=1s
+06-stage14-contract          exit=0   elapsed=1s
+07-doctor                    exit=0   elapsed=0s
+08-test-cli                  exit=1   elapsed=6s
+09-test-stage13              exit=0   elapsed=1s
+10-test-stage14              exit=0   elapsed=3s
+11-test-full                 exit=1   elapsed=24s
+12-pack-check                exit=1   elapsed=4s
+13-validate-composite        exit=1   elapsed=37s
+post_head=d6be7420b21484ca33c9c9837fbcd781ebaa01df
+post_status_porcelain_lines=0
+post_status_detail<<>>
+finished_utc=2026-10-11T04:49:44Z

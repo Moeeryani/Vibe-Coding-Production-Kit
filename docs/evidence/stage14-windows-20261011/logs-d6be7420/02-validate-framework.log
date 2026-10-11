@@ -1,0 +1,3 @@
+----- BEGIN 02-validate-framework :: node scripts/validate-framework.mjs -----
+Framework validation passed.
+----- END 02-validate-framework exit=0 elapsed=0s -----
