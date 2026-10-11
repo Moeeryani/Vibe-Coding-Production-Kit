@@ -256,8 +256,17 @@ int wmain(int argc, wchar_t* argv[]) {
     if (!completed) err = GetLastError();
   } else return 2;
 
+  // A held directory handle remains the *same object* after a pathname
+  // swap, so comparing only that handle with itself is meaningless.
+  // Reopen the ROOT PATH and compare its current identity as well.
+  Handle freshRoot(CreateFileW(root.c_str(), FILE_READ_ATTRIBUTES,
+      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+      nullptr, OPEN_EXISTING,
+      FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, nullptr));
+  BY_HANDLE_FILE_INFORMATION fresh = {};
   if (!rootIdentity(rootHandle.h, last) || !sameIdentity(first, last) ||
-      !safeInventory(root)) {
+      !freshRoot.valid() || !rootIdentity(freshRoot.h, fresh) ||
+      !sameIdentity(first, fresh) || !safeInventory(root)) {
     // Do not retry or cleanup. Preserve completed work for inspection.
     printResult(completed, fileSynced, false, ERROR_INVALID_HANDLE);
     return 5;
