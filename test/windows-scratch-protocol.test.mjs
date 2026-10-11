@@ -7,7 +7,7 @@ import {interpretWindowsScratchResult,windowsNativeCandidateStatus}
 
 function receipt(operation,overrides={}){
   return {kind:'VCP_WINDOWS_SCRATCH_NAMESPACE_CANDIDATE',
-    protocolVersion:1,operation,completed:true,
+    protocolVersion:2,operation,completed:true,
     fileFlushReturned:operation==='write-exclusive',
     mayHaveMutated:!['capabilities','sync-root'].includes(operation),
     directoryFlushReturned:true,lastWin32Error:0,
