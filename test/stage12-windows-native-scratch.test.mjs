@@ -6,6 +6,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,writeFile,readFile,rm,lstat,symlink,access} from 'node:fs/promises';
+import {spawnSync} from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
 import {
@@ -39,6 +40,19 @@ test('Windows native candidate never authorizes managed writes',async t=>{
   const foreignPath=path.join(foreign,'user.txt');
   const foreignBytes=Buffer.from('OUTSIDER USER BYTES\r\n');
   await writeFile(foreignPath,foreignBytes);
+  // Even a deliberate invocation of the C++ EXE must refuse another
+  // TEMP child that is not named as its disposable scratch namespace.
+  // A marker copied into an unrelated directory does NOT grant trust.
+  await writeFile(path.join(foreign,'VCP-STAGE12-DISPOSABLE-ONLY.marker'),
+    WINDOWS_NATIVE_SCRATCH_MARKER);
+  const unauthorized=spawnSync(DEFAULT_WINDOWS_SCRATCH_HELPER,[
+    '--scratch-root',foreign,'--op','write-exclusive','vcp-stage12-evil.bin'
+  ],{input:Buffer.from('UNAUTHORIZED'),encoding:'utf8',windowsHide:true});
+  assert.equal(unauthorized.error,undefined);
+  assert.equal(unauthorized.status,3);
+  await assert.rejects(()=>lstat(path.join(foreign,'vcp-stage12-evil.bin')),
+    {code:'ENOENT'});
+  assert.deepEqual(await readFile(foreignPath),foreignBytes);
   await writeFile(path.join(root,'VCP-STAGE12-DISPOSABLE-ONLY.marker'),
     WINDOWS_NATIVE_SCRATCH_MARKER);
   const candidate=new WindowsNamespaceScratchCandidate({root});
