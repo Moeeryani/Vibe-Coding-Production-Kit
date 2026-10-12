@@ -16,6 +16,8 @@
 #include <vector>
 #include <iostream>
 #include <algorithm>
+#include <sstream>
+#include <iomanip>
 
 struct OwnedHandle {
   HANDLE h=INVALID_HANDLE_VALUE;
@@ -107,6 +109,16 @@ bool impersonation(HANDLE primary,OwnedHandle& target){
     return false;
   target.h=duplicate;return true;
 }
+std::wstring identity(HANDLE h){
+  BY_HANDLE_FILE_INFORMATION info={};
+  if(!GetFileInformationByHandle(h,&info))return L"";
+  std::wostringstream result;
+  result<<std::hex<<std::setfill(L'0')
+    <<std::setw(8)<<info.dwVolumeSerialNumber
+    <<std::setw(8)<<info.nFileIndexHigh
+    <<std::setw(8)<<info.nFileIndexLow;
+  return result.str();
+}
 struct Check {
   bool completed=false;
   bool granted=false;
@@ -191,8 +203,9 @@ Observed inspect(const std::wstring& p,const std::wstring& label,
   return r;
 }
 void print(const std::wstring& sid,const std::wstring& project,
+           const std::wstring& rootId,const std::wstring& projectId,
            const std::vector<Observed>& observations){
-  std::wcout<<L"{\"kind\":\"D01_WINDOWS_TOKEN_ACL_READONLY_V1\","
+  std::wcout<<L"{\"kind\":\"D01_WINDOWS_TOKEN_ACL_READONLY_V2\","
     L"\"status\":\"NO_GO\",\"platform\":\"win32\","
     L"\"nativeWindows\":true,\"productionProject\":false,"
     L"\"managedMutationAuthorized\":false,"
@@ -200,6 +213,8 @@ void print(const std::wstring& sid,const std::wstring& project,
     L"\"nativePowerLossAttested\":false,"
     L"\"D01Approved\":false,"
     L"\"principalSid\":\""<<sid<<L"\","
+    L"\"rootIdentity\":\""<<rootId<<L"\","
+    L"\"projectIdentity\":\""<<projectId<<L"\","
     L"\"projectVariant\":\""<<project<<L"\",\"observations\":[";
   for(size_t i=0;i<observations.size();i++){
     const Observed& o=observations[i];
@@ -234,6 +249,18 @@ int wmain(int argc,wchar_t* argv[]){
   const std::wstring sid=currentSid(token.h);
   if(sid.empty())return 4;
   const std::wstring project=join(root,variant);
+  // Pin root and project against rename until all ACL observations finish.
+  // This narrows, but does not eliminate, ancestor-rename TOCTOU.
+  OwnedHandle rootPin(CreateFileW(root.c_str(),FILE_READ_ATTRIBUTES,
+    FILE_SHARE_READ|FILE_SHARE_WRITE,nullptr,OPEN_EXISTING,
+    FILE_FLAG_OPEN_REPARSE_POINT|FILE_FLAG_BACKUP_SEMANTICS,nullptr));
+  OwnedHandle projectPin(CreateFileW(project.c_str(),FILE_READ_ATTRIBUTES,
+    FILE_SHARE_READ|FILE_SHARE_WRITE,nullptr,OPEN_EXISTING,
+    FILE_FLAG_OPEN_REPARSE_POINT|FILE_FLAG_BACKUP_SEMANTICS,nullptr));
+  if(!rootPin.ok()||!projectPin.ok())return 5;
+  const std::wstring rootId=identity(rootPin.h);
+  const std::wstring projectId=identity(projectPin.h);
+  if(rootId.size()!=24||projectId.size()!=24)return 5;
   std::vector<Observed> observations;
   // Inspect every parent up to the volume root, not only the protected
   // file. Replace-at-parent is part of the old CLI attack surface.
@@ -255,7 +282,18 @@ int wmain(int argc,wchar_t* argv[]){
   if(same(variant,L"with-manifest"))
     observations.push_back(inspect(join(project,L".vcp\\manifest.json"),
       L"manifest",imp.h,false));
-  print(sid,variant,observations);
+  // Confirm that the originally pinned objects are still the objects
+  // reachable by path before emitting an attributable point-in-time receipt.
+  OwnedHandle rootReopen(CreateFileW(root.c_str(),FILE_READ_ATTRIBUTES,
+    FILE_SHARE_READ|FILE_SHARE_WRITE,nullptr,OPEN_EXISTING,
+    FILE_FLAG_OPEN_REPARSE_POINT|FILE_FLAG_BACKUP_SEMANTICS,nullptr));
+  OwnedHandle projectReopen(CreateFileW(project.c_str(),FILE_READ_ATTRIBUTES,
+    FILE_SHARE_READ|FILE_SHARE_WRITE,nullptr,OPEN_EXISTING,
+    FILE_FLAG_OPEN_REPARSE_POINT|FILE_FLAG_BACKUP_SEMANTICS,nullptr));
+  if(!rootReopen.ok()||!projectReopen.ok()||
+     identity(rootReopen.h)!=rootId||
+     identity(projectReopen.h)!=projectId)return 5;
+  print(sid,variant,rootId,projectId,observations);
   // Never return 0 as a "good fence" signal; caller must independently
   // replay real published 0.9.3 operations with a distinct native token.
   return 3;
