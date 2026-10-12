@@ -341,3 +341,17 @@ test('native security digest uses canonical SDDL instead of raw descriptor bytes
   assert.doesNotMatch(source,/reinterpret_cast<PUCHAR>\(descriptor\)/);
   assert.match(source,/reinterpret_cast<PUCHAR>\(canonical\)/);
 });
+
+test('inconclusive Windows stream enumeration fails closed',async()=>{
+  const source=await readFile(
+    'scripts/native/vcp-windows-d01-namespace-inventory.cpp','utf8');
+  const start=source.indexOf('bool unnamedStreamOnly(HANDLE h)');
+  const end=source.indexOf('std::string securityDigest(HANDLE h)',start);
+  assert.ok(start>=0&&end>start);
+  const implementation=source.slice(start,end);
+  assert.match(implementation,/GetFileInformationByHandleEx\(h,FileStreamInfo/);
+  assert.match(implementation,/NextEntryOffset==0/);
+  assert.match(implementation,/StreamNameLength==bytes/);
+  assert.doesNotMatch(implementation,/GetLastError\(\)==ERROR_HANDLE_EOF/);
+  assert.match(implementation,/GetFileInformationByHandleEx[\s\S]*?return false;/);
+});
