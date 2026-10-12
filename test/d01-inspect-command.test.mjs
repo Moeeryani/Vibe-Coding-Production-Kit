@@ -28,7 +28,8 @@ test('D-01 inspection CLI never exits 0 and does not mutate protected fixture',a
   assert.equal(run.status,3,run.stderr);
   const report=JSON.parse(run.stdout);
   assert.equal(report.status,'NO_GO');
-  assert.equal(report.readOnly,undefined); // no invented signed attestation
+  assert.equal(report.readOnly,true);
+  assert.equal(report.liveSnapshotCannotProveContinuedExclusion,true);
   assert.equal(report.productionWriterAuthorized,false);
   assert.equal(report.oldPackageExecutionVerified,false);
   assert.equal(report.acceptanceDecision,'NO_GO');
