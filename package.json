@@ -37,7 +37,8 @@
     "build:native-windows": "node scripts/build-native-windows.mjs",
     "test:native-windows-candidate": "node scripts/run-native-windows-candidate-tests.mjs",
     "build:native-windows:verify-repro": "node scripts/build-native-windows.mjs --verify-repro",
-    "inspect:d01-boundary": "node scripts/inspect-d01-boundary.mjs"
+    "inspect:d01-boundary": "node scripts/inspect-d01-boundary.mjs",
+    "probe:d01-linux-isolation": "node scripts/run-d01-linux-isolation-fixture.mjs"
   },
   "engines": {
     "node": ">=22"
