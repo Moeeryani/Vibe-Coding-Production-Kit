@@ -58,9 +58,11 @@ const plan={
     }))
 };
 const dir=(path,n)=>({path,type:'directory',identity:identity(n),
-  sha256:null,size:0});
+  sha256:null,size:0,attributes:0x10,
+  securitySha256:'c'.repeat(64)});
 const file=(path,n,hash,size)=>({path,type:'file',
-  identity:identity(n),sha256:hash.repeat(64),size});
+  identity:identity(n),sha256:hash.repeat(64),size,
+  attributes:0x20,securitySha256:'d'.repeat(64)});
 function native(variant,entries){
   const withManifest=variant==='with-manifest';
   const baseline=withManifest?
@@ -69,9 +71,12 @@ function native(variant,entries){
     [dir('.vcp',4),file('AGENTS.md',5,'a',41)];
   const list=entries??baseline;
   return {
-    kind:'D01_WINDOWS_NATIVE_NAMESPACE_INVENTORY_V1',
+    kind:'D01_WINDOWS_NATIVE_NAMESPACE_INVENTORY_V2',
     status:'NO_GO',variant,
     rootIdentity:fixture.rootIdentity,
+    rootAttributes:0x10,projectAttributes:0x10,
+    rootSecuritySha256:'e'.repeat(64),
+    projectSecuritySha256:'f'.repeat(64),
     projectIdentity:withManifest?
       fixture.withManifestIdentity:fixture.withoutManifestIdentity,
     entries:list,entryCount:list.length,
@@ -80,6 +85,8 @@ function native(variant,entries){
     maxSingleFileBytes:131072,maxTotalFileBytes:2097152,
     readOnly:true,sharesDelete:true,
     reparseEntriesRejected:true,hardlinkedFilesRejected:true,
+    alternateDataStreamsRejected:true,
+    ownerGroupDaclFingerprintMeasured:true,
     namespaceSnapshotAtomic:false,publishedOldCliExecutionProven:false,
     WindowsNamespaceDurabilityProven:false,
     managedMutationAuthorized:false,d01Approved:false
@@ -192,4 +199,28 @@ test('offline dual-project review has no spawn/write path and refuses absent evi
   ],{encoding:'utf8',shell:false});
   assert.equal(result.status,2);
   assert.match(result.stderr,/E_D01_WINDOWS_DUAL_INVENTORY_USAGE/);
+});
+
+test('legacy CLI that changes only sibling ACL or project root DACL cannot appear unchanged',()=>{
+  const modifiedSibling= native('without-manifest');
+  const siblingEntries=modifiedSibling.entries.map(x=>x.path==='AGENTS.md'?
+    {...x,securitySha256:'9'.repeat(64)}:x);
+  const siblingResult=compareWindowsD01PublishedDualProjectInventories({
+    ...good(),withoutAfter:envelope('without-manifest',siblingEntries)
+  });
+  assert.equal(siblingResult.targetProjectUnchangedObserved,true);
+  assert.equal(siblingResult.siblingProjectUnchangedObserved,false);
+  assert.deepEqual(siblingResult.observedChanges,[{
+    variant:'without-manifest',change:'altered',path:'AGENTS.md'
+  }]);
+  const projectRoot= {...envelope('without-manifest'),
+    nativeReceipt:{...native('without-manifest'),
+      projectSecuritySha256:'9'.repeat(64)}};
+  const rootResult=compareWindowsD01PublishedDualProjectInventories({
+    ...good(),withoutAfter:projectRoot
+  });
+  assert.equal(rootResult.siblingProjectUnchangedObserved,false);
+  assert.equal(rootResult.perProject[1].projectMetadataChanged,true);
+  assert.equal(rootResult.bothProjectsUnchangedObserved,false);
+  assert.equal(rootResult.status,'NO_GO');
 });
