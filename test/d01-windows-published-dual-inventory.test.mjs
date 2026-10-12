@@ -221,6 +221,9 @@ test('legacy CLI that changes only sibling ACL or project root DACL cannot appea
   });
   assert.equal(rootResult.siblingProjectUnchangedObserved,false);
   assert.equal(rootResult.perProject[1].projectMetadataChanged,true);
+  assert.deepEqual(rootResult.observedChanges,[{
+    variant:'without-manifest',change:'metadata',path:'@project-root'
+  }]);
   assert.equal(rootResult.bothProjectsUnchangedObserved,false);
   assert.equal(rootResult.status,'NO_GO');
 });
