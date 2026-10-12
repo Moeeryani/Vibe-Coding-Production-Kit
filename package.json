@@ -47,7 +47,8 @@
     "review:d01-windows-fixture": "node scripts/review-windows-d01-fixture.mjs",
     "build:native-windows-d01-kernel-denial": "node scripts/build-windows-d01-kernel-denial.mjs",
     "build:native-windows-d01-kernel-denial:verify-repro": "node scripts/build-windows-d01-kernel-denial.mjs --verify-repro",
-    "probe:d01-windows-kernel-denial": "node scripts/probe-windows-d01-kernel-denial.mjs"
+    "probe:d01-windows-kernel-denial": "node scripts/probe-windows-d01-kernel-denial.mjs",
+    "plan:d01-windows-published-cli": "node scripts/plan-windows-d01-published-cli.mjs"
   },
   "engines": {
     "node": ">=22"
