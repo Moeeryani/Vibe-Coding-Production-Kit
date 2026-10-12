@@ -162,6 +162,11 @@ int wmain(int argc,wchar_t* argv[]){
    std::wstring(argv[5])!=L"--old-sid"||
    std::wstring(argv[7])!=L"--root-id"||
    std::wstring(argv[9])!=L"--project-id")return 2;
+ wchar_t consent[80]={};
+ const DWORD chars=GetEnvironmentVariableW(
+   L"VCP_D01_WINDOWS_OLD_DENIAL",consent,80);
+ if(!chars||chars>=80||
+    std::wstring(consent)!=L"I_ACCEPT_DISPOSABLE_ONLY")return 2;
  const std::wstring root=argv[2],variant=argv[4],sid=argv[6];
  const std::wstring rootId=argv[8],projectId=argv[10];
  if(!safeRoot(root)||!validId(rootId)||!validId(projectId)||
