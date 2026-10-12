@@ -38,7 +38,9 @@
     "test:native-windows-candidate": "node scripts/run-native-windows-candidate-tests.mjs",
     "build:native-windows:verify-repro": "node scripts/build-native-windows.mjs --verify-repro",
     "inspect:d01-boundary": "node scripts/inspect-d01-boundary.mjs",
-    "probe:d01-linux-isolation": "node scripts/run-d01-linux-isolation-fixture.mjs"
+    "probe:d01-linux-isolation": "node scripts/run-d01-linux-isolation-fixture.mjs",
+    "build:native-windows-d01-readonly": "node scripts/build-windows-d01-readonly.mjs",
+    "build:native-windows-d01-readonly:verify-repro": "node scripts/build-windows-d01-readonly.mjs --verify-repro"
   },
   "engines": {
     "node": ">=22"
