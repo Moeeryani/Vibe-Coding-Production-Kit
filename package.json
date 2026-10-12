@@ -53,7 +53,10 @@
     "build:native-windows-d01-snapshot": "node scripts/build-windows-d01-protected-snapshot.mjs",
     "build:native-windows-d01-snapshot:verify-repro": "node scripts/build-windows-d01-protected-snapshot.mjs --verify-repro",
     "inspect:d01-windows-protected-snapshot": "node scripts/inspect-windows-d01-protected-snapshot.mjs",
-    "correlate:d01-windows-published-snapshots": "node scripts/correlate-windows-d01-published-snapshots.mjs"
+    "correlate:d01-windows-published-snapshots": "node scripts/correlate-windows-d01-published-snapshots.mjs",
+    "build:native-windows-d01-inventory": "node scripts/build-windows-d01-namespace-inventory.mjs",
+    "build:native-windows-d01-inventory:verify-repro": "node scripts/build-windows-d01-namespace-inventory.mjs --verify-repro",
+    "inspect:d01-windows-namespace-inventory": "node scripts/inspect-windows-d01-namespace-inventory.mjs"
   },
   "engines": {
     "node": ">=22"
