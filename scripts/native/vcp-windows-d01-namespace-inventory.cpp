@@ -12,6 +12,9 @@
 #include <knownfolders.h>
 #include <objbase.h>
 #include <bcrypt.h>
+#include <aclapi.h>
+#include <cstddef>
+#include <cstring>
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -47,6 +50,8 @@ struct Entry {
  std::string identity;
  std::string digest;
  DWORD size=0;
+ DWORD attributes=0;
+ std::string securitySha256;
 };
 constexpr DWORD FILE_LIMIT=131072;
 constexpr DWORD TOTAL_LIMIT=2097152;
@@ -139,11 +144,61 @@ bool trustedRoot(const std::wstring& root){
 }
 Handle openPath(const std::wstring& name,bool directory){
  return Handle(CreateFileW(name.c_str(),
-   FILE_READ_ATTRIBUTES|(directory?0:FILE_READ_DATA),
+   READ_CONTROL|FILE_READ_ATTRIBUTES|(directory?0:FILE_READ_DATA),
    FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
    nullptr,OPEN_EXISTING,
    FILE_FLAG_OPEN_REPARSE_POINT|
      (directory?FILE_FLAG_BACKUP_SEMANTICS:0),nullptr));
+}
+// Fail closed on NTFS alternate named streams: a file's default $DATA
+// digest alone does not detect mutations to hidden ADS. An unsupported
+// enumeration result is NOT an assertion that streams are absent.
+bool unnamedStreamOnly(HANDLE h){
+ alignas(8) BYTE buffer[8192]={};
+ if(!GetFileInformationByHandleEx(h,FileStreamInfo,buffer,
+     static_cast<DWORD>(sizeof(buffer)))){
+  return GetLastError()==ERROR_HANDLE_EOF;
+ }
+ const auto* entry=reinterpret_cast<const FILE_STREAM_INFO*>(buffer);
+ constexpr wchar_t standard[]=L"::$DATA";
+ const DWORD bytes=static_cast<DWORD>(sizeof(standard)-sizeof(wchar_t));
+ return entry->NextEntryOffset==0&&
+   entry->StreamNameLength==bytes&&
+   std::memcmp(entry->StreamName,standard,bytes)==0;
+}
+std::string securityDigest(HANDLE h){
+ PSECURITY_DESCRIPTOR descriptor=nullptr;
+ const DWORD result=GetSecurityInfo(h,SE_FILE_OBJECT,
+   OWNER_SECURITY_INFORMATION|GROUP_SECURITY_INFORMATION|
+     DACL_SECURITY_INFORMATION,
+   nullptr,nullptr,nullptr,nullptr,&descriptor);
+ if(result!=ERROR_SUCCESS||!descriptor)return "";
+ const DWORD length=GetSecurityDescriptorLength(descriptor);
+ std::string hash;
+ if(length>0&&length<=65536){
+  Cng cng;
+  if(cng.start()&&BCryptHashData(cng.hash,
+      reinterpret_cast<PUCHAR>(descriptor),length,0)>=0){
+   BYTE output[32]={};
+   if(BCryptFinishHash(cng.hash,output,32,0)>=0){
+    std::ostringstream hex;
+    hex<<std::hex<<std::setfill('0');
+    for(BYTE b:output)hex<<std::setw(2)<<static_cast<unsigned>(b);
+    hash=hex.str();
+   }
+  }
+ }
+ LocalFree(descriptor);
+ return hash;
+}
+bool metadata(HANDLE h,DWORD& attrs,std::string& security){
+ BY_HANDLE_FILE_INFORMATION info={};
+ if(!GetFileInformationByHandle(h,&info)||
+    (info.dwFileAttributes&FILE_ATTRIBUTE_REPARSE_POINT)!=0||
+    !unnamedStreamOnly(h))return false;
+ attrs=info.dwFileAttributes;
+ security=securityDigest(h);
+ return security.size()==64;
 }
 bool identityMatches(const std::wstring& name,bool directory,
                      const std::string& identity){
@@ -152,7 +207,8 @@ bool identityMatches(const std::wstring& name,bool directory,
  BY_HANDLE_FILE_INFORMATION st={};
  if(!GetFileInformationByHandle(h.h,&st)||
     (st.dwFileAttributes&FILE_ATTRIBUTE_REPARSE_POINT)||
-    ((st.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)!=0)!=directory)
+    ((st.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)!=0)!=directory||
+    !unnamedStreamOnly(h.h))
    return false;
  return id(h.h)==identity;
 }
@@ -164,7 +220,10 @@ bool hashFile(const std::wstring& name,Entry& entry,DWORD& totalBytes){
     (before.dwFileAttributes&(FILE_ATTRIBUTE_DIRECTORY|
                               FILE_ATTRIBUTE_REPARSE_POINT))!=0||
     before.nNumberOfLinks!=1||before.nFileSizeHigh!=0||
-    before.nFileSizeLow>FILE_LIMIT)return false;
+    before.nFileSizeLow>FILE_LIMIT||
+    !metadata(file.h,entry.attributes,entry.securitySha256))return false;
+ const DWORD originalAttributes=entry.attributes;
+ const std::string originalSecurity=entry.securitySha256;
  Cng digest;
  if(!digest.start())return false;
  DWORD readTotal=0;
@@ -191,6 +250,11 @@ bool hashFile(const std::wstring& name,Entry& entry,DWORD& totalBytes){
       after.ftLastWriteTime.dwLowDateTime||
     before.ftLastWriteTime.dwHighDateTime!=
       after.ftLastWriteTime.dwHighDateTime)return false;
+ DWORD finalAttributes=0;
+ std::string finalSecurity;
+ if(!metadata(file.h,finalAttributes,finalSecurity)||
+    originalAttributes!=finalAttributes||
+    originalSecurity!=finalSecurity)return false;
  entry.identity=id(file.h);
  if(entry.identity.size()!=24)return false;
  entry.size=readTotal;
@@ -212,7 +276,10 @@ bool walk(const std::wstring& dir,const std::string& relative,
                               FILE_ATTRIBUTE_REPARSE_POINT))!=
       FILE_ATTRIBUTE_DIRECTORY)return false;
  const std::string dirId=id(handle.h);
- if(dirId.size()!=24)return false;
+ DWORD dirAttributes=0;
+ std::string dirSecurity;
+ if(dirId.size()!=24||
+    !metadata(handle.h,dirAttributes,dirSecurity))return false;
  WIN32_FIND_DATAW found={};
  const std::wstring mask=join(dir,L"*");
  HANDLE find=FindFirstFileW(mask.c_str(),&found);
@@ -253,12 +320,17 @@ bool walk(const std::wstring& dir,const std::string& relative,
      valid=false;break;
     }
     e.identity=id(next.h);
-    if(e.identity.size()!=24){
+    if(e.identity.size()!=24||
+       !metadata(next.h,e.attributes,e.securitySha256)){
      valid=false;break;
     }
     entries.push_back(e);
+    DWORD attrsAfter=0;
+    std::string securityAfter;
     if(!walk(full,rel,depth+1,entries,bytes)||
-       !identityMatches(full,true,e.identity)){
+       !identityMatches(full,true,e.identity)||
+       !metadata(next.h,attrsAfter,securityAfter)||
+       attrsAfter!=e.attributes||securityAfter!=e.securitySha256){
       valid=false;break;
     }
    }else{
@@ -279,6 +351,11 @@ bool walk(const std::wstring& dir,const std::string& relative,
       FILE_ATTRIBUTE_DIRECTORY||
     id(handle.h)!=dirId||
     !identityMatches(dir,true,dirId))return false;
+ DWORD dirAttributesAfter=0;
+ std::string dirSecurityAfter;
+ if(!metadata(handle.h,dirAttributesAfter,dirSecurityAfter)||
+    dirAttributes!=dirAttributesAfter||
+    dirSecurity!=dirSecurityAfter)return false;
  return true;
 }
 bool markerOk(const std::wstring& root){
@@ -316,20 +393,39 @@ int wmain(int argc,wchar_t* argv[]){
  const std::wstring project=join(root,variant);
  if(!identityMatches(root,true,ascii(rootId))||
     !identityMatches(project,true,ascii(projectId)))return 5;
+ Handle rootHandle=openPath(root,true),projectHandle=openPath(project,true);
+ DWORD rootAttributes=0,projectAttributes=0;
+ std::string rootSecurity,projectSecurity;
+ if(!rootHandle.ok()||!projectHandle.ok()||
+    !metadata(rootHandle.h,rootAttributes,rootSecurity)||
+    !metadata(projectHandle.h,projectAttributes,projectSecurity))
+   return 5;
  DWORD totalBytes=0;
  std::vector<Entry> entries;
+ DWORD rootFinalAttributes=0,projectFinalAttributes=0;
+ std::string rootFinalSecurity,projectFinalSecurity;
  if(!walk(project,"",0,entries,totalBytes)||
     !identityMatches(root,true,ascii(rootId))||
-    !identityMatches(project,true,ascii(projectId)))return 5;
+    !identityMatches(project,true,ascii(projectId))||
+    !metadata(rootHandle.h,rootFinalAttributes,rootFinalSecurity)||
+    !metadata(projectHandle.h,projectFinalAttributes,projectFinalSecurity)||
+    rootAttributes!=rootFinalAttributes||
+    projectAttributes!=projectFinalAttributes||
+    rootSecurity!=rootFinalSecurity||
+    projectSecurity!=projectFinalSecurity)return 5;
  std::sort(entries.begin(),entries.end(),
   [](const Entry& a,const Entry& b){return a.relative<b.relative;});
  // Exact, unescaped ASCII-only names are guaranteed by simpleName().
- std::cout<<"{\"kind\":\"D01_WINDOWS_NATIVE_NAMESPACE_INVENTORY_V1\","
+ std::cout<<"{\"kind\":\"D01_WINDOWS_NATIVE_NAMESPACE_INVENTORY_V2\","
   <<"\"status\":\"NO_GO\","
   <<"\"variant\":\""<<(variant==L"with-manifest"?
     "with-manifest":"without-manifest")<<"\","
   <<"\"rootIdentity\":\""<<ascii(rootId)<<"\","
   <<"\"projectIdentity\":\""<<ascii(projectId)<<"\","
+  <<"\"rootAttributes\":"<<rootAttributes<<","
+  <<"\"projectAttributes\":"<<projectAttributes<<","
+  <<"\"rootSecuritySha256\":\""<<rootSecurity<<"\","
+  <<"\"projectSecuritySha256\":\""<<projectSecurity<<"\","
   <<"\"entries\":[";
  for(size_t i=0;i<entries.size();i++){
   if(i)std::cout<<",";
@@ -337,6 +433,8 @@ int wmain(int argc,wchar_t* argv[]){
   std::cout<<"{\"path\":\""<<e.relative<<"\","
     <<"\"type\":\""<<e.type<<"\","
     <<"\"identity\":\""<<e.identity<<"\","
+    <<"\"attributes\":"<<e.attributes<<","
+    <<"\"securitySha256\":\""<<e.securitySha256<<"\","
     <<"\"sha256\":";
   if(e.type=="file")std::cout<<"\""<<e.digest<<"\"";
   else std::cout<<"null";
@@ -348,6 +446,8 @@ int wmain(int argc,wchar_t* argv[]){
   <<"\"maxSingleFileBytes\":131072,\"maxTotalFileBytes\":2097152,"
   <<"\"readOnly\":true,\"sharesDelete\":true,"
   <<"\"reparseEntriesRejected\":true,\"hardlinkedFilesRejected\":true,"
+  <<"\"alternateDataStreamsRejected\":true,"
+  <<"\"ownerGroupDaclFingerprintMeasured\":true,"
   <<"\"namespaceSnapshotAtomic\":false,"
   <<"\"publishedOldCliExecutionProven\":false,"
   <<"\"WindowsNamespaceDurabilityProven\":false,"
