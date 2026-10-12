@@ -6,8 +6,9 @@
 // No published 0.9.3 CLI is executed by this diagnostic; testing old real
 // package entrypoints under isolated identities is a separate gate.
 // A passing diagnostic is NOT a D-01 approval or a durability certificate.
-import {writeFile} from 'node:fs/promises';
-import {provisionD01LinuxFixture,probeD01LinuxFixture}
+import {writeFile,readFile,lstat} from 'node:fs/promises';
+import {provisionD01LinuxFixture,probeD01LinuxFixture,
+  stageD01VerifiedOldCliArchive}
   from '../lib/d01-linux-isolation-fixture.mjs';
 
 function refuse(code){
@@ -15,7 +16,8 @@ function refuse(code){
   process.exit(2);
 }
 const allow=new Set([
-  '--old-uid','--old-gid','--writer-uid','--writer-gid','--setpriv'
+  '--old-uid','--old-gid','--writer-uid','--writer-gid','--setpriv',
+  '--legacy-tgz','--legacy-sha512'
 ]);
 const args={};
 for(let i=2;i<process.argv.length;i+=2){
@@ -34,6 +36,8 @@ function integer(key){
 }
 if(process.env.VCP_D01_DISPOSABLE_ISOLATION!=='I_UNDERSTAND_DISPOSABLE_ONLY')
   refuse('Set VCP_D01_DISPOSABLE_ISOLATION=I_UNDERSTAND_DISPOSABLE_ONLY');
+if(Boolean(args['--legacy-tgz'])!==Boolean(args['--legacy-sha512']))
+  refuse('--legacy-tgz and independently supplied --legacy-sha512 are required together');
 const options={
   oldUid:integer('--old-uid'),oldGid:integer('--old-gid'),
   writerUid:integer('--writer-uid'),writerGid:integer('--writer-gid'),
@@ -43,11 +47,32 @@ let fixture;
 try{
   fixture=await provisionD01LinuxFixture(options);
   const proof=await probeD01LinuxFixture(fixture);
+  let staged=null;
+  if(args['--legacy-tgz']){
+    const archivePath=args['--legacy-tgz'];
+    if(!archivePath.startsWith('/')||
+       !/^[a-f0-9]{128}$/.test(args['--legacy-sha512']))
+      refuse('Supply an absolute .tgz path and independent lower-case SHA512 hex');
+    const archiveStat=await lstat(archivePath);
+    if(!archiveStat.isFile()||archiveStat.isSymbolicLink()||
+       archiveStat.nlink!==1||archiveStat.size>16*1024*1024)
+      refuse('Archive path must be a bounded nonlinked regular file');
+    const bytes=await readFile(archivePath);
+    staged=await stageD01VerifiedOldCliArchive(fixture,{
+      archiveBytes:bytes,expectedSha512:args['--legacy-sha512']
+    });
+  }
+  const combined=Object.freeze({...proof,
+    packageStage:staged,
+    publishedCliEntrypointsTested:false,
+    publishedArtifactExecuted:false,
+    managedMutationAuthorized:false,
+    d01Approval:false});
   // Receipt is kept inside newly allocated, root-owned evidence namespace.
   // Do not delete fixtures after a failure; forensic contents matter.
   await writeFile(fixture.root+'/isolation-receipt.json',
-    JSON.stringify(proof,null,2)+'\n',{flag:'wx',mode:0o600});
-  console.log(JSON.stringify(proof,null,2));
+    JSON.stringify(combined,null,2)+'\n',{flag:'wx',mode:0o600});
+  console.log(JSON.stringify(combined,null,2));
   if(!proof.kernelDacDenialObserved)
     console.error('E_D01_KERNEL_DENIAL_UNPROVEN');
 }catch(error){
