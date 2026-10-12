@@ -4,7 +4,8 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {
-  provisionD01LinuxFixture,probeD01LinuxFixture
+  provisionD01LinuxFixture,probeD01LinuxFixture,
+  stageD01VerifiedOldCliArchive
 } from '../lib/d01-linux-isolation-fixture.mjs';
 import {MANAGED_SCHEMA_MIGRATION_GATE} from '../lib/managed-migration.mjs';
 
@@ -23,6 +24,10 @@ test('forged D-01 fixture cannot invoke a mutating native UID probe',async()=>{
   ]){
     await assert.rejects(()=>probeD01LinuxFixture(fake),
       {code:'E_D01_FIXTURE_RECEIPT_INVALID'});
+    await assert.rejects(()=>stageD01VerifiedOldCliArchive(fake,{
+      archiveBytes:Buffer.from('not-an-archive'),
+      expectedSha512:'0'.repeat(128)
+    }),{code:'E_D01_FIXTURE_RECEIPT_INVALID'});
   }
   assert.equal(MANAGED_SCHEMA_MIGRATION_GATE.managedV2MutationAuthorized,false);
 });
