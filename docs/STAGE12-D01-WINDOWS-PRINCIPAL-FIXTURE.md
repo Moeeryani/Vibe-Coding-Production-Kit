@@ -94,3 +94,16 @@ Do **not** turn the new plan into an automatic Windows CLI launcher until the fo
 - Crash/concurrent-process and power-loss/recovery testing. A completed Windows `FlushFileBuffers` call is not NTFS namespace power-loss durability certification.
 
 `D-01=DEFERRED`; `G-FENCE=NO-GO`; `managedV2MutationAuthorized=false`. A complete operator-reported matrix still requires independent native validation and explicit owner approval before anyone may propose opening D-01.
+
+
+### Offline review of externally collected old-CLI observations
+
+The **operator**, not ChatGPT or the planner, must preserve authenticated Windows process traces and protected file snapshots. When observation JSON records have been gathered in an independently isolated VM, review them with:
+
+```powershell
+npm run review:d01-windows-published-cli -- --plan "C:\evidence\d01-old-cli-plan.json" --observations "C:\evidence\d01-old-cli-observations.json"
+```
+
+The observations file must contain a JSON array; each entry names one of the ten exact scenario IDs, old SID and archive SHA-512, NTFS root/project IDs, staged entrypoint SHA-256, command exit, before/after SHA-256 plus original file identities, and the independently recorded Windows error when available. Records describing `ERROR_SHARING_VIOLATION (32)` are **never** counted as `ERROR_ACCESS_DENIED (5)`. The reviewer strictly checks the ten fixed command argument arrays and the post-backup writer-edit requirements; a substituted `noop` script or arbitrary project path is rejected.
+
+Outputs reflect what the operator **reported**, NOT what the current ChatGPT session independently proved. They are always `status:NO_GO`, exit 3; any incomplete scenario coverage, non-verifiable process origin, missing native VM/network proof, unsigned observation provenance or unverified immutable staged executable keeps D-01 closed. The review never mutates files or starts the old CLI.
