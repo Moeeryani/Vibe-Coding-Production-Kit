@@ -70,6 +70,29 @@ test('windows mode bits never establish an ACL or token security boundary',()=>{
   assert.ok(codes(r).includes('E_D01_NATIVE_OS_ACCESS_CHECK_REQUIRED'));
 });
 
+test('Windows separate SIDs still require native DACL/token/access checks',()=>{
+  const entries=fixture('C:\\isolated\\repo','C:\\isolated\\repo\\AGENTS.md');
+  const observed=assess(entries,{platform:'win32',legacyUid:undefined,
+    writerUid:undefined,legacySid:'S-1-5-21-100-200-300-1001',
+    writerSid:'S-1-5-21-100-200-300-1002'});
+  assert.equal(observed.mayProceedToSeparateNativeProof,false);
+  assert.ok(codes(observed).includes('E_D01_NATIVE_OS_ACCESS_CHECK_REQUIRED'));
+  const same=assess(entries,{platform:'win32',legacyUid:undefined,
+    writerUid:undefined,legacySid:'S-1-5-21-100-200-300-1001',
+    writerSid:'S-1-5-21-100-200-300-1001'});
+  assert.ok(codes(same).includes('E_D01_SAME_OS_PRINCIPAL'));
+  const unknown=assess(entries,{platform:'win32',
+    legacyUid:undefined,writerUid:undefined});
+  assert.ok(codes(unknown).includes('E_D01_WINDOWS_SID_REQUIRED'));
+});
+
+test('unverified POSIX supplementary groups cannot count as safe',()=>{
+  const entries=fixture('/isolated/repo','/isolated/repo/AGENTS.md');
+  const observed=assess(entries,{legacyGids:[]});
+  assert.equal(observed.mayProceedToSeparateNativeProof,false);
+  assert.ok(codes(observed).includes('E_D01_LEGACY_GROUPS_UNVERIFIED'));
+});
+
 test('same legacy/writer principal, root privilege and hardlink all fail closed',()=>{
   const entries=fixture('/isolated/repo','/isolated/repo/AGENTS.md');
   entries[2].stat={...entries[2].stat,nlink:2};
