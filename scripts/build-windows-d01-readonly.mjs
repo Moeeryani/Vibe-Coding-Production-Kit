@@ -30,7 +30,8 @@ const sha=data=>createHash('sha256').update(data).digest('hex');
 const sourceHash=sha(await readFile(source));
 const args=['/nologo','/std:c++17','/EHsc','/W4','/WX',
   '/Fo:'+obj,'/Fe:'+exe,source,
-  '/link','Advapi32.lib','/Brepro','/INCREMENTAL:NO'];
+  '/link','Advapi32.lib','Shell32.lib','Ole32.lib','Uuid.lib',
+  '/Brepro','/INCREMENTAL:NO'];
 await rm(receiptPath,{force:true});
 function build(){
   const run=spawnSync('cl.exe',args,{
