@@ -374,3 +374,24 @@ test('native root and project handles are identity-pinned across inventory walk'
     assert.match(source.slice(walked,published),match);
   }
 });
+
+test('inventory rejects aliases between root, project and child NTFS identities',()=>{
+  const baseline=inventory();
+  const variants=[
+    {...baseline,projectIdentity:baseline.rootIdentity},
+    {...baseline,entries:[
+      {...dir('.vcp',1),identity:baseline.rootIdentity},
+      file('.vcp/manifest.json',2,'b',22),file('AGENTS.md',3,'a',41)
+    ]},
+    {...baseline,entries:[
+      dir('.vcp',1),
+      {...file('.vcp/manifest.json',2,'b',22),
+        identity:baseline.projectIdentity},
+      file('AGENTS.md',3,'a',41)
+    ]}
+  ];
+  for(const payload of variants){
+    assert.throws(()=>validateWindowsD01NativeNamespaceInventory(payload),
+      e=>/^E_D01_WINDOWS_INVENTORY_/.test(e.code));
+  }
+});
