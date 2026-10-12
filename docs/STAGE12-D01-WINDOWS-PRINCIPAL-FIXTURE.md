@@ -107,3 +107,35 @@ npm run review:d01-windows-published-cli -- --plan "C:\evidence\d01-old-cli-plan
 The observations file must contain a JSON array; each entry names one of the ten exact scenario IDs, old SID and archive SHA-512, NTFS root/project IDs, staged entrypoint SHA-256, command exit, before/after SHA-256 plus original file identities, and the independently recorded Windows error when available. Records describing `ERROR_SHARING_VIOLATION (32)` are **never** counted as `ERROR_ACCESS_DENIED (5)`. The reviewer strictly checks the ten fixed command argument arrays and the post-backup writer-edit requirements; a substituted `noop` script or arbitrary project path is rejected.
 
 Outputs reflect what the operator **reported**, NOT what the current ChatGPT session independently proved. They are always `status:NO_GO`, exit 3; any incomplete scenario coverage, non-verifiable process origin, missing native VM/network proof, unsigned observation provenance or unverified immutable staged executable keeps D-01 closed. The review never mutates files or starts the old CLI.
+
+
+## Native NTFS protected-data SHA-256 snapshot (built source; NOT accepted)
+
+The **new independent read-only native snapshot** is `scripts/native/vcp-windows-d01-protected-snapshot.cpp`. It is separate from the old-token mutation witness and the legacy published CLI. It computes SHA-256 and the actual `volumeSerial:indexHigh:indexLow` identity for `AGENTS.md` and, when applicable, `.vcp/manifest.json`. It verifies the exact D-01 marker, root/project file IDs and a randomized **direct OS-known NTFS ProgramData child** and refuses reparse points or hardlinked protected files. All file handles share `FILE_SHARE_DELETE`, specifically to avoid making a rename fail merely because an observer is holding a DELETE-denying share handle. This makes the snapshot **non-atomic** and unsuitable as a concurrent writer fence; capture it sequentially immediately before and after each test. It never writes, renames, deletes or repairs the fixture.
+
+Build in a Visual Studio x64 Developer Command Prompt:
+
+```cmd
+npm run build:native-windows-d01-snapshot:verify-repro
+```
+
+This is an unshipped helper: inspect the source/binary SHA-256 and independent compile reproducibility receipt under `build/native-windows/d01-protected-snapshot/`. Build commands have NOT yet been run on MSVC for the current HEAD.
+
+After creating an **approved disposable fixture** through the separate D-01 constructor, capture:
+
+```cmd
+npm run inspect:d01-windows-protected-snapshot -- --fixture-receipt C:\evidence\fixture.json --variant with-manifest
+npm run inspect:d01-windows-protected-snapshot -- --fixture-receipt C:\evidence\fixture.json --variant without-manifest
+```
+
+Each invocation returns **exit 3** with JSON on stdout, and must be captured by the independent operator **without mixing stderr into the JSON**. The wrapper compares the current C++ source and EXE SHA-256 to the native build receipt, verifies the fixture's exact NTFS root and project IDs, parses the helper's strict native receipt, and refuses forged GO or claimed durability.
+
+For **each independently isolated published-old-0.9.3 command**, capture a fresh "before" snapshot and a fresh "after" snapshot, plus a separate operator observation containing the actual command, byte hashes, NTFS IDs and native error report. Then correlate the three data sources, entirely offline:
+
+```cmd
+npm run correlate:d01-windows-published-snapshots -- --plan C:\evidence\published-plan.json --observation C:\evidence\one-old-cli-observation.json --before C:\evidence\before-snapshot.json --after C:\evidence\after-snapshot.json --scenario-id with-manifest/init-force
+```
+
+The correlation code checks exact scenario command arguments and target namespace, immutable old-package SHA-512 metadata, the original manifest baseline, consistency of every reported hash and file ID with both native snapshots, and whether the native observer's source/executable hashes stayed identical between both captures. Rollback has an additional precondition: **the pre-rollback AGENTS.md snapshot must differ from the original minted fixture**, because the new writer must have made a post-backup edit. This is a necessary check, **not** proof that an authorized writer edited it *after* a verified backup; chronology and privilege remain separate proof obligations.
+
+**Limits:** An operator-created JSON object may be fabricated. Matching snapshots do not authenticate the process that ran, an OS principal's group and privilege state, the native binary actually executing, the external VM network boundary, user-edit provenance, filesystem atomicity or power-loss durability. Neither stdout nor exit 3 opens the fence. The native helper's protected data read has a deliberate 128 KiB per-file cap and fails closed beyond it; this is a disposable fixture test, not production content support. Do not run old v0.9.3 through this code: none of these CLIs executes a published binary. `D-01=DEFERRED`, `G-FENCE=NO-GO`, and Windows production durability remains unproven.
