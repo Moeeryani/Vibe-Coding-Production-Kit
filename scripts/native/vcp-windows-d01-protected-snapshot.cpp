@@ -146,12 +146,17 @@ Snapshot fileSnapshot(const std::wstring& name,
  Digest digest;
  if(!digest.open())return {};
  std::string bytes;
+ DWORD totalBytes=0;
  char buffer[4096]={};
  for(;;){
   DWORD n=0;
   if(!ReadFile(h.h,buffer,sizeof(buffer),&n,nullptr))return {};
   if(n==0)break;
-  if(bytes.size()+n>131072)return {};
+  // Never rely on the optional marker-only buffer size for this limit.
+  // All protected AGENTS/manifest data reads must enforce the same cap,
+  // including a file that grows after GetFileInformationByHandle.
+  if(n>131072-totalBytes)return {};
+  totalBytes+=n;
   if(exactLiteral)bytes.append(buffer,n);
   if(BCryptHashData(digest.hash,
      reinterpret_cast<PUCHAR>(buffer),n,0)<0)return {};
@@ -165,6 +170,8 @@ Snapshot fileSnapshot(const std::wstring& name,
     before.nFileIndexLow!=after.nFileIndexLow||
     before.nFileSizeHigh!=after.nFileSizeHigh||
     before.nFileSizeLow!=after.nFileSizeLow||
+    after.nFileSizeHigh!=0||
+    totalBytes!=after.nFileSizeLow||
     (exactLiteral&&bytes!=*exactLiteral))return {};
  std::ostringstream hex;
  hex<<std::hex<<std::setfill('0');
