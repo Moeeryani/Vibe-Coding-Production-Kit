@@ -7,6 +7,8 @@ import {readFile} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
 import {compareWindowsD01PublishedDualProjectInventories}
   from '../lib/d01-windows-published-dual-inventory.mjs';
+import {validateWindowsD01NativeNamespaceInventory}
+  from '../lib/windows-d01-namespace-inventory-evidence.mjs';
 const identity=n=>n.toString(16).padStart(24,'0');
 const sidOld='S-1-5-21-100-200-300-1001';
 const sidWriter='S-1-5-21-100-200-300-1002';
@@ -99,12 +101,7 @@ function envelope(variant,entries){
     status:'NO_GO',fixtureRoot:root,
     sourceSha256:'1'.repeat(64),executableSha256:'2'.repeat(64),
     nativeReceipt:report,
-    review:{
-      kind:'D01_WINDOWS_NATIVE_NAMESPACE_INVENTORY_REVIEW_V1',
-      status:'NO_GO',variant,
-      rootIdentity:report.rootIdentity,projectIdentity:report.projectIdentity,
-      managedMutationAuthorized:false,d01Approved:false
-    },
+    review:validateWindowsD01NativeNamespaceInventory(report),
     executablePinningIndependentlyAttested:false,
     namespaceSnapshotAtomic:false,oldCliExecutionProven:false,
     WindowsNamespaceDurabilityProven:false,
