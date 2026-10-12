@@ -96,7 +96,7 @@ bool oldToken(const std::wstring& expected){
  BOOL member=FALSE;
  if(!CreateWellKnownSid(WinBuiltinAdministratorsSid,nullptr,
                         administrators,&length)||
-    !CheckTokenMembership(t.h,administrators,&member)||member)return false;
+    !CheckTokenMembership(nullptr,administrators,&member)||member)return false;
  // A token that may re-enable powerful privileges is not a valid test.
  DWORD len=0;GetTokenInformation(t.h,TokenPrivileges,nullptr,0,&len);
  if(!len||len>32768)return false;
