@@ -262,6 +262,15 @@ int wmain(int argc,wchar_t* argv[]){
     error("E_D01_WINDOWS_FIXTURE_CREATE_ROOT",GetLastError());
     return 4;
   }
+  // Hold the newly created root open WITHOUT FILE_SHARE_DELETE while
+  // populating it. Do not claim this persists across process exit or
+  // excludes a token that controls an ancestor or privilege escalation.
+  Handle rootPin(CreateFileW(root.c_str(),FILE_READ_ATTRIBUTES,
+    FILE_SHARE_READ|FILE_SHARE_WRITE,nullptr,OPEN_EXISTING,
+    FILE_FLAG_OPEN_REPARSE_POINT|FILE_FLAG_BACKUP_SEMANTICS,nullptr));
+  if(!rootPin.valid()){
+    error("E_D01_WINDOWS_FIXTURE_ROOT_PIN",GetLastError());return 5;
+  }
   // After this point NEVER automatically remove the root on any error.
   // Partial diagnostics are retained for independent forensic inspection.
   const std::string marker="VCP_D01_WINDOWS_READONLY_TEST_ROOT_ONLY\n";
