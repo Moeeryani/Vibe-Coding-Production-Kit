@@ -3,6 +3,8 @@
 // published CLI is executed. All plausible inputs still return NO_GO.
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {spawnSync} from 'node:child_process';
 import {compareWindowsD01PublishedDualProjectInventories}
   from '../lib/d01-windows-published-dual-inventory.mjs';
 const identity=n=>n.toString(16).padStart(24,'0');
@@ -172,4 +174,22 @@ test('old CLI noop substitution, cross-fixture roots and incomplete sibling proo
       ...good(),...changes
     }),e=>/^E_D01_/.test(e.code));
   }
+});
+
+
+test('offline dual-project review has no spawn/write path and refuses absent evidence',async()=>{
+  const pkg=JSON.parse(await readFile('package.json','utf8'));
+  const script=await readFile(
+    'scripts/compare-windows-d01-published-dual-inventory.mjs','utf8');
+  assert.equal(pkg.scripts['compare:d01-windows-published-dual-inventory'],
+    'node scripts/compare-windows-d01-published-dual-inventory.mjs');
+  assert.equal(pkg.scripts.test,'node --test');
+  assert.doesNotMatch(script,/\b(?:spawn|execSync|writeFile|unlink|rename)\s*\(/);
+  assert.match(script,/process\.exitCode=3/);
+  assert.match(script,/new Set\(files\.map/);
+  const result=spawnSync(process.execPath,[
+    'scripts/compare-windows-d01-published-dual-inventory.mjs'
+  ],{encoding:'utf8',shell:false});
+  assert.equal(result.status,2);
+  assert.match(result.stderr,/E_D01_WINDOWS_DUAL_INVENTORY_USAGE/);
 });
