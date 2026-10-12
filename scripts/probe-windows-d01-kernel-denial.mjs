@@ -45,6 +45,7 @@ async function bytes(file,max){
     refuse('E_D01_WINDOWS_KERNEL_INPUT_CHANGED');
   return result;
 }
+let nativeMayHaveMutated=false;
 try{
   const fixture=validateD01WindowsDisposableFixtureReceipt(
     JSON.parse((await bytes(arg['--fixture-receipt'],32*1024)).toString('utf8')));
@@ -63,6 +64,9 @@ try{
   const variant=arg['--variant'];
   const projectIdentity=variant==='with-manifest'?
     fixture.withManifestIdentity:fixture.withoutManifestIdentity;
+  // Once invoked, a crash or malformed receipt may conceal a successful
+  // CREATE_NEW or rename. Never treat that as safe to retry or clean up.
+  nativeMayHaveMutated=true;
   const result=spawnSync(exe,[
     '--scratch-root',fixture.root,'--variant',variant,
     '--old-sid',fixture.oldSid,'--root-id',fixture.rootIdentity,
@@ -86,12 +90,16 @@ try{
     executableSha256:build.executableSha256,
     nativeReceipt:raw,review:reviewed,
     publishedLegacyCliTested:false,
+    nativeMayHaveMutated:true,requiresForensicInspection:true,
+    safeToRetry:false,safeToCleanup:false,
     managedMutationAuthorized:false,d01Approved:false
   },null,2));
 }catch(error){
   console.error(JSON.stringify({
     status:'NO_GO',code:error.code??'E_D01_WINDOWS_KERNEL_UNKNOWN',
     message:String(error.message),
+    nativeMayHaveMutated,requiresForensicInspection:nativeMayHaveMutated,
+    safeToRetry:false,safeToCleanup:false,
     managedMutationAuthorized:false,d01Approved:false
   }));
 }
