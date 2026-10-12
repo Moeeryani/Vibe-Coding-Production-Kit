@@ -342,19 +342,22 @@ test('native security digest uses canonical SDDL instead of raw descriptor bytes
   assert.match(source,/reinterpret_cast<PUCHAR>\(canonical\)/);
 });
 
-test('inconclusive Windows stream enumeration fails closed',async()=>{
+test('native ADS enumeration accepts only empty directories or one unnamed data stream',async()=>{
   const source=await readFile(
     'scripts/native/vcp-windows-d01-namespace-inventory.cpp','utf8');
-  const start=source.indexOf('bool unnamedStreamOnly(HANDLE h)');
+  const start=source.indexOf('bool unnamedStreamOnly(HANDLE h,bool directory)');
   const end=source.indexOf('std::string securityDigest(HANDLE h)',start);
   assert.ok(start>=0&&end>start);
   const implementation=source.slice(start,end);
   assert.match(implementation,/GetFileInformationByHandleEx\(h,FileStreamInfo/);
+  assert.match(implementation,/directory&&GetLastError\(\)==ERROR_HANDLE_EOF/);
   assert.match(implementation,/NextEntryOffset==0/);
   assert.match(implementation,/StreamNameLength==bytes/);
-  assert.doesNotMatch(implementation,/GetLastError\(\)==ERROR_HANDLE_EOF/);
-  assert.match(implementation,/GetFileInformationByHandleEx[\s\S]*?return false;/);
+  assert.match(implementation,/std::memcmp/);
+  assert.doesNotMatch(implementation,/return GetLastError\(\)==ERROR_HANDLE_EOF/);
+  assert.match(source,/unnamedStreamOnly\(h\.h,directory\)/);
 });
+
 
 test('native root and project handles are identity-pinned across inventory walk',async()=>{
   const source=await readFile(
