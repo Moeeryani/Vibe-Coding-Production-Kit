@@ -8,7 +8,7 @@
 // A passing diagnostic is NOT a D-01 approval or a durability certificate.
 import {writeFile,readFile,lstat} from 'node:fs/promises';
 import {provisionD01LinuxFixture,probeD01LinuxFixture,
-  stageD01VerifiedOldCliArchive}
+  stageD01VerifiedOldCliArchive,probeD01PublishedLegacyCli}
   from '../lib/d01-linux-isolation-fixture.mjs';
 
 function refuse(code){
@@ -17,7 +17,8 @@ function refuse(code){
 }
 const allow=new Set([
   '--old-uid','--old-gid','--writer-uid','--writer-gid','--setpriv',
-  '--legacy-tgz','--legacy-sha512'
+  '--legacy-tgz','--legacy-sha512',
+  '--run-published-in-sandbox','--bwrap'
 ]);
 const args={};
 for(let i=2;i<process.argv.length;i+=2){
@@ -38,6 +39,14 @@ if(process.env.VCP_D01_DISPOSABLE_ISOLATION!=='I_UNDERSTAND_DISPOSABLE_ONLY')
   refuse('Set VCP_D01_DISPOSABLE_ISOLATION=I_UNDERSTAND_DISPOSABLE_ONLY');
 if(Boolean(args['--legacy-tgz'])!==Boolean(args['--legacy-sha512']))
   refuse('--legacy-tgz and independently supplied --legacy-sha512 are required together');
+const runPublished=args['--run-published-in-sandbox']===
+  'I_ACCEPT_ISOLATED_OFFLINE_OLD_CLI_EXECUTION';
+if(args['--run-published-in-sandbox']&&!runPublished)
+  refuse('Published CLI execution requires exact second explicit confirmation');
+if(runPublished&&(!args['--legacy-tgz']||
+   process.env.VCP_D01_ALLOW_PUBLISHED_CLI_IN_BWRAP!==
+     'I_ACCEPT_NETWORK_AND_MOUNT_ISOLATED_EXECUTION'))
+  refuse('Published CLI needs staged pinned tarball and second isolation opt-in');
 const options={
   oldUid:integer('--old-uid'),oldGid:integer('--old-gid'),
   writerUid:integer('--writer-uid'),writerGid:integer('--writer-gid'),
@@ -62,8 +71,12 @@ try{
       archiveBytes:bytes,expectedSha512:args['--legacy-sha512']
     });
   }
+  const published=runPublished?
+    await probeD01PublishedLegacyCli(fixture,staged,{
+      bwrapPath:args['--bwrap']??'/usr/bin/bwrap'
+    }):null;
   const combined=Object.freeze({...proof,
-    packageStage:staged,
+    packageStage:staged,publishedCliObservations:published,
     publishedCliEntrypointsTested:false,
     publishedArtifactExecuted:false,
     managedMutationAuthorized:false,
