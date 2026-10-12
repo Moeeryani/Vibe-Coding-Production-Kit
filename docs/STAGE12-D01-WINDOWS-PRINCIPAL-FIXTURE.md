@@ -177,3 +177,20 @@ npm run compare:d01-windows-namespace-inventory -- --fixture C:\evidence\fixture
 This offline read-only command checks that both views match **the same fixture root ID, project ID, native source SHA-256 and executable SHA-256** and emits sorted lists of **created, removed and altered relative paths** (changes include byte-identical replacement with a different NTFS file identity). A valid protected-file baseline is required **only for the "before" view**, so destructive "after" evidence remains visible.
 
 The new C++ source and JS receipt tests are **authored but not yet proven by MSVC or actual NTFS execution** on this exact HEAD. A clean emitted namespace diff establishes neither that old `0.9.3` reached the write path nor that the observed tree is durable. A hostile old process may change and restore content between scans. `D-01=DEFERRED`, `G-FENCE=NO-GO`, no managed-v2 writer authorization. Any failure requires retaining the fixture and evidence without blind retries or cleanup.
+
+
+## Dual-project scope for EACH published-0.9.3 scenario
+
+An old CLI invoked on `with-manifest` could affect `without-manifest`, and vice versa; watching only the argument-selected project is therefore insufficient. The **non-executing** `lib/d01-windows-published-dual-inventory.mjs` requires separate `before` and `after` native inventory envelopes for **both** disposable project variants around each one of the ten original published-old-CLI command attempts.
+
+The plan itself is verified against the immutable real command argument arrays (no arbitrary `noop` or substituted directory). Both projects must belong to exactly the same V2 NTFS fixture and use the same recorded native inventory source and executable SHA-256 across all four captures. The comparison emits the targeted project's status, sibling project's status, and every observed created/removed/altered relative path tagged with its project variant. An old-CLI attempt that leaves the targeted project unchanged while changing the sibling is therefore explicitly visible, not silently counted as a no-change observation.
+
+After independently preserving a fixture receipt, pinned published CLI plan, and the **four** inventory envelopes, run only the offline reviewer:
+
+```cmd
+npm run compare:d01-windows-published-dual-inventory -- --fixture C:\evidence\fixture.json --plan C:\evidence\published-plan.json --scenario-id with-manifest/init-force --with-before C:\evidence\with-before.json --with-after C:\evidence\with-after.json --without-before C:\evidence\without-before.json --without-after C:\evidence\without-after.json
+```
+
+All six input file paths must be distinct, absolute, existing regular files, with no symlinks/hardlinks. The command performs **no old CLI execution and no filesystem changes**; it returns exit 3 and `status:NO_GO` even when both inventories are identical. Retain exact original JSON bytes and external process logs. Two sibling project scans are **not simultaneous or atomic**; this comparison cannot rule out mutation between captures, changes to ProgramData or other siblings, identity/privilege bypass, forged evidence, or Windows namespace crash/power-loss effects.
+
+These portable contracts were additionally smoke-exercised in a standalone V8 harness (four pure-JS cases: unchanged both projects, sibling mutation, deletion/identity substitution, and forged plan/fixture rejection). That is **not** a native `npm test` or VS2019/NTFS acceptance run; the independent Windows agent remains responsible for final source-frozen native acceptance. D-01 stays DEFERRED, G-FENCE NO-GO.
