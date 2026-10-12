@@ -146,3 +146,34 @@ The correlation code checks exact scenario command arguments and target namespac
 The native forensic snapshot now enforces the **128 KiB cumulative read limit for every protected file**, including `AGENTS.md` and the manifest, regardless of whether an exact-literal marker buffer is being populated. It rejects a changing file length, a mismatch between the bytes actually hashed and the final file size, and changes in the last-write timestamp detected during hashing. This corrects an earlier bug in which a marker-only buffer counter failed to bound the other file reads. Targeted source-contract assertions were added; MSVC/NTFS runtime behavior has **not** been independently verified yet.
 
 These protections are limited to the specific file objects measured. The current snapshot does **not** inventory every sibling or nested entry under the project, detect write-then-restore between captures, prove the snapshot is atomic, or certify crash/power-loss durability. A future independent namespace-inventory receipt and concurrency/recovery evidence are required before treating any complete old-CLI command matrix as a compatibility fence. The result remains `NO_GO`.
+
+
+## Full-project native NTFS namespace inventory (construction, read-only)
+
+The protected-file snapshot above covers only AGENTS.md and the optional manifest. This section adds a **separate complete, bounded project-tree inventory**, rather than silently inferring the rest of the project is untouched.
+
+The new native source `scripts/native/vcp-windows-d01-namespace-inventory.cpp` checks the OS-known NTFS `FOLDERID_ProgramData` and accepts only a cryptographically named **direct child** `vcp-win-d01-isolation-<128-bit>` with the exact root/project NTFS file IDs from the disposable-fixture receipt and the original marker content. It recursively enumerates each entry in `with-manifest` or `without-manifest`, records its relative path, type, actual NTFS identity and (for files) CNG SHA-256 and size.
+
+The inventory deliberately **refuses** all reparse entries, hardlinked files, unsupported path characters, ambiguous directory enumeration, changed identity/size/mtime during file reads, directories deeper than 10 levels, more than 512 entries, files exceeding 128 KiB and aggregate file bytes exceeding 2 MiB. These limits are **for evidence fixtures only**; they are not product size limits, and a refusal must NOT be converted into a "nothing changed" result.
+
+All native handles permit `FILE_SHARE_DELETE`. Therefore they do not themselves create sharing violations that would contaminate an old CLI namespace-denial experiment, but also cannot make the scan an atomic snapshot. Only run sequentially before/after the independently sandboxed published-old CLI attempt; a write-then-restore or race between captures is still undetectable. The helper does not write or clean up and always returns `status:NO_GO` / exit 3.
+
+Manual future Windows commands (Visual Studio **x64 Developer Command Prompt**; keep the same frozen source HEAD):
+
+```cmd
+npm run build:native-windows-d01-inventory:verify-repro
+npm run inspect:d01-windows-namespace-inventory -- --fixture-receipt C:\evidence\fixture.json --variant with-manifest
+npm run inspect:d01-windows-namespace-inventory -- --fixture-receipt C:\evidence\fixture.json --variant without-manifest
+```
+
+Preserve a **separate exact stdout JSON** for each before/after scan. The Node wrapper checks the SHA-256 build receipt, exact native exe/source identity, expected NTFS IDs, marker and parser contract, and refuses non-Windows fallback or mismatched fixtures. The post-scan view may **legitimately lack AGENTS.md or manifest** after an old-CLI mutation: the parser must not discard such forensic evidence just because the files no longer exist.
+
+For each project and scenario after collecting two native inventory JSON envelopes:
+
+```cmd
+npm run compare:d01-windows-namespace-inventory -- --fixture C:\evidence\fixture.json --variant with-manifest --before C:\evidence\inventory-before.json --after C:\evidence\inventory-after.json
+```
+
+This offline read-only command checks that both views match **the same fixture root ID, project ID, native source SHA-256 and executable SHA-256** and emits sorted lists of **created, removed and altered relative paths** (changes include byte-identical replacement with a different NTFS file identity). A valid protected-file baseline is required **only for the "before" view**, so destructive "after" evidence remains visible.
+
+The new C++ source and JS receipt tests are **authored but not yet proven by MSVC or actual NTFS execution** on this exact HEAD. A clean emitted namespace diff establishes neither that old `0.9.3` reached the write path nor that the observed tree is durable. A hostile old process may change and restore content between scans. `D-01=DEFERRED`, `G-FENCE=NO-GO`, no managed-v2 writer authorization. Any failure requires retaining the fixture and evidence without blind retries or cleanup.
