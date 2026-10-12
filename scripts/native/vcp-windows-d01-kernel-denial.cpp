@@ -127,6 +127,18 @@ bool pin(const std::wstring& s,std::vector<HANDLE>& list){
       FILE_ATTRIBUTE_DIRECTORY)return false;
  list.push_back(h.h);h.h=INVALID_HANDLE_VALUE;return true;
 }
+std::wstring fileId(const std::wstring& p){
+ H h(CreateFileW(p.c_str(),FILE_READ_ATTRIBUTES,
+  FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
+  nullptr,OPEN_EXISTING,FILE_FLAG_OPEN_REPARSE_POINT,nullptr));
+ if(!h.ok())return L"";
+ BY_HANDLE_FILE_INFORMATION info={};
+ if(!GetFileInformationByHandle(h.h,&info)||
+   info.nNumberOfLinks!=1||
+   (info.dwFileAttributes&(FILE_ATTRIBUTE_DIRECTORY|
+                            FILE_ATTRIBUTE_REPARSE_POINT)))return L"";
+ return identity(h.h);
+}
 bool content(const std::wstring& p,const std::string& value){
  H h(CreateFileW(p.c_str(),GENERIC_READ,
    FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
@@ -199,7 +211,10 @@ int wmain(int argc,wchar_t* argv[]){
  const std::string agentText="VCP_D01_PROTECTED_USER_BYTES_DO_NOT_MODIFY\n";
  const std::string manifestText="{\"D01_disposable_only\":true}\n";
  const bool hasManifest=variant==L"with-manifest";
+ const std::wstring agentId=fileId(agent);
+ const std::wstring manifestId=hasManifest?fileId(manifest):L"";
  const bool before=content(marker,markerText)&&content(agent,agentText)&&
+   validId(agentId)&&(!hasManifest||validId(manifestId))&&
    (hasManifest?content(manifest,manifestText):absent(manifest));
  if(!before){close();return 5;}
  const std::wstring base=root.substr(0,root.find_last_of(L'\\'));
@@ -240,7 +255,9 @@ int wmain(int argc,wchar_t* argv[]){
    (hasManifest?content(manifest,manifestText):absent(manifest));
  const bool noNew=absent(create)&&absent(moved);
  const bool idsSafe=identity(pinned[count-3])==rootId&&
-                    identity(pinned[count-2])==projectId;
+                    identity(pinned[count-2])==projectId&&
+                    fileId(agent)==agentId&&
+                    (!hasManifest||fileId(manifest)==manifestId);
  close();
  const bool denied=allDenied&&createAttempted&&!createSucceeded&&
    createError==ERROR_ACCESS_DENIED&&renameAttempted&&
