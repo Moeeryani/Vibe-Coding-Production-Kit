@@ -42,7 +42,8 @@
     "build:native-windows-d01-readonly": "node scripts/build-windows-d01-readonly.mjs",
     "build:native-windows-d01-readonly:verify-repro": "node scripts/build-windows-d01-readonly.mjs --verify-repro",
     "build:native-windows-d01-fixture": "node scripts/build-windows-d01-fixture.mjs",
-    "build:native-windows-d01-fixture:verify-repro": "node scripts/build-windows-d01-fixture.mjs --verify-repro"
+    "build:native-windows-d01-fixture:verify-repro": "node scripts/build-windows-d01-fixture.mjs --verify-repro",
+    "inspect:d01-windows-fixture": "node scripts/inspect-windows-d01-fixture.mjs"
   },
   "engines": {
     "node": ">=22"
