@@ -164,20 +164,26 @@ Observed inspect(const std::wstring& p,const std::wstring& label,
   const Check child=directory?
     checkRight(sd.p,impersonate,FILE_DELETE_CHILD):
     Check{true,false,0};
-  const Check write=checkRight(sd.p,impersonate,directory?
-    FILE_ADD_FILE|FILE_ADD_SUBDIRECTORY:FILE_WRITE_DATA|FILE_APPEND_DATA);
+  // Test every dangerous right separately. An AccessCheck for
+  // (FILE_ADD_FILE|FILE_ADD_SUBDIRECTORY) would reject if only ONE bit
+  // were granted, creating a false impression that neither was possible.
+  const Check writeA=checkRight(sd.p,impersonate,directory?
+    FILE_ADD_FILE:FILE_WRITE_DATA);
+  const Check writeB=checkRight(sd.p,impersonate,directory?
+    FILE_ADD_SUBDIRECTORY:FILE_APPEND_DATA);
   const Check own=checkRight(sd.p,impersonate,WRITE_OWNER);
   const Check acl=checkRight(sd.p,impersonate,WRITE_DAC);
-  r.checksCompleted=del.completed&&child.completed&&write.completed&&
-    own.completed&&acl.completed;
+  r.checksCompleted=del.completed&&child.completed&&writeA.completed&&
+    writeB.completed&&own.completed&&acl.completed;
   if(!r.checksCompleted){
     r.lastError=del.error?del.error:child.error?child.error:
-      write.error?write.error:own.error?own.error:acl.error;
+      writeA.error?writeA.error:writeB.error?writeB.error:
+      own.error?own.error:acl.error;
     return r;
   }
   r.deleteGranted=del.granted;
   r.childDeleteGranted=child.granted;
-  r.writeGranted=write.granted;
+  r.writeGranted=writeA.granted||writeB.granted;
   r.ownerChangeGranted=own.granted;
   r.daclChangeGranted=acl.granted;
   r.looksSafe=!(r.deleteGranted||r.childDeleteGranted||
