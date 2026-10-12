@@ -136,3 +136,21 @@ test('no observations never create apparent full lifecycle coverage',()=>{
   assert.equal(result.independentlyVerifiedOldTokenExecution,false);
   assert.equal(result.status,'NO_GO');
 });
+
+
+test('forged noop commands, missing rollback guard, arbitrary targets and ordinary project paths refuse coverage',()=>{
+  for(const corrupt of [
+    {...plan,scenarios:plan.scenarios.map((s,i)=>i===0?
+      {...s,arguments:['noop']}:s)},
+    {...plan,scenarios:plan.scenarios.map((s,i)=>i===4?
+      {...s,requiresWriterAuthorizedPostBackupEdit:false}:s)},
+    {...plan,scenarios:plan.scenarios.map((s,i)=>i===7?
+      {...s,targetProject:'C:\\real-user-project'}:s)},
+    {...plan,fixtureRoot:'C:\\Users\\someone\\vcp-win-d01-isolation-'+
+      'a'.repeat(32)}
+  ]){
+    assert.throws(()=>reviewWindowsD01PublishedLegacyObservations({
+      plan:corrupt,observations:[]
+    }),{code:'E_D01_PUBLISHED_REVIEW_PLAN_INVALID'});
+  }
+});
