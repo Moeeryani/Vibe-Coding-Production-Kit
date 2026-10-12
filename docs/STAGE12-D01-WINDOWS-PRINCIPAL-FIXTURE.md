@@ -40,3 +40,28 @@ Use **a new clean checkout at an exact frozen SHA** on native Windows x64 with V
 - No use of R3's scratch-only absolute rename workaround is authorized for selected projects. `D-01=DEFERRED`, `G-FENCE=NO-GO`, `managedV2MutationAuthorized=false`, `WINDOWS_NAMESPACE_DURABILITY_UNPROVEN`.
 
 The next independent evidence must be **actual protected-byte comparisons before and after every original old-CLI lifecycle command under real Windows tokens**, followed by concurrency and crash/recovery evidence. Matching build/ACL receipts alone cannot open D-01.
+
+## Bounded native kernel-denial witness (constructed, not accepted)
+
+This is a **separate manually authorized test** from the read-only four-token ACL review. Its source is `scripts/native/vcp-windows-d01-kernel-denial.cpp`; it does not execute the published npm CLI and is never used against a selected project.
+
+The operator must build the new helper with `npm run build:native-windows-d01-kernel-denial:verify-repro` on **MSVC Windows x64** and preserve its source, EXE SHA-256, and build receipt. Compile/runtime success has not yet been verified on a native Windows machine for this HEAD. Its EXE is stored exclusively under the ignored `build/native-windows/d01-kernel-denial/`.
+
+As the real **old CLI Windows user** (not the provisioner or writer), after independently inspecting the disposable ProgramData fixture:
+
+```cmd
+set VCP_D01_WINDOWS_OLD_DENIAL=I_ACCEPT_DISPOSABLE_ONLY
+npm run probe:d01-windows-kernel-denial -- --fixture-receipt C:\absolute\evidence\fixture.json --variant with-manifest
+npm run probe:d01-windows-kernel-denial -- --fixture-receipt C:\absolute\evidence\fixture.json --variant without-manifest
+```
+
+These commands deliberately return **exit 3/NO-GO**, not shell-green. The wrapper verifies the native source/EXE SHA-256 against the matching build receipt, validates the exact fixture root and project's NTFS volume/file IDs, and runs the helper only under the running old SID recorded in the fixture. A second explicit environment opt-in is enforced **inside the native EXE** for direct invocation. The helper refuses elevated/Administrators tokens or tokens holding specified sensitive privileges. This is not a complete OS authorization proof.
+
+For each project it first checks the exact original marker and AGENTS.md bytes, and where present the exact manifest bytes. It then requests ten discrete kernel access rights with `OPEN_EXISTING` (file write/append/delete/owner/DACL, directory new entry/delete child/delete, root and ProgramData delete child). A successful permission request is **not** counted as denial. Only if every dangerous request fails with `ERROR_ACCESS_DENIED` does it attempt two bounded mutations:
+
+- `CreateFileW(CREATE_NEW)` at `.vcp\vcp-d01-old-create-probe.bin`, a previously nonexistent, fixed scratch-only leaf.
+- If creation is denied, `MoveFileExW` from `AGENTS.md` to `AGENTS.md.vcp-d01-old-moved` in the **same disposable project**, with no replace flag and no fallback to another path.
+
+Afterward it verifies exact original bytes, the protected file identities, root/project identities and absence of both witness names. If either attempt **succeeds**, or any result is ambiguous, it records NO-GO; **no automatic deletion, rollback, rerun or cleanup** is allowed. A native crash, a non-v3-style protocol error or a missing receipt may conceal a completed mutation. Preserve the fixture and inspect before any further execution.
+
+Success of these *disposable kernel attempts* does **NOT** establish denial to `vibe-coding-production@0.9.3` or demonstrate actual execution of its `init --force`, `update`, `manage` or `rollback` write paths. This remains separately required on Linux and Windows, along with true parent-namespace confinement, elevated-token bypass analysis, concurrent operations, and Windows power-loss recovery. `D-01=DEFERRED` and `G-FENCE=NO-GO` remain unchanged.
