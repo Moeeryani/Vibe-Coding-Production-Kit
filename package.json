@@ -57,7 +57,8 @@
     "build:native-windows-d01-inventory": "node scripts/build-windows-d01-namespace-inventory.mjs",
     "build:native-windows-d01-inventory:verify-repro": "node scripts/build-windows-d01-namespace-inventory.mjs --verify-repro",
     "inspect:d01-windows-namespace-inventory": "node scripts/inspect-windows-d01-namespace-inventory.mjs",
-    "compare:d01-windows-namespace-inventory": "node scripts/compare-windows-d01-namespace-inventory.mjs"
+    "compare:d01-windows-namespace-inventory": "node scripts/compare-windows-d01-namespace-inventory.mjs",
+    "compare:d01-windows-published-dual-inventory": "node scripts/compare-windows-d01-published-dual-inventory.mjs"
   },
   "engines": {
     "node": ">=22"
