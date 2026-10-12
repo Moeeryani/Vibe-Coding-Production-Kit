@@ -13,6 +13,7 @@
 #include <objbase.h>
 #include <bcrypt.h>
 #include <aclapi.h>
+#include <sddl.h>
 #include <cstddef>
 #include <cstring>
 #include <string>
@@ -173,21 +174,32 @@ std::string securityDigest(HANDLE h){
      DACL_SECURITY_INFORMATION,
    nullptr,nullptr,nullptr,nullptr,&descriptor);
  if(result!=ERROR_SUCCESS||!descriptor)return "";
- const DWORD length=GetSecurityDescriptorLength(descriptor);
+ // SDDL serializes owner, group and DACL without absolute descriptor
+ // pointers; hashing the raw GetSecurityInfo buffer is not stable.
+ LPWSTR canonical=nullptr;
+ ULONG canonicalChars=0;
+ const BOOL converted=ConvertSecurityDescriptorToStringSecurityDescriptorW(
+   descriptor,SDDL_REVISION_1,
+   OWNER_SECURITY_INFORMATION|GROUP_SECURITY_INFORMATION|
+     DACL_SECURITY_INFORMATION,
+   &canonical,&canonicalChars);
  std::string hash;
- if(length>0&&length<=65536){
+ if(converted&&canonical&&canonicalChars>0&&canonicalChars<=32768){
+  const size_t bytes=static_cast<size_t>(canonicalChars)*sizeof(wchar_t);
   Cng cng;
   if(cng.start()&&BCryptHashData(cng.hash,
-      reinterpret_cast<PUCHAR>(descriptor),length,0)>=0){
+      reinterpret_cast<PUCHAR>(canonical),static_cast<ULONG>(bytes),0)>=0){
    BYTE output[32]={};
    if(BCryptFinishHash(cng.hash,output,32,0)>=0){
     std::ostringstream hex;
     hex<<std::hex<<std::setfill('0');
-    for(BYTE b:output)hex<<std::setw(2)<<static_cast<unsigned>(b);
+    for(BYTE value:output)
+     hex<<std::setw(2)<<static_cast<unsigned>(value);
     hash=hex.str();
    }
   }
  }
+ if(canonical)LocalFree(canonical);
  LocalFree(descriptor);
  return hash;
 }
