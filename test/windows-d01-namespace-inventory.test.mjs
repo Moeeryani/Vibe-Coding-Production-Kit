@@ -355,3 +355,19 @@ test('inconclusive Windows stream enumeration fails closed',async()=>{
   assert.doesNotMatch(implementation,/GetLastError\(\)==ERROR_HANDLE_EOF/);
   assert.match(implementation,/GetFileInformationByHandleEx[\s\S]*?return false;/);
 });
+
+test('native root and project handles are identity-pinned across inventory walk',async()=>{
+  const source=await readFile(
+    'scripts/native/vcp-windows-d01-namespace-inventory.cpp','utf8');
+  const opened=source.indexOf('Handle rootHandle=openPath(root,true)');
+  const walked=source.indexOf('if(!walk(project,',opened);
+  const published=source.indexOf('std::cout<<',walked);
+  assert.ok(opened>=0&&walked>opened&&published>walked);
+  for(const match of [
+    /id\(rootHandle\.h\)!=ascii\(rootId\)/,
+    /id\(projectHandle\.h\)!=ascii\(projectId\)/
+  ]){
+    assert.match(source.slice(opened,walked),match);
+    assert.match(source.slice(walked,published),match);
+  }
+});
