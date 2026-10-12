@@ -26,6 +26,8 @@
 #include <vector>
 #include <iostream>
 #include <cstdio>
+#include <sstream>
+#include <iomanip>
 
 struct LocalBuffer {
   void* ptr=nullptr;
@@ -166,6 +168,23 @@ std::string json(const std::wstring& w){
   }
   out.push_back('"');return out;
 }
+std::wstring fileId(const std::wstring& p,bool isDirectory){
+  Handle h(CreateFileW(p.c_str(),FILE_READ_ATTRIBUTES,
+    FILE_SHARE_READ|FILE_SHARE_WRITE,nullptr,OPEN_EXISTING,
+    FILE_FLAG_OPEN_REPARSE_POINT|FILE_FLAG_BACKUP_SEMANTICS,nullptr));
+  if(!h.valid())return L"";
+  BY_HANDLE_FILE_INFORMATION info={};
+  if(!GetFileInformationByHandle(h.h,&info)||
+     (info.dwFileAttributes&FILE_ATTRIBUTE_REPARSE_POINT)!=0||
+     ((info.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)!=0)!=isDirectory)
+    return L"";
+  std::wostringstream result;
+  result<<std::hex<<std::setfill(L'0')
+    <<std::setw(8)<<info.dwVolumeSerialNumber
+    <<std::setw(8)<<info.nFileIndexHigh
+    <<std::setw(8)<<info.nFileIndexLow;
+  return result.str();
+}
 bool createDir(const std::wstring& directory,
                SECURITY_ATTRIBUTES& acl){
   return CreateDirectoryW(directory.c_str(),&acl)!=FALSE;
@@ -250,6 +269,7 @@ int wmain(int argc,wchar_t* argv[]){
                     marker,attrs)){
     error("E_D01_WINDOWS_FIXTURE_MARKER",GetLastError());return 5;
   }
+  std::wstring withId,withoutId;
   for(const std::wstring& variant:{
       std::wstring(L"with-manifest"),
       std::wstring(L"without-manifest")}){
@@ -269,14 +289,24 @@ int wmain(int argc,wchar_t* argv[]){
        !verifyObject(append(project,L"AGENTS.md"),false)){
       error("E_D01_WINDOWS_FIXTURE_IDENTITY",GetLastError());return 5;
     }
+    const std::wstring id=fileId(project,true);
+    if(id.size()!=24)return 5;
+    if(variant==L"with-manifest")withId=id;
+    else withoutId=id;
   }
   if(!verifyObject(root,true)||
      !verifyObject(append(root,L"VCP-D01-READONLY-DISPOSABLE.marker"),
                    false)){
     error("E_D01_WINDOWS_FIXTURE_IDENTITY",GetLastError());return 5;
   }
-  std::cout<<"{\"kind\":\"D01_WINDOWS_DISPOSABLE_FIXTURE_V1\","
+  const std::wstring rootId=fileId(root,true);
+  if(rootId.size()!=24||withId.size()!=24||withoutId.size()!=24)
+    return 5;
+  std::cout<<"{\"kind\":\"D01_WINDOWS_DISPOSABLE_FIXTURE_V2\","
     <<"\"status\":\"NO_GO\",\"root\":"<<json(root)<<","
+    <<"\"rootIdentity\":"<<json(rootId)<<","
+    <<"\"withManifestIdentity\":"<<json(withId)<<","
+    <<"\"withoutManifestIdentity\":"<<json(withoutId)<<","
     <<"\"oldSid\":"<<json(oldName)<<","
     <<"\"writerSid\":"<<json(writerName)<<","
     <<"\"location\":\"ProgramData\",\"ntfs\":true,"
