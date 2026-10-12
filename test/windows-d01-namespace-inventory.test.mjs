@@ -15,23 +15,29 @@ import {
 
 const pathId=(n)=>n.toString(16).padStart(24,'0');
 const dir=(p,n)=>({path:p,type:'directory',identity:pathId(n),
-  sha256:null,size:0});
+  sha256:null,size:0,attributes:0x10,securitySha256:'c'.repeat(64)});
 const file=(p,n,h,size)=>({path:p,type:'file',
-  identity:pathId(n),sha256:h.repeat(64),size});
+  identity:pathId(n),sha256:h.repeat(64),size,
+  attributes:0x20,securitySha256:'d'.repeat(64)});
 function inventory(variant='with-manifest',entries){
   const fixtureEntries=entries??(variant==='with-manifest'?[
     dir('.vcp',1),file('.vcp/manifest.json',2,'b',22),
     file('AGENTS.md',3,'a',41)
   ]:[dir('.vcp',1),file('AGENTS.md',3,'a',41)]);
-  return {kind:'D01_WINDOWS_NATIVE_NAMESPACE_INVENTORY_V1',
+  return {kind:'D01_WINDOWS_NATIVE_NAMESPACE_INVENTORY_V2',
     status:'NO_GO',variant,
     rootIdentity:pathId(91),projectIdentity:pathId(92),
+    rootAttributes:0x10,projectAttributes:0x10,
+    rootSecuritySha256:'e'.repeat(64),
+    projectSecuritySha256:'f'.repeat(64),
     entries:fixtureEntries,entryCount:fixtureEntries.length,
     fileBytesHashed:fixtureEntries.reduce((n,x)=>n+x.size,0),
     maxEntries:512,maxDepth:10,
     maxSingleFileBytes:131072,maxTotalFileBytes:2097152,
     readOnly:true,sharesDelete:true,
     reparseEntriesRejected:true,hardlinkedFilesRejected:true,
+    alternateDataStreamsRejected:true,
+    ownerGroupDaclFingerprintMeasured:true,
     namespaceSnapshotAtomic:false,
     publishedOldCliExecutionProven:false,
     WindowsNamespaceDurabilityProven:false,
@@ -107,6 +113,11 @@ test('malicious, missing-parent, duplicate-name, hardlink and oversized receipt 
     {readOnly:false},{sharesDelete:false},
     {reparseEntriesRejected:false},
     {hardlinkedFilesRejected:false},
+    {alternateDataStreamsRejected:false},
+    {ownerGroupDaclFingerprintMeasured:false},
+    {rootSecuritySha256:'INVALID'},
+    {rootAttributes:0x400},
+    {projectAttributes:0},
     {maxEntries:999},{entryCount:999},
     {fileBytesHashed:999},
     {entries:[dir('.vcp',1),file('.vcp/manifest.json',2,'b',22),
@@ -119,6 +130,10 @@ test('malicious, missing-parent, duplicate-name, hardlink and oversized receipt 
       file('AGENTS.md',2,'a',41)]},
     {entries:[dir('.vcp',1),file('.vcp/manifest.json',2,'b',22),
       file('AGENTS.md',3,'a',131073)]},
+    {entries:[dir('.vcp',1),file('.vcp/manifest.json',2,'b',22),
+      {...file('AGENTS.md',3,'a',41),securitySha256:'INVALID'}]},
+    {entries:[dir('.vcp',1),file('.vcp/manifest.json',2,'b',22),
+      {...file('AGENTS.md',3,'a',41),attributes:0x410}]},
     {unexpectedField:true}
   ];
   for(const change of invalid){
@@ -161,6 +176,9 @@ test('native source has hard data limits and never introduces filesystem mutatio
     /ENTRY_LIMIT=512/,/DEPTH_LIMIT=10/,
     /FILE_ATTRIBUTE_REPARSE_POINT/,/nNumberOfLinks!=1/,
     /BCryptHashData/,/FILE_READ_DATA/,/FindFirstFileW/,
+    /GetFileInformationByHandleEx/,/FileStreamInfo/,
+    /GetSecurityInfo/,/GetSecurityDescriptorLength/,
+    /READ_CONTROL/,
     /FindNextFileW/,/status.*NO_GO|NO_GO/
   ])assert.match(source,required);
   for(const forbidden of [
@@ -275,4 +293,34 @@ test('read-only inventory offline compare refuses incomplete CLI arguments',asyn
   ],{shell:false,encoding:'utf8'});
   assert.equal(result.status,2);
   assert.match(result.stderr,/E_D01_WINDOWS_INVENTORY_DIFF_USAGE/);
+});
+
+
+test('unchanged file bytes with ACL, owner/group fingerprint, attributes or root metadata change is not an unchanged namespace',()=>{
+  const start=inventory();
+  const alteredAcl=inventory('with-manifest',[
+    dir('.vcp',1),file('.vcp/manifest.json',2,'b',22),
+    {...file('AGENTS.md',3,'a',41),securitySha256:'8'.repeat(64)}
+  ]);
+  assert.deepEqual(compareWindowsD01NamespaceInventories({
+    before:start,after:alteredAcl
+  }).alteredPaths,['AGENTS.md']);
+  const changedDir=inventory('with-manifest',[
+    {...dir('.vcp',1),attributes:0x12},
+    file('.vcp/manifest.json',2,'b',22),
+    file('AGENTS.md',3,'a',41)
+  ]);
+  assert.deepEqual(compareWindowsD01NamespaceInventories({
+    before:start,after:changedDir
+  }).alteredPaths,['.vcp']);
+  const alteredRoot={...inventory(),rootSecuritySha256:'9'.repeat(64)};
+  const report=compareWindowsD01NamespaceInventories({
+    before:start,after:alteredRoot
+  });
+  assert.equal(report.rootMetadataChanged,true);
+  assert.equal(report.namespaceUnchangedObserved,false);
+  const changedProject={...inventory(),projectAttributes:0x12};
+  assert.equal(compareWindowsD01NamespaceInventories({
+    before:start,after:changedProject
+  }).projectMetadataChanged,true);
 });
