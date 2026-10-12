@@ -106,6 +106,8 @@ test('10 immutable published-CLI scenarios are explicit and never runnable on pl
     if(scenario.id.endsWith('rollback-post-backup-user-edit')){
       assert.equal(scenario.requiresIndependentlyVerifiedBackup,true);
       assert.equal(scenario.requiresWriterAuthorizedPostBackupEdit,true);
+      assert.equal(scenario.expectedAgentSha256,null);
+      assert.equal(scenario.mustReattestCurrentUserBytesBefore,true);
     }
   }
   assert.equal(plan.scenarios[0].arguments.includes('--force'),true);
