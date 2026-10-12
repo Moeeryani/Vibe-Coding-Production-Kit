@@ -106,6 +106,7 @@ test('malicious, missing-parent, duplicate-name, hardlink and oversized receipt 
   const seed=inventory();
   const invalid=[
     {status:'GO'},{d01Approved:true},
+    {kind:'D01_WINDOWS_NATIVE_NAMESPACE_INVENTORY_V1'},
     {managedMutationAuthorized:true},
     {publishedOldCliExecutionProven:true},
     {namespaceSnapshotAtomic:true},
@@ -177,8 +178,11 @@ test('native source has hard data limits and never introduces filesystem mutatio
     /FILE_ATTRIBUTE_REPARSE_POINT/,/nNumberOfLinks!=1/,
     /BCryptHashData/,/FILE_READ_DATA/,/FindFirstFileW/,
     /GetFileInformationByHandleEx/,/FileStreamInfo/,
+    /NextEntryOffset==0/,/StreamNameLength==bytes/,
     /GetSecurityInfo/,/GetSecurityDescriptorLength/,
-    /READ_CONTROL/,
+    /OWNER_SECURITY_INFORMATION/,/GROUP_SECURITY_INFORMATION/,
+    /DACL_SECURITY_INFORMATION/,/READ_CONTROL/,
+    /D01_WINDOWS_NATIVE_NAMESPACE_INVENTORY_V2/,
     /FindNextFileW/,/status.*NO_GO|NO_GO/
   ])assert.match(source,required);
   for(const forbidden of [
