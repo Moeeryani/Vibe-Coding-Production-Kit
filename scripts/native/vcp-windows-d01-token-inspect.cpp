@@ -12,6 +12,9 @@
 #include <windows.h>
 #include <aclapi.h>
 #include <sddl.h>
+#include <shlobj.h>
+#include <knownfolders.h>
+#include <objbase.h>
 #include <string>
 #include <vector>
 #include <iostream>
@@ -37,6 +40,25 @@ bool same(const std::wstring& a,const wchar_t* b){return a==b;}
 std::wstring join(const std::wstring& x,const std::wstring& y){
   return x.back()==L'\\'?x+y:x+L"\\"+y;
 }
+bool knownProgramDataChild(const std::wstring& root){
+  const HRESULT initialized=CoInitializeEx(nullptr,COINIT_MULTITHREADED);
+  if(FAILED(initialized))return false;
+  PWSTR allocated=nullptr;
+  const HRESULT result=SHGetKnownFolderPath(
+    FOLDERID_ProgramData,KF_FLAG_DEFAULT,nullptr,&allocated);
+  if(FAILED(result)||!allocated){
+    if(allocated)CoTaskMemFree(allocated);
+    CoUninitialize();
+    return false;
+  }
+  std::wstring base(allocated);
+  CoTaskMemFree(allocated);
+  CoUninitialize();
+  while(base.size()>3&&base.back()==L'\\')base.pop_back();
+  const size_t last=root.find_last_of(L'\\');
+  return last!=std::wstring::npos &&
+    _wcsicmp(root.substr(0,last).c_str(),base.c_str())==0;
+}
 bool safeRoot(const std::wstring& x) {
   if(x.size()<8||x.size()>235||x[1]!=L':'||x[2]!=L'\\'||
      x.find(L"..")!=std::wstring::npos||
@@ -49,7 +71,7 @@ bool safeRoot(const std::wstring& x) {
      leaf.size()<23)return false;
   wchar_t absolute[260]={};
   const DWORD n=GetFullPathNameW(x.c_str(),260,absolute,nullptr);
-  return n>0&&n<260&&x==absolute;
+  return n>0&&n<260&&x==absolute&&knownProgramDataChild(x);
 }
 bool noReparseAncestors(const std::wstring& root){
   std::wstring current=root.substr(0,3);
