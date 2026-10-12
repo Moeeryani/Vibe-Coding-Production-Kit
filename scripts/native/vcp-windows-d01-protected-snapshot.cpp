@@ -170,6 +170,10 @@ Snapshot fileSnapshot(const std::wstring& name,
     before.nFileIndexLow!=after.nFileIndexLow||
     before.nFileSizeHigh!=after.nFileSizeHigh||
     before.nFileSizeLow!=after.nFileSizeLow||
+    before.ftLastWriteTime.dwLowDateTime!=
+      after.ftLastWriteTime.dwLowDateTime||
+    before.ftLastWriteTime.dwHighDateTime!=
+      after.ftLastWriteTime.dwHighDateTime||
     after.nFileSizeHigh!=0||
     totalBytes!=after.nFileSizeLow||
     (exactLiteral&&bytes!=*exactLiteral))return {};
