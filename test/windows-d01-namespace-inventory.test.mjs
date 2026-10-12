@@ -265,7 +265,11 @@ test('wrong native EXE, mismatched folder or forged approval cannot enter compar
     {beforeEnvelope:{...envelope(),nativeReceipt:{...inventory(),
       publishedOldCliExecutionProven:true}}},
     {afterEnvelope:{...envelope(),review:{...envelope().review,
-      managedMutationAuthorized:true}}}
+      managedMutationAuthorized:true}}},
+    {afterEnvelope:{...envelope(),review:{...envelope().review,
+      entryCount:0}}},
+    {afterEnvelope:{...envelope(),review:{...envelope().review,
+      projectSecuritySha256:'9'.repeat(64)}}}
   ];
   for(const changed of edits){
     assert.throws(()=>compareWindowsD01NamespaceInventoryEnvelopes({
