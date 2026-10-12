@@ -89,6 +89,14 @@ test('native snapshot builds read-only and refuses any non-Windows execution',as
   assert.match(source,/FOLDERID_ProgramData/);
   assert.match(source,/BCryptHashData/);
   assert.match(source,/BCryptFinishHash/);
+  // Every protected file, not only the fixed marker literal, must obey
+  // a cumulative byte bound, and it must be hashed in full.
+  assert.match(source,/DWORD totalBytes=0/);
+  assert.match(source,/if\(n>131072-totalBytes\)return/);
+  assert.match(source,/totalBytes\+=n/);
+  assert.match(source,/totalBytes!=after\.nFileSizeLow/);
+  assert.match(source,/before\.ftLastWriteTime\.dwLowDateTime/);
+  assert.doesNotMatch(source,/if\(bytes\.size\(\)\+n>131072\)/);
   assert.match(source,/FILE_SHARE_READ\|FILE_SHARE_WRITE\|FILE_SHARE_DELETE/);
   assert.match(source,/VCP_D01_WINDOWS_READONLY_TEST_ROOT_ONLY/);
   assert.match(source,/snapshotAtomicityProven.*false/);
