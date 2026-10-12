@@ -37,6 +37,11 @@ struct CoBuffer {
   PWSTR ptr=nullptr;
   ~CoBuffer(){if(ptr)CoTaskMemFree(ptr);}
 };
+struct ScopedCom {
+  HRESULT result=CoInitializeEx(nullptr,COINIT_MULTITHREADED);
+  ~ScopedCom(){if(SUCCEEDED(result))CoUninitialize();}
+  bool ok()const{return SUCCEEDED(result);}
+};
 struct Handle {
   HANDLE h=INVALID_HANDLE_VALUE;
   explicit Handle(HANDLE x=INVALID_HANDLE_VALUE):h(x){}
@@ -98,6 +103,8 @@ bool elevatedAndDistinct(PSID oldSid,PSID writerSid){
          !EqualSid(user->User.Sid,writerSid);
 }
 bool globalBase(std::wstring& base){
+  ScopedCom apartment;
+  if(!apartment.ok())return false;
   CoBuffer known;
   if(FAILED(SHGetKnownFolderPath(FOLDERID_ProgramData,KF_FLAG_DEFAULT,
                                  nullptr,&known.ptr))||!known.ptr)
