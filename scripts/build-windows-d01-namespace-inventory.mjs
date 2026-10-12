@@ -60,7 +60,7 @@ const st=await lstat(exe);
 if(!st.isFile()||st.isSymbolicLink()||st.size===0)
   refuse('Not a regular native executable');
 const result={
-  kind:'D01_WINDOWS_NAMESPACE_INVENTORY_BUILD_V1',status:'NO_GO',
+  kind:'D01_WINDOWS_NAMESPACE_INVENTORY_BUILD_V2',status:'NO_GO',
   sourceSha256:sourceHash,executableSha256:sha(await readFile(exe)),
   executableBytes:st.size,verifiedRepeatBuild:verifyRepro,
   executableRelativePath:'build/native-windows/d01-namespace-inventory/vcp-windows-d01-namespace-inventory.exe',
