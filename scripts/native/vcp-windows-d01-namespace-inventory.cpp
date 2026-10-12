@@ -158,7 +158,9 @@ bool unnamedStreamOnly(HANDLE h){
  alignas(8) BYTE buffer[8192]={};
  if(!GetFileInformationByHandleEx(h,FileStreamInfo,buffer,
      static_cast<DWORD>(sizeof(buffer)))){
-  return GetLastError()==ERROR_HANDLE_EOF;
+  // Even ERROR_HANDLE_EOF does not prove an ADS-free namespace.
+  // Unsupported/empty enumeration must be treated as inconclusive.
+  return false;
  }
  const auto* entry=reinterpret_cast<const FILE_STREAM_INFO*>(buffer);
  constexpr wchar_t standard[]=L"::$DATA";
