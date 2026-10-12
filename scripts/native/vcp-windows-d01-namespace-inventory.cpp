@@ -154,13 +154,14 @@ Handle openPath(const std::wstring& name,bool directory){
 // Fail closed on NTFS alternate named streams: a file's default $DATA
 // digest alone does not detect mutations to hidden ADS. An unsupported
 // enumeration result is NOT an assertion that streams are absent.
-bool unnamedStreamOnly(HANDLE h){
+bool unnamedStreamOnly(HANDLE h,bool directory){
  alignas(8) BYTE buffer[8192]={};
  if(!GetFileInformationByHandleEx(h,FileStreamInfo,buffer,
      static_cast<DWORD>(sizeof(buffer)))){
-  // Even ERROR_HANDLE_EOF does not prove an ADS-free namespace.
-  // Unsupported/empty enumeration must be treated as inconclusive.
-  return false;
+  // Microsoft documents ERROR_HANDLE_EOF when no streams are returned.
+  // Empty stream enumeration is permitted only for directories. A file
+  // must provide exactly its unnamed data stream to support byte hashing.
+  return directory&&GetLastError()==ERROR_HANDLE_EOF;
  }
  const auto* entry=reinterpret_cast<const FILE_STREAM_INFO*>(buffer);
  constexpr wchar_t standard[]=L"::$DATA";
@@ -209,7 +210,7 @@ bool metadata(HANDLE h,DWORD& attrs,std::string& security){
  BY_HANDLE_FILE_INFORMATION info={};
  if(!GetFileInformationByHandle(h,&info)||
     (info.dwFileAttributes&FILE_ATTRIBUTE_REPARSE_POINT)!=0||
-    !unnamedStreamOnly(h))return false;
+    !unnamedStreamOnly(h,(info.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)!=0))return false;
  attrs=info.dwFileAttributes;
  security=securityDigest(h);
  return security.size()==64;
@@ -222,7 +223,7 @@ bool identityMatches(const std::wstring& name,bool directory,
  if(!GetFileInformationByHandle(h.h,&st)||
     (st.dwFileAttributes&FILE_ATTRIBUTE_REPARSE_POINT)||
     ((st.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)!=0)!=directory||
-    !unnamedStreamOnly(h.h))
+    !unnamedStreamOnly(h.h,directory))
    return false;
  return id(h.h)==identity;
 }
