@@ -1,7 +1,10 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import {reviewWindowsD01PublishedLegacyObservations}
   from '../lib/d01-windows-published-cli-evidence.mjs';
+import {correlateWindowsD01PublishedSnapshotEnvelopes}
+  from '../lib/d01-windows-published-snapshot-correlation.mjs';
 
 const rootId='1'.repeat(24),withId='2'.repeat(24);
 const oldSid='S-1-5-21-100-200-300-1001';
@@ -153,4 +156,93 @@ test('forged noop commands, missing rollback guard, arbitrary targets and ordina
       plan:corrupt,observations:[]
     }),{code:'E_D01_PUBLISHED_REVIEW_PLAN_INVALID'});
   }
+});
+
+
+
+const correlationPlan={
+  ...plan,
+  scenarios:plan.scenarios.map(item=>({
+    ...item,expectedAgentSha256:item.id.endsWith('rollback-post-backup-user-edit')?
+      null:'c'.repeat(64),
+    expectedManifestSha256:item.variant==='with-manifest'?'d'.repeat(64):null
+  }))
+};
+const nativeSnapshot={
+  kind:'D01_WINDOWS_NATIVE_PROTECTED_SNAPSHOT_V1',
+  status:'NO_GO',variant:'with-manifest',
+  ...before,readOnly:true,sharesDelete:true,nativeNtfs:true,
+  markerVerified:true,snapshotAtomicityProven:false,
+  oldCliExecutionProven:false,powerLossDurabilityProven:false,
+  managedMutationAuthorized:false,d01Approved:false
+};
+const nativeEnvelope=native=>({
+  kind:'D01_WINDOWS_PROTECTED_SNAPSHOT_ENVELOPE_V1',
+  status:'NO_GO',fixtureRoot,
+  sourceSha256:'1'.repeat(64),executableSha256:'2'.repeat(64),
+  nativeReceipt:native,
+  review:{status:'NO_GO',managedMutationAuthorized:false,d01Approved:false},
+  oldCliExecutionProven:false,snapshotAtomicityProven:false,
+  WindowsNamespaceDurabilityProven:false,
+  managedMutationAuthorized:false,d01Approved:false
+});
+test('native before/after hashes match old CLI report but do not establish trusted OS provenance',()=>{
+  const report=correlateWindowsD01PublishedSnapshotEnvelopes({
+    plan:correlationPlan,scenarioId:'with-manifest/init-force',
+    oldCliObservation:observation,
+    beforeEnvelope:nativeEnvelope(nativeSnapshot),
+    afterEnvelope:nativeEnvelope(nativeSnapshot)
+  });
+  assert.equal(report.status,'NO_GO');
+  assert.equal(report.allReportedBeforeAfterFieldsMatchNativeSnapshots,true);
+  assert.equal(report.originalUserBytesHashStable,true);
+  assert.equal(report.originalNtfsFileIdsStable,true);
+  assert.equal(report.actualOldTokenSidIndependentlyVerified,false);
+  assert.equal(report.nativeNetworkIsolationVerified,false);
+  assert.equal(report.independentNativeExecutionProven,false);
+  assert.equal(report.d01Approved,false);
+});
+test('tampered native output, substituted EXE or mismatched operator report fail closed',()=>{
+  const fixed={
+    plan:correlationPlan,scenarioId:'with-manifest/init-force',
+    oldCliObservation:observation,
+    beforeEnvelope:nativeEnvelope(nativeSnapshot),
+    afterEnvelope:nativeEnvelope(nativeSnapshot)
+  };
+  for(const change of [
+    {afterEnvelope:nativeEnvelope({...nativeSnapshot,
+      agentsFileIdentity:'9'.repeat(24)})},
+    {afterEnvelope:nativeEnvelope({...nativeSnapshot,
+      agentsSha256:'9'.repeat(64)})},
+    {beforeEnvelope:{...nativeEnvelope(nativeSnapshot),
+      executableSha256:'9'.repeat(64)}},
+    {beforeEnvelope:{...nativeEnvelope(nativeSnapshot),
+      fixtureRoot:'C:\\NotTheFixture'}},
+    {scenarioId:'with-manifest/rollback-post-backup-user-edit'}
+  ]){
+    assert.throws(()=>correlateWindowsD01PublishedSnapshotEnvelopes({
+      ...fixed,...change
+    }),e=>/^E_D01_/.test(e.code));
+  }
+});
+test('reported original fixture bytes cannot satisfy a post-backup writer-edit rollback scenario',()=>{
+  const rollbackObservation={
+    ...observation,
+    scenarioId:'with-manifest/rollback-post-backup-user-edit'
+  };
+  const baselinePlan={...correlationPlan,scenarios:correlationPlan.scenarios
+    .map(item=>item.id.endsWith('rollback-post-backup-user-edit')?
+      {...item,expectedAgentSha256:null}:item)};
+  const oldFixtureBytesHash=createHash('sha256').update(
+    'VCP_D01_PROTECTED_USER_BYTES_DO_NOT_MODIFY\n').digest('hex');
+  const sameOld={...nativeSnapshot,agentsSha256:oldFixtureBytesHash};
+  const oldReport={...rollbackObservation,
+    before:{...before,agentsSha256:oldFixtureBytesHash},
+    after:{...before,agentsSha256:oldFixtureBytesHash}};
+  assert.throws(()=>correlateWindowsD01PublishedSnapshotEnvelopes({
+    plan:baselinePlan,scenarioId:rollbackObservation.scenarioId,
+    oldCliObservation:oldReport,
+    beforeEnvelope:nativeEnvelope(sameOld),
+    afterEnvelope:nativeEnvelope(sameOld)
+  }),{code:'E_D01_WINDOWS_CORRELATION_WRITER_EDIT_NOT_OBSERVED'});
 });
