@@ -40,6 +40,15 @@ std::wstring identity(HANDLE h){
     <<std::setw(8)<<i.nFileIndexHigh<<std::setw(8)<<i.nFileIndexLow;
  return out.str();
 }
+std::string asciiId(const std::wstring& value){
+ std::string result;
+ result.reserve(value.size());
+ for(const wchar_t c:value){
+   if(!((c>=L'0'&&c<=L'9')||(c>=L'a'&&c<=L'f')))return "";
+   result.push_back(static_cast<char>(c)); // explicitly validated ASCII.
+ }
+ return result;
+}
 bool validId(const std::wstring& i){
  if(i.size()!=24)return false;
  for(wchar_t c:i)if(!((c>=L'0'&&c<=L'9')||
@@ -266,8 +275,8 @@ int wmain(int argc,wchar_t* argv[]){
  std::cout<<"{\"kind\":\"D01_WINDOWS_OLD_TOKEN_KERNEL_DENIAL_V1\","
    <<"\"status\":\"NO_GO\",\"variant\":\""
    <<(hasManifest?"with-manifest":"without-manifest")<<"\","
-   <<"\"rootIdentity\":\""<<std::string(rootId.begin(),rootId.end())<<"\","
-   <<"\"projectIdentity\":\""<<std::string(projectId.begin(),projectId.end())<<"\","
+   <<"\"rootIdentity\":\""<<asciiId(rootId)<<"\","
+   <<"\"projectIdentity\":\""<<asciiId(projectId)<<"\","
    <<"\"oldTokenSidMatched\":true,"
    <<"\"dangerousOpenRightsAllDenied\":"<<(allDenied?"true":"false")
    <<",\"actualCreateAttempted\":"<<(createAttempted?"true":"false")
