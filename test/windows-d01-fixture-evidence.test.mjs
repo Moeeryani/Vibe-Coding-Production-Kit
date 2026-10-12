@@ -10,8 +10,11 @@ import {MANAGED_SCHEMA_MIGRATION_GATE}
   from '../lib/managed-migration.mjs';
 
 const example={
-  kind:'D01_WINDOWS_DISPOSABLE_FIXTURE_V1',status:'NO_GO',
+  kind:'D01_WINDOWS_DISPOSABLE_FIXTURE_V2',status:'NO_GO',
   root:'C:\\ProgramData\\vcp-win-d01-isolation-'+'a'.repeat(32),
+  rootIdentity:'1'.repeat(24),
+  withManifestIdentity:'2'.repeat(24),
+  withoutManifestIdentity:'3'.repeat(24),
   oldSid:'S-1-5-21-100-200-300-1001',
   writerSid:'S-1-5-21-100-200-300-1002',
   location:'ProgramData',ntfs:true,
@@ -40,6 +43,9 @@ test('two real-SID scratch fixtures remain NO-GO after receipt validation',()=>{
 test('spoofed fixture, same SID, URL and changed safety flags are rejected',()=>{
   const unsafe=[
     {oldSid:example.writerSid},
+    {rootIdentity:'BAD'},
+    {withManifestIdentity:'BAD'},
+    {withoutManifestIdentity:example.withManifestIdentity},
     {oldSid:'S-1-5-32-544'},
     {status:'GO'},{d01Approved:true},
     {managedMutationAuthorized:true},
