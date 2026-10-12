@@ -3,8 +3,9 @@
 // of npm test, npm validate, migration, adoption, doctor or release.
 // Requires an operator opt-in and distinct *numeric* Linux OS principals.
 //
-// No published 0.9.3 CLI is executed by this diagnostic; testing old real
-// package entrypoints under isolated identities is a separate gate.
+// The published 0.9.3 CLI is attempted only with an independently
+// SHA512-pinned archive and a separate explicit bwrap approval.
+// These observations alone cannot prove old writer exclusion.
 // A passing diagnostic is NOT a D-01 approval or a durability certificate.
 import {writeFile,readFile,lstat} from 'node:fs/promises';
 import {provisionD01LinuxFixture,probeD01LinuxFixture,
@@ -78,7 +79,8 @@ try{
   const combined=Object.freeze({...proof,
     packageStage:staged,publishedCliObservations:published,
     publishedCliEntrypointsTested:false,
-    publishedArtifactExecuted:false,
+    publishedArtifactExecutionAttempted:runPublished,
+    publishedArtifactExecutionConfirmed:false,
     managedMutationAuthorized:false,
     d01Approval:false});
   // Receipt is kept inside newly allocated, root-owned evidence namespace.
