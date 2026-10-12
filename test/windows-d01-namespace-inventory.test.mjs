@@ -6,6 +6,8 @@ import {readFile} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
 import {MANAGED_SCHEMA_MIGRATION_GATE}
   from '../lib/managed-migration.mjs';
+import {compareWindowsD01NamespaceInventoryEnvelopes}
+  from '../lib/windows-d01-namespace-inventory-comparison.mjs';
 import {
   validateWindowsD01NativeNamespaceInventory,
   compareWindowsD01NamespaceInventories
@@ -186,4 +188,91 @@ test('native source has hard data limits and never introduces filesystem mutatio
     assert.equal(run.status,2);
     assert.match(run.stderr,/E_D01_WINDOWS_INVENTORY_USAGE/);
   }
+});
+
+
+const fixtureReceipt={
+  kind:'D01_WINDOWS_DISPOSABLE_FIXTURE_V2',status:'NO_GO',
+  root:'C:\\ProgramData\\vcp-win-d01-isolation-'+'a'.repeat(32),
+  rootIdentity:pathId(91),withManifestIdentity:pathId(92),
+  withoutManifestIdentity:pathId(93),
+  oldSid:'S-1-5-21-100-200-300-1001',
+  writerSid:'S-1-5-21-100-200-300-1002',
+  location:'ProgramData',ntfs:true,
+  manifestVariants:['with-manifest','without-manifest'],
+  filesCreatedOnly:true,selectedProjectTouched:false,
+  actualOldTokenTested:false,parentRenameDenialProven:false,
+  writerPositiveControlProven:false,
+  namespacePowerLossDurabilityProven:false,d01Approved:false,
+  managedMutationAuthorized:false,cleanupAuthorized:false
+};
+function envelope(native=inventory()){
+  return {
+    kind:'D01_WINDOWS_NAMESPACE_INVENTORY_ENVELOPE_V1',
+    status:'NO_GO',fixtureRoot:fixtureReceipt.root,
+    sourceSha256:'a'.repeat(64),executableSha256:'b'.repeat(64),
+    nativeReceipt:native,
+    review:{kind:'D01_WINDOWS_NATIVE_NAMESPACE_INVENTORY_REVIEW_V1',
+      status:'NO_GO',variant:native.variant,
+      rootIdentity:native.rootIdentity,projectIdentity:native.projectIdentity,
+      managedMutationAuthorized:false,d01Approved:false},
+    executablePinningIndependentlyAttested:false,
+    namespaceSnapshotAtomic:false,oldCliExecutionProven:false,
+    WindowsNamespaceDurabilityProven:false,
+    managedMutationAuthorized:false,d01Approved:false
+  };
+}
+test('fourth-layer native inventory envelopes correlate but stay NO_GO',()=>{
+  const compared=compareWindowsD01NamespaceInventoryEnvelopes({
+    fixtureReceipt,variant:'with-manifest',
+    beforeEnvelope:envelope(),afterEnvelope:envelope(
+      inventory('with-manifest',[dir('.vcp',1)]))
+  });
+  assert.deepEqual(compared.removedPaths,
+    ['.vcp/manifest.json','AGENTS.md']);
+  assert.equal(compared.status,'NO_GO');
+  assert.equal(compared.sameNativeSourceAndBinaryHashReported,true);
+  assert.equal(compared.oldPublishedCliWriterDeniedProven,false);
+  assert.equal(compared.nativeBinaryActuallyPinnedDuringScanProven,false);
+  assert.equal(compared.managedMutationAuthorized,false);
+});
+test('wrong native EXE, mismatched folder or forged approval cannot enter comparison',()=>{
+  const original={
+    fixtureReceipt,variant:'with-manifest',
+    beforeEnvelope:envelope(),afterEnvelope:envelope()
+  };
+  const edits=[
+    {afterEnvelope:{...envelope(),executableSha256:'c'.repeat(64)}},
+    {beforeEnvelope:{...envelope(),fixtureRoot:'C:\\real\\project'}},
+    {beforeEnvelope:{...envelope(),d01Approved:true}},
+    {afterEnvelope:envelope({...inventory(),
+      rootIdentity:pathId(7)})},
+    {beforeEnvelope:{...envelope(),nativeReceipt:{...inventory(),
+      publishedOldCliExecutionProven:true}}},
+    {afterEnvelope:{...envelope(),review:{...envelope().review,
+      managedMutationAuthorized:true}}}
+  ];
+  for(const changed of edits){
+    assert.throws(()=>compareWindowsD01NamespaceInventoryEnvelopes({
+      ...original,...changed
+    }),e=>/^E_D01_WINDOWS_/.test(e.code));
+  }
+});
+test('read-only inventory offline compare refuses incomplete CLI arguments',async()=>{
+  const pkg=JSON.parse(await readFile('package.json','utf8'));
+  const source=await readFile(
+    'scripts/compare-windows-d01-namespace-inventory.mjs','utf8');
+  assert.equal(pkg.scripts[
+    'compare:d01-windows-namespace-inventory'
+  ],'node scripts/compare-windows-d01-namespace-inventory.mjs');
+  assert.equal(pkg.scripts[
+    'build:native-windows-d01-inventory:verify-repro'
+  ],'node scripts/build-windows-d01-namespace-inventory.mjs --verify-repro');
+  assert.match(source,/compareWindowsD01NamespaceInventoryEnvelopes/);
+  assert.doesNotMatch(source,/spawnSync|execSync|writeFile|unlink/);
+  const result=spawnSync(process.execPath,[
+    'scripts/compare-windows-d01-namespace-inventory.mjs'
+  ],{shell:false,encoding:'utf8'});
+  assert.equal(result.status,2);
+  assert.match(result.stderr,/E_D01_WINDOWS_INVENTORY_DIFF_USAGE/);
 });
