@@ -51,7 +51,7 @@ try{
   const fixture=validateD01WindowsDisposableFixtureReceipt(fixtureRaw);
   const built=JSON.parse((await stableFile(
     builderReceipt,32768)).toString('utf8'));
-  if(built.kind!=='D01_WINDOWS_NAMESPACE_INVENTORY_BUILD_V1'||
+  if(built.kind!=='D01_WINDOWS_NAMESPACE_INVENTORY_BUILD_V2'||
      built.status!=='NO_GO'||built.managedMutationAuthorized!==false||
      built.d01Approved!==false||built.productionBackend!==false||
      built.nativeScratchMutationPerformed!==false||
