@@ -329,3 +329,15 @@ test('unchanged file bytes with ACL, owner/group fingerprint, attributes or root
     before:start,after:changedProject
   }).projectMetadataChanged,true);
 });
+
+test('native security digest uses canonical SDDL instead of raw descriptor bytes',async()=>{
+  const source=await readFile(
+    'scripts/native/vcp-windows-d01-namespace-inventory.cpp','utf8');
+  assert.match(source,/#include <sddl\.h>/);
+  assert.match(source,/ConvertSecurityDescriptorToStringSecurityDescriptorW\(/);
+  assert.match(source,/OWNER_SECURITY_INFORMATION\|GROUP_SECURITY_INFORMATION\|/);
+  assert.match(source,/DACL_SECURITY_INFORMATION/);
+  assert.match(source,/LocalFree\(canonical\)/);
+  assert.doesNotMatch(source,/reinterpret_cast<PUCHAR>\(descriptor\)/);
+  assert.match(source,/reinterpret_cast<PUCHAR>\(canonical\)/);
+});
