@@ -179,9 +179,9 @@ test('native source has hard data limits and never introduces filesystem mutatio
     /BCryptHashData/,/FILE_READ_DATA/,/FindFirstFileW/,
     /GetFileInformationByHandleEx/,/FileStreamInfo/,
     /NextEntryOffset==0/,/StreamNameLength==bytes/,
-    /GetSecurityInfo/,/GetSecurityDescriptorLength/,
+    /GetSecurityInfo/,/ConvertSecurityDescriptorToStringSecurityDescriptorW/,
     /OWNER_SECURITY_INFORMATION/,/GROUP_SECURITY_INFORMATION/,
-    /DACL_SECURITY_INFORMATION/,/READ_CONTROL/,
+    /DACL_SECURITY_INFORMATION/,/READ_CONTROL/,/LocalFree\(canonical\)/,
     /D01_WINDOWS_NATIVE_NAMESPACE_INVENTORY_V2/,
     /FindNextFileW/,/status.*NO_GO|NO_GO/
   ])assert.match(source,required);
