@@ -18,12 +18,14 @@ const observation=(object,extra={})=>({
 function receipt(sid=SID_A,variant='with-manifest',changes={}){
   const names=['drive-root','ancestor-1','ancestor-2','project','state','agents'];
   if(variant==='with-manifest')names.push('manifest');
-  return {kind:'D01_WINDOWS_TOKEN_ACL_READONLY_V1',
+  return {kind:'D01_WINDOWS_TOKEN_ACL_READONLY_V2',
     status:'NO_GO',platform:'win32',
     nativeWindows:true,productionProject:false,
     managedMutationAuthorized:false,publishedLegacyCliTested:false,
     nativePowerLossAttested:false,D01Approved:false,
     principalSid:sid,projectVariant:variant,
+    rootIdentity:'1'.repeat(24),
+    projectIdentity:'2'.repeat(24),
     observations:names.map(n=>observation(n)),
     accessCheckOnly:true,
     oldPrincipalActualMutationDenialUnproven:true,
@@ -71,6 +73,8 @@ test('falsified safe flag, missing ancestor and spoofed mutating proof refused',
     {D01Approved:true},
     {managedMutationAuthorized:true},
     {principalSid:'1001'},
+    {rootIdentity:'INVALID'},
+    {projectIdentity:'INVALID'},
     {accessCheckOnly:false},
     {status:'GO'},
     {projectVariant:'with-manifest',observations:receipt().observations
@@ -102,4 +106,20 @@ test('unknown fields, duplicate entries, partial or failed checks never masquera
   const v=validateWindowsD01ReadOnlyReceipt(original);
   assert.equal(v.completeReadOnlyAclSnapshot,false);
   assert.equal(v.status,'NO_GO');
+});
+
+
+test('two accounts inspecting different root or project IDs cannot be compared',()=>{
+  assert.throws(()=>assessWindowsD01DualPrincipal({
+    oldPrincipalReceipt:receipt(SID_A),
+    writerPrincipalReceipt:receipt(SID_B,'with-manifest',{
+      rootIdentity:'4'.repeat(24)
+    })
+  }),{code:'E_D01_WINDOWS_ACL_ROOT_IDENTITY_MISMATCH'});
+  assert.throws(()=>assessWindowsD01DualPrincipal({
+    oldPrincipalReceipt:receipt(SID_A),
+    writerPrincipalReceipt:receipt(SID_B,'with-manifest',{
+      projectIdentity:'5'.repeat(24)
+    })
+  }),{code:'E_D01_WINDOWS_ACL_PROJECT_IDENTITY_MISMATCH'});
 });
