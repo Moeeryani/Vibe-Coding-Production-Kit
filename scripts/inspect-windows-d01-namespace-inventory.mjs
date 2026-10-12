@@ -77,7 +77,7 @@ try{
   let native;
   try{native=JSON.parse(run.stdout.trim());}
   catch{refuse('E_D01_WINDOWS_INVENTORY_PROTOCOL');}
-  const reviewed=verifyWindowsD01NativeProtectedSnapshot(native,{
+  const reviewed=validateWindowsD01NativeNamespaceInventory(native,{
     variant,rootIdentity:fixture.rootIdentity,projectIdentity
   });
   console.log(JSON.stringify({
