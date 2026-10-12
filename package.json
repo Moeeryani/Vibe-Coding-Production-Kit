@@ -36,7 +36,8 @@
     "check:stage14-contract": "node scripts/check-stage14-construction-contract.mjs",
     "build:native-windows": "node scripts/build-native-windows.mjs",
     "test:native-windows-candidate": "node scripts/run-native-windows-candidate-tests.mjs",
-    "build:native-windows:verify-repro": "node scripts/build-native-windows.mjs --verify-repro"
+    "build:native-windows:verify-repro": "node scripts/build-native-windows.mjs --verify-repro",
+    "inspect:d01-boundary": "node scripts/inspect-d01-boundary.mjs"
   },
   "engines": {
     "node": ">=22"
