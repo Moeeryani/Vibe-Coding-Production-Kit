@@ -65,3 +65,32 @@ For each project it first checks the exact original marker and AGENTS.md bytes, 
 Afterward it verifies exact original bytes, the protected file identities, root/project identities and absence of both witness names. If either attempt **succeeds**, or any result is ambiguous, it records NO-GO; **no automatic deletion, rollback, rerun or cleanup** is allowed. A native crash, a non-v3-style protocol error or a missing receipt may conceal a completed mutation. Preserve the fixture and inspect before any further execution.
 
 Success of these *disposable kernel attempts* does **NOT** establish denial to `vibe-coding-production@0.9.3` or demonstrate actual execution of its `init --force`, `update`, `manage` or `rollback` write paths. This remains separately required on Linux and Windows, along with true parent-namespace confinement, elevated-token bypass analysis, concurrent operations, and Windows power-loss recovery. `D-01=DEFERRED` and `G-FENCE=NO-GO` remain unchanged.
+
+
+## Independently pinned published-0.9.3 adversary plan (NO EXECUTION)
+
+The portable module `lib/d01-windows-published-cli-plan.mjs` prepares the **next** D-01 experiment against the actual published npm tarball without executing or installing it. The offline runner is:
+
+```powershell
+npm run plan:d01-windows-published-cli -- --fixture "C:\evidence\fixture.json" --legacy-tgz "C:\evidence\vibe-coding-production-0.9.3.tgz" --expected-sha512 "<128 lowercase hexadecimal characters from independent publication evidence>"
+```
+
+This step uses the exact, previously written V2 disposable NTFS fixture receipt and checks archive SHA-512, tar-header checksums, member paths/types, and the published package name, version and entrypoint. The expected digest must be corroborated independently from the npm-published artifact identity, **not calculated from and copied next to the same downloaded local file**. It generates **ten fixed scenarios** (five lifecycle commands × two manifest states) with protected-file SHA-256 expectations, identity-check requirements, and an explicit post-backup **writer-authorized user edit** prerequisite before rollback.
+
+Output is JSON to stdout, always `status:NO_GO` and exit code **3**. There is no output file, package extraction, old CLI execution, `npm install`, network call, project mutation or cleanup. The command can run on Linux for plan construction, but does not thereby establish any Windows compatibility behavior.
+
+`lib/d01-windows-published-cli-evidence.mjs` accepts externally preserved **operator-reported** observations for those ten scenarios. It rejects unexpected approval fields, mismatched old SID, altered root/project NTFS IDs, missing byte hashes, contradictory process status and duplicate scenario IDs. It checks the reported before/after SHA-256 **and file identity** for AGENTS.md and manifest separately; an existing user file silently replaced with byte-identical content is NOT preservation. A reported Win32 error **32 (`ERROR_SHARING_VIOLATION`)** is never treated as Win32 error **5 (`ERROR_ACCESS_DENIED`)**. All operator JSON remains independently untrusted and every review is `NO_GO`.
+
+### Why this does not execute the old CLI yet
+
+The native kernel witness holds parent directory handles without `FILE_SHARE_DELETE`. These protect its own fixture targets against rename races, but can *themselves* cause a sharing violation during a rename. Therefore the witness and published-CLI denial are **distinct evidence sources**, and a denied rename under witness-held handles is **not** proof of ACL denial. Actual CLI commands must eventually run **without the observer causing the rejection**, while an independent disposable-VM confinement and forensic observer verifies original bytes and object IDs.
+
+Do **not** turn the new plan into an automatic Windows CLI launcher until the following are independently in place:
+
+- A trusted **new-only staging procedure** that publishes authenticated v0.9.3 package bytes as non-writable-to-old/writer objects and verifies they remain unmodified throughout execution, with no unsigned package substitution.
+- A native Windows execution environment with **actual verified old/writer TokenUser SID**, independently attested token groups/elevation/privileges and a proven **network-isolated VM/container**. Setting `npm_config_offline` or an environment variable does **not** enforce network isolation on Windows.
+- An independent observer that verifies the old CLI **reached its intended mutation code path** for each command. A nonzero CLI exit due to invalid arguments, missing backups or an inaccessible directory is not an access-control proof.
+- Separate baselines for with/without manifest, exact before/after protected byte hashes **and file IDs**, file/namespace reparse checks, real writer-positive controls and the writer's post-backup user-edit preservation.
+- Crash/concurrent-process and power-loss/recovery testing. A completed Windows `FlushFileBuffers` call is not NTFS namespace power-loss durability certification.
+
+`D-01=DEFERRED`; `G-FENCE=NO-GO`; `managedV2MutationAuthorized=false`. A complete operator-reported matrix still requires independent native validation and explicit owner approval before anyone may propose opening D-01.
