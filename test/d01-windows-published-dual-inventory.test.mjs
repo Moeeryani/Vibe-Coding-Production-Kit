@@ -210,9 +210,11 @@ test('legacy CLI that changes only sibling ACL or project root DACL cannot appea
   assert.deepEqual(siblingResult.observedChanges,[{
     variant:'without-manifest',change:'altered',path:'AGENTS.md'
   }]);
-  const projectRoot= {...envelope('without-manifest'),
-    nativeReceipt:{...native('without-manifest'),
-      projectSecuritySha256:'9'.repeat(64)}};
+  const modifiedRoot={...native('without-manifest'),
+    projectSecuritySha256:'9'.repeat(64)};
+  const projectRoot={...envelope('without-manifest'),
+    nativeReceipt:modifiedRoot,
+    review:validateWindowsD01NativeNamespaceInventory(modifiedRoot)};
   const rootResult=compareWindowsD01PublishedDualProjectInventories({
     ...good(),withoutAfter:projectRoot
   });
