@@ -411,6 +411,8 @@ int wmain(int argc,wchar_t* argv[]){
  DWORD rootAttributes=0,projectAttributes=0;
  std::string rootSecurity,projectSecurity;
  if(!rootHandle.ok()||!projectHandle.ok()||
+    id(rootHandle.h)!=ascii(rootId)||
+    id(projectHandle.h)!=ascii(projectId)||
     !metadata(rootHandle.h,rootAttributes,rootSecurity)||
     !metadata(projectHandle.h,projectAttributes,projectSecurity))
    return 5;
@@ -419,6 +421,8 @@ int wmain(int argc,wchar_t* argv[]){
  DWORD rootFinalAttributes=0,projectFinalAttributes=0;
  std::string rootFinalSecurity,projectFinalSecurity;
  if(!walk(project,"",0,entries,totalBytes)||
+    id(rootHandle.h)!=ascii(rootId)||
+    id(projectHandle.h)!=ascii(projectId)||
     !identityMatches(root,true,ascii(rootId))||
     !identityMatches(project,true,ascii(projectId))||
     !metadata(rootHandle.h,rootFinalAttributes,rootFinalSecurity)||
