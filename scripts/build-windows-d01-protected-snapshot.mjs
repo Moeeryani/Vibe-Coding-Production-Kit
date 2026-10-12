@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-// D-01 Windows disposable old-token kernel-denial witness build, manual.
-// The resulting native helper only READS marked native NTFS fixtures
-// after explicit two-SID + administrator opt-in. Never used in production,
-// bundled npm package, ordinary npm test or recovery/managed writers.
+// D-01 Windows read-only NTFS forensic snapshot build, manual.
+// The resulting native helper only READS exact marked ProgramData fixtures.
+// It does not create accounts, provision ACLs, test old CLI denial, mutate
+// filesystem data or attest Windows durability. The build writes its own
+// unshipped EXE and receipt under build/native-windows only.
 import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {mkdir,lstat,readFile,rm,writeFile} from 'node:fs/promises';
@@ -10,7 +11,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 function refuse(message){
-  console.error('E_D01_WINDOWS_FIXTURE_BUILD: '+message);
+  console.error('E_D01_WINDOWS_SNAPSHOT_BUILD: '+message);
   process.exit(2);
 }
 if(process.platform!=='win32')refuse('Native Windows/MSVC required');
