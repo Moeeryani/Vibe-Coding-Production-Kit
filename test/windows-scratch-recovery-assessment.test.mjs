@@ -78,7 +78,9 @@ test('wrong OS evidence, malformed identity and unexpected destination fail clos
     {exists:true,kind:'REGULAR',identity:'INVALID',sizeBytes:'1'},
     {exists:false,kind:'ABSENT',identity:'b'.repeat(24),sizeBytes:'0'},
     {exists:true,kind:'REGULAR',identity:'a'.repeat(24),sizeBytes:'-1'},
-    {exists:true,kind:'REGULAR',identity:'a'.repeat(24),sizeBytes:'1e9'}
+    {exists:true,kind:'REGULAR',identity:'a'.repeat(24),sizeBytes:'1e9'},
+    {exists:true,kind:'REGULAR',identity:'a'.repeat(24),
+      sizeBytes:'18446744073709551616'}
   ];
   for(const source of badValues){
     assert.throws(()=>assessWindowsScratchRecovery({
@@ -101,7 +103,10 @@ test('wrong OS evidence, malformed identity and unexpected destination fail clos
 test('a validated inspection-style receipt remains insufficient for automatic mutation',()=>{
   const receipt={kind:'VCP_WINDOWS_SCRATCH_NAMESPACE_CANDIDATE',
     protocolVersion:3,operation:'inspect-entry',completed:true,
-    managedMutationAuthorized:false,powerLossAttested:false,entry:src};
+    fileFlushReturned:false,directoryFlushReturned:false,
+    mayHaveMutated:false,lastWin32Error:0,
+    managedMutationAuthorized:false,directoryDurabilityProven:false,
+    powerLossAttested:false,entry:src};
   const r=assessWindowsScratchRecovery({
     operation:'unlink',before:{source:receipt},after:{source:absent}
   });
@@ -109,6 +114,10 @@ test('a validated inspection-style receipt remains insufficient for automatic mu
   flags(r);
   assert.throws(()=>assessWindowsScratchRecovery({
     operation:'unlink',before:{source:{...receipt,powerLossAttested:true}},
+    after:{source:absent}
+  }),{code:'E_WINDOWS_RECOVERY_OBSERVATION_INVALID'});
+  assert.throws(()=>assessWindowsScratchRecovery({
+    operation:'unlink',before:{source:{...receipt,mayHaveMutated:true}},
     after:{source:absent}
   }),{code:'E_WINDOWS_RECOVERY_OBSERVATION_INVALID'});
 });
