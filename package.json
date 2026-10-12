@@ -52,7 +52,8 @@
     "review:d01-windows-published-cli": "node scripts/review-windows-d01-published-cli.mjs",
     "build:native-windows-d01-snapshot": "node scripts/build-windows-d01-protected-snapshot.mjs",
     "build:native-windows-d01-snapshot:verify-repro": "node scripts/build-windows-d01-protected-snapshot.mjs --verify-repro",
-    "inspect:d01-windows-protected-snapshot": "node scripts/inspect-windows-d01-protected-snapshot.mjs"
+    "inspect:d01-windows-protected-snapshot": "node scripts/inspect-windows-d01-protected-snapshot.mjs",
+    "correlate:d01-windows-published-snapshots": "node scripts/correlate-windows-d01-published-snapshots.mjs"
   },
   "engines": {
     "node": ">=22"
