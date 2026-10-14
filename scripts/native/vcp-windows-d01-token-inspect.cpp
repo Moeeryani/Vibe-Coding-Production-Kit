@@ -54,13 +54,13 @@ bool knownProgramDataChild(const std::wstring& root){
   std::wstring base(allocated);
   CoTaskMemFree(allocated);
   CoUninitialize();
-  while(base.size()>3&&base.back()==L'\\')base.pop_back();
+  while(base.size()>3u&&base.back()==L'\\')base.pop_back();
   const size_t last=root.find_last_of(L'\\');
   return last!=std::wstring::npos &&
     _wcsicmp(root.substr(0,last).c_str(),base.c_str())==0;
 }
 bool safeRoot(const std::wstring& x) {
-  if(x.size()<8||x.size()>235||x[1]!=L':'||x[2]!=L'\\'||
+  if(x.size()<8u||x.size()>235u||x[1]!=L':'||x[2]!=L'\\'||
      x.find(L"..")!=std::wstring::npos||
      x.find(L'/')!=std::wstring::npos||
      x.find(L"\\\\")!=std::wstring::npos)return false;
@@ -68,10 +68,10 @@ bool safeRoot(const std::wstring& x) {
   if(last==std::wstring::npos||last+1>=x.size())return false;
   const std::wstring leaf=x.substr(last+1);
   if(leaf.rfind(L"vcp-win-d01-isolation-",0)!=0||
-     leaf.size()<23)return false;
+     leaf.size()<23u)return false;
   wchar_t absolute[260]={};
   const DWORD n=GetFullPathNameW(x.c_str(),260,absolute,nullptr);
-  return n>0&&n<260&&x==absolute&&knownProgramDataChild(x);
+  return n>0&&n<260u&&x==absolute&&knownProgramDataChild(x);
 }
 bool noReparseAncestors(const std::wstring& root){
   std::wstring current=root.substr(0,3);
@@ -98,10 +98,11 @@ bool validMarker(const std::wstring& root){
   if(!GetFileInformationByHandle(f.h,&info)||
      (info.dwFileAttributes&(FILE_ATTRIBUTE_REPARSE_POINT|
                               FILE_ATTRIBUTE_DIRECTORY))!=0||
-     info.nNumberOfLinks!=1)return false;
+     info.nNumberOfLinks!=1u)return false;
   char bytes[128]={};DWORD received=0;
-  if(!ReadFile(f.h,bytes,sizeof(bytes),&received,nullptr)||
-     received!=lstrlenA(MARK_BYTES))return false;
+  if(!ReadFile(f.h,bytes,static_cast<DWORD>(sizeof(bytes)),&received,
+               nullptr)||
+     received!=static_cast<DWORD>(lstrlenA(MARK_BYTES)))return false;
   return std::string(bytes,bytes+received)==MARK_BYTES;
 }
 bool ntfs(const std::wstring& root){
@@ -114,7 +115,7 @@ bool ntfs(const std::wstring& root){
 std::wstring currentSid(HANDLE token){
   DWORD needed=0;
   GetTokenInformation(token,TokenUser,nullptr,0,&needed);
-  if(!needed||needed>16384)return L"";
+  if(!needed||needed>16384u)return L"";
   std::vector<BYTE> buffer(needed);
   if(!GetTokenInformation(token,TokenUser,buffer.data(),needed,&needed))
     return L"";
@@ -154,7 +155,7 @@ Check checkRight(PSECURITY_DESCRIPTOR sd,HANDLE imp,DWORD requested){
   DWORD granted=0;
   BOOL allowed=FALSE;
   if(!AccessCheck(sd,imp,requested,&mapping,
-     reinterpret_cast<PPRIVILEGE_SET*>(privilege.data()),
+     reinterpret_cast<PPRIVILEGE_SET>(privilege.data()),
      &privilegeBytes,&granted,&allowed)){
     return {false,false,GetLastError()};
   }
@@ -183,7 +184,7 @@ Observed inspect(const std::wstring& p,const std::wstring& label,
   }
   if((identity.dwFileAttributes&FILE_ATTRIBUTE_REPARSE_POINT)!=0||
      ((identity.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)!=0)!=directory||
-     (!directory&&identity.nNumberOfLinks!=1)){
+     (!directory&&identity.nNumberOfLinks!=1u)){
     r.lastError=ERROR_INVALID_DATA;return r;
   }
   r.opened=true;
@@ -282,7 +283,7 @@ int wmain(int argc,wchar_t* argv[]){
   if(!rootPin.ok()||!projectPin.ok())return 5;
   const std::wstring rootId=identity(rootPin.h);
   const std::wstring projectId=identity(projectPin.h);
-  if(rootId.size()!=24||projectId.size()!=24)return 5;
+  if(rootId.size()!=24u||projectId.size()!=24u)return 5;
   std::vector<Observed> observations;
   // Inspect every parent up to the volume root, not only the protected
   // file. Replace-at-parent is part of the old CLI attack surface.
