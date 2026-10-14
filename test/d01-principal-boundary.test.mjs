@@ -27,6 +27,16 @@ const assess=(entries,other={})=>assessLegacyPrincipalBoundary({
 });
 function codes(result){return result.issues.map(i=>i.code);}
 
+// Syntax/load regression tripwire: the frozen f4b6832b tree shipped
+// `)refusal('E_D01_STAT_INVALID');` (stray ')', line 50), which made the
+// whole module unloadable and broke npm run check and inspect:d01-boundary.
+// A fresh dynamic import fails loudly on any future syntax regression.
+test('principal-boundary module loads: syntax regression tripwire',async()=>{
+  const module=await import('../lib/d01-principal-boundary.mjs');
+  assert.equal(typeof module.assessLegacyPrincipalBoundary,'function');
+  assert.equal(typeof module.inspectLegacyPrincipalBoundary,'function');
+});
+
 test('apparent nonwritability remains NO_GO: independent old CLI proof and D01 approval absent',()=>{
   const assessment=assess(fixture('/isolated/repo','/isolated/repo/AGENTS.md'));
   assert.equal(assessment.status,'NO_GO');
