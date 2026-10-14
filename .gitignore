@@ -10,3 +10,9 @@
 # Stage 12 Linux native helper: build artifact, never committed
 # (build with: npm run build:native-linux)
 scripts/native/vcp-linux-fsops
+
+# Stage12/13 native Windows scratch candidate: local unshipped outputs
+build/
+# Ignore old experimental in-tree Win32 build leftovers as well.
+scripts/native/vcp-windows-fsops.exe
+scripts/native/vcp-windows-fsops.obj
