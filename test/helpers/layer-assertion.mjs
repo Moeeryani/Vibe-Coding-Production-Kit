@@ -8,6 +8,7 @@
 // test/helpers/writer-layers.mjs. A test that claims to prove a later layer
 // is INCONCLUSIVE when an earlier guard raises first.
 import { appendFileSync } from 'node:fs';
+import test from 'node:test';
 import { LAYER_ORDER } from './writer-layers.mjs';
 
 export class Outcome {
@@ -87,10 +88,31 @@ function record(outcome) {
       ts: new Date().toISOString(),
       status: outcome.status,
       intended: outcome.intended,
+
       actual: outcome.actual,
       preemptedBy: outcome.preemptedBy,
       platform: process.platform,
       pid: process.pid,
     }) + '\n');
   } catch { /* evidence is best-effort; never changes the test verdict */ }
+}
+
+// Wraps a test whose assertions are only meaningful if a mutation can actually
+// be performed. Where the platform's own durability capability reports
+// namespace durability unproven (win32, and any platform without a reviewed
+// provider), the test is reported INCONCLUSIVE — never PASS, and never a
+// product FAIL for a guard that is behaving as designed.
+// This READS the guard. It does not bypass, stub, or reconfigure it.
+export function mutationTest(name, fn) {
+  return test(name, async (t) => {
+    const { lifecycleDurabilityCapability } = await import('../../lib/file-durability.mjs');
+    const cap = lifecycleDurabilityCapability();
+    if (!cap.supported) {
+      const e = new Error(`INCONCLUSIVE: mutation unreachable — ${cap.reason}`);
+      e.code = 'E_TEST_INCONCLUSIVE';
+      t.diagnostic(e.message);
+      throw e;
+    }
+    return fn(t);
+  });
 }

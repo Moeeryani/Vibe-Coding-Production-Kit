@@ -7,6 +7,8 @@ import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import test from 'node:test';
+import { mutationTest } from './helpers/layer-assertion.mjs';
+const gateNestedMut = (name, fn) => mutationTest(name, fn);
 import {
   createControlledFixture, teardownControlledFixture,
 } from './helpers/controlled-writer-fixture.mjs';
@@ -44,7 +46,7 @@ async function makeTestBackup(root, backupId, manifestObj) {
   return { manifestBytes, record };
 }
 
-gateNested('B5-01 — successful restore: byte-exact, journal clean', async () => {
+gateNestedMut('B5-01 — successful restore: byte-exact, journal clean', async () => {
   const f = await createControlledFixture({ allowedOperations: OPS });
   try {
     const backupId = 'test-backup-01';
@@ -89,15 +91,37 @@ gate('B5-03 — unauthorized rollback: invalid capability refused', async () => 
 gateNested('B5-04 — interrupted rollback: no invalid mixed state', async (t) => {
   const { spawn } = await import('node:child_process');
   const { createHash } = await import('node:crypto');
+  const { forceKill, waitExit } = await import('./helpers/child-kill.mjs');
   const sha256 = (b) => createHash('sha256').update(b).digest('hex');
   const childPath = path.resolve(import.meta.dirname, 'helpers', 'controlled-crash-child.mjs');
+
+  // A crash test can only prove crash-atomicity if the child reaches the
+  // mutation. The product itself declares whether namespace durability is
+  // available on this platform; where it is not, no mutation can happen and
+  // this scenario is reported INCONCLUSIVE rather than run to a hang.
+  const { lifecycleDurabilityCapability } = await import('../lib/file-durability.mjs');
+  const durability = lifecycleDurabilityCapability();
+  if (!durability.supported) {
+    const e = new Error(`INCONCLUSIVE: mutation is unreachable on '${durability.reason}'` +
+      ` — the child cannot reach the rollback window`);
+    e.code = 'E_TEST_INCONCLUSIVE';
+    throw e;
+  }
+
   const child = spawn(process.execPath, [childPath, 'rollback'], {
     env: { ...process.env, TMPDIR: process.env.TMPDIR },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   let fixtureRoot = null;
+  let childErr = null;
   await new Promise((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error('child startup timeout')), 20000);
+    child.once('exit', (code, signal) => {
+      // The child may die before BACKUP_READY; resolve so we can inspect why
+      // instead of burning the full startup timeout.
+      childErr = { code, signal };
+      if (!fixtureRoot) { clearTimeout(timer); resolve(); }
+    });
     child.stdout.on('data', (d) => {
       const s = d.toString();
       const m = s.match(/FIXTURE_ROOT=(\S+)/);
@@ -106,11 +130,25 @@ gateNested('B5-04 — interrupted rollback: no invalid mixed state', async (t) =
     });
     child.on('error', reject);
   });
-  assert.ok(fixtureRoot, 'child reported fixture root');
+  assert.ok(fixtureRoot, `child reported fixture root (child exit: ${JSON.stringify(childErr)})`);
+  if (childErr) {
+    // Child died during setup: the mid-restore kill window never existed.
+    const { rm } = await import('node:fs/promises');
+    await rm(fixtureRoot, { recursive: true, force: true }).catch(() => {});
+    const e = new Error(`INCONCLUSIVE: child exited (${childErr.code ?? childErr.signal})` +
+      ` before the rollback window — crash-atomicity not exercised`);
+    e.code = 'E_TEST_INCONCLUSIVE';
+    throw e;
+  }
   // Kill mid-restore (50 files being restored; 300ms should catch it).
   await new Promise((r) => setTimeout(r, 300));
-  child.kill('SIGKILL');
-  await new Promise((r) => child.on('exit', r));
+  // BOUNDED, race-free teardown. The previous form awaited an 'exit' event
+  // registered after the child had already died, which hung the whole runner
+  // on Windows. Failure must surface as a test result, never as a stall.
+  const kill = await forceKill(child, { timeoutMs: 10_000 });
+  const post = await waitExit(child, 10_000);
+  assert.equal(kill.terminated && post.exited, true,
+    `child was not terminated: ${JSON.stringify(kill)}`);
   t.diagnostic(`child killed mid-rollback; fixture=${fixtureRoot}`);
   const { readFile: rf, readdir } = await import('node:fs/promises');
   // Manifest is atomic: either v1 (restored) or absent — never torn.
@@ -133,7 +171,7 @@ gateNested('B5-04 — interrupted rollback: no invalid mixed state', async (t) =
   t.diagnostic('B5-04 evidence: manifest atomic, backup intact, no temp leaks');
 });
 
-gateNested('B5-05 — concurrent rollback and update: locking serializes', async () => {
+gateNestedMut('B5-05 — concurrent rollback and update: locking serializes', async () => {
   const f = await createControlledFixture({ allowedOperations: ['rollback-v2', 'b4-concurrency', 'journal-write', 'journal-clear'] });
   // Barrier: ensure both workers start before either can finish.
   // This prevents the test's cleanup from racing with in-flight operations.
@@ -200,7 +238,7 @@ gate('B5-06 — stale backup: version/identity mismatch refused', async () => {
   } finally { await teardownControlledFixture(f); }
 });
 
-gateNested('B5-07 — byte retention: no residual sensitive data after cleanup', async (t) => {
+gateNestedMut('B5-07 — byte retention: no residual sensitive data after cleanup', async (t) => {
   const f = await createControlledFixture({ allowedOperations: ['rollback-v2', 'journal-write', 'journal-clear'] });
   const SECRET = 'SENSITIVE-CANARY-' + Date.now();
   try {

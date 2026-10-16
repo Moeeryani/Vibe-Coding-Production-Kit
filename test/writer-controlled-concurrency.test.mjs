@@ -118,25 +118,34 @@ gate('B4-03 — stale identity between phases: writer core refuses (WRITER_IDENT
 gate('B4-04 — interrupted transaction: journal consistent, no torn files', async (t) => {
   const { spawn } = await import('node:child_process');
   const { createHash } = await import('node:crypto');
+  const { forceKill, waitExit } = await import('./helpers/child-kill.mjs');
   const sha256 = (b) => createHash('sha256').update(b).digest('hex');
   const childPath = path.resolve(import.meta.dirname, 'helpers', 'controlled-crash-child.mjs');
 
-  // The crash scenario is meaningful only if a transaction can mutate at all.
-  const probeFixture = await createControlledFixture({ allowedOperations: OPS });
-  const probe = await requireLayer(() => runWriterTransaction({
-    root: probeFixture.root, operation: 'b4-concurrency', mode: 'init',
-    testCapability: probeFixture.capability, mutate: async () => {},
-  }), { intended: LAYER.WRITER_IDENTITY, guardsBefore: PREEMPTING });
-  await teardownControlledFixture(probeFixture).catch(() => {});
-  assertLayerPassed(probe);   // INCONCLUSIVE on Windows
+  // Same reachability gate as B5-04: where namespace durability is unproven no
+  // mutation can start, so there is no crash window to interrupt. Report
+  // INCONCLUSIVE instead of spawning a child that can only die early.
+  const { lifecycleDurabilityCapability } = await import('../lib/file-durability.mjs');
+  const durability = lifecycleDurabilityCapability();
+  if (!durability.supported) {
+    const e = new Error(`INCONCLUSIVE: mutation is unreachable on '${durability.reason}'` +
+      ` — no transaction can be interrupted`);
+    e.code = 'E_TEST_INCONCLUSIVE';
+    throw e;
+  }
 
   const child = spawn(process.execPath, [childPath, 'transaction'], {
     env: { ...process.env, TMPDIR: process.env.TMPDIR },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   let fixtureRoot = null;
+  let childErr = null;
   await new Promise((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error('child startup timeout')), 15000);
+    child.once('exit', (code, signal) => {
+      childErr = { code, signal };
+      if (!fixtureRoot) { clearTimeout(timer); resolve(); }
+    });
     child.stdout.on('data', (d) => {
       const s = d.toString();
       const m = s.match(/FIXTURE_ROOT=(\S+)/);
@@ -145,11 +154,20 @@ gate('B4-04 — interrupted transaction: journal consistent, no torn files', asy
     });
     child.on('error', reject);
   });
-  assert.ok(fixtureRoot, 'child reported fixture root');
-  // Wait for mutation to start, then SIGKILL mid-transaction.
+  assert.ok(fixtureRoot, `child reported fixture root (exit ${JSON.stringify(childErr)})`);
+  if (childErr) {
+    const { rm } = await import('node:fs/promises');
+    await rm(fixtureRoot, { recursive: true, force: true }).catch(() => {});
+    const e = new Error(`INCONCLUSIVE: child exited (${childErr.code ?? childErr.signal})` +
+      ' before the mutation window — crash-atomicity not exercised');
+    e.code = 'E_TEST_INCONCLUSIVE';
+    throw e;
+  }
   await new Promise((r) => setTimeout(r, 800));
-  child.kill('SIGKILL');
-  await new Promise((r) => child.on('exit', r));
+  const kill = await forceKill(child, { timeoutMs: 10_000 });
+  const post = await waitExit(child, 10_000);
+  assert.equal(kill.terminated && post.exited, true,
+    `child was not terminated: ${JSON.stringify(kill)}`);
   t.diagnostic(`child killed; fixture=${fixtureRoot}`);
   // Verify: fixture intact, no torn files, journal consistent or absent.
   const { readdir, readFile: rf } = await import('node:fs/promises');

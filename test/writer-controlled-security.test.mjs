@@ -109,26 +109,34 @@ test('Test 6 — production entrypoint: gate still rejects without capability', 
   );
 });
 
+// Test 7 previously shelled out to `grep -rl ... 2>/dev/null || true`, which
+// aborts on Windows (cmd re-parses the redirections and the shell builtins).
+// That is a portability defect in the harness, not a security finding: the
+// property is checked here natively, so it holds on every platform.
 test('Test 7 — package exclusion: test helpers not in production surface', async () => {
   const pkg = (await import('../package.json', { with: { type: 'json' } })).default;
   const files = pkg.files || [];
   assert.ok(!files.some((f) => f.startsWith('test/')), 'test/ must not be in package files');
-  // No production lib module statically imports test helpers.
-  const { execSync } = await import('node:child_process');
-  const out = execSync(
-    "grep -rl \"from ['\\\"]\\.\\./test/helpers\" lib/ 2>/dev/null || true",
-    { cwd: path.resolve(import.meta.dirname, '..'), encoding: 'utf8' }
-  );
-  // Only dynamic imports inside the capability-gated branch are allowed.
-  const lines = out.trim().split('\n').filter(Boolean);
-  for (const line of lines) {
-    const content = (await import('node:fs/promises')).readFile;
-    const text = await content(path.resolve(import.meta.dirname, '..', line), 'utf8');
-    assert.ok(
-      text.includes('testCapability'),
-      `${line} imports test helpers without the testCapability guard`
-    );
+
+  const { readdir, readFile } = await import('node:fs/promises');
+  const libDir = path.resolve(import.meta.dirname, '..', 'lib');
+  const entries = await readdir(libDir);
+  const STATIC_HELPER_IMPORT = /^\s*import[\s\S]{0,200}?from\s*['"]\.\.\/test\/helpers/;
+  const offenders = [];
+  for (const name of entries.filter((n) => n.endsWith('.mjs'))) {
+    const text = await readFile(path.join(libDir, name), 'utf8');
+    if (!STATIC_HELPER_IMPORT.test(text)) continue;
+    // Only dynamic imports inside the capability-gated branch are allowed.
+    if (!text.includes('testCapability')) offenders.push(name);
   }
+  assert.deepEqual(offenders, [],
+    `lib modules import test helpers without the testCapability guard: ${offenders.join(', ')}`);
+  // The allowed case must still exist, or this assertion would pass vacuously
+  // if someone deleted the capability-gated branch entirely.
+  const productionWriter = await readFile(
+    path.join(libDir, 'production-writer.mjs'), 'utf8');
+  assert.match(productionWriter, /controlled-writer-capability\.mjs/,
+    'capability-gated dynamic import vanished — exclusion test is now vacuous');
 });
 
 test('Test 8 — identity replacement: fixture swap detected', async () => {

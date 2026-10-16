@@ -1,72 +1,169 @@
 // B-1 Phase 6: identity layer security tests.
+//
+// REPAIRED (Windows campaign 2026-10-16). These tests hard-coded POSIX
+// assumptions (kind === 'posix', numeric uid, symlink creation), so on Windows
+// they failed as apparent product defects while proving nothing about Windows.
+// Platform-specific cases now declare their platform, and the Windows principal
+// gap is asserted explicitly as a fail-closed requirement rather than left
+// implicit. No guard was weakened.
 import assert from 'node:assert/strict';
-import { mkdtemp, writeFile, symlink } from 'node:fs/promises';
+import { mkdtemp, writeFile, symlink, lstat, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import {
   currentPrincipal,verifyPrincipal,pinPathIdentity,verifyPathIdentity,
-  verifyNamespaceContained,verifyWriterBoundary
+  verifyNamespaceContained,verifyWriterBoundary,principalProofStatus
 } from '../lib/writer-identity.mjs';
 
-test('valid writer: current principal verifies against itself',()=>{
-  const p=currentPrincipal();
-  assert.equal(p.kind,'posix');
-  assert.ok(Number.isInteger(p.uid));
-  const back=verifyPrincipal(p);
-  assert.equal(back.uid,p.uid);
+const IS_WINDOWS = process.platform === 'win32';
+const IS_POSIX = !IS_WINDOWS && typeof process.getuid === 'function';
+
+// --- POSIX-specific identity semantics -------------------------------------
+test('valid writer: current principal verifies against itself',
+  { skip: IS_WINDOWS ? 'posix uid semantics do not exist on win32' : false },
+  () => {
+    const p = currentPrincipal();
+    assert.equal(p.kind, 'posix');
+    assert.ok(Number.isInteger(p.uid));
+    const back = verifyPrincipal(p);
+    assert.equal(back.uid, p.uid);
+  });
+
+test('wrong principal rejected',
+  { skip: IS_WINDOWS ? 'constructs a fake posix uid; win32 has no uid' : false },
+  () => {
+    const p = currentPrincipal();
+    const wrong = { ...p, uid: p.uid + 999999 };
+    assert.throws(() => verifyPrincipal(wrong, p), /E_WRITER_PRINCIPAL_MISMATCH/);
+  });
+
+// --- Windows principal: fail-closed is the contract -------------------------
+test('unproven Windows identity fails closed', () => {
+  const win = { kind: 'windows', sid: null, proven: false };
+  assert.throws(() => verifyPrincipal(win, win), /E_WRITER_PRINCIPAL_UNPROVEN/);
 });
 
-test('wrong principal rejected',()=>{
-  const p=currentPrincipal();
-  const wrong={...p,uid:p.uid+999999};
-  assert.throws(()=>verifyPrincipal(wrong,p),/E_WRITER_PRINCIPAL_MISMATCH/);
+test('WIN-01 — currentPrincipal on win32 never claims proof without a native provider', () => {
+  const p = currentPrincipal();
+  if (!IS_WINDOWS) return;
+  assert.equal(p.kind, 'windows');
+  assert.equal(p.proven, false,
+    'proven:true without a native token provider would be a forged principal');
+  assert.equal(p.sid, null, 'no SID may be reported without native proof');
+  // The reason must distinguish "provider exists but failed" from "no provider
+  // exists at all" — otherwise an unimplemented seam looks like a runtime error.
+  assert.equal(p.reason, 'NO_NATIVE_PROVIDER_CONFIGURED');
 });
 
-test('stale identity rejected (kind change)',()=>{
-  const p=currentPrincipal();
-  assert.throws(()=>verifyPrincipal({kind:'windows',sid:'S-1-5-21-x',proven:true},p),
-    /E_WRITER_PRINCIPAL_MISMATCH/);
+test('WIN-02 — a pinned windows principal cannot be self-certified by the caller', () => {
+  // Mirrors the removed `authorize` injection parameter (production-writer.mjs:66-69):
+  // a caller-supplied "proven" principal must never satisfy verification.
+  const forged = { kind: 'windows', sid: 'S-1-5-21-0-0-0-1000', proven: true };
+  const actual = currentPrincipal();
+  if (!IS_WINDOWS) return;
+  assert.throws(
+    () => verifyPrincipal(forged, actual),
+    (e) => e.code === 'E_WRITER_PRINCIPAL_UNPROVEN' ||
+           e.code === 'E_WRITER_PRINCIPAL_MISMATCH',
+    'a fabricated proven:true principal must not verify against an unproven process');
 });
 
-test('unproven Windows identity fails closed',()=>{
-  const win={kind:'windows',sid:null,proven:false};
-  assert.throws(()=>verifyPrincipal(win,win),/E_WRITER_PRINCIPAL_UNPROVEN/);
+test('WIN-03 — kind change to windows is rejected on an unproven process', () => {
+  const actual = currentPrincipal();
+  assert.throws(
+    () => verifyPrincipal({ kind: 'windows', sid: 'S-1-5-21-x', proven: true }, actual),
+    /E_WRITER_PRINCIPAL_MISMATCH|E_WRITER_PRINCIPAL_UNPROVEN/);
 });
 
-test('object identity pinning detects replacement',async()=>{
-  const dir=await mkdtemp(path.join(os.tmpdir(),'vcp-wid-'));
-  const f=path.join(dir,'file.txt');
-  await writeFile(f,'v1');
-  const pin=await pinPathIdentity(f);
-  assert.ok(await verifyPathIdentity(f,pin));
-  await writeFile(f,'v2'); // same inode: still valid
-  assert.ok(await verifyPathIdentity(f,pin));
+test('WIN-04 — principalProofStatus reports the seam, not a guess', () => {
+  const s = principalProofStatus();
+  assert.equal(typeof s.providerPresent, 'boolean');
+  assert.equal(s.securePathAuthorized, false,
+    'the production writer mutation path must never be authorized by this status');
+  if (IS_WINDOWS) {
+    assert.equal(s.providerPresent, false,
+      'no native principal provider is wired yet; claiming otherwise would be a false proof');
+    assert.match(s.reason, /NO_NATIVE_PROVIDER_CONFIGURED/);
+  }
 });
 
-test('namespace containment rejects escapes',async()=>{
-  const dir=await mkdtemp(path.join(os.tmpdir(),'vcp-wid-'));
-  await assert.rejects(
-    verifyNamespaceContained(dir,path.join(dir,'..','escape')),
-    /E_WRITER_NAMESPACE_ESCAPE/);
-  await assert.rejects(
-    verifyNamespaceContained(dir,'/etc/passwd'),
-    /E_WRITER_NAMESPACE_ESCAPE/);
+// --- boundary contract ------------------------------------------------------
+test('writer boundary requires a named operation', async () => {
+  const dir = await mkdtemp(path.join(os.tmpdir(), 'vcp-wid-'));
+  try {
+    await assert.rejects(verifyWriterBoundary({ root: dir }), /E_WRITER_BOUNDARY/);
+    const ok = await verifyWriterBoundary({ root: dir, operation: 'test-op' });
+    assert.equal(ok.operation, 'test-op');
+    // Previously asserted `ok.principal.proven`, which is false on Windows and
+    // made a real contract mismatch look like a platform defect. verifyWriterBoundary
+    // resolves namespace containment and snapshots the principal; proof of the
+    // principal is verified later, at step 4 of the transaction.
+    assert.ok(Object.prototype.hasOwnProperty.call(ok.principal, 'proven'),
+      'boundary must report the principal proof state');
+    if (IS_POSIX) assert.equal(ok.principal.proven, true);
+    if (IS_WINDOWS) assert.equal(ok.principal.proven, false);
+    assert.equal(ok.principalVerified, false,
+      'the boundary itself must not claim principal verification');
+  } finally { await rm(dir, { recursive: true, force: true }); }
 });
 
-test('namespace rejects symlink components',async()=>{
-  const dir=await mkdtemp(path.join(os.tmpdir(),'vcp-wid-'));
-  const outside=await mkdtemp(path.join(os.tmpdir(),'vcp-wid-out-'));
-  await symlink(outside,path.join(dir,'link'));
-  await assert.rejects(
-    verifyNamespaceContained(dir,path.join(dir,'link','x')),
-    /E_WRITER_NAMESPACE_UNSAFE/);
+// --- object identity --------------------------------------------------------
+test('object identity pinning detects replacement', async () => {
+  const dir = await mkdtemp(path.join(os.tmpdir(), 'vcp-wid-'));
+  try {
+    const f = path.join(dir, 'file.txt');
+    await writeFile(f, 'v1');
+    const pin = await pinPathIdentity(f);
+    assert.ok(await verifyPathIdentity(f, pin));
+    await writeFile(f, 'v2'); // same inode: still valid
+    assert.ok(await verifyPathIdentity(f, pin));
+  } finally { await rm(dir, { recursive: true, force: true }); }
 });
 
-test('writer boundary requires a named operation',async()=>{
-  const dir=await mkdtemp(path.join(os.tmpdir(),'vcp-wid-'));
-  await assert.rejects(verifyWriterBoundary({root:dir}),/E_WRITER_BOUNDARY/);
-  const ok=await verifyWriterBoundary({root:dir,operation:'test-op'});
-  assert.equal(ok.operation,'test-op');
-  assert.ok(ok.principal.proven);
+test('identity is non-vacuous on this filesystem', async () => {
+  // Guards the whole replacement-detection family: if (dev, ino) were constant,
+  // every detection test would pass for the wrong reason.
+  const dir = await mkdtemp(path.join(os.tmpdir(), 'vcp-wid-'));
+  try {
+    const a = path.join(dir, 'a'); const b = path.join(dir, 'b');
+    await writeFile(a, '1'); await writeFile(b, '1');
+    const pa = await pinPathIdentity(a); const pb = await pinPathIdentity(b);
+    assert.notEqual(pa.ino, 0, 'ino 0: no object identity exposed');
+    assert.notEqual(pa.ino, pb.ino, 'distinct files must have distinct inodes');
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+// --- namespace containment --------------------------------------------------
+test('namespace containment rejects escapes', async () => {
+  const dir = await mkdtemp(path.join(os.tmpdir(), 'vcp-wid-'));
+  try {
+    await assert.rejects(
+      verifyNamespaceContained(dir, path.join(dir, '..', 'escape')),
+      /E_WRITER_NAMESPACE_ESCAPE/);
+    const outside = IS_WINDOWS ? 'C:\\Windows\\win.ini' : '/etc/passwd';
+    await assert.rejects(verifyNamespaceContained(dir, outside),
+      /E_WRITER_NAMESPACE_ESCAPE/);
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test('namespace rejects symlink components', async (t) => {
+  const dir = await mkdtemp(path.join(os.tmpdir(), 'vcp-wid-'));
+  const outside = await mkdtemp(path.join(os.tmpdir(), 'vcp-wid-out-'));
+  try {
+    try {
+      await symlink(outside, path.join(dir, 'link'));
+    } catch (e) {
+      // Windows refuses symlink creation without SeCreateSymbolicLinkPrivilege.
+      // That is an absent capability, NOT a passing containment test.
+      t.skip(`symlink creation unavailable (${e.code}); reparse-point containment is NOT_PROVEN here`);
+      return;
+    }
+    await assert.rejects(
+      verifyNamespaceContained(dir, path.join(dir, 'link', 'x')),
+      /E_WRITER_NAMESPACE_UNSAFE/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+    await rm(outside, { recursive: true, force: true });
+  }
 });

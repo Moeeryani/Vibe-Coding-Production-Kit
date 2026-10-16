@@ -4,6 +4,7 @@ import { mkdtemp, readFile, mkdir } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import { mutationTest } from './helpers/layer-assertion.mjs';
 import { atomicWriteFile, atomicWriteManifest } from '../lib/writer-atomic.mjs';
 
 const fresh=async()=>{
@@ -12,21 +13,21 @@ const fresh=async()=>{
   return dir;
 };
 
-test('atomic write creates new file with exact bytes',async()=>{
+mutationTest('atomic write creates new file with exact bytes',async()=>{
   const root=await fresh();
   const {sha256}=await atomicWriteFile(root,'hello.txt',Buffer.from('hello'));
   assert.equal(await readFile(path.join(root,'hello.txt'),'utf8'),'hello');
   assert.match(sha256,/^[a-f0-9]{64}$/);
 });
 
-test('atomic write replaces existing file without tearing',async()=>{
+mutationTest('atomic write replaces existing file without tearing',async()=>{
   const root=await fresh();
   await atomicWriteFile(root,'data.txt',Buffer.from('v1-content-here'));
   await atomicWriteFile(root,'data.txt',Buffer.from('v2-content-here!!'));
   assert.equal(await readFile(path.join(root,'data.txt'),'utf8'),'v2-content-here!!');
 });
 
-test('no temp files left behind',async()=>{
+mutationTest('no temp files left behind',async()=>{
   const root=await fresh();
   await atomicWriteFile(root,'a.txt',Buffer.from('x'));
   const { readdir }=await import('node:fs/promises');
@@ -48,7 +49,7 @@ test('atomic write rejects bad mode',async()=>{
     /E_ATOMIC_MODE/);
 });
 
-test('manifest write uses 0600 and verifies hash',async()=>{
+mutationTest('manifest write uses 0600 and verifies hash',async()=>{
   const root=await fresh();
   const bytes=Buffer.from('{"v":2}\n');
   const { stat }=await import('node:fs/promises');

@@ -4,6 +4,7 @@
 // journal chain valid; recovery identity correct; prod gate enforced.
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { mutationTest } from './helpers/layer-assertion.mjs';
 import {
   createControlledFixture, teardownControlledFixture,
 } from './helpers/controlled-writer-fixture.mjs';
@@ -28,7 +29,7 @@ async function makeBackup(root, backupId) {
   }) + '\n');
 }
 
-test('TI-01 — valid rollback descriptor accepted', async () => {
+mutationTest('TI-01 — valid rollback descriptor accepted', async () => {
   const f = await createControlledFixture({ allowedOperations: OPS });
   try {
     await makeBackup(f.root, 'ti-backup-01');
@@ -41,7 +42,7 @@ test('TI-01 — valid rollback descriptor accepted', async () => {
   } finally { await teardownControlledFixture(f); }
 });
 
-test('TI-02 — valid backup identity preserved in receipt', async () => {
+mutationTest('TI-02 — valid backup identity preserved in receipt', async () => {
   const f = await createControlledFixture({ allowedOperations: OPS });
   try {
     await makeBackup(f.root, 'ti-backup-02');
@@ -131,7 +132,7 @@ test('TI-07 — tampered backup rejected', async () => {
   } finally { await teardownControlledFixture(f); }
 });
 
-test('TI-08 — journal hash chain remains valid after rollback', async () => {
+mutationTest('TI-08 — journal hash chain remains valid after rollback', async () => {
   const f = await createControlledFixture({ allowedOperations: OPS });
   try {
     await makeBackup(f.root, 'ti-backup-08');
