@@ -78,11 +78,15 @@ test('LA-07 — layer order matches the production writer sequence', async () =>
   // Guards the ordering claim: capability/fence run at step 2, the lock's
   // durability refusal at step 3, principal at step 4, B-9 pinning at step 4b.
   const idx = (c) => LAYER_ORDER.indexOf(c);
-  assert.ok(idx(LAYER.BOUNDARY) < idx(LAYER.CAPABILITY));
+  assert.ok(idx(LAYER.BOUNDARY) < idx(LAYER.CAPABILITY_INVALID));
+  // verifyTestCapability order: forgery -> scope -> identity.
+  assert.ok(idx(LAYER.CAPABILITY_INVALID) < idx(LAYER.CAPABILITY_SCOPE));
+  assert.ok(idx(LAYER.CAPABILITY_SCOPE) < idx(LAYER.CAPABILITY));
   assert.ok(idx(LAYER.CAPABILITY) < idx(LAYER.DURABILITY));
   assert.ok(idx(LAYER.DURABILITY) < idx(LAYER.PRINCIPAL));
   assert.ok(idx(LAYER.PRINCIPAL) < idx(LAYER.WRITER_IDENTITY));
-  assert.equal(LAYER_ORDER.length, 6);
+  assert.equal(LAYER_ORDER.length, 8);
+  assert.equal(new Set(LAYER_ORDER).size, LAYER_ORDER.length, 'layer order has no duplicates');
 });
 
 test('LA-08 — error without a code property is FAIL, not a crash', async () => {
@@ -98,4 +102,28 @@ test('LA-09 — Outcome shape is machine-readable for the evidence matrix', asyn
   assert.deepEqual(
     { status: o.status, intended: o.intended, preemptedBy: o.preemptedBy },
     { status: 'BLOCKED', intended: LAYER.WRITER_IDENTITY, preemptedBy: LAYER.DURABILITY });
+});
+
+test('LA-10 — evidence sink records each verdict when VCP_LAYER_EVIDENCE is set', async () => {
+  const { mkdtempSync, readFileSync, rmSync } = await import('node:fs');
+  const os = await import('node:os');
+  const dir = mkdtempSync(process.env.TMPDIR + '/la10-');
+  process.env.VCP_LAYER_EVIDENCE = dir + '/sink.jsonl';
+  try {
+    const passed = await requireLayer(() => throwCode(LAYER.WRITER_IDENTITY),
+      { intended: LAYER.WRITER_IDENTITY, guardsBefore: [LAYER.CAPABILITY] });
+    assertLayerPassed(passed);
+    const blocked = await requireLayer(() => throwCode(LAYER.CAPABILITY),
+      { intended: LAYER.WRITER_IDENTITY, guardsBefore: [LAYER.CAPABILITY] });
+    assert.throws(() => assertLayerPassed(blocked), (e) => e.code === 'E_TEST_INCONCLUSIVE');
+    const lines = readFileSync(process.env.VCP_LAYER_EVIDENCE, 'utf8').trim().split('\n').map(JSON.parse);
+    assert.equal(lines.length, 2, 'one line per verdict');
+    assert.equal(lines[0].status, 'PASS');
+    assert.equal(lines[1].status, 'BLOCKED');
+    assert.equal(lines[1].preemptedBy, LAYER.CAPABILITY);
+    assert.equal(lines[1].platform, process.platform);
+  } finally {
+    delete process.env.VCP_LAYER_EVIDENCE;
+    rmSync(dir, { recursive: true, force: true });
+  }
 });

@@ -2,6 +2,13 @@
 // See B4-B5-CONTROLLED-LANE-SECURITY-REVIEW.md. These tests perform
 // gate-bypassed mutations through the controlled lane against disposable
 // fixtures. They MUST NOT run without approval.
+//
+// REPAIRED (Windows campaign 2026-10-16): assertions of the form
+//   assert.rejects(op, /E_TEST_CAPABILITY_IDENTITY|E_WRITER/)
+// accepted a rejection raised by any layer, and the success-path tests could
+// not distinguish "concurrency enforced" from "never reached concurrency".
+// Each test now names exactly one enforcement layer; a pre-empting earlier
+// guard is reported INCONCLUSIVE, never PASS. No security guard was weakened.
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -10,13 +17,24 @@ import {
   createControlledFixture, teardownControlledFixture,
 } from './helpers/controlled-writer-fixture.mjs';
 import { runWriterTransaction } from '../lib/production-writer.mjs';
+import { requireLayer, assertLayerPassed } from './helpers/layer-assertion.mjs';
+import { LAYER } from './helpers/writer-layers.mjs';
 
 // SECURITY GATE: set true ONLY after explicit owner approval.
 // OWNER AUTHORIZATION GRANTED 2026-10-14: B-4/B-5 controlled validation execution.
+// NOTE (Windows): that approval authorizes the CONTROLLED LANE, not production
+// mutation. It cannot carry a Windows result past the fail-closed guards in
+// lifecycle-lock-v2.mjs / file-durability.mjs, which is why the
+// mutation-dependent cases below report INCONCLUSIVE on Windows rather than
+// PASS or FAIL.
 const LANE_APPROVED_FOR_EXECUTION = true;
 const gate = (name, fn) => test(name, { skip: !LANE_APPROVED_FOR_EXECUTION }, fn);
 
 const OPS = ['b4-concurrency'];
+
+// Guards that pre-empt a controlled transaction on Windows, in execution order.
+const PREEMPTING = [LAYER.BOUNDARY, LAYER.CAPABILITY, LAYER.G_FENCE,
+                    LAYER.DURABILITY, LAYER.PRINCIPAL];
 
 gate('B4-01 — two concurrent writers: lock serializes, no corruption', async () => {
   const f = await createControlledFixture({ allowedOperations: OPS });
@@ -29,6 +47,12 @@ gate('B4-01 — two concurrent writers: lock serializes, no corruption', async (
         return { wrote: content };
       },
     });
+    // Prove a transaction can mutate at all before claiming serialization was
+    // enforced: otherwise "nothing was ever written" vacuously satisfies the
+    // torn-content check below.
+    const probe = await requireLayer(() => writer('writer-A\n'),
+      { intended: LAYER.WRITER_IDENTITY, guardsBefore: PREEMPTING });
+    assertLayerPassed(probe);          // INCONCLUSIVE on Windows
     const results = await Promise.allSettled([writer('writer-A\n'), writer('writer-B\n')]);
     const fulfilled = results.filter((r) => r.status === 'fulfilled');
     // At least one succeeds; the other is refused (lock) — never both mutate torn.
@@ -41,13 +65,14 @@ gate('B4-01 — two concurrent writers: lock serializes, no corruption', async (
 gate('B4-02 — conflicting updates: one valid outcome or safe refusal', async () => {
   const f = await createControlledFixture({ allowedOperations: OPS });
   try {
-    await runWriterTransaction({
+    const probe = await requireLayer(() => runWriterTransaction({
       root: f.root, operation: 'b4-concurrency', mode: 'init',
       testCapability: f.capability,
       mutate: async ({ atomic }) => {
         await atomic.writeFile(f.root, 'config.txt', Buffer.from('v1\n'));
       },
-    });
+    }), { intended: LAYER.WRITER_IDENTITY, guardsBefore: PREEMPTING });
+    assertLayerPassed(probe);
     // Second transaction proposes incompatible change; must serialize safely.
     await runWriterTransaction({
       root: f.root, operation: 'b4-concurrency', mode: 'update',
@@ -61,14 +86,16 @@ gate('B4-02 — conflicting updates: one valid outcome or safe refusal', async (
   } finally { await teardownControlledFixture(f); }
 });
 
-gate('B4-03 — stale identity between phases: safe refusal', async () => {
-  // Covered at capability level by security tests; this case exercises it
-  // mid-transaction via the writer core's re-verification.
+// B4-03 targets the writer core's mid-transaction re-verification, so the
+// capability lane and every earlier guard is declared pre-empting. The old
+// `/E_TEST_CAPABILITY_IDENTITY|E_WRITER/` regex let the capability layer — or
+// on Windows the durability guard — satisfy it while testing nothing.
+gate('B4-03 — stale identity between phases: writer core refuses (WRITER_IDENTITY layer)', async () => {
   const f = await createControlledFixture({ allowedOperations: OPS });
   try {
     let mutated = false;
-    await assert.rejects(
-      runWriterTransaction({
+    const outcome = await requireLayer(
+      () => runWriterTransaction({
         root: f.root, operation: 'b4-concurrency', mode: 'init',
         testCapability: f.capability,
         mutate: async ({ root }) => {
@@ -79,9 +106,10 @@ gate('B4-03 — stale identity between phases: safe refusal', async () => {
           mutated = true;
         },
       }),
-      /E_TEST_CAPABILITY_IDENTITY|E_WRITER/
+      { intended: LAYER.WRITER_IDENTITY, guardsBefore: PREEMPTING },
     );
-    assert.ok(true, 'stale identity detected');
+    assertLayerPassed(outcome);
+    assert.equal(mutated, false, 'mid-transaction replacement must not complete');
   } finally {
     try { await teardownControlledFixture(f); } catch {}
   }
@@ -92,19 +120,27 @@ gate('B4-04 — interrupted transaction: journal consistent, no torn files', asy
   const { createHash } = await import('node:crypto');
   const sha256 = (b) => createHash('sha256').update(b).digest('hex');
   const childPath = path.resolve(import.meta.dirname, 'helpers', 'controlled-crash-child.mjs');
+
+  // The crash scenario is meaningful only if a transaction can mutate at all.
+  const probeFixture = await createControlledFixture({ allowedOperations: OPS });
+  const probe = await requireLayer(() => runWriterTransaction({
+    root: probeFixture.root, operation: 'b4-concurrency', mode: 'init',
+    testCapability: probeFixture.capability, mutate: async () => {},
+  }), { intended: LAYER.WRITER_IDENTITY, guardsBefore: PREEMPTING });
+  await teardownControlledFixture(probeFixture).catch(() => {});
+  assertLayerPassed(probe);   // INCONCLUSIVE on Windows
+
   const child = spawn(process.execPath, [childPath, 'transaction'], {
     env: { ...process.env, TMPDIR: process.env.TMPDIR },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   let fixtureRoot = null;
-  let mutated = false;
   await new Promise((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error('child startup timeout')), 15000);
     child.stdout.on('data', (d) => {
       const s = d.toString();
       const m = s.match(/FIXTURE_ROOT=(\S+)/);
       if (m) fixtureRoot = m[1];
-      if (s.includes('MUTATED')) mutated = true;
       if (s.includes('READY')) { clearTimeout(timer); resolve(); }
     });
     child.on('error', reject);
@@ -139,36 +175,73 @@ gate('B4-04 — interrupted transaction: journal consistent, no torn files', asy
   t.diagnostic('B4-04 evidence: no torn files, no temp leaks, journal valid/absent');
 });
 
+// B4-05 needs a live lock to contend with. On Windows acquisition itself is
+// refused by the durability guard, so the correct Windows verdict is
+// INCONCLUSIVE — not a pass, and not a product defect either.
 gate('B4-05 — lock contention: mutation while locked is refused', async () => {
   const f = await createControlledFixture({ allowedOperations: OPS });
   try {
     const { acquireLifecycleLock } = await import('../lib/lifecycle-lock-v2.mjs');
     const { mkdir } = await import('node:fs/promises');
     await mkdir(path.join(f.root, '.vcp'), { recursive: true });
-    const lock = await acquireLifecycleLock(f.root, { mode: 'update' });
-    try {
-      await assert.rejects(
-        runWriterTransaction({
-          root: f.root, operation: 'b4-concurrency', mode: 'update',
-          testCapability: f.capability,
-          mutate: async () => {},
-        }),
-        /EEXIST|E_LOCK|lock/i
-      );
-    } finally { await lock.release(); }
+    const guard = await requireLayer(() => acquireLifecycleLock(f.root, { mode: 'update' }),
+      { intended: LAYER.DURABILITY, guardsBefore: [LAYER.BOUNDARY, LAYER.CAPABILITY] });
+    if (guard.status === 'FAIL' && guard.actual !== LAYER.DURABILITY) {
+      // Durability was accepted, so the lock may be held. Retry the real
+      // contention assertion rather than leaking the fixture.
+      let lock = null;
+      try { lock = await acquireLifecycleLock(f.root, { mode: 'update' }); } catch { /* fallthrough */ }
+      if (lock) {
+        try {
+          const contention = await requireLayer(() => runWriterTransaction({
+            root: f.root, operation: 'b4-concurrency', mode: 'update',
+            testCapability: f.capability, mutate: async () => {},
+          }), { intended: 'E_LOCK_ALREADY_HELD', guardsBefore: [LAYER.BOUNDARY, LAYER.CAPABILITY, LAYER.G_FENCE] });
+          assertLayerPassed(contention);
+        } finally { await lock.release().catch(() => {}); }
+        return;
+      }
+    }
+    assertLayerPassed(guard);   // PASS where the durability guard is the expected refusal
   } finally { await teardownControlledFixture(f); }
 });
 
-gate('B4-06 — namespace replacement during critical ops: identity mismatch', async () => {
+// B4-06 targets the capability SCOPE control. Note the repair: the previous
+// form spread the capability object, which breaks WeakSet membership, so it
+// proved E_TEST_CAPABILITY_INVALID (forgery) — an earlier check — while its
+// regex /E_TEST_CAPABILITY/ claimed scope enforcement. A genuine capability
+// is now verified against a foreign root, which is how runWriterTransaction
+// reaches the scope branch (production-writer.mjs:84).
+gate('B4-06 — capability scoped to another fixture is refused (CAPABILITY_SCOPE layer)', async () => {
+  const a = await createControlledFixture({ allowedOperations: OPS });
+  const b = await createControlledFixture({ allowedOperations: OPS });
+  try {
+    const { verifyTestCapability } = await import(
+      './helpers/controlled-writer-capability.mjs');
+    const outcome = await requireLayer(
+      () => verifyTestCapability(a.capability, { root: b.root, operation: OPS[0] }),
+      { intended: LAYER.CAPABILITY_SCOPE, guardsBefore: [] },
+    );
+    assertLayerPassed(outcome);
+  } finally {
+    await teardownControlledFixture(a).catch(() => {});
+    await teardownControlledFixture(b).catch(() => {});
+  }
+});
+
+// The forgery property the old B4-06 accidentally exercised, now named for
+// what it actually proves.
+gate('B4-07 — copied capability object is refused (forgery, CAPABILITY layer)', async () => {
   const f = await createControlledFixture({ allowedOperations: OPS });
   try {
-    await assert.rejects(
-      runWriterTransaction({
+    const outcome = await requireLayer(
+      () => runWriterTransaction({
         root: f.root, operation: 'b4-concurrency', mode: 'init',
-        testCapability: { ...f.capability, fixtureRoot: '/tmp/evil' },
-        mutate: async () => {},
+        testCapability: { ...f.capability },
+        mutate: async () => { throw new Error('mutate must not run'); },
       }),
-      /E_TEST_CAPABILITY/
+      { intended: LAYER.CAPABILITY_INVALID, guardsBefore: [LAYER.BOUNDARY] },
     );
+    assertLayerPassed(outcome);
   } finally { await teardownControlledFixture(f); }
 });

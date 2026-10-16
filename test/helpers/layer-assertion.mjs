@@ -5,6 +5,9 @@
 // while the intended layer never executed. This module makes the layer a
 // first-class, asserted fact: PASS requires the intended code, BLOCKED
 // requires proof an earlier guard preempted it, and neither is a pass.
+// test/helpers/writer-layers.mjs. A test that claims to prove a later layer
+// is INCONCLUSIVE when an earlier guard raises first.
+import { appendFileSync } from 'node:fs';
 import { LAYER_ORDER } from './writer-layers.mjs';
 
 export class Outcome {
@@ -62,12 +65,32 @@ export async function requireLayer(op, { intended, guardsBefore = [] }) {
 
 // Asserts the outcome is PASS. BLOCKED throws with an explicit inconclusive
 // message so a preempted test can never be silently counted as green.
+// When VCP_LAYER_EVIDENCE names a file, every non-pass outcome is appended
+// there as one machine-readable line, so a run can be classified into a
+// PASS / FAIL / BLOCKED / NOT_PROVEN matrix without parsing test stdout.
 export function assertLayerPassed(outcome) {
-  if (outcome.status === 'PASS') return;
+  if (outcome.status === 'PASS') { record(outcome); return; }
   const e = new Error(
     outcome.status === 'BLOCKED'
       ? `INCONCLUSIVE: ${outcome}`
       : `FAILED: ${outcome} — ${outcome.message}`);
   e.code = outcome.status === 'BLOCKED' ? 'E_TEST_INCONCLUSIVE' : 'E_TEST_ASSERTION';
+  record(outcome);
   throw e;
+}
+
+function record(outcome) {
+  const file = process.env.VCP_LAYER_EVIDENCE;
+  if (!file) return;
+  try {
+    appendFileSync(file, JSON.stringify({
+      ts: new Date().toISOString(),
+      status: outcome.status,
+      intended: outcome.intended,
+      actual: outcome.actual,
+      preemptedBy: outcome.preemptedBy,
+      platform: process.platform,
+      pid: process.pid,
+    }) + '\n');
+  } catch { /* evidence is best-effort; never changes the test verdict */ }
 }
