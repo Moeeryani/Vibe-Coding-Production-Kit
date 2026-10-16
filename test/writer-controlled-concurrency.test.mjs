@@ -28,10 +28,14 @@ import { LAYER } from './helpers/writer-layers.mjs';
 // mutation-dependent cases below report INCONCLUSIVE on Windows rather than
 // PASS or FAIL.
 const LANE_APPROVED_FOR_EXECUTION = true;
-// The gate is the lane approval AND the mutation-reachability check: where the
-// platform reports namespace durability unproven, no mutation can run, so the
-// scenario is INCONCLUSIVE rather than a pass or a product failure.
-const gate = (name, fn) => mutationTest(name, fn, { skip: !LANE_APPROVED_FOR_EXECUTION });
+// Two distinct gates, chosen by what the test needs to RUN:
+//  mutGate     - asserts a mutation SUCCEEDED. Where namespace durability is
+//                unproven no mutation can happen, so INCONCLUSIVE (not pass, not defect).
+//  refusalGate - asserts a REFUSAL that is raised before any mutation
+//                (capability forgery/scope, pre-lock identity). These are fully
+//                meaningful on Windows and must not be masked as INCONCLUSIVE.
+const mutGate = (name, fn) => mutationTest(name, fn, { skip: !LANE_APPROVED_FOR_EXECUTION });
+const refusalGate = (name, fn) => test(name, { skip: !LANE_APPROVED_FOR_EXECUTION }, fn);
 
 const OPS = ['b4-concurrency'];
 
@@ -39,7 +43,7 @@ const OPS = ['b4-concurrency'];
 const PREEMPTING = [LAYER.BOUNDARY, LAYER.CAPABILITY, LAYER.G_FENCE,
                     LAYER.DURABILITY, LAYER.PRINCIPAL];
 
-gate('B4-01 — two concurrent writers: lock serializes, no corruption', async () => {
+mutGate('B4-01 — two concurrent writers: lock serializes, no corruption', async () => {
   const f = await createControlledFixture({ allowedOperations: OPS });
   try {
     const writer = (content) => runWriterTransaction({
@@ -59,7 +63,7 @@ gate('B4-01 — two concurrent writers: lock serializes, no corruption', async (
   } finally { await teardownControlledFixture(f); }
 });
 
-gate('B4-02 — conflicting updates: one valid outcome or safe refusal', async () => {
+mutGate('B4-02 — conflicting updates: one valid outcome or safe refusal', async () => {
   const f = await createControlledFixture({ allowedOperations: OPS });
   try {
     await runWriterTransaction({
@@ -88,7 +92,7 @@ gate('B4-02 — conflicting updates: one valid outcome or safe refusal', async (
 // step-4b pin (which runs BEFORE mutate and cannot see a replacement made
 // during it). The previous `/E_TEST_CAPABILITY_IDENTITY|E_WRITER/` regex
 // implied B-9 pin coverage that this scenario never provided.
-gate('B4-03 — fixture replaced during mutate is refused by step 5b re-verification', async () => {
+mutGate('B4-03 — fixture replaced during mutate is refused by step 5b re-verification', async () => {
   const f = await createControlledFixture({ allowedOperations: OPS });
   try {
     let mutated = false;
@@ -114,7 +118,7 @@ gate('B4-03 — fixture replaced during mutate is refused by step 5b re-verifica
   }
 });
 
-gate('B4-04 — interrupted transaction: journal consistent, no torn files', async (t) => {
+mutGate('B4-04 — interrupted transaction: journal consistent, no torn files', async (t) => {
   const { spawn } = await import('node:child_process');
   const { createHash } = await import('node:crypto');
   const { forceKill, waitExit } = await import('./helpers/child-kill.mjs');
@@ -195,7 +199,7 @@ gate('B4-04 — interrupted transaction: journal consistent, no torn files', asy
 // B4-05 needs a live lock to contend with. On Windows acquisition itself is
 // refused by the durability guard, so the correct Windows verdict is
 // INCONCLUSIVE — not a pass, and not a product defect either.
-gate('B4-05 — lock contention: mutation while locked is refused', async () => {
+mutGate('B4-05 — lock contention: mutation while locked is refused', async () => {
   const f = await createControlledFixture({ allowedOperations: OPS });
   let lock = null;
   try {
@@ -227,7 +231,7 @@ gate('B4-05 — lock contention: mutation while locked is refused', async () => 
 // regex /E_TEST_CAPABILITY/ claimed scope enforcement. A genuine capability
 // is now verified against a foreign root, which is how runWriterTransaction
 // reaches the scope branch (production-writer.mjs:84).
-gate('B4-06 — capability scoped to another fixture is refused (CAPABILITY_SCOPE layer)', async () => {
+refusalGate('B4-06 — capability scoped to another fixture is refused (CAPABILITY_SCOPE layer)', async () => {
   const a = await createControlledFixture({ allowedOperations: OPS });
   const b = await createControlledFixture({ allowedOperations: OPS });
   try {
@@ -246,7 +250,7 @@ gate('B4-06 — capability scoped to another fixture is refused (CAPABILITY_SCOP
 
 // The forgery property the old B4-06 accidentally exercised, now named for
 // what it actually proves.
-gate('B4-07 — copied capability object is refused (forgery, CAPABILITY layer)', async () => {
+refusalGate('B4-07 — copied capability object is refused (forgery, CAPABILITY layer)', async () => {
   const f = await createControlledFixture({ allowedOperations: OPS });
   try {
     const outcome = await requireLayer(
