@@ -112,7 +112,12 @@ test('NRC-05 — application-level containment still refuses the reparse path', 
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
 
-test('NRC-06 — a swapped-in reparse AFTER the pre-check is the documented residual risk', async () => {
+// NOT a demonstration of the race firing — that would require a second thread
+// or process to win a sub-millisecond window, which this test does not attempt.
+// What it establishes is narrower and factual: the pre-check sees the plain
+// directory, the pre-check cannot see a swap made afterwards, and the platform
+// capability report declares that gap rather than hiding it.
+test('NRC-06 — a reparse swapped in AFTER the pre-check is undetectable by the pre-check', async () => {
   // Demonstrates the TOCTOU window concretely: pre-check passes on a plain
   // directory, then the same path becomes a reparse point before open.
   const dir = await mkdtemp(path.join(os.tmpdir(), 'vcp-nrc-'));

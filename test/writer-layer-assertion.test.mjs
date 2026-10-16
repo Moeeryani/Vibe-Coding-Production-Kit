@@ -3,6 +3,7 @@
 // guard's rejection as proof of a later layer.
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import path from 'node:path';
 import { LAYER, LAYER_ORDER } from './helpers/writer-layers.mjs';
 import { requireLayer, assertLayerPassed, Outcome } from './helpers/layer-assertion.mjs';
 
@@ -107,8 +108,11 @@ test('LA-09 — Outcome shape is machine-readable for the evidence matrix', asyn
 test('LA-10 — evidence sink records each verdict when VCP_LAYER_EVIDENCE is set', async () => {
   const { mkdtempSync, readFileSync, rmSync } = await import('node:fs');
   const os = await import('node:os');
-  const dir = mkdtempSync(process.env.TMPDIR + '/la10-');
-  process.env.VCP_LAYER_EVIDENCE = dir + '/sink.jsonl';
+  // os.tmpdir(), not process.env.TMPDIR: on Windows TMPDIR is ignored by
+  // libuv, and an unset TMPDIR made this path 'undefined/la10-' on Linux CI.
+  const dir = mkdtempSync(path.join(os.tmpdir(), 'la10-'));
+  const previousSink = process.env.VCP_LAYER_EVIDENCE;
+  process.env.VCP_LAYER_EVIDENCE = path.join(dir, 'sink.jsonl');
   try {
     const passed = await requireLayer(() => throwCode(LAYER.WRITER_IDENTITY),
       { intended: LAYER.WRITER_IDENTITY, guardsBefore: [LAYER.CAPABILITY] });
@@ -123,7 +127,9 @@ test('LA-10 — evidence sink records each verdict when VCP_LAYER_EVIDENCE is se
     assert.equal(lines[1].preemptedBy, LAYER.CAPABILITY);
     assert.equal(lines[1].platform, process.platform);
   } finally {
-    delete process.env.VCP_LAYER_EVIDENCE;
+    // Restore, never delete: an outer runner may have set the sink.
+    if (previousSink === undefined) delete process.env.VCP_LAYER_EVIDENCE;
+    else process.env.VCP_LAYER_EVIDENCE = previousSink;
     rmSync(dir, { recursive: true, force: true });
   }
 });

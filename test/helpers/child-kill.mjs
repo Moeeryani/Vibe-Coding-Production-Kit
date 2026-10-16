@@ -1,22 +1,21 @@
 // Portable, bounded child-process termination for crash-path tests.
 //
-// node:child_process documents signals as unsupported on Windows, so
-// child.kill('SIGKILL') returns without killing anything. Tests that then
-// await the 'exit' event hang for the whole runner. Every crash-atomicity
-// claim therefore needs a kill that is (a) actually effective on the host and
-// (b) bounded, so failure surfaces as a test failure instead of a stall.
+// ROOT CAUSE (measured, see test/writer-child-kill.test.mjs CK-03): kill()
+// DOES terminate a child on this win32 host, so the historical suite stall was
+// NOT a signal-support problem. It was listener-registration order: the crash
+// child died at the durability guard, and the parent only then did
+// `child.on('exit', r)`, so the event had already been emitted and the promise
+// never settled. waitExit() closes that race; forceKill() bounds every wait so
+// a crash test can fail but never hang.
 import { spawnSync } from 'node:child_process';
 
-const EXIT_POLL_MS = 25;
-
+// READ-ONLY liveness probe. Must not terminate or otherwise alter its subject.
 export function processAlive(pid) {
   if (!pid) return false;
   if (process.platform === 'win32') {
-    const r = spawnSync('taskkill', ['/PID', String(pid), '/T'], { windowsHide: true });
-    // taskkill reports ODBC_NOT_FOUND (128) when the process is gone; it also
-    // succeeds here, so treat "we just killed it" as alive and re-check.
-    if (r.status === 0) return true;
-    return /not found/i.test(`${r.stderr ?? ''}${r.stdout ?? ''}`) ? false : true;
+    const r = spawnSync('tasklist', ['/FI', `PID eq ${pid}`, '/NH'], { windowsHide: true });
+    const out = `${r.stdout ?? ''}`;
+    return out.includes(String(pid));
   }
   try { process.kill(pid, 0); return true; } catch { return false; }
 }

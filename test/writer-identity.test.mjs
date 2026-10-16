@@ -59,21 +59,29 @@ test('WIN-01 — currentPrincipal on win32 never claims proof without a native p
 test('WIN-02 — a pinned windows principal cannot be self-certified by the caller', () => {
   // Mirrors the removed `authorize` injection parameter (production-writer.mjs:66-69):
   // a caller-supplied "proven" principal must never satisfy verification.
+  // One named code, not an alternation: on this host the process principal is
+  // unproven, so the refusal MUST be E_WRITER_PRINCIPAL_UNPROVEN.
   const forged = { kind: 'windows', sid: 'S-1-5-21-0-0-0-1000', proven: true };
   const actual = currentPrincipal();
-  if (!IS_WINDOWS) return;
   assert.throws(
     () => verifyPrincipal(forged, actual),
-    (e) => e.code === 'E_WRITER_PRINCIPAL_UNPROVEN' ||
-           e.code === 'E_WRITER_PRINCIPAL_MISMATCH',
-    'a fabricated proven:true principal must not verify against an unproven process');
+    (e) => e.code === 'E_WRITER_PRINCIPAL_UNPROVEN',
+    'a fabricated proven:true principal must be refused as unproven, not as a mismatch');
 });
 
-test('WIN-03 — kind change to windows is rejected on an unproven process', () => {
-  const actual = currentPrincipal();
+test('WIN-03 — principal kind change is refused (PRINCIPAL layer)', () => {
+  // Given two DIFFERENT kinds, the kind check must fire first. Passing an
+  // actual windows principal of the same kind would test nothing about kinds,
+  // so the expected code is asserted exactly.
+  const posixActual = { kind: 'posix', uid: 1000, gid: 100, proven: true };
   assert.throws(
-    () => verifyPrincipal({ kind: 'windows', sid: 'S-1-5-21-x', proven: true }, actual),
-    /E_WRITER_PRINCIPAL_MISMATCH|E_WRITER_PRINCIPAL_UNPROVEN/);
+    () => verifyPrincipal({ kind: 'windows', sid: 'S-1-5-21-x', proven: true }, posixActual),
+    (e) => e.code === 'E_WRITER_PRINCIPAL_MISMATCH',
+    'kind change must be reported as a mismatch');
+  // And the reverse direction, still exactly one code.
+  assert.throws(
+    () => verifyPrincipal(posixActual, { kind: 'windows', sid: 'S-1-5-21-x', proven: true }),
+    (e) => e.code === 'E_WRITER_PRINCIPAL_MISMATCH');
 });
 
 test('WIN-04 — principalProofStatus reports the seam, not a guess', () => {

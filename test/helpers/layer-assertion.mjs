@@ -103,8 +103,17 @@ function record(outcome) {
 // provider), the test is reported INCONCLUSIVE — never PASS, and never a
 // product FAIL for a guard that is behaving as designed.
 // This READS the guard. It does not bypass, stub, or reconfigure it.
-export function mutationTest(name, fn) {
-  return test(name, async (t) => {
+//
+// IMPORTANT: a test wrapped here asserts SUCCESS. Do not wrap a body with
+// requireLayer expecting a rejection — requireLayer reports a COMPLETED
+// transaction as FAIL, which would make a correct product look broken.
+//
+// LIMITATION (independent review 2026-10-16): `process.platform` is spoofable
+// in-process via Object.defineProperty, so this is a self-report, not a
+// measurement. It cannot enable anything: the durability guard still fires at
+// the real filesystem call inside syncContainingDirectory.
+export function mutationTest(name, fn, options = {}) {
+  return test(name, options, async (t) => {
     const { lifecycleDurabilityCapability } = await import('../../lib/file-durability.mjs');
     const cap = lifecycleDurabilityCapability();
     if (!cap.supported) {

@@ -121,16 +121,34 @@ test('Test 7 — package exclusion: test helpers not in production surface', asy
   const { readdir, readFile } = await import('node:fs/promises');
   const libDir = path.resolve(import.meta.dirname, '..', 'lib');
   const entries = await readdir(libDir);
-  const STATIC_HELPER_IMPORT = /^\s*import[\s\S]{0,200}?from\s*['"]\.\.\/test\/helpers/;
+  const names = entries.filter((n) => n.endsWith('.mjs'));
+  assert.ok(names.length > 0, 'lib/ contained no .mjs files — exclusion scan would be vacuous');
+
+  // Line-scoped detection: a bare /^import/ against the whole file text is
+  // anchored at byte 0 and therefore never matches a file that begins with a
+  // comment — which is every file in lib/. That made this check pass vacuously.
+  const isStaticHelperImport = (line) =>
+    /^\s*import\b/.test(line) && !/^\s*(?:const|let|var)?\s*\*?\s*import\s*\(/.test(line)
+    && /['"]\.\.\/test\/helpers\//.test(line);
+
+  const scan = (text) => text.split(/\r?\n/).some(isStaticHelperImport);
+
+  // Negative control: prove the detector can fire. Without this, a broken
+  // detector looks identical to a clean codebase.
+  const POSITIVE = '// header\nimport { x } from \'../test/helpers/controlled-writer-capability.mjs\';\nexport const y = x;\n';
+  assert.equal(scan(POSITIVE), true,
+    'detector cannot see a real violation — Test 7 would pass vacuously');
+  const NEGATIVE = '// header\nexport async function f(){ const m = await import(\'../test/helpers/controlled-writer-capability.mjs\'); return m; }\n';
+  assert.equal(scan(NEGATIVE), false,
+    'detector must not flag the capability-gated dynamic import');
+
   const offenders = [];
-  for (const name of entries.filter((n) => n.endsWith('.mjs'))) {
+  for (const name of names) {
     const text = await readFile(path.join(libDir, name), 'utf8');
-    if (!STATIC_HELPER_IMPORT.test(text)) continue;
-    // Only dynamic imports inside the capability-gated branch are allowed.
-    if (!text.includes('testCapability')) offenders.push(name);
+    if (scan(text)) offenders.push(name);
   }
   assert.deepEqual(offenders, [],
-    `lib modules import test helpers without the testCapability guard: ${offenders.join(', ')}`);
+    `lib modules statically import test helpers: ${offenders.join(', ')}`);
   // The allowed case must still exist, or this assertion would pass vacuously
   // if someone deleted the capability-gated branch entirely.
   const productionWriter = await readFile(
