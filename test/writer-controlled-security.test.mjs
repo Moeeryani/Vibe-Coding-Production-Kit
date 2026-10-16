@@ -9,6 +9,7 @@ import {
   createControlledFixture, teardownControlledFixture, verifyFixtureIdentity,
 } from './helpers/controlled-writer-fixture.mjs';
 import { verifyTestCapability } from './helpers/controlled-writer-capability.mjs';
+import { createOwnedFixture, withOwnedFixture } from './helpers/owned-fixture.mjs';
 import { runWriterTransaction } from '../lib/production-writer.mjs';
 import { rollbackV2 } from '../lib/writer-rollback-v2.mjs';
 
@@ -32,81 +33,93 @@ test('Test 1 — production root rejection: capability cannot target a real repo
 });
 
 test('Test 2 — missing capability: writer core denies without capability', async () => {
-  const dir = await mkdtemp(path.join(os.tmpdir(), 'vcp-neg-'));
-  let mutated = false;
-  await assert.rejects(
-    runWriterTransaction({
-      root: dir, operation: 'probe', mutate: async () => { mutated = true; },
-    }),
-    (e) => e && e.code === 'E_G_FENCE_NO_GO'
-  );
-  assert.equal(mutated, false);
-  await assert.rejects(
-    rollbackV2({ root: dir, backupId: 'x', confirmed: true }),
-    (e) => e && e.code === 'E_G_FENCE_NO_GO'
-  );
+  // Leaked an mkdtemp directory before: teardown is now owned and in finally.
+  await withOwnedFixture(() => createOwnedFixture('vcp-neg-'), async (dir) => {
+    let mutated = false;
+    await assert.rejects(
+      runWriterTransaction({
+        root: dir, operation: 'probe', mutate: async () => { mutated = true; },
+      }),
+      (e) => e && e.code === 'E_G_FENCE_NO_GO'
+    );
+    assert.equal(mutated, false);
+    await assert.rejects(
+      rollbackV2({ root: dir, backupId: 'x', confirmed: true }),
+      (e) => e && e.code === 'E_G_FENCE_NO_GO'
+    );
+  });
 });
 
 test('Test 3 — invalid fixture: forged capability denied', async () => {
-  const dir = await mkdtemp(path.join(os.tmpdir(), 'vcp-neg-'));
-  const forged = { id: 'forged', fixtureRoot: dir, revoked: false };
-  await assert.rejects(
-    verifyTestCapability(forged, { root: dir, operation: 'probe' }),
-    /E_TEST_CAPABILITY_INVALID/
-  );
-  let mutated = false;
-  await assert.rejects(
-    runWriterTransaction({
-      root: dir, operation: 'probe', testCapability: forged,
-      mutate: async () => { mutated = true; },
-    }),
-    /E_TEST_CAPABILITY_INVALID/
-  );
-  assert.equal(mutated, false);
+  await withOwnedFixture(() => createOwnedFixture('vcp-neg-'), async (dir) => {
+    const forged = { id: 'forged', fixtureRoot: dir, revoked: false };
+    await assert.rejects(
+      verifyTestCapability(forged, { root: dir, operation: 'probe' }),
+      /E_TEST_CAPABILITY_INVALID/
+    );
+    let mutated = false;
+    await assert.rejects(
+      runWriterTransaction({
+        root: dir, operation: 'probe', testCapability: forged,
+        mutate: async () => { mutated = true; },
+      }),
+      /E_TEST_CAPABILITY_INVALID/
+    );
+    assert.equal(mutated, false);
+  });
 });
 
 test('Test 4 — path escape: capability scoped to fixture A denied for fixture B', async () => {
   const a = await createControlledFixture({ allowedOperations: ['probe'] });
   const b = await createControlledFixture({ allowedOperations: ['probe'] });
-  let mutated = false;
-  await assert.rejects(
-    runWriterTransaction({
-      root: b.root, operation: 'probe', testCapability: a.capability,
-      mutate: async () => { mutated = true; },
-    }),
-    /E_TEST_CAPABILITY_SCOPE/
-  );
-  assert.equal(mutated, false);
-  await teardownControlledFixture(a);
-  await teardownControlledFixture(b);
+  // Teardown in finally: an assertion failure here used to leak both fixtures.
+  try {
+    let mutated = false;
+    await assert.rejects(
+      runWriterTransaction({
+        root: b.root, operation: 'probe', testCapability: a.capability,
+        mutate: async () => { mutated = true; },
+      }),
+      /E_TEST_CAPABILITY_SCOPE/
+    );
+    assert.equal(mutated, false);
+  } finally {
+    await teardownControlledFixture(a).catch(() => {});
+    await teardownControlledFixture(b).catch(() => {});
+  }
 });
 
 test('Test 5 — stale capability: reuse after teardown denied', async () => {
   const f = await createControlledFixture({ allowedOperations: ['probe'] });
   const cap = f.capability;
   await teardownControlledFixture(f);
-  let mutated = false;
-  await assert.rejects(
-    runWriterTransaction({
-      root: f.root, operation: 'probe', testCapability: cap,
-      mutate: async () => { mutated = true; },
-    }),
-    /E_TEST_CAPABILITY_REVOKED/
-  );
-  assert.equal(mutated, false);
+  // After teardown the root is gone; the assertions below must not be able to
+  // leave anything behind, so they run under an owned fixture wrapper.
+  await withOwnedFixture(() => createOwnedFixture('vcp-neg-'), async () => {
+    let mutated = false;
+    await assert.rejects(
+      runWriterTransaction({
+        root: f.root, operation: 'probe', testCapability: cap,
+        mutate: async () => { mutated = true; },
+      }),
+      /E_TEST_CAPABILITY_REVOKED/
+    );
+    assert.equal(mutated, false);
+  });
 });
 
 test('Test 6 — production entrypoint: gate still rejects without capability', async () => {
   // Even with the capability module loaded, production paths (no capability)
   // hit the production gate.
   await import('./helpers/controlled-writer-capability.mjs');
-  const dir = await mkdtemp(path.join(os.tmpdir(), 'vcp-neg-'));
-  await assert.rejects(
-    runWriterTransaction({
-      root: dir, operation: 'probe', mutate: async () => {},
-    }),
-    (e) => e && e.code === 'E_G_FENCE_NO_GO'
-  );
+  await withOwnedFixture(() => createOwnedFixture('vcp-neg-'), async (dir) => {
+    await assert.rejects(
+      runWriterTransaction({
+        root: dir, operation: 'probe', mutate: async () => {},
+      }),
+      (e) => e && e.code === 'E_G_FENCE_NO_GO'
+    );
+  });
 });
 
 // Test 7 previously shelled out to `grep -rl ... 2>/dev/null || true`, which
