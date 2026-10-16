@@ -11,25 +11,49 @@ import { appendFileSync } from 'node:fs';
 import test from 'node:test';
 import { LAYER_ORDER } from './writer-layers.mjs';
 
+// How a verdict KNOWS the intended layer executed. Ranked weakest → strongest;
+// a guardsBefore list is an assertion about code order, not an observation, so
+// it is never recorded as proof of arrival.
+export const REACH = Object.freeze({
+  // a guard that precedes the intended layer raised first: nothing at or after
+  // the guard's position executed
+  GUARD_ORDER_ASSERTED: 'GUARD_ORDER_ASSERTED',
+  // the raised code is produced at exactly one site in lib/, so the code
+  // identity itself locates the executing layer
+  CODE_IDENTIFIES_LAYER: 'CODE_IDENTIFIES_LAYER',
+  // an execution marker was observed at the intended layer (witnessed, not inferred)
+  MARKER_OBSERVED: 'MARKER_OBSERVED',
+});
+const REACH_VALUES = new Set(Object.values(REACH));
+
 export class Outcome {
-  constructor(status, { intended, actual, preemptedBy = null, message = '' } = {}) {
+  constructor(status, { intended, actual, preemptedBy = null, message = '',
+    reachability, ceiling = null } = {}) {
     this.status = status;           // 'PASS' | 'BLOCKED' | 'FAIL'
     this.intended = intended;       // error code the test claims to prove
     this.actual = actual;           // error code actually observed
     this.preemptedBy = preemptedBy; // earlier guard code that ran first
     this.message = message;
+    this.reachability = reachability;
+    this.ceiling = ceiling;         // layer at/after which nothing can execute
   }
   get passed() { return this.status === 'PASS'; }
   toString() {
-    return this.status === 'BLOCKED'
-      ? `BLOCKED / INCONCLUSIVE — intended ${this.intended}, preempted by earlier guard ${this.preemptedBy}`
-      : `${this.status} — intended ${this.intended}, actual ${this.actual}`;
+    if (this.status === 'BLOCKED') {
+      const ceil = this.ceiling
+        ? ` — layer ${this.intended} is UNREACHABLE on this platform (ceiling ${this.ceiling})`
+        : ` — preempted by earlier guard ${this.preemptedBy}`;
+      return `BLOCKED / INCONCLUSIVE — intended ${this.intended}${ceil}`;
+    }
+    return `${this.status} — intended ${this.intended}, actual ${this.actual}` +
+      (this.status === 'PASS' ? ` [${this.reachability}]` : '');
   }
 }
 
 // Rejects when the observed error is not the one the test claims to prove.
 // A preempting earlier guard yields BLOCKED (inconclusive), never PASS.
-export async function requireLayer(op, { intended, guardsBefore = [] }) {
+export async function requireLayer(op, { intended, guardsBefore = [],
+  witness = null, ceiling = null } = {}) {
   if (!LAYER_ORDER.includes(intended))
     throw new Error(`Unknown enforcement layer for intended code: ${intended}`);
   for (const g of guardsBefore)
@@ -37,6 +61,14 @@ export async function requireLayer(op, { intended, guardsBefore = [] }) {
       throw new Error(`Unknown enforcement layer in guardsBefore: ${g}`);
   if (guardsBefore.some((g) => LAYER_ORDER.indexOf(g) >= LAYER_ORDER.indexOf(intended)))
     throw new Error(`guardsBefore must all precede the intended layer: ${intended}`);
+  if (witness !== null && !REACH_VALUES.has(witness))
+    throw new Error(`Unknown reachability witness: ${witness}`);
+  if (ceiling !== null) {
+    if (!LAYER_ORDER.includes(ceiling))
+      throw new Error(`Unknown reachability ceiling: ${ceiling}`);
+    if (guardsBefore.length && LAYER_ORDER.indexOf(ceiling) < LAYER_ORDER.indexOf(guardsBefore[0]))
+      throw new Error(`ceiling must not precede the guards it claims are passable: ${ceiling}`);
+  }
 
   let error = null;
   let completed = false;
@@ -49,17 +81,23 @@ export async function requireLayer(op, { intended, guardsBefore = [] }) {
 
   if (completed) {
     return new Outcome('FAIL', {
-      intended, actual: 'NO_ERROR',
+      intended, actual: 'NO_ERROR', ceiling,
+      reachability: witness ?? REACH.CODE_IDENTIFIES_LAYER,
       message: 'transaction completed; the control under test did not reject',
     });
   }
   const code = error?.code ?? 'E_NO_CODE';
   if (guardsBefore.includes(code)) {
-    return new Outcome('BLOCKED', { intended, actual: code, preemptedBy: code });
+    return new Outcome('BLOCKED', { intended, actual: code, preemptedBy: code,
+      reachability: REACH.GUARD_ORDER_ASSERTED, ceiling });
   }
-  if (code === intended) return new Outcome('PASS', { intended, actual: code });
+  if (code === intended) {
+    return new Outcome('PASS', { intended, actual: code, ceiling,
+      reachability: witness ?? REACH.CODE_IDENTIFIES_LAYER });
+  }
   return new Outcome('FAIL', {
-    intended, actual: code,
+    intended, actual: code, ceiling,
+    reachability: REACH.GUARD_ORDER_ASSERTED,
     message: `unexpected error code (attribution defect): ${error?.message ?? ''}`,
   });
 }
@@ -88,9 +126,10 @@ function record(outcome) {
       ts: new Date().toISOString(),
       status: outcome.status,
       intended: outcome.intended,
-
       actual: outcome.actual,
       preemptedBy: outcome.preemptedBy,
+      reachability: outcome.reachability,
+      ceiling: outcome.ceiling,
       platform: process.platform,
       pid: process.pid,
     }) + '\n');
