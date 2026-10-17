@@ -9,7 +9,7 @@
 // is INCONCLUSIVE when an earlier guard raises first.
 import { appendFileSync } from 'node:fs';
 import test from 'node:test';
-import { LAYER_ORDER } from './writer-layers.mjs';
+import { LAYER, LAYER_ORDER } from './writer-layers.mjs';
 
 // How a verdict KNOWS the intended layer executed. Ranked weakest → strongest;
 // a guardsBefore list is an assertion about code order, not an observation, so
@@ -118,7 +118,7 @@ export function assertLayerPassed(outcome) {
   throw e;
 }
 
-function record(outcome) {
+function record(outcome, extra = {}) {
   const file = process.env.VCP_LAYER_EVIDENCE;
   if (!file) return;
   try {
@@ -130,6 +130,12 @@ function record(outcome) {
       preemptedBy: outcome.preemptedBy,
       reachability: outcome.reachability,
       ceiling: outcome.ceiling,
+      // Synthetic rows come from the assertion helper's own unit tests, which
+      // use invented codes (E_TOTALLY_UNRELATED, E_NO_CODE, 'x'). Anything whose
+      // observed code is not a real enforcement layer cannot describe product
+      // behaviour, so it is tagged and must never be read as a product failure.
+      synthetic: !LAYER_ORDER.includes(outcome.actual) && outcome.actual !== 'NO_ERROR',
+      source: extra.source ?? null,
       platform: process.platform,
       pid: process.pid,
     }) + '\n');
@@ -159,6 +165,13 @@ export function mutationTest(name, fn, options = {}) {
       const e = new Error(`INCONCLUSIVE: mutation unreachable — ${cap.reason}`);
       e.code = 'E_TEST_INCONCLUSIVE';
       t.diagnostic(e.message);
+      // Record it: an unrecorded INCONCLUSIVE is indistinguishable from an
+      // unrun test in the evidence file.
+      record(new Outcome('BLOCKED', {
+        intended: 'MUTATION_PATH', actual: 'E_DIRECTORY_SYNC_UNPROVEN',
+        preemptedBy: 'E_DIRECTORY_SYNC_UNPROVEN',
+        reachability: REACH.GUARD_ORDER_ASSERTED, ceiling: LAYER.DURABILITY,
+      }), { source: name });
       throw e;
     }
     return fn(t);

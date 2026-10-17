@@ -8,11 +8,14 @@ import path from 'node:path';
 import { parseTap, verifyCompleteness } from './tap-matrix-parser.mjs';
 
 const SUITES = [
-  'writer-layer-assertion', 'no-replace-capability', 'writer-durability-guard',
-  'writer-identity', 'writer-boundary', 'writer-parent-namespace',
-  'writer-controlled-concurrency', 'writer-controlled-rollback',
-  'writer-controlled-security', 'writer-authorization-injection',
-  'writer-atomic', 'writer-transaction-identity', 'writer-recovery',
+  'writer-layer-assertion', 'writer-layer-reachability', 'no-replace-capability',
+  'writer-durability-guard', 'windows-durability-proof', 'writer-child-kill',
+  'writer-fixture-ownership',
+  'writer-identity', 'writer-identity-replacement', 'writer-boundary',
+  'writer-parent-namespace', 'writer-controlled-concurrency',
+  'writer-controlled-rollback', 'writer-controlled-security',
+  'writer-authorization-injection', 'writer-atomic',
+  'writer-transaction-identity', 'writer-recovery',
 ];
 const INCONCLUSIVE_MARK = 'INCONCLUSIVE:';
 const outDir = process.env.VCP_MATRIX_OUT || '.';
