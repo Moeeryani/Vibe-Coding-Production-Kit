@@ -4,6 +4,8 @@
 // "no silent unsupported filesystem fallback".
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import {
   lifecycleDurabilityCapability, assertLifecycleDurabilitySupported,
 } from '../lib/file-durability.mjs';
@@ -69,4 +71,40 @@ test('DUR-03b — a platform with no reviewed provider is unproven, NOT Windows-
   // The win32 reason stays exact, so DUR-01's attribution has a source.
   assert.equal(lifecycleDurabilityCapability('win32').reason,
     'WINDOWS_NAMESPACE_DURABILITY_UNPROVEN');
+});
+
+test('DUR-11 — a platform refusal reason has exactly one source, never a literal at a guard site', () => {
+  // Why this test exists: DUR-08 cannot detect a re-hardcoded Windows reason on
+  // win32, because on win32 the hardcoded string and the capability's own reason
+  // are the same value — the defect is only observable on another platform, which
+  // this host is not. So the invariant is enforced structurally instead.
+  // Refusal reasons come from the capability object; guard sites pass tokens that
+  // name a FILESYSTEM failure mode, which are a disjoint vocabulary.
+  const src = readFileSync(path.join(import.meta.dirname, '..', 'lib', 'file-durability.mjs'), 'utf8');
+
+  // Observed, not hardcoded: every reason the capability function can emit.
+  const capabilityReasons = new Set(
+    ['win32', 'darwin', 'linux', 'freebsd'].map((p) => lifecycleDurabilityCapability(p).reason));
+
+  const literalReasonsAtBlockSites = [...src.matchAll(/\bblock\(\s*['"]([A-Z0-9_]+)['"]/g)]
+    .map((m) => m[1]);
+  assert.ok(literalReasonsAtBlockSites.length > 0,
+    'detector found no block() literals at all — the scan is vacuous');
+
+  const offenders = literalReasonsAtBlockSites.filter((r) => capabilityReasons.has(r));
+  assert.deepEqual(offenders, [],
+    `guard sites hardcode a platform capability reason: ${offenders.join(', ')}`);
+
+  // The capability reason must reach the refusal through exactly one expression.
+  const reasonSourcedCalls = [...src.matchAll(/\bblock\(\s*capability\.reason\s*\)/g)].length;
+  assert.equal(reasonSourcedCalls, 1,
+    'exactly one site may refuse on capability.reason; duplicates let two guards drift');
+
+  // Positive control: the reviewed defect, expressed in synthetic source.
+  const MUTATED = "function syncContainingDirectory(){ const c=cap(); if(!c.supported){ block('WINDOWS_NAMESPACE_DURABILITY_UNPROVEN'); } }\n";
+  const detect = (text) => [...text.matchAll(/\bblock\(\s*['"]([A-Z0-9_]+)['"]/g)]
+    .map((m) => m[1]).some((r) => capabilityReasons.has(r));
+  assert.equal(detect(MUTATED), true, 'detector cannot see a re-hardcoded reason');
+  // Negative controls: failure-mode tokens are legitimate at guard sites.
+  assert.equal(detect("block('PARENT_UNSAFE'); block('DIRECTORY_SYNC_UNSUPPORTED');"), false);
 });
