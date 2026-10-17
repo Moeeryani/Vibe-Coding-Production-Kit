@@ -156,7 +156,8 @@ test('CK-11 — repeated forceKill on the same child is idempotent and leaks not
 });
 
 // Discovery-count stability across repeated full runs belongs to the matrix
-// harness (scripts/windows-writer-matrix.mjs), which is NOT itself running
+// harness (dev/windows-writer-matrix.mjs, excluded from the published package),
+// which is NOT itself running
 // inside a test runner. Spawning a nested `node --test` from within one is a
 // confounded measurement, so this test checks the weaker, in-process invariant
 // instead: every declared scenario in the crash suites is registered. A test
