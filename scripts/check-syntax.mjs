@@ -4,7 +4,9 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const roots = ['bin', 'lib', 'scripts'];
+// 'dev' is excluded from the published package but must still be syntax-checked: moving
+// harnesses out of scripts/ silently dropped five modules from this gate.
+const roots = ['bin', 'lib', 'scripts', 'dev'];
 const files = [];
 
 async function walk(relativeDir) {

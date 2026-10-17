@@ -55,11 +55,51 @@ test('TAP-03 — stderr-only summary is still seen', () => {
   assert.equal(declared.tests, 2);
 });
 
-test('TAP-04 — classifyFailure distinguishes inconclusive, skipped and real failure', () => {
+test('TAP-04 — classifyFailure distinguishes inconclusive from a real failure', () => {
   assert.equal(classifyFailure('x', 'error: INCONCLUSIVE: BLOCKED / INCONCLUSIVE — …'), 'INCONCLUSIVE');
   assert.equal(classifyFailure('x', "code: 'E_TEST_INCONCLUSIVE'"), 'INCONCLUSIVE');
-  assert.equal(classifyFailure('x', '# SKIP symlink unavailable'), 'SKIPPED');
   assert.equal(classifyFailure('x', "error: 'Lifecycle directory durability is unproven'"), 'FAIL');
+  // A skip is a TAP directive on the `ok` line (TAP-07), never a word inside a
+  // failure block: `not ok` means the test did not pass, whatever it says.
+  assert.equal(classifyFailure('x', '# SKIP symlink unavailable'), 'FAIL',
+    'a FAILING test must not be downgraded to SKIPPED because its text mentions skip');
+});
+
+// The reviewed downgrade: classification used to be a substring search over the
+// whole diagnostic block, so a genuine failure that merely QUOTED an inconclusive
+// or platform message was re-labelled as non-failure — and verifyCompleteness
+// could not see it, because the row was still non-pass either way.
+test('TAP-08 — a real FAIL quoting an inconclusive message stays a FAIL', () => {
+  const masked = [
+    'not ok 9 - B4-03 — fixture replaced during mutate is refused (2.10ms)',
+    '  ---',
+    '  failureType: \'testCodeFailure\'',
+    "  error: 'expected rejection'",
+    "  expected: 'INCONCLUSIVE: mutation unreachable'",
+    "  actual: 'did not reach the guard'",
+    "  operator: 'strictEqual'",
+    '  stack: |-',
+    "    at TestContext.<anonymous> (file:///x.mjs:40:5)",
+    '  ...',
+  ].join('\n');
+  const { rows } = parseTap({ stdout: masked, suite: 's' });
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].verdict, 'FAIL',
+    `an assertion diff quoting INCONCLUSIVE must stay FAIL, got ${rows[0].verdict}`);
+
+  // "platform-specific" appearing in a failure message is not a skip.
+  assert.equal(
+    classifyFailure('x', "error: 'this platform-specific behaviour corrupted the file'"),
+    'FAIL');
+
+  // Anything unrecognized defaults to FAIL, including empty diagnostics.
+  assert.equal(classifyFailure('x', ''), 'FAIL');
+  assert.equal(classifyFailure('x', 'totals: { pass: 0, fail: 1 }'), 'FAIL');
+
+  // The genuine claim still classifies when it is the error's own field, and
+  // long stacks no longer truncate the identifying line away.
+  const long = ['noise'.repeat(60), "code: 'E_TEST_INCONCLUSIVE'"].join(' | ');
+  assert.equal(classifyFailure('x', long), 'INCONCLUSIVE');
 });
 
 test('TAP-05 — completeness check reports disagreement instead of hiding it', () => {

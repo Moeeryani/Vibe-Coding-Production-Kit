@@ -95,10 +95,21 @@ test('DUR-11 — a platform refusal reason has exactly one source, never a liter
   assert.deepEqual(offenders, [],
     `guard sites hardcode a platform capability reason: ${offenders.join(', ')}`);
 
-  // The capability reason must reach the refusal through exactly one expression.
-  const reasonSourcedCalls = [...src.matchAll(/\bblock\(\s*capability\.reason\s*\)/g)].length;
-  assert.equal(reasonSourcedCalls, 1,
-    'exactly one site may refuse on capability.reason; duplicates let two guards drift');
+  // The invariant is that both public entry points reach the refusal THROUGH the
+  // single shared guard — not that one spelling of one expression appears once.
+  // Counting `block(capability.reason)` text would break on a rename of the local
+  // binding and, worse, would survive a second refusal path that bypassed the
+  // shared function entirely.
+  const refusalSites = [...src.matchAll(/\brefuseUnprovenDurability\(/g)].length;
+  const entryPoints = ['assertLifecycleDurabilitySupported', 'syncContainingDirectory'];
+  for (const fn of entryPoints) {
+    const body = src.slice(src.indexOf(`export async function ${fn}`));
+    assert.match(body.slice(0, 900), /\brefuseUnprovenDurability\(/,
+      `${fn} must refuse through the single shared guard`);
+  }
+  // Definition + two call sites.
+  assert.equal(refusalSites, 3,
+    `expected refuseUnprovenDurability defined once and called twice, saw ${refusalSites}`);
 
   // Positive control: the reviewed defect, expressed in synthetic source.
   const MUTATED = "function syncContainingDirectory(){ const c=cap(); if(!c.supported){ block('WINDOWS_NAMESPACE_DURABILITY_UNPROVEN'); } }\n";

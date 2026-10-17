@@ -147,16 +147,34 @@ test('Test 7 — package exclusion: test helpers not in production surface', asy
   const stripComments = (text) => text
     .replace(/\/\*[\s\S]*?\*\//g, '')
     .replace(/^\s*\/\/.*$/gm, '');
+  // Specifier shape is deliberately loose: anything ending in a path INTO
+  // test/helpers, in any spelling that ESM can load — relative, absolute, or a
+  // file: URL, with either separator. The first version required a `../` prefix,
+  // so `import { a } from 'file:///D:/repo/test/helpers/x.mjs'` — precisely the
+  // machine-absolute-path class this campaign found elsewhere — loaded fine and
+  // went unreported.
+  // A path separator here is `/`, or ONE OR TWO backslashes: this scan reads raw
+  // source text, and a Windows specifier in valid JS is written double-escaped
+  // (`'..\\test\\helpers\\a.mjs'`), so a single-backslash pattern never sees it.
+  const SEP = String.raw`(?:/|\\{1,2})`;
+  const HELPER = String.raw`[^'"()\s]*` + SEP
+    + String.raw`test` + SEP + String.raw`helpers` + SEP + String.raw`[^'"()\s]*`;
   // Not global: RegExp.prototype.test advances lastIndex on /g, which would make
   // repeated calls over the same control set return false negatives.
-  const HELPER = String.raw`(?:\.\.\/|\.\/)+test\/helpers\/[^'"()\s]*`;
+  // `\b` after the keyword (not `\s`) so `import{a}from'…'` with no spaces at all
+  // is still a static import; `[^;]*?` spans newlines so multi-line clauses match.
   const fromClause = new RegExp(
-    `(?:^|[^\\w$.])(?:import|export)\\s[^;]*?\\bfrom\\s*['"]${HELPER}['"]`, 'm');
+    `(?:^|[^\\w$.])(?:import|export)\\b[^;]*?\\bfrom\\s*['"]${HELPER}['"]`, 'm');
   const bareImport = new RegExp(`(?:^|[^\\w$.])import\\s*['"]${HELPER}['"]`, 'm');
+  // A CJS require of a helper from lib/ is the same exclusion violation, and the
+  // first version did not look for it at all. Kept separate from `requiredAny`
+  // because `await import('…')` is capability-gated and must stay legal.
+  const requiredHelper = new RegExp(
+    `(?:^|[^\\w$.])require\\s*\\(\\s*['"]${HELPER}['"]\\s*\\)`, 'm');
 
   const scan = (text) => {
     const clean = stripComments(text);
-    return fromClause.test(clean) || bareImport.test(clean);
+    return fromClause.test(clean) || bareImport.test(clean) || requiredHelper.test(clean);
   };
 
   // Negative control: prove the detector can fire. Without this, a broken
@@ -167,6 +185,14 @@ test('Test 7 — package exclusion: test helpers not in production surface', asy
     ['named re-export', 'export { x } from \'../test/helpers/controlled-writer-capability.mjs\';\n'],
     ['star re-export', 'export * from \'../test/helpers/controlled-writer-capability.mjs\';\n'],
     ['bare side-effect import', 'import \'../test/helpers/controlled-writer-capability.mjs\';\n'],
+    // The three forms the 2026-10-18 review verified as LOADABLE bypasses.
+    ['no whitespace anywhere', 'import{a}from\'../test/helpers/a.mjs\';\n'],
+    ['re-export with no whitespace', 'export{a}from\'../test/helpers/a.mjs\';\n'],
+    ['file: URL into test/helpers', 'import { a } from \'file:///D:/repo/test/helpers/a.mjs\';\n'],
+    ['absolute path into test/helpers', 'import a from \'/srv/app/test/helpers/a.mjs\';\n'],
+    ['backslash-separated specifier', 'import { a } from \'..\\\\test\\\\helpers\\\\a.mjs\';\n'],
+    ['CJS require of a helper', 'const { a } = require(\'../test/helpers/a.mjs\');\n'],
+    ['tab/newline between keyword and clause', 'export\n\t{\n\ta\n\t}\n\tfrom\n\t\'../test/helpers/a.mjs\';\n'],
   ];
   for (const [label, text] of POSITIVE)
     assert.equal(scan(text), true, `detector is blind to: ${label} — Test 7 would pass vacuously`);

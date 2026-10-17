@@ -6,11 +6,27 @@ const NOT_OK_RE = /^\s*not ok \d+ - (.+?)(?: \([\d.]+ms\))?\s*$/;
 const COUNT_RE = /^# (tests|pass|fail) (\d+)/;
 const ELLIPSIS_RE = /^\s*\.\.\.\s*$/;
 
+// INCONCLUSIVE / SKIPPED must be claimed by the test's own error fields, never
+// merely mentioned anywhere in the block. The previous version did
+// `diagnostics.includes('INCONCLUSIVE:')` over the whole joined diagnostic, so a
+// genuine FAIL whose assertion diff QUOTED an inconclusive message was reported
+// as INCONCLUSIVE, and a message containing the words "platform-specific" became
+// a SKIP. Both are silent downgrades of a real failure, and verifyCompleteness
+// cannot see them because the non-pass count still matches.
+//
+// Classification reads anchored lines only — `code:`, `error:`, `message:`,
+// `reason:` — and defaults to FAIL. Anything it cannot positively identify as
+// guard-blocked is a failure. Unparseable input therefore lands on the safe side.
+const INCONCLUSIVE_CODE = /^\s*code:\s*['"]?E_TEST_INCONCLUSIVE['"]?\s*$/;
+const INCONCLUSIVE_FIELD = /^\s*(?:error|message|reason):\s*['"]?INCONCLUSIVE:/i;
+// A skip is a TAP directive (`# SKIP`), which parseTap reads from the `ok` line
+// itself; a failing test is never a skip, whatever its text contains.
+
 export function classifyFailure(name, diagnostics) {
-  if (diagnostics.includes('INCONCLUSIVE:') || diagnostics.includes('E_TEST_INCONCLUSIVE')) {
-    return 'INCONCLUSIVE';
+  const lines = String(diagnostics ?? '').split(' | ');
+  for (const line of lines) {
+    if (INCONCLUSIVE_CODE.test(line) || INCONCLUSIVE_FIELD.test(line)) return 'INCONCLUSIVE';
   }
-  if (/# skip|NOT_PROVEN here|platform-specific/i.test(diagnostics)) return 'SKIPPED';
   return 'FAIL';
 }
 
@@ -25,9 +41,13 @@ export function parseTap({ stdout, stderr = '', suite }) {
   let current = null;
   const flush = () => {
     if (!current) return;
-    const detail = current.lines.join(' | ');
+    // Classify the FULL block; `detail` is truncated only for display. A 300-char
+    // cut used to be able to amputate the `code:` line and turn a guard-blocked
+    // test into a FAIL — fail-closed, but wrong, and it made the matrix disagree
+    // with itself on long messages.
+    const full = current.lines.join(' | ');
     rows.push({ suite: current.suite, name: current.name,
-      verdict: classifyFailure(current.name, detail), detail: detail.slice(0, 300) });
+      verdict: classifyFailure(current.name, full), detail: full.slice(0, 400) });
     current = null;
   };
   for (const line of text.split(/\r?\n/)) {

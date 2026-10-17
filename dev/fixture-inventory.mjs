@@ -55,6 +55,11 @@ lines.push('', `TOTAL inventoried: ${total}   deletable-by-agent (owned marker):
 lines.push(`ACTION TAKEN: none. No directory above was deleted by this scan.`);
 const text = lines.join('\n') + '\n';
 const { writeFileSync } = await import('node:fs');
-writeFileSync('D:/vcp-b9-eng/evidence/33-fixture-inventory.txt', text);
+// Output location is the caller's, not this machine's: an absolute path here was
+// the same portability defect the campaign found in writer-concurrency.test.mjs.
+const OUT = process.env.VCP_INVENTORY_OUT
+  || path.join(os.tmpdir(), 'vcp-fixture-inventory.txt');
+writeFileSync(OUT, text);
+console.log('(written to ' + OUT + ')');
 console.log(text.split('\n').slice(0, 6).join('\n'));
 console.log(`... ${total} entries total, ${owned} with this-session ownership proof`);

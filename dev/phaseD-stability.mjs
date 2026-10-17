@@ -5,10 +5,14 @@
 //   - every declared scenario id is present in that count
 import { spawnSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 
 const W = process.cwd();
-const OUT = 'D:/vcp-b9-eng/evidence/32-phaseD-stability.txt';
+// Output location belongs to the caller, not to this machine — an absolute
+// evidence path here is the same portability defect found in the test suites.
+const OUT = process.env.VCP_STABILITY_OUT
+  || path.join(os.tmpdir(), 'vcp-phaseD-stability.txt');
 const SUITES = [
   { file: 'test/writer-controlled-concurrency.test.mjs', ids: ['B4-01','B4-02','B4-03','B4-04','B4-05','B4-06','B4-07'] },
   { file: 'test/writer-controlled-rollback.test.mjs',     ids: ['B5-01','B5-02','B5-03','B5-04','B5-05','B5-06','B5-07'] },
@@ -25,7 +29,7 @@ for (const { file, ids } of SUITES) {
     const t0 = Date.now();
     const r = spawnSync(process.execPath, ['--test', '--test-reporter=tap', file], {
       cwd: W, encoding: 'utf8', timeout: 180_000, windowsHide: true,
-      env: { ...process.env, TMPDIR: 'D:\\vcp-b9-eng-tmp' },
+      env: { ...process.env, TMPDIR: process.env.TMPDIR || os.tmpdir() },
     });
     elapsed.push(Date.now() - t0);
     status.push(r.status);
