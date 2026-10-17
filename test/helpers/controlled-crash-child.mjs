@@ -5,7 +5,16 @@ import { createControlledFixture } from './controlled-writer-fixture.mjs';
 import { runWriterTransaction } from '../../lib/production-writer.mjs';
 import { rollbackV2 } from '../../lib/writer-rollback-v2.mjs';
 
-const mode = process.argv[2] || 'transaction';
+// The runner treats every file under test/ as a test file, so this module is
+// also EXECUTED by discovery, not only when a parent spawns it. Without an
+// explicit mode it must do nothing: it otherwise created a live fixture, ran a
+// real transaction and slept 30s from inside the test run, and reported that
+// accidental execution as a failing "test".
+const mode = process.argv[2];
+if (mode !== 'transaction' && mode !== 'rollback') {
+  console.log('SKIPPED: crash child requires an explicit transaction|rollback mode');
+  process.exit(0);
+}
 const f = await createControlledFixture({ allowedOperations: ['b4-concurrency', 'rollback-v2', 'journal-write', 'journal-clear'] });
 console.log('FIXTURE_ROOT=' + f.root);
 console.log('READY');

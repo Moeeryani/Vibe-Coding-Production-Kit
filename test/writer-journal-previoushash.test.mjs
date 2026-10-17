@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import test from 'node:test';
+import { mutationTest } from './helpers/layer-assertion.mjs';
 import {
   createControlledFixture, teardownControlledFixture,
 } from './helpers/controlled-writer-fixture.mjs';
@@ -21,7 +22,7 @@ async function withVcp(f) {
   await mkdir(path.join(f.root, '.vcp'), { recursive: true, mode: 0o700 });
 }
 
-test('PH-01 — fresh journal creation with previousHash=null', async () => {
+mutationTest('PH-01 — fresh journal creation with previousHash=null', async () => {
   const f = await createControlledFixture({ allowedOperations: OPS });
   try {
     await withVcp(f);
@@ -29,7 +30,7 @@ test('PH-01 — fresh journal creation with previousHash=null', async () => {
   } finally { await teardownControlledFixture(f); }
 });
 
-test('PH-02 — existing valid journal accepts correct previousHash', async () => {
+mutationTest('PH-02 — existing valid journal accepts correct previousHash', async () => {
   const f = await createControlledFixture({ allowedOperations: OPS });
   try {
     await withVcp(f);
@@ -42,7 +43,7 @@ test('PH-02 — existing valid journal accepts correct previousHash', async () =
   } finally { await teardownControlledFixture(f); }
 });
 
-test('PH-03 — stale previous hash rejected', async () => {
+mutationTest('PH-03 — stale previous hash rejected', async () => {
   const f = await createControlledFixture({ allowedOperations: OPS });
   try {
     await withVcp(f);
@@ -81,7 +82,7 @@ test('PH-05 — missing-journal mismatch: wrong hash on empty rejected', async (
   } finally { await teardownControlledFixture(f); }
 });
 
-test('PH-06 — concurrent creation: one wins, other sees changed', async () => {
+mutationTest('PH-06 — concurrent creation: one wins, other sees changed', async () => {
   const f = await createControlledFixture({ allowedOperations: OPS });
   try {
     await withVcp(f);

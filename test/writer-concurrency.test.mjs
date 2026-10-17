@@ -1,13 +1,26 @@
 // B-4: atomicity and concurrency validation.
+// Every test here asserts a SUCCESSFUL write or lock acquisition, so all of
+// them are wrapped in mutationTest: where this platform's durability guard
+// refuses the mutation, the honest verdict is INCONCLUSIVE, not a product FAIL
+// and never a PASS. (Found via the baseline/head failure-name comparison: these
+// suites were not in the matrix scope, so the matrix's "0 genuine FAIL" did not
+// cover them.)
 import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, readFile } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
 import os from 'node:os';
 import path from 'node:path';
-import test from 'node:test';
 import { atomicWriteFile } from '../lib/writer-atomic.mjs';
 import { acquireLifecycleLock } from '../lib/lifecycle-lock-v2.mjs';
+import { mutationTest } from './helpers/layer-assertion.mjs';
 import { seedLegacyV1Fixture } from './helpers/legacy-v1-fixture.mjs';
+
+// Resolved from this file, never from a developer's absolute workspace path:
+// the incoming snapshot hardcoded /home/hatch/..., which can only exist on the
+// machine that wrote it.
+const LOCK_MODULE = pathToFileURL(
+  path.join(import.meta.dirname, '..', 'lib', 'lifecycle-lock-v2.mjs')).href;
 
 const fresh=async()=>{
   const dir=await mkdtemp(path.join(os.tmpdir(),'vcp-wc-'));
@@ -15,7 +28,7 @@ const fresh=async()=>{
   return dir;
 };
 
-test('conflicting updates: sequential writes, no lost update',async()=>{
+mutationTest('conflicting updates: sequential writes, no lost update',async()=>{
   const root=await fresh();
   await atomicWriteFile(root,'shared.txt',Buffer.from('writer-A\n'));
   await atomicWriteFile(root,'shared.txt',Buffer.from('writer-B\n'));
@@ -23,7 +36,7 @@ test('conflicting updates: sequential writes, no lost update',async()=>{
   assert.equal(await readFile(path.join(root,'shared.txt'),'utf8'),'writer-B\n');
 });
 
-test('lock contention: second acquirer refused while first holds',async()=>{
+mutationTest('lock contention: second acquirer refused while first holds',async()=>{
   const root=await fresh();
   const lockA=await acquireLifecycleLock(root,{mode:'update'});
   let refused=null;
@@ -38,10 +51,10 @@ test('lock contention: second acquirer refused while first holds',async()=>{
   await lockB.release();
 });
 
-test('stale lock: lock file persists after holder death (never auto-reaped)',async()=>{
+mutationTest('stale lock: lock file persists after holder death (never auto-reaped)',async()=>{
   const root=await fresh();
   const childCode=`
-    const {acquireLifecycleLock}=await import('/home/hatch/workspace/vcp-stage12-13-campaign/repo/lib/lifecycle-lock-v2.mjs');
+    const {acquireLifecycleLock}=await import(${JSON.stringify(LOCK_MODULE)});
     try{
       const lock=await acquireLifecycleLock(${JSON.stringify(root)},{mode:'update'});
       setInterval(()=>{},1000); // keep event loop alive; hold forever
@@ -68,7 +81,7 @@ test('stale lock: lock file persists after holder death (never auto-reaped)',asy
   assert.ok(refused,'stale lock must block new acquirer, not auto-reap');
 });
 
-test('interrupted multi-file sequence: each file old-or-new, never torn',async()=>{
+mutationTest('interrupted multi-file sequence: each file old-or-new, never torn',async()=>{
   const root=await fresh();
   for(let i=0;i<5;i++)
     await atomicWriteFile(root,`f${i}.txt`,Buffer.from(`seed-${i}\n`));

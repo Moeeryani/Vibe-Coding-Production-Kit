@@ -16,6 +16,10 @@ const SUITES = [
   'writer-controlled-rollback', 'writer-controlled-security',
   'writer-authorization-injection', 'writer-atomic',
   'writer-transaction-identity', 'writer-recovery',
+  // Added after the baseline/head comparison: these two suites assert mutation
+  // success too, and leaving them out made "0 genuine FAIL" a claim about a
+  // narrower surface than the campaign actually touched.
+  'writer-concurrency', 'writer-journal-previoushash',
 ];
 const INCONCLUSIVE_MARK = 'INCONCLUSIVE:';
 const outDir = path.resolve(process.env.VCP_MATRIX_OUT || '.');
