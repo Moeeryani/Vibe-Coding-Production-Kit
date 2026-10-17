@@ -5,7 +5,7 @@
 // prefix and a marker naming itself was deleted, user data and all.
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { mkdtemp, writeFile, mkdir, rm, readdir, lstat, readFile } from 'node:fs/promises';
+import { mkdtemp, writeFile, mkdir, rm, readFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import {
@@ -119,16 +119,22 @@ test('OWN-08 — a body that throws PRESERVES the fixture instead of cleaning it
   await rm(captured, { recursive: true, force: true });
 });
 
-test('OWN-09 — successful runs leave no accumulation under the owned prefixes', async () => {
-  const before = (await readdir(tmpRoot))
-    .filter((n) => /^vcp-(neg|wid|wa|controlled|nrc|m2)-/.test(n) || /^la10-/.test(n));
+test('OWN-09 — successful runs leave no accumulation of the fixtures they made', async () => {
+  // Scope is THIS test's own fixtures, tracked by exact path. The first version
+  // snapshotted the whole temp namespace for owned prefixes, so under `npm test`
+  // concurrency it saw another suite's live vcp-neg-/vcp-controlled- directory
+  // and reported a leak that did not exist — a flaky test that also masked real
+  // leaks by crying wolf.
+  const made = [];
   for (let i = 0; i < 4; i++) {
-    await withOwnedFixture(() => createOwnedFixture('vcp-neg-'), async () => {});
+    await withOwnedFixture(() => createOwnedFixture('vcp-neg-'), async (dir) => {
+      made.push(path.resolve(dir));
+    });
   }
-  const after = (await readdir(tmpRoot))
-    .filter((n) => /^vcp-(neg|wid|wa|controlled|nrc|m2)-/.test(n) || /^la10-/.test(n));
-  assert.deepEqual(after.sort(), before.sort(),
-    `fixture leak detected: ${after.filter((x) => !before.includes(x))}`);
+  assert.equal(made.length, 4, 'precondition: four fixtures were created');
+  const leaked = [];
+  for (const dir of made) if (await fixtureExists(dir)) leaked.push(dir);
+  assert.deepEqual(leaked, [], `fixture leak detected: ${leaked.join(', ')}`);
 });
 
 test('OWN-10 — refuses a foreign directory that only self-certifies ownership', async () => {
