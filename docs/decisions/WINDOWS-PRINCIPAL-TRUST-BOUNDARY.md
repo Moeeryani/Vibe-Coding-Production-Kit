@@ -30,7 +30,7 @@ campaign — the reason is now `NO_NATIVE_PROVIDER_CONFIGURED`, and
 |---|---|---|
 | Real process token | `:268 OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY\|TOKEN_DUPLICATE)` | technique yes |
 | Real account SID | `:117-124 GetTokenInformation(TokenUser)` → `ConvertSidToStringSidW` | **yes — this is the missing datum** |
-| Impersonation token | `:128-132 DuplicateToken(SecurityImpersonation)` | relevant, see §5 |
+| Impersonation token | `:131 DuplicateToken(primary, SecurityImpersonation, …)` | relevant, see §4.4 |
 | D-01 scratch-root gates | `:260-266 safeRoot ∧ noReparseAncestors ∧ ntfs ∧ validMarker`, else exit `3` | **no** |
 | Ancestor ACL walk | `:285-300` drive-root + `ancestor-N` | **no**, D-01 evidence |
 | Declared posture | `:257-258 accessCheckOnly:true`, `oldPrincipalActualMutationDenialUnproven:true` | read-only by design |
@@ -94,6 +94,42 @@ Only **A** provides real identity without moving the trust problem elsewhere.
 7. **Auditability.** `recordWriterEvidence` must log the SID it verified
    (`describePrincipal` already emits `windows:sid=…`) so the audit trail records
    *which* principal performed the write.
+
+## 4bis. Evidence forgery risks, and the precedent that already bit this campaign
+
+A principal claim is only worth what its weakest link is worth. Every design above
+moves the forgeable artifact around rather than eliminating it, so the risk list has to
+be explicit before any provider is accepted.
+
+**This is not hypothetical here.** The same campaign found and fixed a structurally
+identical defect in fixture teardown: `removeOwnedFixture` authorized a recursive delete
+from a marker file that only restated its own path, so any directory carrying a
+well-formed marker could be deleted — reproduced, with data destroyed. The fix was to
+require a vouch that the directory **cannot** self-certify: an in-process registry plus a
+per-fixture random token minted by the creator, so reading the marker off disk transfers
+no authority (`OWN-10`–`OWN-13`, including a cross-process test where the attacker holds
+a completely legitimate marker and token). A principal provider that accepts a
+caller-supplied SID would repeat exactly this mistake at a higher stakes.
+
+Forged-able today, by anyone with normal user-level access:
+
+| vector | what it buys | status |
+|---|---|---|
+| PATH-resolved helper (design B) | arbitrary "proof" of any SID | rejected |
+| Absolute-path helper, unpinned (design C) | same, if the file is swapped between resolve and exec | rejected as insufficient; needs `publishedImplementationHashVerified`, currently `false` |
+| Caller-supplied principal object | writer accepts an identity the caller chose | already refused and tested (`WIN-02`, pinned-principal self-certification) |
+| `process.platform` rewritten in-process | spoof the platform branch of any guard | not proof: `mutationTest`'s platform self-report is explicitly labelled spoofable, and the durability guard still fires at the real syscall |
+| Env var / CLI flag selecting a provider | switch identity policy at runtime | forbidden; `WINDOWS_PRINCIPAL_PROVIDER` is a module constant, mirroring the M-3 removal of the `authorize` callback (`production-writer.mjs:66-69`) |
+| Captured SID string replayed | claim a previously observed principal | a SID string alone is not proof of *being* that principal; §4.3 requires the process's own token |
+| Audit log text | make a record *look* verified | `recordWriterEvidence` must emit the SID it actually verified, not a caller-provided label |
+| Test capability as an identity backdoor | use the controlled-test path to reach production identity | the test path is fenced separately: `E_TEST_CAPABILITY_REVOKED`, scope checks, identity re-verification, and production entrypoints still hit `E_G_FENCE_NO_GO` without a capability (Tests 2–6) |
+
+Required properties for any accepted provider, restated as anti-forgery rules:
+the datum must come from the **kernel about this process**, be **unselectable** by
+configuration, carry **implementation identity** that can be pinned, **refuse on
+ambiguity**, and be **attributed** in evidence by the mechanism that produced it — not
+by a string a caller supplied. A negative test must demonstrate that a forged input is
+rejected; a provider whose only evidence is a passing positive test is not accepted.
 
 ## 5. Independent requirements not yet met anywhere
 
