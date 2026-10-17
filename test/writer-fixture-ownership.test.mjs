@@ -5,15 +5,22 @@
 // prefix and a marker naming itself was deleted, user data and all.
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { spawn } from 'node:child_process';
 import { mkdtemp, writeFile, mkdir, rm, readFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import {
   createOwnedFixture, removeOwnedFixture, withOwnedFixture, fixtureExists,
 } from './helpers/owned-fixture.mjs';
 
 const tmpRoot = path.resolve(os.tmpdir());
 const KNOWN = { mutationOutcome: 'known' };
+// Spawned children must import this helper by file URL: a Windows path pasted
+// into an import specifier is not a valid specifier, and the earlier version of
+// these tests escaped it by hand.
+const HELPER_URL = pathToFileURL(
+  path.join(import.meta.dirname, 'helpers', 'owned-fixture.mjs')).href;
 
 test('OWN-01 — an owned fixture is created, recorded and removed', async () => {
   const { dir, record } = await createOwnedFixture('vcp-neg-');
@@ -166,4 +173,76 @@ test('OWN-11 — refuses when the marker token was swapped after creation', asyn
     assert.equal(r.reason, 'OWNERSHIP_TOKEN_MISMATCH');
     assert.ok(await fixtureExists(dir));
   } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+// A fixture created by ANOTHER process carries a completely legitimate marker:
+// correct prefix, inside temp, its own real token. Reading that marker off disk
+// hands over every fact the old implementation required, and must still fail.
+test('OWN-12 — process interruption: a dead creator’s fixture is not deletable here', async () => {
+  const { spawnSync } = await import('node:child_process');
+  const child = spawnSync(process.execPath, ['--input-type=module', '-e', `
+    import { createOwnedFixture } from ${JSON.stringify(HELPER_URL)};
+    import { writeFile } from 'node:fs/promises';
+    const { dir } = await createOwnedFixture('vcp-neg-');
+    await writeFile(dir + '/forensic-evidence.txt', 'left by an interrupted process');
+    console.log(JSON.stringify({ dir }));
+    // Exits without teardown: the in-process registry dies with it.
+  `], { encoding: 'utf8', timeout: 60_000, windowsHide: true });
+  assert.equal(child.status, 0, `child failed: ${child.stderr}`);
+  const { dir } = JSON.parse(child.stdout.trim().split(/\r?\n/).pop());
+
+  try {
+    // Prove the foreign fixture looks perfectly owned by every disk-visible test.
+    const marker = JSON.parse(await readFile(path.join(dir, '.vcp-owned-fixture.json'), 'utf8'));
+    assert.ok(marker.token && marker.token.length >= 16, 'child wrote a real token');
+    assert.equal(marker.path, path.resolve(dir));
+
+    const r = await removeOwnedFixture(dir, KNOWN);
+    assert.equal(r.removed, false,
+      'knowledge of a valid marker must not transfer delete authority');
+    assert.equal(r.reason, 'NOT_CREATED_BY_THIS_PROCESS');
+    assert.equal(await readFile(path.join(dir, 'forensic-evidence.txt'), 'utf8'),
+      'left by an interrupted process', 'evidence must survive the attempted cleanup');
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test('OWN-13 — concurrent processes: each cleans only what it created', async () => {
+  // Two fixtures, deliberately: A is what the foreign process tries to delete,
+  // B is what this process deletes at the same time. Sharing one path between an
+  // "owner may delete" and a "still exists" assertion is a race in the test, not
+  // a property of the guard — the first version of this test had exactly that.
+  const { dir: held } = await createOwnedFixture('vcp-neg-');
+  try {
+    const foreignAttempt = new Promise((resolve, reject) => {
+      const child = spawn(process.execPath, ['--input-type=module', '-e', `
+        import { removeOwnedFixture } from ${JSON.stringify(HELPER_URL)};
+        const r = await removeOwnedFixture(${JSON.stringify(path.resolve(held))},
+          { mutationOutcome: 'known' });
+        console.log(JSON.stringify(r));
+      `], { windowsHide: true });
+      let out = '';
+      child.stdout.on('data', (b) => { out += b; });
+      child.on('error', reject);
+      child.on('close', (code) => code === 0
+        ? resolve(JSON.parse(out.trim().split(/\r?\n/).pop()))
+        : reject(new Error(`child exit ${code}: ${out}`)));
+    });
+
+    // Real concurrent activity in this process while the child is attempting.
+    const ownCycle = (async () => {
+      const { dir: mine } = await createOwnedFixture('vcp-neg-');
+      const r = await removeOwnedFixture(mine, KNOWN);
+      return { r, mine };
+    })();
+
+    const [crossProcess, own] = await Promise.all([foreignAttempt, ownCycle]);
+
+    assert.equal(crossProcess.removed, false,
+      'another process must not be able to delete a live fixture this process created');
+    assert.equal(crossProcess.reason, 'NOT_CREATED_BY_THIS_PROCESS');
+    assert.ok(await fixtureExists(held), 'the held fixture must survive the foreign attempt');
+    assert.equal(own.r.removed, true, `owner cleanup failed: ${own.r.reason}`);
+    assert.equal(await fixtureExists(own.mine), false,
+      'the fixture this process created must be removable by this process');
+  } finally { await rm(held, { recursive: true, force: true }); }
 });
