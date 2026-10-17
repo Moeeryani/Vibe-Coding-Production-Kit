@@ -137,23 +137,49 @@ test('Test 7 — package exclusion: test helpers not in production surface', asy
   const names = entries.filter((n) => n.endsWith('.mjs'));
   assert.ok(names.length > 0, 'lib/ contained no .mjs files — exclusion scan would be vacuous');
 
-  // Line-scoped detection: a bare /^import/ against the whole file text is
-  // anchored at byte 0 and therefore never matches a file that begins with a
-  // comment — which is every file in lib/. That made this check pass vacuously.
-  const isStaticHelperImport = (line) =>
-    /^\s*import\b/.test(line) && !/^\s*(?:const|let|var)?\s*\*?\s*import\s*\(/.test(line)
-    && /['"]\.\.\/test\/helpers\//.test(line);
+  // Detection is STATEMENT-scoped, not line-scoped. A line-scoped regex cannot
+  // see the forms the 2026-10-17 review flagged as blind spots:
+  //   import {\n  a,\n} from '../test/helpers/x.mjs';   (specifier not on the import line)
+  //   export { a } from '../test/helpers/x.mjs';       (re-export, keyword is export)
+  //   export * from '../test/helpers/x.mjs';
+  // Comments are stripped first so commented-out imports are not counted as
+  // violations, and dynamic import() stays allowed (it is capability-gated).
+  const stripComments = (text) => text
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/^\s*\/\/.*$/gm, '');
+  // Not global: RegExp.prototype.test advances lastIndex on /g, which would make
+  // repeated calls over the same control set return false negatives.
+  const HELPER = String.raw`(?:\.\.\/|\.\/)+test\/helpers\/[^'"()\s]*`;
+  const fromClause = new RegExp(
+    `(?:^|[^\\w$.])(?:import|export)\\s[^;]*?\\bfrom\\s*['"]${HELPER}['"]`, 'm');
+  const bareImport = new RegExp(`(?:^|[^\\w$.])import\\s*['"]${HELPER}['"]`, 'm');
 
-  const scan = (text) => text.split(/\r?\n/).some(isStaticHelperImport);
+  const scan = (text) => {
+    const clean = stripComments(text);
+    return fromClause.test(clean) || bareImport.test(clean);
+  };
 
   // Negative control: prove the detector can fire. Without this, a broken
   // detector looks identical to a clean codebase.
-  const POSITIVE = '// header\nimport { x } from \'../test/helpers/controlled-writer-capability.mjs\';\nexport const y = x;\n';
-  assert.equal(scan(POSITIVE), true,
-    'detector cannot see a real violation — Test 7 would pass vacuously');
-  const NEGATIVE = '// header\nexport async function f(){ const m = await import(\'../test/helpers/controlled-writer-capability.mjs\'); return m; }\n';
-  assert.equal(scan(NEGATIVE), false,
-    'detector must not flag the capability-gated dynamic import');
+  const POSITIVE = [
+    ['single-line import', '// header\nimport { x } from \'../test/helpers/controlled-writer-capability.mjs\';\nexport const y = x;\n'],
+    ['multi-line import', '// header\nimport {\n  mintCapabilityForFixture,\n} from \'../test/helpers/controlled-writer-capability.mjs\';\n'],
+    ['named re-export', 'export { x } from \'../test/helpers/controlled-writer-capability.mjs\';\n'],
+    ['star re-export', 'export * from \'../test/helpers/controlled-writer-capability.mjs\';\n'],
+    ['bare side-effect import', 'import \'../test/helpers/controlled-writer-capability.mjs\';\n'],
+  ];
+  for (const [label, text] of POSITIVE)
+    assert.equal(scan(text), true, `detector is blind to: ${label} — Test 7 would pass vacuously`);
+
+  const NEGATIVE = [
+    ['capability-gated dynamic import', '// header\nexport async function f(){ const m = await import(\'../test/helpers/controlled-writer-capability.mjs\'); return m; }\n'],
+    ['commented-out static import', '// import { x } from \'../test/helpers/controlled-writer-capability.mjs\';\nexport const y = 1;\n'],
+    ['block-commented import', '/* import { x } from \'../test/helpers/controlled-writer-capability.mjs\' */\nexport const y = 1;\n'],
+    ['production-only relative import', 'import { a } from \'./paths.mjs\';\n'],
+    ['identifier ending in import', 'const reimport = 1; reimport.from = 2;\n'],
+  ];
+  for (const [label, text] of NEGATIVE)
+    assert.equal(scan(text), false, `detector must not flag: ${label}`);
 
   const offenders = [];
   for (const name of names) {

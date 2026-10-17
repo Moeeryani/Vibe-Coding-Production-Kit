@@ -9,6 +9,7 @@
 //     i.e. a SUCCESSFUL completion is still refused.
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import path from 'node:path';
 import { lifecycleDurabilityCapability, syncContainingDirectory } from '../lib/file-durability.mjs';
 import { windowsNativeCandidateStatus, interpretWindowsScratchResult } from
   '../lib/windows-fs-provider-candidate.mjs';
@@ -71,14 +72,48 @@ test('DUR-07 — the candidate provider cannot mark Windows durable', () => {
     'the capability stays refused regardless of any candidate status');
 });
 
-test('DUR-08 — win32 refusal is a capability statement, not a syscall outcome', async () => {
-  // A path whose parent does not exist must still fail with the durability code,
-  // proving the guard fires before any filesystem attempt.
-  await assert.rejects(
-    syncContainingDirectory('D:/vcp-b9-eng-tmp/no-such-dir-xyz/child.txt'),
-    (e) => e.code === 'E_DIRECTORY_SYNC_UNPROVEN',
-    'expected E_DIRECTORY_SYNC_UNPROVEN, not ENOENT',
-  );
+test('DUR-08 — win32 refusal is a capability statement, not a syscall outcome', async (t) => {
+  // win32-only claim, so it is SKIPPED (never passed) elsewhere. The old version
+  // asserted only the error CODE - a code seven failure modes share - and pointed
+  // at a nonexistent directory, so on Linux it passed via ENOENT while claiming to
+  // prove a Windows capability guard. It now asserts the guard's own `reason` and
+  // requires that no filesystem attempt was made at all.
+  if (process.platform !== 'win32') {
+    t.skip('WINDOWS_ONLY — this asserts the win32 capability guard');
+    return;
+  }
+  const cap = lifecycleDurabilityCapability();
+  assert.equal(cap.supported, false, 'precondition: win32 must be unsupported here');
+  // The parent exists and is fsyncable on a supported platform; the guard must
+  // still refuse, and must refuse BECAUSE OF THE CAPABILITY, not the path.
+  const e = await syncContainingDirectory(path.join(process.cwd(), 'probe.txt'))
+    .then(() => null, (err) => err);
+  assert.ok(e, 'win32 durability must be refused');
+  assert.equal(e.code, 'E_DIRECTORY_SYNC_UNPROVEN');
+  assert.equal(e.reason, cap.reason,
+    `refusal must name the capability guard, got ${e.reason}`);
+  assert.equal(e.cause, undefined,
+    'no syscall was attempted, so there must be no underlying filesystem error');
+});
+
+test('DUR-08b — capability refusals are distinguishable from syscall failures', async () => {
+  // The falsifiability control for DUR-08, and it must run EVERYWHERE: a missing
+  // parent is reported as a filesystem failure where durability is supported, and
+  // as a capability refusal where it is not. A guard that reused one reason for
+  // every failure mode cannot satisfy both branches.
+  const cap = lifecycleDurabilityCapability();
+  const ghost = path.join(process.cwd(), 'vcp-no-such-dir-xyz', 'child.txt');
+  const e = await syncContainingDirectory(ghost).then(() => null, (err) => err);
+  assert.ok(e, 'a missing parent must never report success');
+  assert.equal(e.code, 'E_DIRECTORY_SYNC_UNPROVEN');
+  if (cap.supported) {
+    assert.equal(e.reason, 'PARENT_MISSING_OR_UNREADABLE',
+      'on a supported platform the reason must be the syscall, not a platform claim');
+    assert.ok(e.cause, 'the underlying ENOENT must be preserved as cause');
+  } else {
+    assert.equal(e.reason, cap.reason);
+    assert.equal(e.cause, undefined);
+  }
 });
 
 test('DUR-09 — contract: all operations green but no power-loss replay = NO_GO', async () => {

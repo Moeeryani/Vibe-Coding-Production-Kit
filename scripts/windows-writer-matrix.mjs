@@ -3,7 +3,7 @@
 // A blocked test is never counted as passing. Exit code is 0 only when no
 // test is a genuine FAIL — inconclusive results are reported, not hidden.
 import { spawnSync } from 'node:child_process';
-import { writeFileSync, appendFileSync, existsSync } from 'node:fs';
+import { writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { parseTap, verifyCompleteness } from './tap-matrix-parser.mjs';
 
@@ -18,7 +18,12 @@ const SUITES = [
   'writer-transaction-identity', 'writer-recovery',
 ];
 const INCONCLUSIVE_MARK = 'INCONCLUSIVE:';
-const outDir = process.env.VCP_MATRIX_OUT || '.';
+const outDir = path.resolve(process.env.VCP_MATRIX_OUT || '.');
+// Resolve the output directory BEFORE running anything. It used to be touched
+// only after all suites had executed, so a mistyped path threw at the last
+// moment and the whole run was wasted.
+try { mkdirSync(outDir, { recursive: true }); }
+catch (e) { console.error(`cannot write matrix output to ${outDir}: ${e.message}`); process.exit(2); }
 const rows = [];
 
 for (const suite of SUITES) {
@@ -37,10 +42,15 @@ const tally = {};
 for (const row of rows) tally[row.verdict] = (tally[row.verdict] ?? 0) + 1;
 writeFileSync(path.join(outDir, 'windows-writer-matrix.json'),
   JSON.stringify({ generatedAt: new Date().toISOString(), platform: process.platform,
-    node: process.version, tally, rows }, null, 2) + '\n');
-for (const row of rows)
-  appendFileSync(path.join(outDir, 'windows-writer-matrix.jsonl'),
-    JSON.stringify(row) + '\n');
+    node: process.version,
+    scope: `only the ${SUITES.length} suites listed in SUITES; NOT a substitute for `
+      + "'npm test'. A PASS row is this classifier's verdict, not the repo's required "
+      + 'verification command passing',
+    tally, rows }, null, 2) + '\n');
+// Rewritten per run. It used to be APPENDED, so a stale row from an earlier run
+// could be read as current evidence for this tree.
+writeFileSync(path.join(outDir, 'windows-writer-matrix.jsonl'),
+  rows.map((row) => JSON.stringify(row)).join('\n') + '\n');
 
 const width = Math.max(...rows.map((r) => r.name.length), 12);
 for (const row of rows)

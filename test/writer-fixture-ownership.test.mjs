@@ -1,8 +1,11 @@
 // Phase G: teardown safety. The important assertions are the REFUSALS -
 // a cleanup helper that deletes anything is more dangerous than a leak.
+// OWN-08..OWN-11 were added after the 2026-10-17 independent review proved the
+// original marker check was self-certifying: a planted directory with an owned
+// prefix and a marker naming itself was deleted, user data and all.
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { mkdtemp, writeFile, mkdir, rm, readdir, lstat } from 'node:fs/promises';
+import { mkdtemp, writeFile, mkdir, rm, readdir, lstat, readFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import {
@@ -10,6 +13,7 @@ import {
 } from './helpers/owned-fixture.mjs';
 
 const tmpRoot = path.resolve(os.tmpdir());
+const KNOWN = { mutationOutcome: 'known' };
 
 test('OWN-01 — an owned fixture is created, recorded and removed', async () => {
   const { dir, record } = await createOwnedFixture('vcp-neg-');
@@ -17,11 +21,11 @@ test('OWN-01 — an owned fixture is created, recorded and removed', async () =>
     assert.ok(await fixtureExists(dir));
     assert.equal(record.prefix, 'vcp-neg-');
     assert.equal(record.pid, process.pid);
-    const m = JSON.parse(await (await import('node:fs/promises')).readFile(
-      path.join(dir, '.vcp-owned-fixture.json'), 'utf8'));
+    const m = JSON.parse(await readFile(path.join(dir, '.vcp-owned-fixture.json'), 'utf8'));
     assert.equal(m.path, path.resolve(dir));
+    assert.ok(m.token, 'marker must carry the unguessable ownership token');
   } finally {
-    const r = await removeOwnedFixture(dir);
+    const r = await removeOwnedFixture(dir, KNOWN);
     assert.equal(r.removed, true, `expected removal, got ${r.reason}`);
   }
   assert.equal(await fixtureExists(dir), false);
@@ -30,7 +34,7 @@ test('OWN-01 — an owned fixture is created, recorded and removed', async () =>
 test('OWN-02 — refuses to delete a directory with an unrecognised prefix', async () => {
   const dir = await mkdtemp(path.join(tmpRoot, 'not-mine-'));
   try {
-    const r = await removeOwnedFixture(dir);
+    const r = await removeOwnedFixture(dir, KNOWN);
     assert.equal(r.removed, false);
     assert.match(r.reason, /UNOWNED_PREFIX/);
     assert.ok(await fixtureExists(dir), 'unowned directory must survive');
@@ -38,9 +42,10 @@ test('OWN-02 — refuses to delete a directory with an unrecognised prefix', asy
 });
 
 test('OWN-03 — refuses when the ownership marker is absent', async () => {
-  const dir = await mkdtemp(path.join(tmpRoot, 'vcp-neg-'));
+  const { dir } = await createOwnedFixture('vcp-neg-');
   try {
-    const r = await removeOwnedFixture(dir);
+    await rm(path.join(dir, '.vcp-owned-fixture.json'));
+    const r = await removeOwnedFixture(dir, KNOWN);
     assert.equal(r.removed, false);
     assert.equal(r.reason, 'NO_OWNERSHIP_MARKER');
     assert.ok(await fixtureExists(dir));
@@ -48,13 +53,14 @@ test('OWN-03 — refuses when the ownership marker is absent', async () => {
 });
 
 test('OWN-04 — refuses when the marker path does not match the target', async () => {
-  const dir = await mkdtemp(path.join(tmpRoot, 'vcp-neg-'));
+  const { dir } = await createOwnedFixture('vcp-neg-');
   try {
     await writeFile(path.join(dir, '.vcp-owned-fixture.json'),
       JSON.stringify({ path: 'C:\\Users\\target\\Documents' }));
-    const r = await removeOwnedFixture(dir);
+    const r = await removeOwnedFixture(dir, KNOWN);
     assert.equal(r.removed, false);
     assert.equal(r.reason, 'MARKER_PATH_MISMATCH');
+    assert.ok(await fixtureExists(dir));
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
 
@@ -65,9 +71,10 @@ test('OWN-05 — refuses to delete anything outside the temp dir', async () => {
   await writeFile(path.join(fake, '.vcp-owned-fixture.json'),
     JSON.stringify({ path: path.resolve(fake) }));
   try {
-    const r = await removeOwnedFixture(fake);
+    const r = await removeOwnedFixture(fake, KNOWN);
     assert.equal(r.removed, false);
     assert.equal(r.reason, 'OUTSIDE_TEMP_DIR');
+    assert.ok(await fixtureExists(fake));
   } finally { await rm(fake, { recursive: true, force: true }); }
 });
 
@@ -75,23 +82,30 @@ test('OWN-06 — refuses to delete a fixture that contains a .git directory', as
   const { dir } = await createOwnedFixture('vcp-neg-');
   try {
     await mkdir(path.join(dir, '.git'));
-    const r = await removeOwnedFixture(dir);
+    const r = await removeOwnedFixture(dir, KNOWN);
     assert.equal(r.removed, false);
     assert.equal(r.reason, 'CONTAINS_GIT_DIR');
+    assert.ok(await fixtureExists(dir));
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
 
-test('OWN-07 — unknown mutation outcome blocks cleanup entirely', async () => {
+test('OWN-07 — unknown mutation outcome blocks cleanup, and is the DEFAULT', async () => {
   const { dir } = await createOwnedFixture('vcp-neg-');
   try {
-    const r = await removeOwnedFixture(dir, { allowUnknownOutcome: false });
-    assert.equal(r.removed, false);
-    assert.equal(r.reason, 'UNKNOWN_MUTATION_OUTCOME');
+    const explicit = await removeOwnedFixture(dir, { mutationOutcome: 'unknown' });
+    assert.equal(explicit.removed, false);
+    assert.match(explicit.reason, /^UNKNOWN_MUTATION_OUTCOME/);
+    const defaulted = await removeOwnedFixture(dir);
+    assert.equal(defaulted.removed, false,
+      'cleanup must not be reachable without affirming the outcome is known');
+    assert.match(defaulted.reason, /^UNKNOWN_MUTATION_OUTCOME/);
     assert.ok(await fixtureExists(dir), 'evidence must be preserved');
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
 
-test('OWN-08 — withOwnedFixture cleans up even when the body throws', async () => {
+test('OWN-08 — a body that throws PRESERVES the fixture instead of cleaning it', async () => {
+  // STOP + PRESERVE EVIDENCE outranks a tidy temp dir: an assertion failure
+  // means a write may have landed somewhere unexpected, so nothing is deleted.
   let captured = null;
   await assert.rejects(async () => {
     await withOwnedFixture(() => createOwnedFixture('vcp-neg-'), async (dir) => {
@@ -100,20 +114,50 @@ test('OWN-08 — withOwnedFixture cleans up even when the body throws', async ()
     });
   }, /in-test failure/);
   assert.ok(captured);
-  assert.equal(await fixtureExists(captured), false,
-    'a failing assertion must not leave a fixture behind');
+  assert.equal(await fixtureExists(captured), true,
+    'a failed test must not destroy the evidence it left behind');
+  await rm(captured, { recursive: true, force: true });
 });
 
-test('OWN-09 — repeated runs leave no accumulation under the owned prefixes', async () => {
+test('OWN-09 — successful runs leave no accumulation under the owned prefixes', async () => {
   const before = (await readdir(tmpRoot))
     .filter((n) => /^vcp-(neg|wid|wa|controlled|nrc|m2)-/.test(n) || /^la10-/.test(n));
   for (let i = 0; i < 4; i++) {
-    await withOwnedFixture(() => createOwnedFixture('vcp-neg-'), async () => {
-      throw new Error('force teardown path');
-    }).catch(() => {});
+    await withOwnedFixture(() => createOwnedFixture('vcp-neg-'), async () => {});
   }
   const after = (await readdir(tmpRoot))
     .filter((n) => /^vcp-(neg|wid|wa|controlled|nrc|m2)-/.test(n) || /^la10-/.test(n));
   assert.deepEqual(after.sort(), before.sort(),
     `fixture leak detected: ${after.filter((x) => !before.includes(x))}`);
+});
+
+test('OWN-10 — refuses a foreign directory that only self-certifies ownership', async () => {
+  // Regression for the reviewed CRITICAL: prefix + a marker restating its own
+  // path is not proof. Only this process minting the fixture is.
+  const dir = await mkdtemp(path.join(tmpRoot, 'vcp-neg-not-mine-'));
+  await writeFile(path.join(dir, 'important-user-data.txt'), 'DO NOT DELETE\n');
+  await writeFile(path.join(dir, '.vcp-owned-fixture.json'), JSON.stringify({
+    path: path.resolve(dir), prefix: 'vcp-neg-', pid: process.pid,
+    platform: process.platform, token: 'deadbeefdeadbeefdeadbeefdeadbeef',
+  }));
+  try {
+    const r = await removeOwnedFixture(dir, KNOWN);
+    assert.equal(r.removed, false);
+    assert.equal(r.reason, 'NOT_CREATED_BY_THIS_PROCESS');
+    assert.equal(await readFile(path.join(dir, 'important-user-data.txt'), 'utf8'),
+      'DO NOT DELETE\n', 'unowned data must survive');
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test('OWN-11 — refuses when the marker token was swapped after creation', async () => {
+  const { dir } = await createOwnedFixture('vcp-neg-');
+  try {
+    await writeFile(path.join(dir, '.vcp-owned-fixture.json'), JSON.stringify({
+      path: path.resolve(dir), token: 'a'.repeat(32),
+    }));
+    const r = await removeOwnedFixture(dir, KNOWN);
+    assert.equal(r.removed, false);
+    assert.equal(r.reason, 'OWNERSHIP_TOKEN_MISMATCH');
+    assert.ok(await fixtureExists(dir));
+  } finally { await rm(dir, { recursive: true, force: true }); }
 });
