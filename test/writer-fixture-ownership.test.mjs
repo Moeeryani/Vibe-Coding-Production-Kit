@@ -13,6 +13,7 @@ import { pathToFileURL } from 'node:url';
 import {
   createOwnedFixture, removeOwnedFixture, withOwnedFixture, fixtureExists,
 } from './helpers/owned-fixture.mjs';
+import { forceKill, waitExit } from './helpers/child-kill.mjs';
 
 const tmpRoot = path.resolve(os.tmpdir());
 const KNOWN = { mutationOutcome: 'known' };
@@ -113,6 +114,7 @@ test('OWN-07 — unknown mutation outcome blocks cleanup, and is the DEFAULT', a
 test('OWN-08 — a body that throws PRESERVES the fixture instead of cleaning it', async () => {
   // STOP + PRESERVE EVIDENCE outranks a tidy temp dir: an assertion failure
   // means a write may have landed somewhere unexpected, so nothing is deleted.
+  // Deliberately passes no mutationOutcome: 'unknown' is the wrapper default.
   let captured = null;
   await assert.rejects(async () => {
     await withOwnedFixture(() => createOwnedFixture('vcp-neg-'), async (dir) => {
@@ -123,7 +125,11 @@ test('OWN-08 — a body that throws PRESERVES the fixture instead of cleaning it
   assert.ok(captured);
   assert.equal(await fixtureExists(captured), true,
     'a failed test must not destroy the evidence it left behind');
-  await rm(captured, { recursive: true, force: true });
+  // Clean up through the guard, not a bare rm: this process DID create the
+  // fixture, so it is authorized — and a test of ownership must not itself
+  // demonstrate that the guard can be stepped around.
+  const r = await removeOwnedFixture(captured, KNOWN);
+  assert.equal(r.removed, true, `owner cleanup after preservation: ${r.reason}`);
 });
 
 test('OWN-09 — successful runs leave no accumulation of the fixtures they made', async () => {
@@ -136,7 +142,7 @@ test('OWN-09 — successful runs leave no accumulation of the fixtures they made
   for (let i = 0; i < 4; i++) {
     await withOwnedFixture(() => createOwnedFixture('vcp-neg-'), async (dir) => {
       made.push(path.resolve(dir));
-    });
+    }, { mutationOutcome: 'known' });
   }
   assert.equal(made.length, 4, 'precondition: four fixtures were created');
   const leaked = [];
@@ -159,6 +165,57 @@ test('OWN-10 — refuses a foreign directory that only self-certifies ownership'
     assert.equal(r.reason, 'NOT_CREATED_BY_THIS_PROCESS');
     assert.equal(await readFile(path.join(dir, 'important-user-data.txt'), 'utf8'),
       'DO NOT DELETE\n', 'unowned data must survive');
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test('OWN-14 — cleanup is refused while a holder process may still be alive', async () => {
+  // A fixture can be owned and still be actively written by a child. "Could not
+  // check" must never be read as "the process finished", so both ALIVE and UNKNOWN
+  // hold the delete; only a proven DEAD releases it.
+  const { dir } = await createOwnedFixture('vcp-neg-');
+  try {
+    const alive = await removeOwnedFixture(dir, { ...KNOWN, holderPid: process.pid });
+    assert.equal(alive.removed, false);
+    assert.match(alive.reason, /^POSSIBLY_LIVE_HOLDER:ALIVE/,
+      `a live holder must block cleanup, got ${alive.reason}`);
+    assert.ok(await fixtureExists(dir), 'the fixture must survive a live holder');
+
+    const unknown = await removeOwnedFixture(dir, { ...KNOWN, holderPid: 'not-a-pid' });
+    assert.equal(unknown.removed, false);
+    assert.match(unknown.reason, /^POSSIBLY_LIVE_HOLDER:UNKNOWN/,
+      `an unrunnable probe must not authorize a delete, got ${unknown.reason}`);
+    assert.ok(await fixtureExists(dir), 'UNKNOWN liveness is not evidence of exit');
+
+    // A child that has genuinely finished releases the hold.
+    const { spawnSync } = await import('node:child_process');
+    const done = spawnSync(process.execPath, ['-e', 'process.exit(0)'], { windowsHide: true });
+    let dead = null;
+    for (let i = 0; i < 20 && dead?.removed !== true; i++) {
+      dead = await removeOwnedFixture(dir, { ...KNOWN, holderPid: done.pid });
+      if (dead.removed) break;
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    assert.equal(dead.removed, true, `a reaped holder must allow cleanup: ${dead.reason}`);
+    assert.equal(await fixtureExists(dir), false);
+  } finally {
+    if (await fixtureExists(dir)) {
+      const r = await removeOwnedFixture(dir, KNOWN);
+      if (!r.removed) console.error(`OWN-14 fixture retained: ${r.reason}`);
+    }
+  }
+});
+
+test('OWN-15 — a nested .git directory is refused, not just a top-level one', async () => {
+  // The reviewed check looked only at the fixture's first level, so payload/.git
+  // was deletable. The scan is bounded-recursive and refuses on overflow.
+  const { dir } = await createOwnedFixture('vcp-neg-');
+  try {
+    await mkdir(path.join(dir, 'payload', '.git'), { recursive: true });
+    await writeFile(path.join(dir, 'payload', '.git', 'HEAD'), 'ref: refs/heads/main\n');
+    const r = await removeOwnedFixture(dir, KNOWN);
+    assert.equal(r.removed, false);
+    assert.equal(r.reason, 'CONTAINS_GIT_DIR');
+    assert.ok(await fixtureExists(dir), 'a nested repository must survive');
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
 
@@ -191,19 +248,26 @@ test('OWN-12 — process interruption: a dead creator’s fixture is not deletab
   assert.equal(child.status, 0, `child failed: ${child.stderr}`);
   const { dir } = JSON.parse(child.stdout.trim().split(/\r?\n/).pop());
 
-  try {
-    // Prove the foreign fixture looks perfectly owned by every disk-visible test.
-    const marker = JSON.parse(await readFile(path.join(dir, '.vcp-owned-fixture.json'), 'utf8'));
-    assert.ok(marker.token && marker.token.length >= 16, 'child wrote a real token');
-    assert.equal(marker.path, path.resolve(dir));
+  // Prove the foreign fixture looks perfectly owned by every disk-visible test:
+  // correct prefix, inside temp, a marker naming itself, and a REAL random token
+  // the child minted. Reading it off disk transfers no authority.
+  const marker = JSON.parse(await readFile(path.join(dir, '.vcp-owned-fixture.json'), 'utf8'));
+  assert.ok(marker.token && marker.token.length >= 16, 'child wrote a real token');
+  assert.equal(marker.path, path.resolve(dir));
+  assert.equal(marker.prefix, 'vcp-neg-');
 
-    const r = await removeOwnedFixture(dir, KNOWN);
-    assert.equal(r.removed, false,
-      'knowledge of a valid marker must not transfer delete authority');
-    assert.equal(r.reason, 'NOT_CREATED_BY_THIS_PROCESS');
-    assert.equal(await readFile(path.join(dir, 'forensic-evidence.txt'), 'utf8'),
-      'left by an interrupted process', 'evidence must survive the attempted cleanup');
-  } finally { await rm(dir, { recursive: true, force: true }); }
+  // No finally-cleanup, deliberately: the creator process is gone, so this run has
+  // NO proof of ownership, and a test of the ownership guard must not step around
+  // it to tidy up. The directory is retained as evidence and reported instead.
+  // (Known cost: this leaks one directory per run. That is the intended trade.)
+  const r = await removeOwnedFixture(dir, KNOWN);
+  assert.equal(r.removed, false,
+    'knowledge of a valid marker must not transfer delete authority');
+  assert.equal(r.reason, 'NOT_CREATED_BY_THIS_PROCESS');
+  assert.equal(await readFile(path.join(dir, 'forensic-evidence.txt'), 'utf8'),
+    'left by an interrupted process', 'evidence must survive the attempted cleanup');
+  assert.ok(await fixtureExists(dir), 'an unprovable directory must still be on disk');
+  console.error(`OWN-12 RETAINED (unowned by this process): ${dir}`);
 });
 
 test('OWN-13 — concurrent processes: each cleans only what it created', async () => {
@@ -213,20 +277,30 @@ test('OWN-13 — concurrent processes: each cleans only what it created', async 
   // a property of the guard — the first version of this test had exactly that.
   const { dir: held } = await createOwnedFixture('vcp-neg-');
   try {
-    const foreignAttempt = new Promise((resolve, reject) => {
+    // Bounded like every other child in this campaign: a hung probe must fail the
+    // test, never stall the suite. waitExit resolves with exited:false on timeout,
+    // then forceKill guarantees the process is gone before we report.
+    const foreignAttempt = (async () => {
       const child = spawn(process.execPath, ['--input-type=module', '-e', `
         import { removeOwnedFixture } from ${JSON.stringify(HELPER_URL)};
         const r = await removeOwnedFixture(${JSON.stringify(path.resolve(held))},
           { mutationOutcome: 'known' });
         console.log(JSON.stringify(r));
-      `], { windowsHide: true });
+      `], { windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
       let out = '';
+      let err = '';
       child.stdout.on('data', (b) => { out += b; });
-      child.on('error', reject);
-      child.on('close', (code) => code === 0
-        ? resolve(JSON.parse(out.trim().split(/\r?\n/).pop()))
-        : reject(new Error(`child exit ${code}: ${out}`)));
-    });
+      child.stderr.on('data', (b) => { err += b; });
+      child.on('error', (e) => { out = ''; err += String(e); });
+      const done = await waitExit(child, 30_000);
+      if (!done.exited) {
+        const k = await forceKill(child, { timeoutMs: 5_000 });
+        throw new Error(`foreign-attempt child hung; killed=${k.terminated}`);
+      }
+      if (child.exitCode !== 0)
+        throw new Error(`child exit ${child.exitCode}: ${out}${err}`);
+      return JSON.parse(out.trim().split(/\r?\n/).pop());
+    })();
 
     // Real concurrent activity in this process while the child is attempting.
     const ownCycle = (async () => {
@@ -244,5 +318,11 @@ test('OWN-13 — concurrent processes: each cleans only what it created', async 
     assert.equal(own.r.removed, true, `owner cleanup failed: ${own.r.reason}`);
     assert.equal(await fixtureExists(own.mine), false,
       'the fixture this process created must be removable by this process');
-  } finally { await rm(held, { recursive: true, force: true }); }
+  } finally {
+    // `held` was created by THIS process, so the guard authorizes its removal —
+    // no bare rm here either (that would demonstrate the bypass being tested).
+    const cleanup = await removeOwnedFixture(held, KNOWN);
+    if (!cleanup.removed)
+      console.error(`OWN-13 cleanup refused for its own fixture: ${cleanup.reason}`);
+  }
 });

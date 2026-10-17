@@ -47,7 +47,7 @@ test('Test 2 — missing capability: writer core denies without capability', asy
       rollbackV2({ root: dir, backupId: 'x', confirmed: true }),
       (e) => e && e.code === 'E_G_FENCE_NO_GO'
     );
-  });
+  }, { mutationOutcome: 'known' });
 });
 
 test('Test 3 — invalid fixture: forged capability denied', async () => {
@@ -66,7 +66,7 @@ test('Test 3 — invalid fixture: forged capability denied', async () => {
       /E_TEST_CAPABILITY_INVALID/
     );
     assert.equal(mutated, false);
-  });
+  }, { mutationOutcome: 'known' });
 });
 
 test('Test 4 — path escape: capability scoped to fixture A denied for fixture B', async () => {
@@ -105,7 +105,7 @@ test('Test 5 — stale capability: reuse after teardown denied', async () => {
       /E_TEST_CAPABILITY_REVOKED/
     );
     assert.equal(mutated, false);
-  });
+  }, { mutationOutcome: 'known' });
 });
 
 test('Test 6 — production entrypoint: gate still rejects without capability', async () => {
@@ -119,7 +119,7 @@ test('Test 6 — production entrypoint: gate still rejects without capability', 
       }),
       (e) => e && e.code === 'E_G_FENCE_NO_GO'
     );
-  });
+  }, { mutationOutcome: 'known' });
 });
 
 // Test 7 previously shelled out to `grep -rl ... 2>/dev/null || true`, which

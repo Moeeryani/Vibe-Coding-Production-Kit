@@ -55,13 +55,23 @@ export async function createOwnedFixture(prefix = 'vcp-neg-') {
 // Proves ownership BEFORE deleting. Returns {removed, reason}.
 // `mutationOutcome` must be the string 'known' for cleanup to be allowed;
 // anything else (including the default) preserves the directory as evidence.
-export async function removeOwnedFixture(dir, { mutationOutcome = 'unknown' } = {}) {
+// `holderPid`, when supplied, names a process that may still be writing here: the
+// delete is refused unless its liveness is proven DEAD. A probe that could not run
+// reports UNKNOWN, and UNKNOWN must never be read as "the process finished".
+export async function removeOwnedFixture(dir, {
+  mutationOutcome = 'unknown', holderPid = null,
+} = {}) {
   const abs = path.resolve(dir);
   const deny = async (reason) => {
     await ledger({ event: 'cleanup-refused', path: abs, reason });
     return { removed: false, reason };
   };
   if (mutationOutcome !== 'known') return deny(`UNKNOWN_MUTATION_OUTCOME:${mutationOutcome}`);
+  if (holderPid !== null && holderPid !== undefined) {
+    const { LIVENESS, processLiveness } = await import('./child-kill.mjs');
+    const { state, detail } = processLiveness(holderPid);
+    if (state !== LIVENESS.DEAD) return deny(`POSSIBLY_LIVE_HOLDER:${state}:${detail}`);
+  }
   if (!withinTemp(abs)) return deny('OUTSIDE_TEMP_DIR');
   const base = path.basename(abs);
   if (!OWNED_PREFIXES.some((p) => base.startsWith(p)))
@@ -76,9 +86,16 @@ export async function removeOwnedFixture(dir, { mutationOutcome = 'unknown' } = 
   // so a planted or swapped marker cannot authorize the delete.
   if (marker.token !== CREATED_HERE.get(abs)) return deny('OWNERSHIP_TOKEN_MISMATCH');
   // Refuse to delete anything that contains a real repository or managed state
-  // belonging to a project, regardless of ownership.
-  const entries = await readdir(abs).catch(() => []);
-  if (entries.includes('.git')) return deny('CONTAINS_GIT_DIR');
+  // belonging to a project, regardless of ownership. A top-level-only check left
+  // `payload/.git` unprotected, so the scan is bounded-recursive and refuses on
+  // overflow rather than skipping the question.
+  let entries;
+  try {
+    entries = await readdir(abs, { recursive: true });
+  } catch { return deny('CONTENTS_UNREADABLE'); }
+  if (entries.length > 5000) return deny(`TOO_MANY_ENTRIES_TO_VERIFY:${entries.length}`);
+  if (entries.some((e) => String(e).split(/[\\/]/).includes('.git')))
+    return deny('CONTAINS_GIT_DIR');
   await rm(abs, { recursive: true, force: true });
   CREATED_HERE.delete(abs);
   await ledger({ event: 'removed', path: abs, at: new Date().toISOString() });
@@ -86,10 +103,14 @@ export async function removeOwnedFixture(dir, { mutationOutcome = 'unknown' } = 
 }
 
 // Runs a body with cleanup that refuses unless ownership AND outcome are proven.
-// `makeDir` must return the dir path. `mutationOutcome: 'known'` is the caller's
-// assertion that its writes were confined to the fixture; a body that THROWS is
-// treated as unknown regardless, so a failed test always preserves evidence.
-export async function withOwnedFixture(makeDir, fn, { mutationOutcome = 'known' } = {}) {
+// `makeDir` must return the dir path.
+//
+// The default is 'unknown' — auto-cleanup is OPT-IN. A caller that passes
+// `mutationOutcome: 'known'` is asserting its writes stayed inside the fixture;
+// nothing here can verify that assertion, so it must be made explicitly rather
+// than inherited from a wrapper default. A body that THROWS is downgraded to
+// 'unknown' regardless, so a failed test always preserves evidence.
+export async function withOwnedFixture(makeDir, fn, { mutationOutcome = 'unknown' } = {}) {
   const created = await makeDir();
   const dir = typeof created === 'string' ? created : created.dir;
   let bodyThrew = true;
