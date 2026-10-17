@@ -20,6 +20,17 @@ const SUITES = [
   // success too, and leaving them out made "0 genuine FAIL" a claim about a
   // narrower surface than the campaign actually touched.
   'writer-concurrency', 'writer-journal-previoushash',
+  // Added after the 2026-10-18 independent review (F11): every remaining
+  // writer/native-Windows suite is now classified, so the headline covers the
+  // whole surface the campaign could have broken, not 20 suites of 35.
+  'windows-d01-fixture-cli', 'windows-d01-fixture-evidence',
+  'windows-d01-fixture-matrix', 'windows-d01-kernel-denial',
+  'windows-d01-namespace-inventory', 'windows-d01-protected-snapshot',
+  'windows-d01-readonly-source', 'windows-d01-token-evidence',
+  'windows-scratch-protocol', 'windows-scratch-recovery-assessment',
+  'writer-capability-adversarial', 'writer-harness-lifecycle',
+  'writer-journal-authorization', 'writer-operation-scope',
+  'writer-rollback-validation',
 ];
 const INCONCLUSIVE_MARK = 'INCONCLUSIVE:';
 const outDir = path.resolve(process.env.VCP_MATRIX_OUT || '.');
