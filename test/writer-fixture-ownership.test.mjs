@@ -205,6 +205,40 @@ test('OWN-14 — cleanup is refused while a holder process may still be alive', 
   }
 });
 
+test('OWN-16 — an opted-in caller still preserves evidence when the body throws', async () => {
+  // OWN-08 covers "no option + throws"; this covers the other combination: the
+  // caller AFFIRMED confinement and the body failed anyway. Two safeguards (a safe
+  // wrapper default and a thrown-body downgrade) each alone keep OWN-08 green,
+  // which is precisely why mutating either one looked like a MISSED detector.
+  // This pins the downgrade mechanism by itself.
+  let captured = null;
+  await assert.rejects(async () => {
+    await withOwnedFixture(() => createOwnedFixture('vcp-neg-'), async (dir) => {
+      captured = dir;
+      throw new Error('failure after a known-outcome opt-in');
+    }, { mutationOutcome: 'known' });
+  }, /failure after a known-outcome opt-in/);
+  assert.ok(captured);
+  assert.equal(await fixtureExists(captured), true,
+    'an opted-in caller must not destroy evidence just because the body threw');
+  const r = await removeOwnedFixture(captured, KNOWN);
+  assert.equal(r.removed, true, `owner cleanup after preservation: ${r.reason}`);
+});
+
+test('OWN-17 — the safe default means a clean body is NOT auto-cleaned', async () => {
+  // Pins the wrapper default independently of the thrown-body downgrade: a body
+  // that completes successfully but never affirms confinement keeps its fixture.
+  let captured = null;
+  await withOwnedFixture(() => createOwnedFixture('vcp-neg-'), async (dir) => {
+    captured = dir;
+  });
+  assert.ok(captured);
+  assert.equal(await fixtureExists(captured), true,
+    'auto-cleanup must be opt-in, never the wrapper default');
+  const r = await removeOwnedFixture(captured, KNOWN);
+  assert.equal(r.removed, true, r.reason);
+});
+
 test('OWN-15 — a nested .git directory is refused, not just a top-level one', async () => {
   // The reviewed check looked only at the fixture's first level, so payload/.git
   // was deletable. The scan is bounded-recursive and refuses on overflow.
