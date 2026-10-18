@@ -32,3 +32,40 @@ export const LAYER_ORDER = Object.freeze([
   LAYER.PRINCIPAL,
   LAYER.WRITER_IDENTITY,
 ]);
+
+// LAYER_ORDER is a total order, but authorization is NOT a sequence:
+// runWriterTransaction takes one branch or the other —
+//   testCapability ? verifyTestCapability(...) : authorizeV2Operation()
+// (lib/production-writer.mjs:81-87). So CAPABILITY* and G_FENCE are
+// ALTERNATIVES at position 2, and no capability-lane run can ever be pre-empted
+// by E_G_FENCE_NO_GO. Listing both as guards-before-a-layer is a modeling error
+// that throws inside requireLayer on any host where the body reaches the check —
+// which is exactly what Linux validation reported for B4-03.
+export const AUTHORITY_LANE = Object.freeze({
+  test: Object.freeze([LAYER.CAPABILITY_INVALID, LAYER.CAPABILITY_SCOPE, LAYER.CAPABILITY]),
+  production: Object.freeze([LAYER.G_FENCE]),
+});
+
+export function laneOf(code) {
+  if (AUTHORITY_LANE.test.includes(code)) return 'test';
+  if (AUTHORITY_LANE.production.includes(code)) return 'production';
+  return null;
+}
+
+// Guards that may legitimately pre-empt a DURABILITY / PRINCIPAL /
+// WRITER_IDENTITY assertion, per lane. Pick one: mixing them asserts that a
+// single run can take both authorization branches, which the code makes
+// impossible.
+export const PREEMPTING_TEST_LANE = Object.freeze([
+  LAYER.BOUNDARY, LAYER.CAPABILITY_INVALID, LAYER.CAPABILITY_SCOPE,
+]);
+export const PREEMPTING_PRODUCTION_LANE = Object.freeze([
+  LAYER.BOUNDARY, LAYER.G_FENCE,
+]);
+
+// STEP 5b LIMITATION: the post-mutation re-verification
+// (production-writer.mjs:107-111) raises the SAME codes as step 2 but AFTER
+// mutate. This registry identifies sites only by code, so it cannot tell the
+// two apart. A test claiming the post-mutation check must prove it by execution
+// — the mutation ran, and the pre-transaction verification passed (see B4-03).
+// Never treat a matching code alone as evidence of which site raised it.

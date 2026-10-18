@@ -15,7 +15,7 @@ import {
 } from './helpers/controlled-writer-fixture.mjs';
 import { runWriterTransaction } from '../lib/production-writer.mjs';
 import { requireLayer, assertLayerPassed } from './helpers/layer-assertion.mjs';
-import { LAYER } from './helpers/writer-layers.mjs';
+import { LAYER, PREEMPTING_TEST_LANE } from './helpers/writer-layers.mjs';
 
 const OPS = ['b9-test', 'journal-write', 'journal-clear'];
 
@@ -74,7 +74,12 @@ test('B9-01b — production writer identity rejects a replaced root (WRITER_IDEN
       }),
       {
         intended: LAYER.WRITER_IDENTITY,
-        guardsBefore: [LAYER.BOUNDARY, LAYER.CAPABILITY, LAYER.G_FENCE,
+        // Capability lane only. G_FENCE used to be listed here too, describing a
+        // run that takes both authorization branches at once; requireLayer now
+        // rejects that mix instead of letting code-matching resolve it silently.
+        // The step-2 CAPABILITY check IS a legitimate pre-emptor of this layer, so
+        // Windows stays INCONCLUSIVE rather than being dressed up as a pass.
+        guardsBefore: [...PREEMPTING_TEST_LANE, LAYER.CAPABILITY,
                        LAYER.DURABILITY, LAYER.PRINCIPAL],
       },
     );

@@ -18,7 +18,7 @@ import {
 } from './helpers/controlled-writer-fixture.mjs';
 import { runWriterTransaction } from '../lib/production-writer.mjs';
 import { requireLayer, assertLayerPassed, mutationTest } from './helpers/layer-assertion.mjs';
-import { LAYER } from './helpers/writer-layers.mjs';
+import { LAYER, PREEMPTING_TEST_LANE } from './helpers/writer-layers.mjs';
 
 // SECURITY GATE: set true ONLY after explicit owner approval.
 // OWNER AUTHORIZATION GRANTED 2026-10-14: B-4/B-5 controlled validation execution.
@@ -39,9 +39,12 @@ const refusalGate = (name, fn) => test(name, { skip: !LANE_APPROVED_FOR_EXECUTIO
 
 const OPS = ['b4-concurrency'];
 
-// Guards that pre-empt a controlled transaction on Windows, in execution order.
-const PREEMPTING = [LAYER.BOUNDARY, LAYER.CAPABILITY, LAYER.G_FENCE,
-                    LAYER.DURABILITY, LAYER.PRINCIPAL];
+// The pre-mutation guard list lives in test/helpers/writer-layers.mjs as
+// PREEMPTING_TEST_LANE. The local list that used to sit here named G_FENCE as a
+// possible pre-emptor of a capability-lane run, which cannot happen:
+// runWriterTransaction calls authorizeV2Operation() only in the `else` branch
+// (production-writer.mjs:81-87). It was also unreferenced dead code, so the
+// modeling error never surfaced until Linux ran the body.
 
 mutGate('B4-01 — two concurrent writers: lock serializes, no corruption', async () => {
   const f = await createControlledFixture({ allowedOperations: OPS });
@@ -94,25 +97,42 @@ mutGate('B4-02 — conflicting updates: one valid outcome or safe refusal', asyn
 // implied B-9 pin coverage that this scenario never provided.
 mutGate('B4-03 — fixture replaced during mutate is refused by step 5b re-verification', async () => {
   const f = await createControlledFixture({ allowedOperations: OPS });
+  const { verifyTestCapability } =
+    await import('./helpers/controlled-writer-capability.mjs');
   try {
-    let mutated = false;
+    // Step 2 and step 5b raise the SAME code, so a matching code proves nothing
+    // about which site fired. Establish the difference by observation instead:
+    // the untouched fixture must pass verification BEFORE the transaction, so a
+    // capability refusal can only come from the post-mutation re-verification.
+    await verifyTestCapability(f.capability,
+      { root: f.root, operation: 'b4-concurrency' });
+
+    const trace = { mutateStarted: false, replaced: false };
     const outcome = await requireLayer(
       () => runWriterTransaction({
         root: f.root, operation: 'b4-concurrency', mode: 'init',
         testCapability: f.capability,
         mutate: async ({ root }) => {
+          trace.mutateStarted = true;
           // Attacker replaces the fixture mid-transaction.
           const { rm, mkdir } = await import('node:fs/promises');
           await rm(root, { recursive: true, force: true });
           await mkdir(root, { recursive: true });
-          mutated = true;
+          trace.replaced = true;
         },
       }),
-      { intended: LAYER.CAPABILITY, guardsBefore: [LAYER.BOUNDARY, LAYER.G_FENCE] },
+      { intended: LAYER.CAPABILITY, guardsBefore: PREEMPTING_TEST_LANE },
     );
     assertLayerPassed(outcome);
-    assert.equal(mutated, true,
-      'replacement was intended to happen mid-mutate; if it did not, the scenario did not run');
+    // Both must hold or the PASS is from the pre-mutation authorization, i.e. the
+    // scenario never reached step 5b and the test would be reporting someone
+    // else's guard as its own result.
+    assert.equal(trace.mutateStarted, true,
+      'mutate never ran, so the refusal cannot have come from step 5b');
+    assert.equal(trace.replaced, true,
+      'the fixture was not replaced mid-mutate, so there was nothing for 5b to detect');
+    assert.equal(outcome.actual, LAYER.CAPABILITY,
+      'the refusing check must be the capability re-verification');
   } finally {
     try { await teardownControlledFixture(f); } catch {}
   }

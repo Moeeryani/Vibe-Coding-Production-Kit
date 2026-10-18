@@ -9,7 +9,7 @@
 // is INCONCLUSIVE when an earlier guard raises first.
 import { appendFileSync } from 'node:fs';
 import test from 'node:test';
-import { LAYER, LAYER_ORDER } from './writer-layers.mjs';
+import { LAYER, LAYER_ORDER, laneOf } from './writer-layers.mjs';
 
 // How a verdict KNOWS the intended layer executed. Ranked weakest → strongest;
 // a guardsBefore list is an assertion about code order, not an observation, so
@@ -61,6 +61,17 @@ export async function requireLayer(op, { intended, guardsBefore = [],
       throw new Error(`Unknown enforcement layer in guardsBefore: ${g}`);
   if (guardsBefore.some((g) => LAYER_ORDER.indexOf(g) >= LAYER_ORDER.indexOf(intended)))
     throw new Error(`guardsBefore must all precede the intended layer: ${intended}`);
+  // Authorization takes ONE branch (capability or production gate), so a guard
+  // list that names both is describing a run that cannot happen. Caught here
+  // rather than silently reported as BLOCKED/PASS by code matching alone.
+  const lanes = new Set([laneOf(intended), ...guardsBefore.map(laneOf)].filter(Boolean));
+  if (lanes.size > 1)
+    throw new Error(
+      `guardsBefore mixes authorization lanes ${[...lanes].join('+')}: intended ${intended} ` +
+      `with [${guardsBefore.join(', ')}]. runWriterTransaction evaluates ` +
+      `testCapability ? verifyTestCapability() : authorizeV2Operation() — only one branch runs, ` +
+      `so a capability-lane test can never be pre-empted by E_G_FENCE_NO_GO. ` +
+      `Use PREEMPTING_TEST_LANE or PREEMPTING_PRODUCTION_LANE, not both.`);
   if (witness !== null && !REACH_VALUES.has(witness))
     throw new Error(`Unknown reachability witness: ${witness}`);
   if (ceiling !== null) {

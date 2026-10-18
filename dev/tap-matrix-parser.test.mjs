@@ -124,6 +124,21 @@ test('TAP-06 — a missing summary is surfaced as inconclusive, never as success
 //   ok 1 - name # SKIP reason
 // with NO duration suffix. An earlier version of this parser classified those
 // as PASS, which would have hidden every platform skip from the matrix.
+test('TAP-07b — a failing test cannot be rescued by skip-shaped text', () => {
+  // M-L §4 requires platform skips to be declared by the test, never manufactured
+  // by the classifier. `not ok` means the test did not pass, whatever it says.
+  const src = [
+    'not ok 1 - WIN-02 — windows principal self-certification (4.10ms)',
+    '  ---',
+    "  error: 'SKIP: platform does not apply'",
+    "  code: 'ERR_ASSERTION'",
+    '  ...',
+    '# tests 1', '# pass 0', '# fail 1',
+  ].join('\n');
+  const { rows } = parseTap({ stdout: src, suite: 's' });
+  assert.equal(rows[0].verdict, 'FAIL',
+    'a FAIL must never be reported as SKIPPED because of its own text');
+});
 test('TAP-07 — "# SKIP" and "# TODO" results are never counted as PASS', () => {
   const src = [
     'ok 1 - posix-only case # SKIP posix uid semantics do not exist on win32',

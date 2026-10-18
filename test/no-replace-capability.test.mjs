@@ -75,20 +75,33 @@ test('NRC-04 — open() follows a reparse point: the gap is at open time, not at
       t.skip(`reparse creation unavailable (${e.code})`);
       return;
     }
-    // If this ever throws with a reparse/permission code on Windows, the
-    // residual gap has closed and noFollowCapability must be updated.
-    let followed = false;
-    try {
-      const fh = await open(path.join(holder, 'link', 'secret.txt'), 'r');
-      await fh.readFile(); await fh.close();
-      followed = true;
-    } catch { followed = false; }
+    // What is actually measured, stated per platform. The old POSIX branch asserted
+    // "POSIX O_NOFOLLOW must refuse traversal" about a call that never passed
+    // O_NOFOLLOW, so it claimed a mechanism it had not exercised — and failed on
+    // Linux, where a plain open() follows a symlink exactly as on Windows.
+    const tryOpen = async (flags) => {
+      try {
+        const fh = await open(path.join(holder, 'link', 'secret.txt'), flags);
+        await fh.readFile(); await fh.close();
+        return true;   // traversed
+      } catch { return false; }
+    };
+    assert.equal(await tryOpen('r'), true,
+      'plain open() unexpectedly refused to traverse — the capability report is stale');
+
     if (IS_WINDOWS) {
-      assert.equal(followed, true,
-        'unexpected: open() refused to follow a reparse point — capability report is now stale');
-      assert.equal(noFollowCapability().atomicAtOpenTime, false);
+      assert.equal(noFollowCapability().atomicAtOpenTime, false,
+        'win32 defines no O_NOFOLLOW, so nothing at open time can refuse');
     } else {
-      assert.equal(followed, false, 'POSIX O_NOFOLLOW must refuse traversal');
+      // POSIX can refuse, but only when asked: this is the assertion the previous
+      // version believed it was making.
+      const { constants } = await import('node:fs');
+      assert.ok(constants.O_NOFOLLOW !== undefined,
+        'POSIX is expected to define O_NOFOLLOW; otherwise this branch is wrong');
+      assert.equal(await tryOpen(constants.O_RDONLY | constants.O_NOFOLLOW), false,
+        'O_NOFOLLOW must refuse symlink traversal at open time');
+      assert.equal(noFollowCapability().atomicAtOpenTime, true,
+        'the report must match the mechanism just demonstrated');
     }
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
@@ -117,7 +130,22 @@ test('NRC-05 — application-level containment still refuses the reparse path', 
 // What it establishes is narrower and factual: the pre-check sees the plain
 // directory, the pre-check cannot see a swap made afterwards, and the platform
 // capability report declares that gap rather than hiding it.
-test('NRC-06 — a reparse swapped in AFTER the pre-check is undetectable by the pre-check', async () => {
+test('NRC-06 — a reparse swapped in AFTER the pre-check is undetectable by the pre-check', async (t) => {
+  // The scenario is "the pre-check is the only line of defence". On a platform
+  // where open() itself refuses to traverse, that premise does not hold, so the
+  // test is skipped — with the reason ASSERTED, not assumed. This is a platform
+  // skip in the test, not a classifier change: nothing here can turn a real
+  // failure into SKIPPED, because the skip is taken before any assertion runs.
+  const cap = noFollowCapability();
+  if (cap.atomicAtOpenTime) {
+    assert.equal(cap.preCheckOnly, false,
+      'skipping because open-time refusal is atomic; the capability says otherwise');
+    t.skip(`open-time no-follow is atomic on ${cap.platform}: the pre-check-only `
+      + 'scenario cannot be expressed here');
+    return;
+  }
+  assert.equal(cap.preCheckOnly, true,
+    'the skipped branch requires a pre-check-only platform; this one is not');
   // Demonstrates the TOCTOU window concretely: pre-check passes on a plain
   // directory, then the same path becomes a reparse point before open.
   const dir = await mkdtemp(path.join(os.tmpdir(), 'vcp-nrc-'));
@@ -133,7 +161,8 @@ test('NRC-06 — a reparse swapped in AFTER the pre-check is undetectable by the
     await rm(plain, { recursive: true, force: true });
     await symlink(elsewhere, plain, linkKind);
     const st = await lstat(plain);
-    if (!st.isSymbolicLink()) return; // platform cannot express the scenario
+    assert.ok(st.isSymbolicLink(),
+      'a swap this test depends on did not take effect on this host');
     // Re-checking at open time is what O_NOFOLLOW makes atomic on POSIX; here
     // it is only a second, racy observation. The capability report must say so.
     assert.equal(noFollowCapability().preCheckOnly, true);

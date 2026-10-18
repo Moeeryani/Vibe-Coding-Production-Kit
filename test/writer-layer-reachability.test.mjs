@@ -8,9 +8,13 @@
 //     intended layer was reached, and BLOCKED must state the reachability ceiling.
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { lifecycleDurabilityCapability } from '../lib/file-durability.mjs';
 import { requireLayer, assertLayerPassed, REACH } from './helpers/layer-assertion.mjs';
-import { LAYER } from './helpers/writer-layers.mjs';
+import {
+  LAYER, PREEMPTING_TEST_LANE, PREEMPTING_PRODUCTION_LANE,
+} from './helpers/writer-layers.mjs';
 
 const throwCode = async (code) => { const e = new Error(`${code}: synthetic`); e.code = code; throw e; };
 
@@ -89,15 +93,95 @@ test('B-08 — witness values are validated, so a test cannot invent a proof cla
 });
 
 test('B-09 — padding guardsBefore still cannot manufacture a PASS', async () => {
-  // The attack Phase B.1 must close: list every guard, then claim the far layer.
+  // The attack Phase B.1 must close: list every guard that can precede in THIS
+  // lane, then claim the far layer. G_FENCE is excluded because a capability-lane
+  // run never evaluates the production gate — see B-11.
   const outcome = await requireLayer(() => throwCode(LAYER.CAPABILITY), {
     intended: LAYER.WRITER_IDENTITY,
     guardsBefore: [LAYER.BOUNDARY, LAYER.CAPABILITY_INVALID, LAYER.CAPABILITY_SCOPE,
-                   LAYER.CAPABILITY, LAYER.G_FENCE, LAYER.DURABILITY, LAYER.PRINCIPAL],
+                   LAYER.CAPABILITY, LAYER.DURABILITY, LAYER.PRINCIPAL],
   });
   assert.notEqual(outcome.status, 'PASS');
   assert.equal(outcome.status, 'BLOCKED');
   assert.throws(() => assertLayerPassed(outcome), (e) => e.code === 'E_TEST_INCONCLUSIVE');
+});
+
+// FINDING-001 (Linux validation): B4-03 named G_FENCE as a guard preceding a
+// CAPABILITY assertion. LAYER_ORDER put G_FENCE after CAPABILITY, so requireLayer's
+// own ordering rule threw the moment a host reached the body — Windows had masked it
+// behind the durability gate. The deeper error was the pairing itself:
+// runWriterTransaction chooses `verifyTestCapability()` OR `authorizeV2Operation()`
+// (production-writer.mjs:81-87), so one run cannot be pre-empted by both.
+test('B-12 — the capability site B4-03 claims must exist AFTER the mutation', async () => {
+  // Why this is structural: B4-03 is wrapped in mutationTest, so on win32 the
+  // durability gate refuses the mutation and the runtime path can never be
+  // observed here. A mutation of step 5b would therefore read MISSED, and an
+  // invisible detector is not a detector. Placement is checked in the source
+  // that performs it, which IS observable on every host, and the runtime claim
+  // stays with B4-03 for hosts that can reach it.
+  const src = readFileSync(path.join(import.meta.dirname, '..', 'lib',
+    'production-writer.mjs'), 'utf8');
+  const body = src.slice(src.indexOf('export async function runWriterTransaction'));
+  assert.ok(body.length > 200, 'runWriterTransaction body not found — scan would be vacuous');
+
+  const mutateCall = body.indexOf('const result=await mutate(');
+  const reverify = body.indexOf('await reverify(testCapability');
+  assert.ok(mutateCall > 0, 'the mutate() call site disappeared from runWriterTransaction');
+  assert.ok(reverify > 0,
+    'step 5b capability re-verification is gone — B4-03 would claim a site that no longer runs');
+  assert.ok(reverify > mutateCall,
+    're-verification must come after mutate(), or it cannot detect a mid-mutation replacement');
+
+  // It must be the capability verifier being re-run, not some other call, and it
+  // must be conditional on the test lane (the production lane has no capability).
+  const between = body.slice(mutateCall, reverify);
+  assert.match(between, /if\(testCapability\)/,
+    'step 5b must apply to the capability lane specifically');
+  assert.match(body.slice(0, reverify), /verifyTestCapability/,
+    'step 5b must re-run the same verifier used at authorization');
+
+  // The evidence hook runs after 5b, so a refused re-verification cannot write a
+  // success record.
+  const evidence = body.indexOf('await recordWriterEvidence(');
+  assert.ok(evidence > reverify,
+    'evidence must be recorded only after post-mutation re-verification succeeds');
+});
+
+test('B-11 — guardsBefore cannot mix the two mutually exclusive authorization lanes', async () => {
+  // The pairing that B4-03 actually used: ordering alone already forbids it,
+  // because G_FENCE sits after CAPABILITY in LAYER_ORDER. Asserted separately so
+  // the two rules are not confused for one another.
+  await assert.rejects(() => requireLayer(() => throwCode(LAYER.CAPABILITY), {
+    intended: LAYER.CAPABILITY, guardsBefore: [LAYER.BOUNDARY, LAYER.G_FENCE],
+  }), /must all precede the intended layer/,
+    'a guard listed after its intended layer must be rejected by the ordering rule');
+
+  // The case ordering cannot catch: both guards precede DURABILITY, but they come
+  // from opposite authorization branches, so no single run can be pre-empted by
+  // both. This is the shape B9-01b used to carry.
+  const mixed = () => requireLayer(() => throwCode(LAYER.DURABILITY), {
+    intended: LAYER.WRITER_IDENTITY,
+    guardsBefore: [LAYER.BOUNDARY, LAYER.CAPABILITY, LAYER.G_FENCE],
+  });
+  await assert.rejects(mixed(), /mixes authorization lanes/,
+    'a lane-mixing guard list must be rejected, not resolved by code match');
+
+  // Mirror case: a production-lane assertion naming a capability guard.
+  await assert.rejects(() => requireLayer(() => throwCode(LAYER.DURABILITY), {
+    intended: LAYER.WRITER_IDENTITY,
+    guardsBefore: [LAYER.BOUNDARY, LAYER.G_FENCE, LAYER.CAPABILITY_SCOPE],
+  }), /mixes authorization lanes/);
+
+  // Each lane on its own stays expressible, so this is a lane rule and not a
+  // blanket ban on guardsBefore.
+  const okTest = await requireLayer(() => throwCode(LAYER.CAPABILITY), {
+    intended: LAYER.CAPABILITY, guardsBefore: PREEMPTING_TEST_LANE,
+  });
+  assert.equal(okTest.status, 'PASS');
+  const okProd = await requireLayer(() => throwCode(LAYER.G_FENCE), {
+    intended: LAYER.DURABILITY, guardsBefore: PREEMPTING_PRODUCTION_LANE,
+  });
+  assert.equal(okProd.status, 'BLOCKED');
 });
 
 test('B-10 — completion is FAIL even when guards are listed, never an accidental PASS', async () => {

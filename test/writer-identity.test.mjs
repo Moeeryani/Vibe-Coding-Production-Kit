@@ -56,17 +56,60 @@ test('WIN-01 — currentPrincipal on win32 never claims proof without a native p
   assert.equal(p.reason, 'NO_NATIVE_PROVIDER_CONFIGURED');
 });
 
-test('WIN-02 — a pinned windows principal cannot be self-certified by the caller', () => {
+test('WIN-02 — a pinned windows principal cannot be self-certified by the caller', (t) => {
+  // The scenario needs a win32 process principal that is itself unproven. On POSIX
+  // the live principal is proven and of kind 'posix', so the same forged object is
+  // refused for a DIFFERENT reason (kind mismatch) and this test would report the
+  // wrong guard. Skipped by asserted precondition inside the test — not by teaching
+  // the matrix classifier to read a real failure as SKIPPED.
+  const actual = currentPrincipal();
+  if (actual.kind !== 'windows') {
+    assert.equal(actual.kind, 'posix',
+      `unexpected principal kind ${actual.kind}; this skip assumes posix or win32`);
+    t.skip(`win32-specific: needs an unproven windows principal (this host reports '${actual.kind}')`);
+    return;
+  }
+  assert.equal(actual.proven, false,
+    'precondition: this host must report an unproven windows principal');
   // Mirrors the removed `authorize` injection parameter (production-writer.mjs:66-69):
   // a caller-supplied "proven" principal must never satisfy verification.
   // One named code, not an alternation: on this host the process principal is
   // unproven, so the refusal MUST be E_WRITER_PRINCIPAL_UNPROVEN.
   const forged = { kind: 'windows', sid: 'S-1-5-21-0-0-0-1000', proven: true };
-  const actual = currentPrincipal();
   assert.throws(
     () => verifyPrincipal(forged, actual),
     (e) => e.code === 'E_WRITER_PRINCIPAL_UNPROVEN',
     'a fabricated proven:true principal must be refused as unproven, not as a mismatch');
+});
+
+test('WIN-05 — a caller-pinned principal never self-authorizes, on any platform', () => {
+  // The portable core of WIN-02: `proven: true` supplied by the caller is not
+  // evidence. Which code refuses depends on whether the LIVE principal is
+  // verifiable, so it is derived from the observed principal rather than hardcoded
+  // per OS — the hardcoding is what made WIN-02 unrunnable on Linux.
+  const actual = currentPrincipal();
+  const forged = actual.kind === 'windows'
+    ? { kind: 'windows', sid: 'S-1-5-21-0-0-0-1000', proven: true }
+    : { kind: 'posix', uid: (actual.uid ?? 0) + 1, gid: actual.gid ?? null, proven: true };
+  const expected = actual.proven
+    ? 'E_WRITER_PRINCIPAL_MISMATCH'   // live principal is verifiable, so it differs
+    : 'E_WRITER_PRINCIPAL_UNPROVEN';   // the live principal itself is unproven
+  assert.throws(
+    () => verifyPrincipal(forged, actual),
+    (e) => e.code === expected,
+    `a caller-supplied principal must be refused as ${expected} on ${process.platform}`);
+  // Control, so the assertion above cannot pass merely because verification
+  // rejects everything. On POSIX the live principal does satisfy verification
+  // against itself. On win32 it must NOT — an unproven principal fails closed even
+  // against its own value, which is the same property seen from the other side.
+  if (actual.proven) {
+    assert.doesNotThrow(() => verifyPrincipal(actual, actual),
+      'a genuinely verified principal must satisfy verification against itself');
+  } else {
+    assert.throws(() => verifyPrincipal(actual, actual),
+      (e) => e.code === 'E_WRITER_PRINCIPAL_UNPROVEN',
+      'an unproven principal must not be usable even by its own holder');
+  }
 });
 
 test('WIN-03 — principal kind change is refused (PRINCIPAL layer)', () => {
