@@ -93,11 +93,21 @@ test('B-09 — padding guardsBefore still cannot manufacture a PASS', async () =
   const outcome = await requireLayer(() => throwCode(LAYER.CAPABILITY), {
     intended: LAYER.WRITER_IDENTITY,
     guardsBefore: [LAYER.BOUNDARY, LAYER.CAPABILITY_INVALID, LAYER.CAPABILITY_SCOPE,
-                   LAYER.CAPABILITY, LAYER.G_FENCE, LAYER.DURABILITY, LAYER.PRINCIPAL],
+                   LAYER.CAPABILITY, LAYER.DURABILITY, LAYER.PRINCIPAL],
   });
   assert.notEqual(outcome.status, 'PASS');
   assert.equal(outcome.status, 'BLOCKED');
   assert.throws(() => assertLayerPassed(outcome), (e) => e.code === 'E_TEST_INCONCLUSIVE');
+  // Padding with the production branch is refused outright (FINDING-001): the
+  // G-FENCE gate never runs in the controlled lane, so padding with it is not
+  // a weaker attack, it is an invalid claim.
+  await assert.rejects(
+    () => requireLayer(() => throwCode(LAYER.CAPABILITY), {
+      intended: LAYER.WRITER_IDENTITY,
+      guardsBefore: [LAYER.BOUNDARY, LAYER.CAPABILITY, LAYER.G_FENCE,
+                     LAYER.DURABILITY, LAYER.PRINCIPAL],
+    }),
+    /production alternative at step 2/);
 });
 
 test('B-10 — completion is FAIL even when guards are listed, never an accidental PASS', async () => {

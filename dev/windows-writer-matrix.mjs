@@ -31,6 +31,11 @@ const SUITES = [
   'writer-capability-adversarial', 'writer-harness-lifecycle',
   'writer-journal-authorization', 'writer-operation-scope',
   'writer-rollback-validation',
+  // Added after the FINDING-001 remediation (2026-10-23): the post-mutation
+  // re-verification detector (B4-03's scenario) and its mutation test. A gate
+  // that can be deleted without the matrix noticing is not a gate, so the
+  // matrix must classify it too.
+  'writer-post-mutation-reverify',
 ];
 const INCONCLUSIVE_MARK = 'INCONCLUSIVE:';
 const outDir = path.resolve(process.env.VCP_MATRIX_OUT || '.');

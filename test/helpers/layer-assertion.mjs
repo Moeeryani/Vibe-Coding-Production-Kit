@@ -9,7 +9,7 @@
 // is INCONCLUSIVE when an earlier guard raises first.
 import { appendFileSync } from 'node:fs';
 import test from 'node:test';
-import { LAYER, LAYER_ORDER } from './writer-layers.mjs';
+import { LAYER, LAYER_ORDER, LAYER_PRODUCTION_BRANCH } from './writer-layers.mjs';
 
 // How a verdict KNOWS the intended layer executed. Ranked weakest → strongest;
 // a guardsBefore list is an assertion about code order, not an observation, so
@@ -56,9 +56,22 @@ export async function requireLayer(op, { intended, guardsBefore = [],
   witness = null, ceiling = null } = {}) {
   if (!LAYER_ORDER.includes(intended))
     throw new Error(`Unknown enforcement layer for intended code: ${intended}`);
-  for (const g of guardsBefore)
+  for (const g of guardsBefore) {
+    // FINDING-001 (2026-10-23): a production-branch layer is not a link in
+    // the controlled lane's chain, it is the OTHER authorization path at
+    // step 2. A test capability REPLACES the G-FENCE gate, so G_FENCE never
+    // executes here and can never preempt anything. Listing it asserted a
+    // guard that never runs, so it is refused outright instead of being
+    // silently tolerated.
+    if (LAYER_PRODUCTION_BRANCH.includes(g))
+      throw new Error(
+        `${g} is the production alternative at step 2, not a link in the ` +
+        `controlled lane's chain: a test capability REPLACES the G-FENCE gate ` +
+        `rather than running after it, so ${g} never executes in a controlled ` +
+        `transaction and cannot preempt anything. Remove it from guardsBefore.`);
     if (!LAYER_ORDER.includes(g))
       throw new Error(`Unknown enforcement layer in guardsBefore: ${g}`);
+  }
   if (guardsBefore.some((g) => LAYER_ORDER.indexOf(g) >= LAYER_ORDER.indexOf(intended)))
     throw new Error(`guardsBefore must all precede the intended layer: ${intended}`);
   if (witness !== null && !REACH_VALUES.has(witness))

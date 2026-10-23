@@ -19,15 +19,15 @@ import {
 import { runWriterTransaction } from '../lib/production-writer.mjs';
 import { requireLayer, assertLayerPassed, mutationTest } from './helpers/layer-assertion.mjs';
 import { LAYER } from './helpers/writer-layers.mjs';
+import { runPostMutationReverifyScenario } from './helpers/post-mutation-reverify.mjs';
+import { CONTROLLED_LANE_APPROVED_FOR_EXECUTION } from './helpers/controlled-lane-approval.mjs';
 
-// SECURITY GATE: set true ONLY after explicit owner approval.
-// OWNER AUTHORIZATION GRANTED 2026-10-14: B-4/B-5 controlled validation execution.
-// NOTE (Windows): that approval authorizes the CONTROLLED LANE, not production
-// mutation. It cannot carry a Windows result past the fail-closed guards in
-// lifecycle-lock-v2.mjs / file-durability.mjs, which is why the
-// mutation-dependent cases below report INCONCLUSIVE on Windows rather than
-// PASS or FAIL.
-const LANE_APPROVED_FOR_EXECUTION = true;
+// The security gate lives in one place: test/helpers/controlled-lane-approval.mjs.
+// SECURITY GATE: the controlled lane runs ONLY after explicit owner approval
+// (OWNER AUTHORIZATION GRANTED 2026-10-14: B-4/B-5 controlled validation
+// execution). See the helper for the full note, including what that approval
+// does NOT cover.
+const LANE_APPROVED_FOR_EXECUTION = CONTROLLED_LANE_APPROVED_FOR_EXECUTION;
 // Two distinct gates, chosen by what the test needs to RUN:
 //  mutGate     - asserts a mutation SUCCEEDED. Where namespace durability is
 //                unproven no mutation can happen, so INCONCLUSIVE (not pass, not defect).
@@ -39,9 +39,6 @@ const refusalGate = (name, fn) => test(name, { skip: !LANE_APPROVED_FOR_EXECUTIO
 
 const OPS = ['b4-concurrency'];
 
-// Guards that pre-empt a controlled transaction on Windows, in execution order.
-const PREEMPTING = [LAYER.BOUNDARY, LAYER.CAPABILITY, LAYER.G_FENCE,
-                    LAYER.DURABILITY, LAYER.PRINCIPAL];
 
 mutGate('B4-01 — two concurrent writers: lock serializes, no corruption', async () => {
   const f = await createControlledFixture({ allowedOperations: OPS });
@@ -87,35 +84,33 @@ mutGate('B4-02 — conflicting updates: one valid outcome or safe refusal', asyn
 });
 
 // B4-03 exercises the writer core's POST-mutation re-verification (step 5b,
-// production-writer.mjs:107-111). Named honestly: the code that rejects a
-// mid-mutation fixture replacement is the capability re-verification, NOT the
-// step-4b pin (which runs BEFORE mutate and cannot see a replacement made
+// lib/production-writer.mjs). Named honestly: the code that rejects a
+// mid-mutation fixture replacement is the post-mutation re-verification, NOT
+// the step-4b pin (which runs BEFORE mutate and cannot see a replacement made
 // during it). The previous `/E_TEST_CAPABILITY_IDENTITY|E_WRITER/` regex
 // implied B-9 pin coverage that this scenario never provided.
+//
+// FINDING-001 (2026-10-23, Linux review of candidate 690138ee): the claim
+// used to name the step-2 CAPABILITY layer and to list G_FENCE among the
+// guards before it. Both were wrong. G_FENCE is the production ALTERNATIVE
+// at step 2 — a test capability REPLACES it, it never runs after it — so it
+// cannot preempt a controlled transaction, and because the old layer order
+// placed G_FENCE after CAPABILITY the claim was rejected outright. The layer
+// under test is the step-5b re-verification: a separate enforcement site with
+// its own code, so a refusal raised by the INITIAL capability check can never
+// be reported as a step-5b pass. The scenario itself is shared with the
+// mutation test (test/writer-post-mutation-reverify.test.mjs) so both prove
+// the same detection path.
 mutGate('B4-03 — fixture replaced during mutate is refused by step 5b re-verification', async () => {
-  const f = await createControlledFixture({ allowedOperations: OPS });
-  try {
-    let mutated = false;
-    const outcome = await requireLayer(
-      () => runWriterTransaction({
-        root: f.root, operation: 'b4-concurrency', mode: 'init',
-        testCapability: f.capability,
-        mutate: async ({ root }) => {
-          // Attacker replaces the fixture mid-transaction.
-          const { rm, mkdir } = await import('node:fs/promises');
-          await rm(root, { recursive: true, force: true });
-          await mkdir(root, { recursive: true });
-          mutated = true;
-        },
-      }),
-      { intended: LAYER.CAPABILITY, guardsBefore: [LAYER.BOUNDARY, LAYER.G_FENCE] },
-    );
-    assertLayerPassed(outcome);
-    assert.equal(mutated, true,
-      'replacement was intended to happen mid-mutate; if it did not, the scenario did not run');
-  } finally {
-    try { await teardownControlledFixture(f); } catch {}
-  }
+  const { outcome, mutated } = await runPostMutationReverifyScenario(runWriterTransaction);
+  // The verdict comes first: a scenario that was preempted by an earlier
+  // guard is INCONCLUSIVE, and that classification must not be lost to a
+  // scenario-precondition assertion.
+  assertLayerPassed(outcome);
+  assert.equal(outcome.actual, LAYER.CAPABILITY_REVERIFY,
+    'the refusal must be attributed to the post-mutation re-verification');
+  assert.equal(mutated, true,
+    'replacement was intended to happen mid-mutate; if it did not, the scenario did not run');
 });
 
 mutGate('B4-04 — interrupted transaction: journal consistent, no torn files', async (t) => {

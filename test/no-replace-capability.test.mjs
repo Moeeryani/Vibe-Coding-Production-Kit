@@ -3,6 +3,7 @@
 // never describe an application-level lstat pre-check as atomic open-time
 // protection, and it must name the exact residual gap.
 import assert from 'node:assert/strict';
+import { constants } from 'node:fs';
 import { mkdtemp, rm, mkdir, writeFile, symlink, lstat, open } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -75,20 +76,48 @@ test('NRC-04 — open() follows a reparse point: the gap is at open time, not at
       t.skip(`reparse creation unavailable (${e.code})`);
       return;
     }
-    // If this ever throws with a reparse/permission code on Windows, the
-    // residual gap has closed and noFollowCapability must be updated.
+    const target = path.join(holder, 'link', 'secret.txt');
+    // A PLAIN open carries no O_NOFOLLOW, so it traverses the link on every
+    // platform. That is the point of this case: the application-level lstat
+    // pre-check is the only thing between a swapped path and a read, and the
+    // gap is at open time.
+    //
+    // The previous version asserted the OPPOSITE on POSIX — that a plain open
+    // refuses traversal — while opening without O_NOFOLLOW. The expectation
+    // contradicted the measurement it claimed to make, and failed on every
+    // POSIX host. The open-time refusal is measured below, with the flag the
+    // platform actually offers.
     let followed = false;
     try {
-      const fh = await open(path.join(holder, 'link', 'secret.txt'), 'r');
+      const fh = await open(target, 'r');
       await fh.readFile(); await fh.close();
       followed = true;
     } catch { followed = false; }
+    assert.equal(followed, true,
+      'a plain open() must traverse the link — if it ever refuses, the capability report is stale');
+    const cap = noFollowCapability();
     if (IS_WINDOWS) {
-      assert.equal(followed, true,
-        'unexpected: open() refused to follow a reparse point — capability report is now stale');
-      assert.equal(noFollowCapability().atomicAtOpenTime, false);
+      // node:fs cannot express FILE_FLAG_OPEN_REPARSE_POINT, so the pre-check
+      // is the only guard here and the gap cannot be closed at open time.
+      assert.equal(cap.atomicAtOpenTime, false);
+      assert.equal(cap.preCheckOnly, true);
     } else {
-      assert.equal(followed, false, 'POSIX O_NOFOLLOW must refuse traversal');
+      // POSIX offers O_NOFOLLOW, so the report does not claim the pre-check is
+      // the only guard. Measured on the case O_NOFOLLOW actually covers — a
+      // link as the FINAL component — so the report's claim is a measurement
+      // and not a slogan. It protects that final component only: the
+      // parent-swap window of NRC-06 stays open on POSIX too.
+      assert.equal(cap.atomicAtOpenTime, true);
+      assert.equal(cap.preCheckOnly, false);
+      const fileLink = path.join(holder, 'file-link');
+      await symlink(path.join(real, 'secret.txt'), fileLink);
+      let refused = false;
+      try {
+        const fh = await open(fileLink, constants.O_RDONLY | constants.O_NOFOLLOW);
+        await fh.close();
+      } catch { refused = true; }
+      assert.equal(refused, true,
+        'O_NOFOLLOW must refuse to open a symlink on this POSIX host');
     }
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
@@ -134,8 +163,32 @@ test('NRC-06 — a reparse swapped in AFTER the pre-check is undetectable by the
     await symlink(elsewhere, plain, linkKind);
     const st = await lstat(plain);
     if (!st.isSymbolicLink()) return; // platform cannot express the scenario
-    // Re-checking at open time is what O_NOFOLLOW makes atomic on POSIX; here
-    // it is only a second, racy observation. The capability report must say so.
-    assert.equal(noFollowCapability().preCheckOnly, true);
+    // A check that runs AFTER the swap sees it. The scenario is about the
+    // first check: it passed on a plain directory and could not see what
+    // replaced it, so the protection it offers is a racy observation, not a
+    // guarantee. This part is platform-independent.
+    await assert.rejects(
+      verifyNamespaceContained(dir, path.join(plain, 'victim.txt')),
+      /E_WRITER_NAMESPACE_UNSAFE/,
+      'a pre-check that runs after the swap must refuse the reparse component');
+    // What differs per platform is whether the gap can be CLOSED at open
+    // time, and the capability report must declare that honestly — claiming
+    // a protection it does not have is the failure mode this file exists to
+    // catch. (The previous version asserted preCheckOnly === true
+    // unconditionally, which is a Windows-only fact and failed on every
+    // POSIX host.)
+    const cap = noFollowCapability();
+    if (IS_WINDOWS) {
+      assert.equal(cap.preCheckOnly, true,
+        'on Windows the pre-check is the only guard: node:fs cannot express FILE_FLAG_OPEN_REPARSE_POINT');
+      assert.equal(cap.atomicAtOpenTime, false);
+    } else {
+      // POSIX offers O_NOFOLLOW, so the report does not claim the pre-check is
+      // the only guard. O_NOFOLLOW protects the FINAL component, not a
+      // swapped parent, so the window this scenario opens is still open on
+      // POSIX — the pre-check is what refuses it.
+      assert.equal(cap.preCheckOnly, false);
+      assert.equal(cap.atomicAtOpenTime, true);
+    }
   } finally { await rm(dir, { recursive: true, force: true }); }
 });

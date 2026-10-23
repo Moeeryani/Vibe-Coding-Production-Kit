@@ -56,7 +56,36 @@ test('WIN-01 — currentPrincipal on win32 never claims proof without a native p
   assert.equal(p.reason, 'NO_NATIVE_PROVIDER_CONFIGURED');
 });
 
-test('WIN-02 — a pinned windows principal cannot be self-certified by the caller', () => {
+// WIN-02 is a WINDOWS-ONLY claim, and the skip that says so is derived from a
+// MEASURED host fact — the kind of the host's current principal — not from a
+// hardcoded platform string.
+//
+// The claim: a CALLER-SUPPLIED windows principal must not satisfy
+// verification. That comparison needs a windows principal on THIS host: the
+// scenario is about a platform whose real principal is UNPROVEN, so a
+// fabricated "proven" windows principal must be refused as unproven. On a
+// POSIX host the current principal is posix, the kind check fires first, and
+// the correct refusal is E_WRITER_PRINCIPAL_MISMATCH — the windows branch of
+// verifyPrincipal is never reached, so the scenario cannot be expressed.
+//
+// The underlying property is not left untested on POSIX: "wrong principal
+// rejected" above already proves that a fabricated posix uid is refused, and
+// WIN-03 proves the kind-change refusal.
+//
+// The TAP classifier is NOT touched: a skip is a TAP directive on the test's
+// own `ok` line, which the matrix parser already reads. Nothing here
+// downgrades a real failure.
+function hostPrincipalKind() {
+  try { return currentPrincipal().kind; } catch { return 'unknown'; }
+}
+const HOST_PRINCIPAL_KIND = hostPrincipalKind();
+const WIN02_APPLICABLE = HOST_PRINCIPAL_KIND === 'windows';
+const WIN02_SKIP = WIN02_APPLICABLE ? false
+  : `no windows principal exists on this host (currentPrincipal().kind=` +
+    `${HOST_PRINCIPAL_KIND}); the windows-principal refusal cannot be exercised here`;
+
+test('WIN-02 — a pinned windows principal cannot be self-certified by the caller',
+  { skip: WIN02_SKIP }, () => {
   // Mirrors the removed `authorize` injection parameter (production-writer.mjs:66-69):
   // a caller-supplied "proven" principal must never satisfy verification.
   // One named code, not an alternation: on this host the process principal is
@@ -67,6 +96,24 @@ test('WIN-02 — a pinned windows principal cannot be self-certified by the call
     () => verifyPrincipal(forged, actual),
     (e) => e.code === 'E_WRITER_PRINCIPAL_UNPROVEN',
     'a fabricated proven:true principal must be refused as unproven, not as a mismatch');
+});
+
+test('WIN-02-PROOF — the WIN-02 skip follows a measured host fact, not a guess', () => {
+  // The skip is only honest if it is bound to something this host can be
+  // asked about. It is: the kind of the current principal.
+  assert.equal(WIN02_APPLICABLE, HOST_PRINCIPAL_KIND === 'windows',
+    'the applicability flag must follow the measured principal kind');
+  assert.equal(WIN02_APPLICABLE, !WIN02_SKIP,
+    'an applicable case must not be skipped, and an inapplicable one must be');
+  if (WIN02_APPLICABLE) return;
+  // On this host the scenario is inexpressible, and the refusal that DOES
+  // happen is the correct one: the kind check fires before the windows
+  // branch, so a fabricated windows principal is refused as a kind change.
+  const actual = currentPrincipal();
+  assert.throws(
+    () => verifyPrincipal({ kind: 'windows', sid: 'S-1-5-21-0-0-0-1000', proven: true }, actual),
+    (e) => e.code === 'E_WRITER_PRINCIPAL_MISMATCH',
+    'on a non-windows host the kind mismatch is the correct refusal');
 });
 
 test('WIN-03 — principal kind change is refused (PRINCIPAL layer)', () => {

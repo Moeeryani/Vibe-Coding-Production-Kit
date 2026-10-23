@@ -59,7 +59,18 @@ test('B9-01a — controlled capability rejects a replaced fixture root (CAPABILI
 });
 
 // B9-01b is the B-9 control itself: the writer's own root identity check.
-// The capability lane is an ACCEPTED guard here, so Windows reports INCONCLUSIVE.
+// The capability lane is an ACCEPTED guard here, so the test is INCONCLUSIVE
+// wherever that guard rejects first — which is every platform, because the
+// root is replaced BEFORE the transaction starts and the step-2 capability
+// check therefore refuses before step 4b can run. There is no evidence of
+// reaching the target layer in this scenario, and it stays INCONCLUSIVE
+// rather than being turned into a pass.
+//
+// FINDING-001 (2026-10-23): G_FENCE was listed among the guards before the
+// intended layer. It is the production ALTERNATIVE at step 2 — a test
+// capability REPLACES it, so it never runs in the controlled lane and cannot
+// preempt anything. It is no longer part of the controlled chain, and the
+// layer harness now refuses it outright.
 test('B9-01b — production writer identity rejects a replaced root (WRITER_IDENTITY layer)', async () => {
   const f = await createControlledFixture({ allowedOperations: OPS });
   const origRoot = f.root;
@@ -74,11 +85,14 @@ test('B9-01b — production writer identity rejects a replaced root (WRITER_IDEN
       }),
       {
         intended: LAYER.WRITER_IDENTITY,
-        guardsBefore: [LAYER.BOUNDARY, LAYER.CAPABILITY, LAYER.G_FENCE,
+        guardsBefore: [LAYER.BOUNDARY, LAYER.CAPABILITY_INVALID,
+                       LAYER.CAPABILITY_SCOPE, LAYER.CAPABILITY,
                        LAYER.DURABILITY, LAYER.PRINCIPAL],
       },
     );
-    assertLayerPassed(outcome);   // throws E_TEST_INCONCLUSIVE on Windows
+    assertLayerPassed(outcome);   // throws E_TEST_INCONCLUSIVE: the step-2
+    // capability check rejects the replaced root first, so the writer's own
+    // identity check (step 4b) is never reached and nothing is proven.
     assert.equal(outcome.actual, 'E_WRITER_IDENTITY_CHANGED');
   } finally {
     await rm(origRoot, { recursive: true, force: true }).catch(() => {});

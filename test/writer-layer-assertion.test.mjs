@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import path from 'node:path';
-import { LAYER, LAYER_ORDER } from './helpers/writer-layers.mjs';
+import { LAYER, LAYER_ORDER, LAYER_PRODUCTION_BRANCH } from './helpers/writer-layers.mjs';
 import { requireLayer, assertLayerPassed, Outcome } from './helpers/layer-assertion.mjs';
 
 const throwCode = async (code) => { const e = new Error(`${code}: synthetic`); e.code = code; throw e; };
@@ -76,8 +76,10 @@ test('LA-06 — unknown layer names are refused, not silently tolerated', async 
 });
 
 test('LA-07 — layer order matches the production writer sequence', async () => {
-  // Guards the ordering claim: capability/fence run at step 2, the lock's
-  // durability refusal at step 3, principal at step 4, B-9 pinning at step 4b.
+  // Guards the ordering claim: the controlled lane's capability checks run at
+  // step 2, the lock's durability refusal at step 3, principal at step 4,
+  // B-9 pinning at step 4b, and the post-mutation re-verification at step 5b
+  // — after the mutation, therefore last.
   const idx = (c) => LAYER_ORDER.indexOf(c);
   assert.ok(idx(LAYER.BOUNDARY) < idx(LAYER.CAPABILITY_INVALID));
   // verifyTestCapability order: forgery -> scope -> identity.
@@ -86,8 +88,37 @@ test('LA-07 — layer order matches the production writer sequence', async () =>
   assert.ok(idx(LAYER.CAPABILITY) < idx(LAYER.DURABILITY));
   assert.ok(idx(LAYER.DURABILITY) < idx(LAYER.PRINCIPAL));
   assert.ok(idx(LAYER.PRINCIPAL) < idx(LAYER.WRITER_IDENTITY));
+  // step 5b runs after the mutation, so it is the last layer.
+  assert.ok(idx(LAYER.WRITER_IDENTITY) < idx(LAYER.CAPABILITY_REVERIFY));
+  assert.equal(idx(LAYER.CAPABILITY_REVERIFY), LAYER_ORDER.length - 1);
   assert.equal(LAYER_ORDER.length, 8);
   assert.equal(new Set(LAYER_ORDER).size, LAYER_ORDER.length, 'layer order has no duplicates');
+});
+
+test('LA-11 — the G-FENCE production branch is refused in guardsBefore', async () => {
+  // FINDING-001 (2026-10-23): step 2 of the writer transaction is a CHOICE.
+  // A controlled test capability REPLACES the G-FENCE gate, so G-FENCE never
+  // executes in the controlled lane and cannot preempt anything. B4-03 listed
+  // it in guardsBefore, which asserted a guard that never runs — and, because
+  // the old layer order placed G_FENCE after CAPABILITY, it also made the
+  // harness reject the claim outright. The harness must now refuse it with an
+  // explanation instead of tolerating it.
+  await assert.rejects(
+    () => requireLayer(async () => {}, {
+      intended: LAYER.CAPABILITY, guardsBefore: [LAYER.BOUNDARY, LAYER.G_FENCE],
+    }),
+    /production alternative at step 2/);
+  await assert.rejects(
+    () => requireLayer(async () => {}, {
+      intended: LAYER.CAPABILITY_REVERIFY,
+      guardsBefore: [LAYER.BOUNDARY, LAYER.CAPABILITY, LAYER.G_FENCE],
+    }),
+    /production alternative at step 2/);
+  // The G-FENCE layer itself is still a known layer: it is the production
+  // alternative, not an unknown name.
+  assert.ok(LAYER_PRODUCTION_BRANCH.includes(LAYER.G_FENCE));
+  assert.equal(LAYER_ORDER.includes(LAYER.G_FENCE), false,
+    'G-FENCE is not a link in the controlled lane\'s chain');
 });
 
 test('LA-08 — error without a code property is FAIL, not a crash', async () => {
