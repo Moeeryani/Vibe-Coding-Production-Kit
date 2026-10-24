@@ -387,6 +387,74 @@ static int op_write_file_sync(int rootfd, const std::string& rel,
   return 0;
 }
 
+// Phase N+2 (R-3): append-only write (audit evidence) through the same
+// pinned walk. O_APPEND|O_NOFOLLOW on the pinned parent; creates the
+// file with the requested mode when absent (audit log bootstrap),
+// never truncates, fsyncs the file before reporting success. Parent
+// and root expectations are enforced by resolve_parent/check_parent
+// exactly as for every other mutation.
+static int op_append_file_sync(int rootfd, const std::string& rel,
+                               const std::string& mode_s) {
+  const std::string op = "append-file-sync";
+  unsigned mode = 0600;
+  if (!mode_s.empty()) {
+    char* end = nullptr;
+    unsigned long v = strtoul(mode_s.c_str(), &end, 8);
+    if (!end || *end || v > 07777) return fail_usage(op, "bad mode");
+    mode = (unsigned)v;
+  }
+  std::string why;
+  Resolved t = resolve_parent(rootfd, rel, why);
+  if (t.dirfd < 0) return t.err ? fail_os(op, t.err) : fail_usage(op, why);
+  { int ic = check_parent(op, t.dirfd);
+    if (ic) { close(t.dirfd); return ic; } }
+  struct stat pre{};
+  bool existed = fstatat(t.dirfd, t.name.c_str(), &pre,
+                         AT_SYMLINK_NOFOLLOW) == 0;
+  int fd = openat(t.dirfd, t.name.c_str(),
+                  O_WRONLY | O_APPEND | O_CREAT | O_NOFOLLOW | O_CLOEXEC,
+                  (mode_t)mode);
+  int e = errno;
+  if (fd < 0) { close(t.dirfd); return fail_os(op, e); }
+  std::string payload;
+  char buf[65536];
+  ssize_t n;
+  size_t total = 0;
+  const size_t CAP = 64u * 1024u * 1024u;
+  while ((n = read(STDIN_FILENO, buf, sizeof buf)) > 0) {
+    total += (size_t)n;
+    if (total > CAP) { close(fd); close(t.dirfd);
+      return fail_usage(op, "payload exceeds 64MiB"); }
+    payload.append(buf, (size_t)n);
+  }
+  if (n < 0) { e = errno; close(fd); close(t.dirfd); return fail_os(op, e); }
+  size_t off = 0;
+  while (off < payload.size()) {
+    ssize_t w = write(fd, payload.data() + off, payload.size() - off);
+    if (w < 0) { e = errno; close(fd); close(t.dirfd); return fail_os(op, e); }
+    off += (size_t)w;
+  }
+  if (!existed && fchmod(fd, (mode_t)mode) != 0) {
+    e = errno; close(fd); close(t.dirfd); return fail_os(op, e);
+  }
+  struct stat st{};
+  bool ok = fstat(fd, &st) == 0 && S_ISREG(st.st_mode);
+  bool data_synced = ok && fsync_fd(fd);
+  close(fd);
+  long dev = (long)st.st_dev, ino = (long)st.st_ino;
+  close(t.dirfd);
+  if (!ok || !data_synced) return fail_os(op, EIO);
+  emit("{\"ok\":true,\"op\":" + jstr(op) + ",\"path\":" + jstr(rel) +
+       ",\"bytes\":" + std::to_string(payload.size()) +
+       ",\"dataSynced\":true" +
+       ",\"dev\":" + std::to_string(dev) + ",\"ino\":" +
+       std::to_string(ino) +
+       ",\"devExact\":\"" + std::to_string((unsigned long long)st.st_dev) +
+       "\",\"inoExact\":\"" + std::to_string((unsigned long long)st.st_ino) +
+       "\"}");
+  return 0;
+}
+
 static int do_rename(int rootfd, const std::string& src,
                      const std::string& dst, bool noreplace,
                      bool exchange = false) {
@@ -765,6 +833,8 @@ int main(int argc, char** argv) {
     rc = op_mkdir_sync(rootfd, args[0], args.size() > 1 ? args[1] : "");
   else if (op == "write-file-sync" && args.size() >= 1 && args.size() <= 2)
     rc = op_write_file_sync(rootfd, args[0], args.size() > 1 ? args[1] : "");
+  else if (op == "append-file-sync" && args.size() >= 1 && args.size() <= 2)
+    rc = op_append_file_sync(rootfd, args[0], args.size() > 1 ? args[1] : "");
   else if (op == "rename-noreplace" && args.size() == 2)
     rc = do_rename(rootfd, args[0], args[1], true);
   else if (op == "rename-replace" && args.size() == 2)
