@@ -245,7 +245,10 @@ if (op === 'stat-id') {
 } else { process.exit(2); }
 `);
   await chmod(fake, 0o755);
-  const provider = new LinuxFsProvider({ helperPath: fake });
+  // Phase N+1 declared seam change: fixture helpers now require the
+  // explicit allowUnverifiedHelper opt-out (trust verification is the
+  // default); this test's subject is protocol/sync-proof behavior.
+  const provider = new LinuxFsProvider({ helperPath: fake, allowUnverifiedHelper: true });
   await assert.rejects(
     provider.replaceFileAtomic(root, 'doc.txt', Buffer.from('data'), { mode: 0o644 }),
     e => e?.code === 'E_FS_SYNC_UNPROVEN',
@@ -254,7 +257,7 @@ if (op === 'stat-id') {
   const garbage = path.join(bin, 'garbage-helper');
   await writeFile(garbage, '#!/bin/sh\necho not-json\nexit 3\n');
   await chmod(garbage, 0o755);
-  const broken = new LinuxFsProvider({ helperPath: garbage });
+  const broken = new LinuxFsProvider({ helperPath: garbage, allowUnverifiedHelper: true });
   await assert.rejects(
     broken.replaceFileAtomic(root, 'doc.txt', Buffer.from('data'), { mode: 0o644 }),
     e => typeof e?.code === 'string' && e.code.startsWith('E_FS_'),
