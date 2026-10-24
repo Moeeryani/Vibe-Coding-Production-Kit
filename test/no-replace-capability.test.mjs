@@ -81,8 +81,14 @@ test('NRC-02 — a `constants.O_NOFOLLOW ?? 0` site is a silent no-op where the 
   if (IS_WINDOWS) {
     assert.ok(sites.length > 0,
       'lib/ must report at least one `?? 0` open site on Windows');
-    assert.ok(sites.some((s) => s.includes('writer-atomic.mjs')),
-      'the production writer atomic path must appear in the inventory');
+    // Phase N (SEC-FINDING-002 remediation): writer-atomic.mjs no longer
+    // contains a path-based open site — it routes through the secure
+    // provider boundary and fails closed on Windows. The inventory must
+    // still surface the remaining class-wide sites (e.g. safe-replace).
+    assert.ok(!sites.some((s) => s.includes('writer-atomic.mjs')),
+      'Phase N: the production writer atomic path must NOT appear in the inventory');
+    assert.ok(sites.some((s) => s.includes('safe-replace.mjs')),
+      'remaining path-based sites must still appear in the inventory');
   }
 });
 

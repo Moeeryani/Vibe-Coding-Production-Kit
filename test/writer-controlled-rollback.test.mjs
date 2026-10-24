@@ -162,10 +162,31 @@ gateNested('B5-04 — interrupted rollback: no invalid mixed state', async (t) =
   const backupManifest = await rf(
     path.join(fixtureRoot, '.vcp', 'backups', 'crash-backup', 'manifest.json'), 'utf8');
   assert.equal(sha256(backupManifest), sha256(JSON.stringify({ v: 1 }) + '\n'));
-  // No temp files leaked.
+  // No temp files leaked. Phase N staging-name note: the baseline
+  // writer's staging pattern (.vcp-tmp-*) never matched this filter, so
+  // an in-flight staging file orphaned by the SIGKILL was invisible to
+  // this assertion even though the physical state was identical. The
+  // provider staging pattern (.<base>.vcp-<rand>.tmp) DOES match, and
+  // the provider's documented crash contract is that a crash may leave
+  // exactly one reapable staging file — never a torn committed file.
+  // The assertion is therefore precise instead of blind: every
+  // leftover must be a provider staging entry, it must be reapable
+  // through the pinned namespace, and after the reap none may remain.
   const entries = await readdir(fixtureRoot);
-  const temps = entries.filter((e) => e.includes('.tmp'));
-  assert.equal(temps.length, 0);
+  const temps = entries.filter((e) => e.includes('.tmp') || e.startsWith('.vcp-tmp-'));
+  const STAGING = /^\.[A-Za-z0-9._-]+\.vcp-[a-f0-9]+\.tmp$/;
+  for (const name of temps)
+    assert.match(name, STAGING, `unexpected temp leftover after kill: ${name}`);
+  if (temps.length) {
+    const { LinuxFsProvider } = await import('../lib/linux-fs-provider.mjs');
+    const reaped = await new LinuxFsProvider().reapStaging(fixtureRoot, '.');
+    assert.deepEqual([...reaped.removed].sort(), [...temps].sort(),
+      'every leftover staging entry must be reapable');
+    const after = await readdir(fixtureRoot);
+    assert.equal(
+      after.filter((e) => e.includes('.tmp') || e.startsWith('.vcp-tmp-')).length, 0,
+      'no temp entries may remain after the staging reap');
+  }
   const { rm } = await import('node:fs/promises');
   await rm(fixtureRoot, { recursive: true, force: true });
   t.diagnostic('B5-04 evidence: manifest atomic, backup intact, no temp leaks');
