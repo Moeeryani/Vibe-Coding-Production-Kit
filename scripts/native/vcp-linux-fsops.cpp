@@ -131,6 +131,65 @@ static int fail_usage(const std::string& op, const std::string& why) {
        jstr(why) + "}");
   return 2;
 }
+// Phase N+1 — transaction identity continuity. The caller (provider)
+// captures the identities of the root and the destination parent at
+// transaction start and passes them back as --expect-root /
+// --expect-parent / --expect-file DEV:INO. Mutating ops verify the
+// PINNED descriptors against those identities after the walk and
+// BEFORE any mutation syscall, so a namespace object substituted
+// between helper invocations (real-directory swap, staged-file
+// relocation) is refused instead of acted on. Exit code 13 is
+// reserved for identity mismatch; the provider maps it to
+// E_FS_IDENTITY_CHANGED.
+static bool g_has_expect_root = false, g_has_expect_parent = false,
+            g_has_expect_file = false;
+static unsigned long long g_expect_root_dev = 0, g_expect_root_ino = 0,
+    g_expect_parent_dev = 0, g_expect_parent_ino = 0,
+    g_expect_file_dev = 0, g_expect_file_ino = 0;
+static bool parse_expect(const std::string& s, unsigned long long& dev,
+                         unsigned long long& ino) {
+  auto pos = s.find(':');
+  if (pos == std::string::npos) return false;
+  try {
+    size_t used = 0;
+    dev = std::stoull(s.substr(0, pos), &used);
+    if (used != pos) return false;
+    ino = std::stoull(s.substr(pos + 1), &used);
+    if (used != s.size() - pos - 1) return false;
+  } catch (...) { return false; }
+  return true;
+}
+static int fail_identity(const std::string& op, const char* which) {
+  emit("{\"ok\":false,\"op\":" + jstr(op) +
+       ",\"identityMismatch\":true,\"identity\":" + jstr(which) + "}");
+  return 13;
+}
+static bool id_matches(const struct stat& st, unsigned long long dev,
+                       unsigned long long ino) {
+  return (unsigned long long)st.st_dev == dev &&
+         (unsigned long long)st.st_ino == ino;
+}
+// Verify the pinned parent dirfd against --expect-parent (no-op when
+// unset). Returns 0 or the identity-failure exit code (already emitted).
+static int check_parent(const std::string& op, int dirfd) {
+  if (!g_has_expect_parent) return 0;
+  struct stat st;
+  if (fstat(dirfd, &st) != 0 || !S_ISDIR(st.st_mode) ||
+      !id_matches(st, g_expect_parent_dev, g_expect_parent_ino))
+    return fail_identity(op, "parent");
+  return 0;
+}
+// Verify the named object inside a pinned parent against
+// --expect-file before a rename/unlink acts on it.
+static int check_file(const std::string& op, int dirfd,
+                      const std::string& name) {
+  if (!g_has_expect_file) return 0;
+  struct stat st;
+  if (fstatat(dirfd, name.c_str(), &st, AT_SYMLINK_NOFOLLOW) != 0 ||
+      !id_matches(st, g_expect_file_dev, g_expect_file_ino))
+    return fail_identity(op, "file");
+  return 0;
+}
 
 static bool valid_component(const std::string& c) {
   if (c.empty() || c.size() > 128 || c == "." || c == "..") return false;
@@ -231,6 +290,8 @@ static int op_mkdir_sync(int rootfd, const std::string& rel,
   std::string why;
   Resolved t = resolve_parent(rootfd, rel, why);
   if (t.dirfd < 0) return t.err ? fail_os(op, t.err) : fail_usage(op, why);
+  { int ic = check_parent(op, t.dirfd);
+    if (ic) { close(t.dirfd); return ic; } }
   int rc = mkdirat(t.dirfd, t.name.c_str(), (mode_t)mode);
   int e = errno;
   if (rc != 0) { close(t.dirfd); return fail_os(op, e); }
@@ -268,6 +329,8 @@ static int op_write_file_sync(int rootfd, const std::string& rel,
   std::string why;
   Resolved t = resolve_parent(rootfd, rel, why);
   if (t.dirfd < 0) return t.err ? fail_os(op, t.err) : fail_usage(op, why);
+  { int ic = check_parent(op, t.dirfd);
+    if (ic) { close(t.dirfd); return ic; } }
   int fd = openat(t.dirfd, t.name.c_str(),
                   O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC,
                   (mode_t)mode);
@@ -339,6 +402,12 @@ static int do_rename(int rootfd, const std::string& src,
     close(a.dirfd); close(b.dirfd);
     return fail_usage(op, "cannot rename the root itself");
   }
+  { int ic = check_parent(op, a.dirfd);
+    if (ic) { close(a.dirfd); close(b.dirfd); return ic; }
+    ic = check_parent(op, b.dirfd);
+    if (ic) { close(a.dirfd); close(b.dirfd); return ic; }
+    ic = check_file(op, a.dirfd, a.name);
+    if (ic) { close(a.dirfd); close(b.dirfd); return ic; } }
   long r;
   if (exchange) {
     // Stage13 existing-user-document swap: the displaced inode is retained
@@ -372,6 +441,10 @@ static int op_unlink_sync(int rootfd, const std::string& rel, bool isdir) {
   Resolved t = resolve_parent(rootfd, rel, why);
   if (t.dirfd < 0) return t.err ? fail_os(op, t.err) : fail_usage(op, why);
   if (t.self) { close(t.dirfd); return fail_usage(op, "cannot remove root"); }
+  { int ic = check_parent(op, t.dirfd);
+    if (ic) { close(t.dirfd); return ic; }
+    ic = check_file(op, t.dirfd, t.name);
+    if (ic) { close(t.dirfd); return ic; } }
   int rc = unlinkat(t.dirfd, t.name.c_str(),
                     isdir ? AT_REMOVEDIR : 0);
   int e = errno;
@@ -458,6 +531,12 @@ static int op_flags(int rootfd, const std::string& rel, bool set,
   Resolved t = resolve_parent(rootfd, rel, why);
   if (t.dirfd < 0) return t.err ? fail_os(op, t.err) : fail_usage(op, why);
   if (t.self) { close(t.dirfd); return fail_usage(op, "bad path"); }
+  if (set) {
+    int ic = check_parent(op, t.dirfd);
+    if (ic) { close(t.dirfd); return ic; }
+    ic = check_file(op, t.dirfd, t.name);
+    if (ic) { close(t.dirfd); return ic; }
+  }
   int fd = openat(t.dirfd, t.name.c_str(),
                   O_RDONLY | O_NOFOLLOW | O_CLOEXEC);
   int e = errno;
@@ -624,7 +703,7 @@ static int op_probe(const std::string& dir) {
 
 static void usage() {
   const char* m =
-      "usage: vcp-linux-fsops --root ABS --op OP [args]\n"
+      "usage: vcp-linux-fsops --root ABS [--expect-root D:I] [--expect-parent D:I] [--expect-file D:I] --op OP [args]\n"
       "   or: vcp-linux-fsops --probe-dir ABS --op probe\n"
       "ops: mkdir-sync <rel> [mode] | write-file-sync <rel> [mode] < stdin\n"
       "     rename-noreplace <src> <dst> | rename-replace <src> <dst> |\n"
@@ -643,6 +722,22 @@ int main(int argc, char** argv) {
     if (a == "--root" && i + 1 < argc) root = argv[++i];
     else if (a == "--probe-dir" && i + 1 < argc) probeDir = argv[++i];
     else if (a == "--op" && i + 1 < argc) op = argv[++i];
+    else if (a == "--expect-root" && i + 1 < argc) {
+      if (!parse_expect(argv[++i], g_expect_root_dev, g_expect_root_ino))
+        return fail_usage(op.empty() ? "init" : op, "bad --expect-root");
+      g_has_expect_root = true;
+    }
+    else if (a == "--expect-parent" && i + 1 < argc) {
+      if (!parse_expect(argv[++i], g_expect_parent_dev,
+                        g_expect_parent_ino))
+        return fail_usage(op.empty() ? "init" : op, "bad --expect-parent");
+      g_has_expect_parent = true;
+    }
+    else if (a == "--expect-file" && i + 1 < argc) {
+      if (!parse_expect(argv[++i], g_expect_file_dev, g_expect_file_ino))
+        return fail_usage(op.empty() ? "init" : op, "bad --expect-file");
+      g_has_expect_file = true;
+    }
     else if (a == "--help" || a == "-h") { usage(); return 2; }
     else args.push_back(a);
   }
@@ -656,6 +751,14 @@ int main(int argc, char** argv) {
     return fail_usage(op.empty() ? "init" : op,
                       rootfd == -100 ? "bad root path"
                                      : "cannot open root directory");
+  }
+  if (g_has_expect_root) {
+    struct stat st;
+    if (fstat(rootfd, &st) != 0 ||
+        !id_matches(st, g_expect_root_dev, g_expect_root_ino)) {
+      close(rootfd);
+      return fail_identity(op, "root");
+    }
   }
   int rc = 2;
   if (op == "mkdir-sync" && args.size() >= 1 && args.size() <= 2)

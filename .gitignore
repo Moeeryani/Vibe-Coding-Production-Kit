@@ -16,3 +16,6 @@ build/
 # Ignore old experimental in-tree Win32 build leftovers as well.
 scripts/native/vcp-windows-fsops.exe
 scripts/native/vcp-windows-fsops.obj
+
+# Phase N+1 helper trust manifest: build artifact, never committed
+scripts/native/vcp-linux-fsops.manifest.json
