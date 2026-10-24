@@ -125,3 +125,21 @@ an architecture change that needs an independent decision. It is deliberately
 - `lib/no-replace-capability.mjs` is a read-only capability report; its new
   fields make an existing guarantee narrower and more precise, and are not
   consulted by any authorization path.
+
+## Remediation history
+
+- 2026-10-23 — Finding opened (Linux Phase M-L R2, FINDING-002).
+  Status OPEN. The branch that documented it changed no behaviour.
+- Phase N (development branch `feat/phase-n-secure-writer`, baseline
+  `25325232a346e1ab24022f2bf0c5881214a09ab9`) — the production writer
+  was rewired to the descriptor-relative architecture this document
+  prescribes: `lib/writer-atomic.mjs` now mutates exclusively through
+  `lib/secure-fs-provider.mjs` → `LinuxFsProvider` → the native
+  helper's pinned openat/renameat chain, with sync and identity
+  verification gating every receipt, and fail-closed behaviour on
+  every platform without a reviewed provider (Windows included).
+  Design and evidence: `docs/design/PHASE-N-SECURE-WRITER-ARCHITECTURE.md`
+  and `VCP-PHASE-N-SECURE-WRITER-ENGINEERING-REPORT.md`.
+  Status remains **OPEN — remediation implemented, pending
+  independent validation** on the frozen Phase N candidate. This
+  finding is not RESOLVED by its own remediation branch.
