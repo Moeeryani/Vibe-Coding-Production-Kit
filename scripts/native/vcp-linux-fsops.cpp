@@ -103,6 +103,9 @@ static const char* errname(int e) {
     case ENOSYS: return "ENOSYS"; case ENOTDIR: return "ENOTDIR";
     case ELOOP: return "ELOOP"; case ENOTEMPTY: return "ENOTEMPTY";
     case EISDIR: return "EISDIR"; case EROFS: return "EROFS";
+    case ENAMETOOLONG: return "ENAMETOOLONG"; case ENOSPC: return "ENOSPC";
+    case EFBIG: return "EFBIG"; case EDQUOT: return "EDQUOT";
+    case EMLINK: return "EMLINK"; case ETXTBSY: return "ETXTBSY";
     default: return "E_OS_ERROR";
   }
 }
@@ -168,10 +171,10 @@ static int open_pinned_root(const std::string& root) {
 }
 // Resolve rel to (parent dirfd, final name), pinning every intermediate
 // component with O_PATH|O_DIRECTORY|O_NOFOLLOW. rel=="." addresses root.
-struct Resolved { int dirfd; std::string name; bool self; };
+struct Resolved { int dirfd; std::string name; bool self; int err; };
 static Resolved resolve_parent(int rootfd, const std::string& rel,
                                std::string& why) {
-  Resolved r{-1, "", false};
+  Resolved r{-1, "", false, 0};
   if (rel == ".") { r.dirfd = rootfd; r.self = true; return r; }
   auto parts = split_rel(rel);
   if (parts.size() > 32) { why = "path too deep"; return r; }
@@ -184,10 +187,12 @@ static Resolved resolve_parent(int rootfd, const std::string& rel,
     // Real directory fds (not O_PATH): the final parent is fsync()ed.
     int nxt = openat(cur, parts[i].c_str(),
                      O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
-    if (nxt < 0) { why = "intermediate open failed"; goto bad; }
+    if (nxt < 0) { why = "intermediate open failed"; r.err = errno; goto bad; }
     struct stat st;
     if (fstat(nxt, &st) != 0 || !S_ISDIR(st.st_mode)) {
-      close(nxt); why = "intermediate not a directory"; goto bad;
+      int fe = (errno != 0) ? errno : ENOTDIR;
+      close(nxt); why = "intermediate not a directory";
+      r.err = S_ISDIR(st.st_mode) ? fe : ENOTDIR; goto bad;
     }
     if (owned) close(cur);
     cur = nxt; owned = true;
@@ -202,7 +207,7 @@ static Resolved resolve_parent(int rootfd, const std::string& rel,
   // caller can uniformly close. Simpler: always hand an owned fd.
   if (!owned) {
     int d = dup(rootfd);
-    if (d < 0) { why = "dup failed"; r.dirfd = -1; return r; }
+    if (d < 0) { why = "dup failed"; r.err = errno; r.dirfd = -1; return r; }
     r.dirfd = d;
   }
   return r;
@@ -225,7 +230,7 @@ static int op_mkdir_sync(int rootfd, const std::string& rel,
   }
   std::string why;
   Resolved t = resolve_parent(rootfd, rel, why);
-  if (t.dirfd < 0) return fail_usage(op, why);
+  if (t.dirfd < 0) return t.err ? fail_os(op, t.err) : fail_usage(op, why);
   int rc = mkdirat(t.dirfd, t.name.c_str(), (mode_t)mode);
   int e = errno;
   if (rc != 0) { close(t.dirfd); return fail_os(op, e); }
@@ -262,7 +267,7 @@ static int op_write_file_sync(int rootfd, const std::string& rel,
   }
   std::string why;
   Resolved t = resolve_parent(rootfd, rel, why);
-  if (t.dirfd < 0) return fail_usage(op, why);
+  if (t.dirfd < 0) return t.err ? fail_os(op, t.err) : fail_usage(op, why);
   int fd = openat(t.dirfd, t.name.c_str(),
                   O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC,
                   (mode_t)mode);
@@ -326,9 +331,10 @@ static int do_rename(int rootfd, const std::string& src,
     noreplace ? "rename-noreplace" : "rename-replace";
   std::string why;
   Resolved a = resolve_parent(rootfd, src, why);
-  if (a.dirfd < 0) return fail_usage(op, why);
+  if (a.dirfd < 0) return a.err ? fail_os(op, a.err) : fail_usage(op, why);
   Resolved b = resolve_parent(rootfd, dst, why);
-  if (b.dirfd < 0) { close(a.dirfd); return fail_usage(op, why); }
+  if (b.dirfd < 0) { int be = b.err; close(a.dirfd);
+    return be ? fail_os(op, be) : fail_usage(op, why); }
   if (a.self || b.self) {
     close(a.dirfd); close(b.dirfd);
     return fail_usage(op, "cannot rename the root itself");
@@ -364,7 +370,7 @@ static int op_unlink_sync(int rootfd, const std::string& rel, bool isdir) {
   const std::string op = isdir ? "rmdir-sync" : "unlink-sync";
   std::string why;
   Resolved t = resolve_parent(rootfd, rel, why);
-  if (t.dirfd < 0) return fail_usage(op, why);
+  if (t.dirfd < 0) return t.err ? fail_os(op, t.err) : fail_usage(op, why);
   if (t.self) { close(t.dirfd); return fail_usage(op, "cannot remove root"); }
   int rc = unlinkat(t.dirfd, t.name.c_str(),
                     isdir ? AT_REMOVEDIR : 0);
@@ -388,7 +394,7 @@ static int op_fsync_dir(int rootfd, const std::string& rel) {
   } else {
     std::string why;
     Resolved t = resolve_parent(rootfd, rel, why);
-    if (t.dirfd < 0) return fail_usage(op, why);
+    if (t.dirfd < 0) return t.err ? fail_os(op, t.err) : fail_usage(op, why);
     if (t.self) { close(t.dirfd); return fail_usage(op, "bad path"); }
     fd = openat(t.dirfd, t.name.c_str(),
                 O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
@@ -413,7 +419,7 @@ static int op_stat_id(int rootfd, const std::string& rel) {
   const std::string op = "stat-id";
   std::string why;
   Resolved t = resolve_parent(rootfd, rel, why);
-  if (t.dirfd < 0) return fail_usage(op, why);
+  if (t.dirfd < 0) return t.err ? fail_os(op, t.err) : fail_usage(op, why);
   struct stat st;
   int rc;
   if (t.self) rc = fstat(rootfd, &st);
@@ -450,7 +456,7 @@ static int op_flags(int rootfd, const std::string& rel, bool set,
                              : "get-flags";
   std::string why;
   Resolved t = resolve_parent(rootfd, rel, why);
-  if (t.dirfd < 0) return fail_usage(op, why);
+  if (t.dirfd < 0) return t.err ? fail_os(op, t.err) : fail_usage(op, why);
   if (t.self) { close(t.dirfd); return fail_usage(op, "bad path"); }
   int fd = openat(t.dirfd, t.name.c_str(),
                   O_RDONLY | O_NOFOLLOW | O_CLOEXEC);
@@ -489,7 +495,7 @@ static int op_list_names(int rootfd, const std::string& rel) {
   } else {
     std::string why;
     Resolved t = resolve_parent(rootfd, rel, why);
-    if (t.dirfd < 0) return fail_usage(op, why);
+    if (t.dirfd < 0) return t.err ? fail_os(op, t.err) : fail_usage(op, why);
     if (t.self) { close(t.dirfd); return fail_usage(op, "bad path"); }
     dfd = openat(t.dirfd, t.name.c_str(),
                  O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
