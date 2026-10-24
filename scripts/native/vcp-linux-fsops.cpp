@@ -526,6 +526,81 @@ static int op_unlink_sync(int rootfd, const std::string& rel, bool isdir) {
   return 0;
 }
 
+// Phase N+3: pinned content read for lock/journal verification.
+// Opens the file through the pinned walk (O_NOFOLLOW), verifies
+// root/parent/file expectations against the OPEN descriptor, reads
+// up to 2 MiB, and returns the content base64-encoded together with
+// the descriptor's identity. The caller therefore verifies content
+// that provably came from the pinned object — no path re-resolution
+// exists between the identity check and the read.
+static const char B64[] =
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static std::string b64encode(const std::string& in) {
+  std::string out;
+  out.reserve((in.size() + 2) / 3 * 4);
+  for (size_t i = 0; i < in.size(); i += 3) {
+    unsigned a = (unsigned char)in[i];
+    unsigned b = i + 1 < in.size() ? (unsigned char)in[i + 1] : 0;
+    unsigned c = i + 2 < in.size() ? (unsigned char)in[i + 2] : 0;
+    out += B64[a >> 2];
+    out += B64[((a & 3) << 4) | (b >> 4)];
+    out += i + 1 < in.size() ? B64[((b & 15) << 2) | (c >> 6)] : '=';
+    out += i + 2 < in.size() ? B64[c & 63] : '=';
+  }
+  return out;
+}
+static int op_read_file(int rootfd, const std::string& rel) {
+  const std::string op = "read-file";
+  std::string why;
+  Resolved t = resolve_parent(rootfd, rel, why);
+  if (t.dirfd < 0) return t.err ? fail_os(op, t.err) : fail_usage(op, why);
+  { int ic = check_parent(op, t.dirfd);
+    if (ic) { close(t.dirfd); return ic; } }
+  int fd = openat(t.dirfd, t.name.c_str(),
+                  O_RDONLY | O_NOFOLLOW | O_CLOEXEC);
+  int e = errno;
+  if (fd < 0) { close(t.dirfd); return fail_os(op, e); }
+  struct stat st;
+  if (fstat(fd, &st) != 0 || !S_ISREG(st.st_mode)) {
+    close(fd); close(t.dirfd); return fail_os(op, EINVAL);
+  }
+  if (g_has_expect_file &&
+      !id_matches(st, g_expect_file_dev, g_expect_file_ino)) {
+    close(fd); close(t.dirfd); return fail_identity(op, "file");
+  }
+  const size_t CAP = 2u * 1024u * 1024u;
+  if ((size_t)st.st_size > CAP) {
+    close(fd); close(t.dirfd); return fail_usage(op, "file exceeds 2MiB read cap");
+  }
+  std::string data;
+  data.reserve((size_t)st.st_size);
+  char buf[65536];
+  ssize_t n;
+  while ((n = read(fd, buf, sizeof buf)) > 0) {
+    data.append(buf, (size_t)n);
+    if (data.size() > CAP) {
+      close(fd); close(t.dirfd); return fail_usage(op, "file grew past read cap");
+    }
+  }
+  if (n < 0) { e = errno; close(fd); close(t.dirfd); return fail_os(op, e); }
+  struct stat st2;
+  bool stable = fstat(fd, &st2) == 0 &&
+    st2.st_dev == st.st_dev && st2.st_ino == st.st_ino &&
+    st2.st_size == st.st_size && st2.st_mtime == st.st_mtime &&
+    st2.st_ctime == st.st_ctime;
+  close(fd);
+  close(t.dirfd);
+  if (!stable) return fail_identity(op, "file");
+  emit("{\"ok\":true,\"op\":\"read-file\",\"path\":" + jstr(rel) +
+       ",\"size\":" + std::to_string(data.size()) +
+       ",\"dev\":" + std::to_string((long)st.st_dev) +
+       ",\"ino\":" + std::to_string((long)st.st_ino) +
+       ",\"devExact\":\"" + std::to_string((unsigned long long)st.st_dev) +
+       "\",\"inoExact\":\"" + std::to_string((unsigned long long)st.st_ino) +
+       "\",\"contentB64\":\"" + b64encode(data) + "\"}");
+  return 0;
+}
+
 static int op_fsync_dir(int rootfd, const std::string& rel) {
   const std::string op = "fsync-dir";
   int fd;
@@ -851,6 +926,8 @@ int main(int argc, char** argv) {
     rc = op_list_names(rootfd, args[0]);
   else if (op == "stat-id" && args.size() == 1)
     rc = op_stat_id(rootfd, args[0]);
+  else if (op == "read-file" && args.size() == 1)
+    rc = op_read_file(rootfd, args[0]);
   else if (op == "get-flags" && args.size() == 1)
     rc = op_flags(rootfd, args[0], false, false);
   else if (op == "set-immutable" && args.size() == 1)
