@@ -223,18 +223,18 @@ test('missing candidate migration chain fails rather than defaulting release-rea
   const { root } = await makeReleaseFixture();
   for (const file of ['package.json', 'package-lock.json']) {
     const value = JSON.parse(await readFile(path.join(root, file), 'utf8'));
-    value.version = '0.9.4';
-    if (value.packages?.['']) value.packages[''].version = '0.9.4';
+    value.version = '0.9.5';
+    if (value.packages?.['']) value.packages[''].version = '0.9.5';
     await writeJson(path.join(root, file), value);
   }
-  await writeFile(path.join(root, 'CHANGELOG.md'), '# Changelog\n\n## [Unreleased]\n\n## [0.9.4] - 2026-10-04\n');
+  await writeFile(path.join(root, 'CHANGELOG.md'), '# Changelog\n\n## [Unreleased]\n\n## [0.9.5] - 2026-10-04\n');
   await writeFile(
-    path.join(root, 'docs', 'releases', 'v0.9.4.md'),
-    '# Fixture v0.9.4\n\nRelease status: Candidate — publication requires HUMAN DECISION.\n'
+    path.join(root, 'docs', 'releases', 'v0.9.5.md'),
+    '# Fixture v0.9.5\n\nRelease status: Candidate — publication requires HUMAN DECISION.\n'
   );
   await commitAll(root, 'candidate without migration');
 
-  const report = await runReleaseCheck({ targetDir: root, version: '0.9.4' });
+  const report = await runReleaseCheck({ targetDir: root, version: '0.9.5' });
   assert.equal(checkById(report, 'migration-chain').status, 'fail');
 });
 

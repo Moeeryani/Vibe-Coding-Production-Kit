@@ -169,19 +169,19 @@ test('PN3-06 — identical journal in copied namespace refuses clear (provenance
     fs.existsSync(path.join(f.root, '.vcp', 'transaction.json')), true);
   await rm(path.join(f.root, '.vcp'), { recursive: true });
   await rename(aside, path.join(f.root, '.vcp'));
-  // In the genuine namespace the provenance check PASSES and the
-  // clear proceeds to its decode step — which refuses with
-  // E_JOURNAL_UNREADABLE_FOR_CLEAR in this environment: a
-  // pre-existing baseline constraint (clear decodes with the
-  // installed CLI version 0.9.3 as reader, while format-valid
-  // journals require minimumReaderVersion > 0.9.3), identical in
-  // legacy mode and unchanged by Phase N+3. The journal survives.
-  await assert.rejects(
-    clearVersionedJournal(f.root, { expectedHash: out.sha256 },
-      f.capability),
-    /E_JOURNAL_UNREADABLE_FOR_CLEAR/);
+  // Phase N+4: in the genuine namespace the provenance check
+  // PASSES and the clear now SUCCEEDS — the 0.9.3 decode blocker
+  // is fixed by the 0.9.4 development version (clear decodes with
+  // reader 0.9.4 >= minimum 0.9.4). The journal is removed and its
+  // provenance entry forgotten.
+  await clearVersionedJournal(f.root, { expectedHash: out.sha256 },
+    f.capability);
   assert.equal(
-    fs.existsSync(path.join(f.root, '.vcp', 'transaction.json')), true);
+    fs.existsSync(path.join(f.root, '.vcp', 'transaction.json')), false);
+  const entries = await listStagingProvenance(f.root);
+  assert.equal(
+    entries.some((e) => e.name === '.vcp/transaction.json'), false,
+    'provenance forgotten after proven clear');
 });
 
 test('PN3-07 — recovery cleanup: provenance-bound, substitution-safe, repeatable', async (t) => {

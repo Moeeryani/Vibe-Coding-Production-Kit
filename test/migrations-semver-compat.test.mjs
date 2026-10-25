@@ -2,9 +2,13 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { compareVersions, MIGRATIONS, resolveMigrationPath } from '../lib/migrations.mjs';
 test('migrations remain bounded to existing released Schema-v1 chain', () => {
-  assert.equal(MIGRATIONS.length, 4);
+  // Phase N+4: the chain grows by the 0.9.3 -> 0.9.4 identity
+  // step (no schema change); the bounding policy itself is
+  // unchanged — versions beyond the chain still throw.
+  assert.equal(MIGRATIONS.length, 5);
   assert.deepEqual(MIGRATIONS.map(m=>[m.from,m.to]),[
-    ['0.8.0','0.9.0'], ['0.9.0','0.9.1'],['0.9.1','0.9.2'],['0.9.2','0.9.3']
+    ['0.8.0','0.9.0'], ['0.9.0','0.9.1'],['0.9.1','0.9.2'],['0.9.2','0.9.3'],
+    ['0.9.3','0.9.4']
   ]);
   assert.equal(resolveMigrationPath('0.9.0','0.9.3').length,3);
   assert.deepEqual(resolveMigrationPath('0.9.3','0.9.3'),[]);

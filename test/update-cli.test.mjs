@@ -49,7 +49,7 @@ test('test-only historical v1 fixture enables downstream CLI update conformance'
   await init(root);
   const manifest=JSON.parse(await readFile(path.join(root,'.vcp/manifest.json'),'utf8'));
   assert.equal(manifest.schemaVersion,1);
-  assert.equal(manifest.installedVersion,'0.9.3');
+  assert.equal(manifest.installedVersion,'0.9.4');
   assert.ok(Object.keys(manifest.managedFiles).length>0);
 });
 
@@ -58,11 +58,11 @@ test('CLI update check works offline without registry access', async () => {
   await init(root);
   const { stdout } = await run(['update', root, '--check', '--offline', '--json']);
   const report = JSON.parse(stdout);
-  assert.equal(report.installedVersion, '0.9.3');
-  assert.equal(report.cliVersion, '0.9.3');
+  assert.equal(report.installedVersion, '0.9.4');
+  assert.equal(report.cliVersion, '0.9.4');
   assert.equal(report.registryChecked, false);
   assert.equal(report.latestVersion, null);
-  assert.equal(report.recommendedVersion, '0.9.3');
+  assert.equal(report.recommendedVersion, '0.9.4');
   assert.equal(report.updateAvailable, false);
 });
 
@@ -146,7 +146,7 @@ test('CLI update and rollback restore the previous manifest version', async () =
   const update = JSON.parse(updateStdout);
   assert.equal(update.applied, true);
   assert.ok(update.backupId);
-  assert.equal(JSON.parse(await readFile(manifestPath, 'utf8')).installedVersion, '0.9.3');
+  assert.equal(JSON.parse(await readFile(manifestPath, 'utf8')).installedVersion, '0.9.4');
 
   const { stdout: rollbackStdout } = await run(['rollback', root, '--backup', update.backupId, '--json']);
   const rollback = JSON.parse(rollbackStdout);

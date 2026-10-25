@@ -374,7 +374,7 @@ test('0.8 manifest migrates transactionally to the current 0.9 release and can r
   const applied = await applyUpdate({ targetDir: root });
   assert.equal(applied.applied, true);
   assert.equal(applied.blocked, false);
-  assert.equal((await manifest(root)).installedVersion, '0.9.3');
+  assert.equal((await manifest(root)).installedVersion, '0.9.4');
   assert.ok(applied.backupId);
 
   const rolledBack = await rollbackProject({ targetDir: root, backupId: applied.backupId });
