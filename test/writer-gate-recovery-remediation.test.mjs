@@ -24,6 +24,7 @@
 //   R1-21: audit evidence recording failure reported, not swallowed.
 //   R1-22: foreign/held lock during recovery refuses before mutation.
 //   R1-23: strict-fence tripwire: gate must not be lock-conditional.
+//   R1-24: fresh rollback writes and clears its own journal.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import {
@@ -490,7 +491,26 @@ test('R1-22 — held lock during recovery refuses before mutation', async (t) =>
     before);
 });
 
-test('R1-23 — strict-fence tripwire: gate must not be lock-conditional', async (t) => {
+test('R1-24 — fresh rollback writes and clears its own journal', async (t) => {
+  if (!await requireLinux(t)) return;
+  const f = await createControlledFixture({
+    allowedOperations: ['rollback-v2', 'journal-write', 'journal-clear'] });
+  t.after(() => teardownControlledFixture(f));
+  await mkdir(path.join(f.root, '.vcp'));
+  const manifestBytes = await makeBackup(f.root, 'r1-rb24', { schemaVersion: 2, v: 1 });
+  await atomicWriteFile(f.root, '.vcp/manifest.json',
+    Buffer.from('{"mutated":true}\n'), { mode: 0o600, managedState: true });
+  const receipt = await rollbackV2({ root: f.root, backupId: 'r1-rb24',
+    confirmed: true, testCapability: f.capability });
+  assert.equal(receipt.rolledBack, true);
+  assert.equal(receipt.journalTransition, 'written');
+  assert.equal(receipt.journalCleared, true);
+  assert.equal(receipt.journalRetained, false);
+  assert.equal(receipt.evidenceRecorded, true);
+  assert.equal(journalExists(f.root), false);
+  const restored = await readFile(path.join(f.root, '.vcp', 'manifest.json'));
+  assert.equal(restored.toString(), manifestBytes.toString());
+});
   if (!await requireLinux(t)) return;
   const src = await readFile(path.join(REPO, 'lib', 'versioned-journal.mjs'), 'utf8');
   for (const fn of ['export async function writeVersionedJournal(',
