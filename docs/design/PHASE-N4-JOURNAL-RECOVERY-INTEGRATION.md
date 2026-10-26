@@ -57,8 +57,15 @@ authorization lattice in `writeVersionedJournal` /
    (`assertOwnedLifecycleLock`, anchored, identity-bound) BEFORE
    any read or mutation. A `.vcp` swap between calls is caught
    here — the lock's acquire-time anchor no longer matches.
-3. With neither, the production gate decides (throws while
-   G-FENCE is NO-GO). A lock alone never bypasses the gate.
+3. **N+4 R1 strict fence:** with NO test capability, the
+   production gate ALWAYS runs, regardless of whether a lock
+   exists (it throws while G-FENCE is NO-GO). A lock establishes
+   ownership and serialization; it does NOT replace
+   authorization and does NOT override the gate. Lock-only
+   direct imports therefore refuse `E_G_FENCE_NO_GO` with no
+   mutation. (The N+4 text previously said "with neither, the
+   gate decides" — that lattice let a lock alone bypass the gate
+   call, which independent validation found and R1 closes.)
 4. Past the gate (post-GO future), an unbound mutation in
    anchored mode refuses `E_JOURNAL_UNBOUND`; legacy mode
    proceeds on the gate alone.
@@ -149,12 +156,19 @@ decode evidence (`cleanupBackupHash`) unchanged.
 - R-4, R-5, R-6: OPEN, unchanged. B-2: NOT_PROVEN. B9-01b:
   INCONCLUSIVE (unchanged; in the byte-identical failing set).
 - `writer-recovery`'s clear call carries no expected hash and
-  its failure is swallowed (pre-existing shape, unchanged):
-  the journal remains in `recovering` phase for follow-up
-  recovery. Not reinterpreted as success — the receipt reports
-  the restore action, and PN4-10 asserts the journal is
-  retained. A follow-up may tighten this; it is out of N+4
-  scope to change recovery receipts.
+  its failure is swallowed (pre-existing shape): **REMEDIATED by
+  N+4 R1** — replay now carries the journal's measured read-time
+  digest into the transition (`previousHash`) and the clear
+  (`expectedHash`, from the transition's own return, or from the
+  measured digest when no transition is legal), and reports
+  `journalTransition` / `journalCleared` / `journalRetained` /
+  `journalError` explicitly. A successful replay now CLEARS the
+  journal; a failed bookkeeping step retains it with an accurate
+  partial receipt. The same measured-digest discipline applies to
+  `writer-rollback-v2` (pre-existing journals are never
+  overwritten; rollback journals clear against their own digest).
+  PN4-10's retained-journal expectation is superseded by the R1
+  suite (R1-15/R1-18).
 
 ## 6. Tests and mutations
 
@@ -232,3 +246,37 @@ JOURNAL_VERSION_COMPAT may now be recorded closed for this
 development tree, and whether FULL_TRANSACTION_CONTAINMENT
 remains NOT_PROVEN. No push, merge, release, or gate change
 in validation scope.
+
+## 10. N+4 R1 remediation (strict fence + bookkeeping)
+
+Independent N+4 validation found two defects (D01_G_FENCE_INTEGRITY
+PARTIAL; replay bookkeeping silently swallowed). R1 repairs both:
+
+- **Strict fence:** the journal API gate runs whenever no test
+  capability is present, regardless of lock (see §2 step 3).
+  Lock-only direct imports refuse `E_G_FENCE_NO_GO` with no
+  mutation. Capability verification and per-call lock assertion
+  are unchanged and still precede the gate.
+- **Measured-digest bookkeeping:** `writer-recovery`'s read
+  retains the SHA-256 of the bytes actually read (never a journal
+  field). Transitions carry it as `previousHash`; clears carry
+  the transition's returned digest, or the measured digest when
+  no transition is legal (committed / cleanup / recovering
+  phases). No journal error is swallowed: the receipt reports
+  `journalTransition` (`succeeded` / `failed` /
+  `skipped-terminal` / `skipped-existing`), `journalCleared`,
+  `journalRetained`, `journalError`, and `evidenceRecorded` /
+  `evidenceError` separately from `recovered` / `rolledBack`.
+- **Rollback:** a pre-existing journal is never overwritten
+  (no transition TO `prepared` exists); the operator-confirmed
+  restore proceeds and the receipt reports the retained journal.
+  A fresh rollback journal clears against its own digest.
+- **Receipt contract:** restore success, journal transition,
+  journal clearance, and evidence recording are four distinct
+  facts. A successful restore with a retained journal is a
+  partial completion, never terminal lifecycle completion.
+- **Adjacent fix:** a missing journal now returns the documented
+  `NO_JOURNAL` receipt instead of throwing `E_VCP_PATH`
+  (safe-read reports missing managed files as MISSING_INPUT,
+  not ENOENT); the same treatment applies to rollback's
+  pre-existing-journal check.

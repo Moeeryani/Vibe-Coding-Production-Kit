@@ -267,16 +267,21 @@ test('PN4-07 — unbound journal mutation refused; unbound branch ordered after 
 
 test('PN4-08 — recovery cleanup never deletes the committed journal', async (t) => {
   if (!await requireLinux(t)) return;
-  const root = await fixture(t);
-  await mkdir(path.join(root, '.vcp'));
-  const lock = await acquireLifecycleLock(root);
-  const out = await writeLocked(root, lock, descriptor('pn4-j8', 'prepared'));
+  // N+4 R1: the lock-only journal calls this test previously used
+  // are now gate-refused by the strict fence, so the authorized
+  // form (lock + verified test capability) is used here. The
+  // lock-only refusal itself is proved by R1-01/R1-02.
+  const { f, lock } = await lockFixture(t);
+  const root = f.root;
+  const out = await writeLocked(root, lock, descriptor('pn4-j8', 'prepared'),
+    null, f.capability);
   const res = await recoveryCleanupStaging(root, { transactionId: 'pn4-j8' });
   assert.deepEqual([...res.removed], []);
   assert.equal(res.skipped[0]?.reason, 'CONTROL_ARTIFACT');
   assert.equal(fs.existsSync(path.join(root, '.vcp', 'transaction.json')), true);
   // Only terminal clear removes it.
-  await clearVersionedJournal(root, { expectedHash: out.sha256, lock });
+  await clearVersionedJournal(root, { expectedHash: out.sha256, lock },
+    f.capability);
   assert.equal(fs.existsSync(path.join(root, '.vcp', 'transaction.json')), false);
   await lock.release();
 });
@@ -339,7 +344,8 @@ test('PN4-10 — writer-recovery cleans provenance staging, repeatably', async (
     name: '.vcp/.rec.vcp-rr.tmp', transactionId: 'pn4-rec',
     dev: staged.dev, ino: staged.ino });
   const lock = await acquireLifecycleLock(f.root);
-  await writeLocked(f.root, lock, descriptor('pn4-rec', 'prepared'));
+  await writeLocked(f.root, lock, descriptor('pn4-rec', 'prepared'),
+    null, f.capability);
   await lock.release();
   const receipt = await replayVersionedJournal(f.root, {
     restore: async () => {},
@@ -349,11 +355,20 @@ test('PN4-10 — writer-recovery cleans provenance staging, repeatably', async (
   assert.deepEqual([...(receipt.stagingCleanup?.removed ?? [])],
     ['.vcp/.rec.vcp-rr.tmp']);
   assert.equal(fs.existsSync(path.join(f.root, '.vcp', '.rec.vcp-rr.tmp')), false);
-  // Journal survived as 'recovering' (recovery's clear call carries
-  // no expected hash — pre-existing shape, unchanged by N+4); a
-  // second replay attempt still reports the transaction state.
-  const insp = await inspectVersionedJournal(f.root);
-  assert.ok(insp, 'journal retained for follow-up recovery');
+  // N+4 R1 supersedes the N+4 expectation here: replay's bookkeeping
+  // now transitions the journal with its measured digest and clears
+  // it with the transition digest, so the journal is GONE (not
+  // retained as 'recovering'), and the receipt says so explicitly.
+  // A second replay finds no journal.
+  assert.equal(receipt.journalTransition, 'succeeded');
+  assert.equal(receipt.journalCleared, true);
+  assert.equal(receipt.journalRetained, false);
+  assert.equal(fs.existsSync(path.join(f.root, '.vcp', 'transaction.json')), false);
+  const second = await replayVersionedJournal(f.root, {
+    restore: async () => {},
+    complete: async () => {},
+  }, f.capability);
+  assert.deepEqual(second, { recovered: false, reason: 'NO_JOURNAL' });
 });
 
 test('PN4-11 — anchored release surfaces helper-trust failure unmasked', async (t) => {
