@@ -511,6 +511,8 @@ test('R1-24 — fresh rollback writes and clears its own journal', async (t) => 
   const restored = await readFile(path.join(f.root, '.vcp', 'manifest.json'));
   assert.equal(restored.toString(), manifestBytes.toString());
 });
+
+test('R1-23 — strict-fence tripwire: gate must not be lock-conditional', async (t) => {
   if (!await requireLinux(t)) return;
   const src = await readFile(path.join(REPO, 'lib', 'versioned-journal.mjs'), 'utf8');
   for (const fn of ['export async function writeVersionedJournal(',
