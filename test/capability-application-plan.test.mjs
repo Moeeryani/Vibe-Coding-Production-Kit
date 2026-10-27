@@ -41,7 +41,13 @@ test('a nonmatched profile cannot claim positive candidate capabilities',()=>{
 test('old exclusive stack cannot authorize applied capability',()=>{
  const p=planCapabilityApplication({discovery:discovery(),installedStack:'go',requestedStack:'auto'});
  assert.deepEqual(p.appliedCapabilities,[]);
- assert.equal(p.recordedApplicationProvenance,'NOT_AVAILABLE');
+ // Nothing is recorded; the plan instead carries a provenance *preview*
+ // that explicitly states persistedApplication:false and NOT_ESTABLISHED.
+ assert.equal(p.recordedApplicationProvenance,'NOT_RECORDED');
+ assert.equal(p.applicationProvenance.persistedApplication,false);
+ assert.equal(p.applicationProvenance.ownerApproval,'NOT_ESTABLISHED');
+ assert.equal(p.applicationProvenance.proposalDigest,p.evidenceDigest);
+ assert.deepEqual(p.applicationProvenance.appliedCapabilities,[]);
 });
 test('proposal fingerprint never grants authority or a migration flag',()=>{
  const p=planCapabilityApplication({discovery:discovery(),selectedProfiles:selected('platform.desktop')});
