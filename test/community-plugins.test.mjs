@@ -574,7 +574,11 @@ test('missing declared guidance fails instead of silently dropping plugin contex
 
 test('manifest rejects unsupported schema, kind, capability, executable-style keys, and empty guidance modes', async () => {
   const cases = [
-    [value => { value.schemaVersion = 2; }, /Unsupported community plugin manifest schemaVersion/],
+    [value => { value.schemaVersion = 3; }, /Unsupported community plugin manifest schemaVersion/],
+    // Phase 5 integration: schemaVersion 2 is now a supported manifest version,
+    // routed to the digest-pinned v2 loader. A v1-shaped manifest flipped to 2
+    // with non-detection grants must still be refused, via the v2 grant gate.
+    [value => { value.schemaVersion = 2; }, /E_PROFILE_V2_GRANT_REQUIRED/],
     [value => { value.kind = 'javascript-plugin'; }, /manifest kind must be/],
     [value => { value.capabilities.push('hooks'); }, /unsupported value "hooks"/],
     [value => { value.entrypoint = 'index.mjs'; }, /unsupported key "entrypoint"/],
