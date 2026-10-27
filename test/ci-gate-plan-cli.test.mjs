@@ -77,6 +77,15 @@ test('detected project CI is reported; provider mismatch is flagged, not hidden'
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
 
+// Regression (Batch B): the review-evidence --task branch shadowed the CI
+// --task branch, so ci-gate-plan --task was rejected. --task must route to
+// CI selectors for ci-gate-plan, to the review slug for review-evidence,
+// and be refused for any other command.
+test('--task is refused for commands other than ci-gate-plan and review-evidence', async () => {
+  await assert.rejects(run(['gate', '--task', 'fix-login', '--base', BASE, '--json']),
+    /--task is only supported by the ci-gate-plan and review-evidence commands/);
+});
+
 test('ci-gate-plan rejects mutation flags and unknown providers', async () => {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'vcp-ci-plan-'));
   try {
