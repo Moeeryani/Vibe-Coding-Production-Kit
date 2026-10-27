@@ -20,8 +20,24 @@ Use this skill only after confirming the current project uses VCP. The repositor
 
 ## Modes
 
-- **Manual**: provide next steps; the developer/agent explicitly chooses each action.
-- **Auto**: suggest the next *existing* action via `vcp workflow-preview <task> --workflow-mode auto`; do not automatically execute, switch agents, persist workflow state or claim mechanical enforcement. Workflow mode is a session preview: the lifecycle manifest does not record it.
+Run a workflow with `vcp workflow <task> --workflow-mode <mode>`. The mode
+changes who decides the next step and whether confirmation is required; it
+never changes what is authorized. `vcp workflow-preview` only lists the
+steps for a phase without executing anything.
+
+- **Manual**: VCP shows every available next step, the evidence each one
+  needs, and the blockers; the developer/agent authorizes each step, in
+  order. Skipping ahead is refused.
+- **Assisted**: VCP recommends exactly one next step from the deterministic
+  project state, explains it, and asks for confirmation before advancing.
+- **Auto**: a connected coding agent can let VCP advance through ordinary,
+  low-risk transitions without confirming every step. Auto stops on failed
+  checks, stale evidence, changed project state, L3 changes, and missing
+  approvals; it never merges, pushes, publishes, deploys, activates
+  production, creates approvals, or bypasses command authority. At the
+  implement phase it hands off to the coding agent and resumes at gate
+  evidence. Mode is session-scoped only: the lifecycle manifest does not
+  record it (see `docs/WORKFLOW-MODES.md`).
 
 ## Specialized skills (load on demand, never all at once)
 

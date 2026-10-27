@@ -230,6 +230,22 @@ The planning gate blocks missing outcome, Source of Truth, acceptance criteria, 
 
 The implementation gate additionally requires resolved architecture/data/integration boundaries, domain invariants, security/privacy, failure modes, observability, test coverage, rollout/recovery, an implementation plan, and at least one executable task verification command so `vcp verify` can build a plan. Use `--json` for automation and `--strict` to make warnings non-zero. See [`TASK-READINESS.md`](TASK-READINESS.md).
 
+## Run a workflow: Manual, Assisted, or Auto
+
+`vcp workflow` runs the plan → implement → review → release progression for one Task Pack, reusing the readiness, context, verification, and gate contracts above. Preview the route without executing anything with `vcp workflow-preview`. The mode only changes who decides the next step:
+
+```bash
+vcp workflow accept-invite --workflow-mode manual --workflow-phase plan
+vcp workflow accept-invite --workflow-mode assisted --workflow-phase plan
+vcp workflow accept-invite --workflow-mode auto --base <base-ref>
+```
+
+Manual authorizes every step in order; Assisted recommends one step and asks for confirmation; Auto advances through ordinary low-risk transitions and stops on failed checks, stale evidence, changed state, L3 changes, or missing approvals. Auto never merges, pushes, publishes, deploys, activates production, creates approvals, or bypasses command authority, and it hands code authorship to the coding agent at the implement phase. Pass `--session-file <path>` to resume a session; mode is session-scoped only (the lifecycle manifest does not record it). See [`WORKFLOW-MODES.md`](WORKFLOW-MODES.md).
+
+Classify a change and collect gate evidence with `vcp gate-preview` / `vcp gate --run`: L0 needs no readiness, L1 needs plan-stage readiness, L2/L3 need implement-stage readiness plus verification, and material changes are conservatively promoted to L2. L3 always blocks pending independent review; validate review-evidence bindings with `vcp review-evidence` (see [`L3-REVIEW-EVIDENCE.md`](L3-REVIEW-EVIDENCE.md)).
+
+Discover what VCP can do in a project with `vcp capabilities` / `vcp capability-plan`, and discover, inspect, and install its Skills with `vcp skills` (see [`SKILLS-SETUP.md`](SKILLS-SETUP.md)). If anchored filesystem operations report a missing or untrusted native helper, build it from source with `npm run setup:native-helper` (see [`NATIVE-HELPER.md`](NATIVE-HELPER.md)).
+
 ## Build a bounded AI context pack
 
 ```bash

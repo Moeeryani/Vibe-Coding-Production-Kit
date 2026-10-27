@@ -17,7 +17,9 @@ test('matrix validates: every row has id/area/requirement/status and existing ev
   assert.equal(summary.total, CONFORMANCE_MATRIX.length);
   assert.equal(summary.COVERED + summary.PARTIAL + summary.UNRESOLVED, summary.total);
   assert.equal(summary.acceptanceClaimed, false);
-  assert.ok(summary.UNRESOLVED >= 12, `expected >=12 unresolved rows, got ${summary.UNRESOLVED}`);
+  // Deliberate change (Batch F, owner decisions D-PC-01/D-PC-02): U-08 resolved
+  // to COVERED and U-07 to PARTIAL, so 10 unresolved rows remain.
+  assert.ok(summary.UNRESOLVED >= 10, `expected >=10 unresolved rows, got ${summary.UNRESOLVED}`);
 });
 
 test('the status vocabulary cannot express acceptance', () => {
@@ -30,7 +32,10 @@ test('the status vocabulary cannot express acceptance', () => {
 test('unresolved rows name their blockers explicitly', async () => {
   const unresolved = CONFORMANCE_MATRIX.filter((r) => r.status === 'UNRESOLVED');
   const text = unresolved.map((r) => `${r.id} ${r.requirement} ${r.notes}`).join('\n').toLowerCase();
-  for (const must of ['Windows', 'Power-loss', 'D-01', 'G-FENCE', 'PH-06', 'L3', 'L1 readiness', 'Checkpoint A', 'Checkpoint D', '0.9.4', 'mandatory CI enforcement']) {
+  // 'L3' and 'L1 readiness' left this list deliberately: U-07 is PARTIAL and
+  // U-08 is COVERED after owner decisions D-PC-02/D-PC-01; their rows still
+  // name the remaining authorization/persistence blockers.
+  for (const must of ['Windows', 'Power-loss', 'D-01', 'G-FENCE', 'PH-06', 'Checkpoint A', 'Checkpoint D', '0.9.4', 'mandatory CI enforcement']) {
     assert.ok(text.includes(must.toLowerCase()), `unresolved rows must mention: ${must}`);
   }
   for (const row of unresolved) assert.ok(row.notes.length > 10, `${row.id} needs a named blocker`);
@@ -67,10 +72,12 @@ test('header counts are derived from the module and match the known construction
   // (The word "undefined" legitimately appears in one row's requirement text.)
   // Tripwire: changing any status classification changes these counts, and
   // must be a deliberate, disclosed change — not silent drift.
-  assert.equal(summary.total, 42);
-  assert.equal(summary.COVERED, 28);
-  assert.equal(summary.PARTIAL, 2);
-  assert.equal(summary.UNRESOLVED, 12);
+  // Deliberate change (Batch F): U-08 COVERED, U-07 PARTIAL, plus new
+  // SKL-04 and PKG-02 rows. Counts are derived from the module, not hardcoded.
+  assert.equal(summary.total, 44);
+  assert.equal(summary.COVERED, 31);
+  assert.equal(summary.PARTIAL, 3);
+  assert.equal(summary.UNRESOLVED, 10);
   assert.equal(summary.acceptanceClaimed, false);
 });
 

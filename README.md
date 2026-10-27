@@ -142,6 +142,8 @@ doctor
 release / observe
 ```
 
+You can run that flow in three modes with `vcp workflow <task> --workflow-mode manual|assisted|auto`: Manual asks you to authorize every step, Assisted recommends one next step and asks for confirmation, and Auto advances through ordinary low-risk steps and stops on blockers. The mode never changes what is authorized, and it is session-scoped only. Discover what VCP can do in your project with `vcp capabilities`, and install its workflow Skills into your coding agent with `vcp skills` (see [`docs/SKILLS-SETUP.md`](docs/SKILLS-SETUP.md)). Changes are classified L0–L3 by `vcp gate-preview`; L1 needs plan-stage readiness, L2/L3 need implement-stage readiness plus verification, and L3 additionally needs independent review evidence (see [`docs/L3-REVIEW-EVIDENCE.md`](docs/L3-REVIEW-EVIDENCE.md)).
+
 When a newer VCP version is available:
 
 ```text

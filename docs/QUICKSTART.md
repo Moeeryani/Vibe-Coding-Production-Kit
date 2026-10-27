@@ -167,6 +167,8 @@ vcp context accept-invite \
 
 Prefer a fresh agent/context for review rather than relying only on the agent that wrote the change. The reviewer should reconstruct intent from the task, Source of Truth, acceptance criteria, diff, tests, and verification evidence instead of assuming the implementation summary is correct.
 
+For an L3 change, the review must also produce independently verifiable review evidence (reviewer identity, decision, scope, task, and Git provenance, bound together). Validate its bindings with `vcp review-evidence <file> --task <slug> --base <ref>`; valid bindings are still not authorization — live L3 authorization is disabled until a trustworthy reviewer-identity mechanism exists. See [`L3-REVIEW-EVIDENCE.md`](L3-REVIEW-EVIDENCE.md).
+
 Classify each finding by type:
 
 - `BLOCKER`
