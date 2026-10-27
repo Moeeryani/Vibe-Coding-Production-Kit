@@ -3,11 +3,12 @@
 // incapable of claiming overall acceptance or production readiness.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { access, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import {
   CONFORMANCE_MATRIX, CONFORMANCE_STATUSES, validateConformanceMatrix, conformanceSummary,
 } from '../lib/conformance-matrix.mjs';
+import { generateConformanceDoc } from '../scripts/generate-conformance-doc.mjs';
 
 test('matrix validates: every row has id/area/requirement/status and existing evidence', async () => {
   const result = await validateConformanceMatrix();
@@ -39,4 +40,56 @@ test('the human-readable matrix doc contains every matrix id', async () => {
   const doc = await readFile(path.resolve('docs/VCP-ADAPTIVE-CONFORMANCE-MATRIX.md'), 'utf8');
   assert.ok(doc.includes('NOT ACCEPTED'), 'doc must state acceptance is not claimed');
   for (const row of CONFORMANCE_MATRIX) assert.ok(doc.includes(row.id), `doc missing row ${row.id}`);
+});
+
+// Generator repair (independent-validation LOW 7.2): the committed doc was
+// produced by an uncommitted one-off script whose lowercase summary keys and
+// broken backticks rendered "COVERED undefined" and empty code spans, while
+// this test only checked row ids. These tests pin the whole generated
+// surface, so header/footer drift is now detected.
+test('committed doc is exactly the generated doc (deterministic regeneration)', async () => {
+  const committed = await readFile(path.resolve('docs/VCP-ADAPTIVE-CONFORMANCE-MATRIX.md'), 'utf8');
+  assert.equal(committed, generateConformanceDoc(), 'regenerate with node scripts/generate-conformance-doc.mjs in the same commit as any matrix change');
+  assert.equal(generateConformanceDoc(), generateConformanceDoc(), 'generator must be deterministic');
+});
+
+test('header counts are derived from the module and match the known construction values', async () => {
+  const summary = conformanceSummary();
+  const doc = await readFile(path.resolve('docs/VCP-ADAPTIVE-CONFORMANCE-MATRIX.md'), 'utf8');
+  const header = /^Rows: (\d+) — COVERED (\d+), PARTIAL (\d+), UNRESOLVED (\d+)\. Acceptance claimed: (false|true)\.$/m.exec(doc);
+  assert.ok(header, 'doc header must carry the counts line');
+  assert.equal(Number(header[1]), summary.total);
+  assert.equal(Number(header[2]), summary.COVERED);
+  assert.equal(Number(header[3]), summary.PARTIAL);
+  assert.equal(Number(header[4]), summary.UNRESOLVED);
+  assert.equal(header[5], String(summary.acceptanceClaimed));
+  // The header line itself must carry numbers, not the old "undefined" placeholders.
+  // (The word "undefined" legitimately appears in one row's requirement text.)
+  // Tripwire: changing any status classification changes these counts, and
+  // must be a deliberate, disclosed change — not silent drift.
+  assert.equal(summary.total, 42);
+  assert.equal(summary.COVERED, 28);
+  assert.equal(summary.PARTIAL, 2);
+  assert.equal(summary.UNRESOLVED, 12);
+  assert.equal(summary.acceptanceClaimed, false);
+});
+
+test('doc rows carry the full requirement text, in module order', async () => {
+  const doc = await readFile(path.resolve('docs/VCP-ADAPTIVE-CONFORMANCE-MATRIX.md'), 'utf8');
+  let cursor = 0;
+  for (const row of CONFORMANCE_MATRIX) {
+    const cell = `| ${row.id} | ${row.area} | ${row.requirement} |`;
+    const at = doc.indexOf(cell, cursor);
+    assert.ok(at >= 0, `doc row for ${row.id} must carry its full requirement text`);
+    cursor = at + cell.length;
+    assert.ok(doc.includes(`| ${row.status} |`), `doc row for ${row.id} must carry status ${row.status}`);
+  }
+});
+
+test('doc names its source module, generator, and enforcing test files, and they exist', async () => {
+  const doc = await readFile(path.resolve('docs/VCP-ADAPTIVE-CONFORMANCE-MATRIX.md'), 'utf8');
+  for (const ref of ['lib/conformance-matrix.mjs', 'scripts/generate-conformance-doc.mjs', 'test/conformance-matrix.test.mjs', 'test/conformance-fixtures.test.mjs']) {
+    assert.ok(doc.includes(`\`${ref}\``), `doc must reference \`${ref}\` in a code span`);
+    await access(path.resolve(ref));
+  }
 });

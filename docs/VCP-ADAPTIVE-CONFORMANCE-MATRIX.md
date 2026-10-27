@@ -1,8 +1,8 @@
 # Adaptive Phase 10 — Conformance Matrix
 
-**Status: SOURCE COMPLETE, NOT ACCEPTED.** This matrix is generated from  (the single source of truth) so the doc cannot drift from the validated data. It records what has in-tree test evidence, what is partial, and what is explicitly unresolved. It cannot express overall acceptance: the status vocabulary has no ACCEPTED value, and overall conformance acceptance and production readiness remain separate owner decisions backed by independent evidence that does not exist yet.
+**Status: SOURCE COMPLETE, NOT ACCEPTED.** This matrix is generated from `lib/conformance-matrix.mjs` (the single source of truth) so the doc cannot drift from the validated data. It records what has in-tree test evidence, what is partial, and what is explicitly unresolved. It cannot express overall acceptance: the status vocabulary has no ACCEPTED value, and overall conformance acceptance and production readiness remain separate owner decisions backed by independent evidence that does not exist yet.
 
-Rows: 42 — COVERED undefined, PARTIAL undefined, UNRESOLVED undefined. Acceptance claimed: false.
+Rows: 42 — COVERED 28, PARTIAL 2, UNRESOLVED 12. Acceptance claimed: false.
 
 | ID | Area | Requirement | Evidence | Status | Notes |
 |---|---|---|---|---|---|
@@ -19,7 +19,7 @@ Rows: 42 — COVERED undefined, PARTIAL undefined, UNRESOLVED undefined. Accepta
 | WF-02 | Auto/Manual workflows | Auto does not persist workflowMode (manifest schema records no mode) and never auto-executes beyond authorized commands. | test/workflow-router.test.mjs; lib/workflow-router.mjs | PARTIAL | Session-preview semantics documented; owner decision needed if persistence is ever wanted. |
 | GATE-01 | Gate classification and execution | Classification exact on 12 change cases + empty-diff block; 0 false-high, 0 unsafe-low on fixtures. | test/checkpoint-c-measurements.test.mjs | COVERED | Synthetic fixtures, not real-user dogfood. |
 | GATE-02 | Gate classification and execution | Clean L0/L1/L2 gates reach EVIDENCE_ONLY_NOT_APPROVED (exit 2); verification executed only where the level requires it. | test/gate-run-execution.test.mjs | COVERED |  |
-| GATE-03 | Gate classification and execution | L3 changes refuse before verification (INDEPENDENT_L3_REVIEW_REQUIRED); no L3 pass path exists yet. | test/gate-run-execution.test.mjs | PARTIAL | Blocked on UNRESOLVED L3 review-evidence format (U-09). |
+| GATE-03 | Gate classification and execution | L3 changes refuse before verification (INDEPENDENT_L3_REVIEW_REQUIRED); no L3 pass path exists yet. | test/gate-run-execution.test.mjs | PARTIAL | Blocked on UNRESOLVED L3 review-evidence format (U-07). |
 | GATE-04 | Gate classification and execution | Stale evidence refused: HEAD change, task change, dirty-before/after, failed and unauthorized commands all block with the command unrun or the evidence rejected. | test/gate-run-execution.test.mjs | COVERED |  |
 | CI-01 | Provider-neutral CI integration | Gate policy is explicit and validated; unknown fields, bad job names, and shallow tolerance are rejected. | test/ci-gate-invocation.test.mjs | COVERED |  |
 | CI-02 | Provider-neutral CI integration | Selector resolution is deterministic: none -> L0 attempt, one -> run, multiple/invalid -> block with no command. | test/ci-gate-invocation.test.mjs; test/ci-gate-plan-cli.test.mjs | COVERED |  |
@@ -55,6 +55,8 @@ Every UNRESOLVED row names the owner decision or campaign that would close it. U
 
 ## How this matrix is enforced
 
--  validates structure, evidence-file existence, unresolved-blocker naming, and that the doc contains every row id.
--  proves cross-batch composition on disposable fresh and brownfield projects.
+- `lib/conformance-matrix.mjs` validates structure, evidence-file existence, unresolved-blocker naming, and that the doc contains every row id.
+- `test/conformance-matrix.test.mjs` proves the generated doc matches the module exactly: row identities, requirement text, header counts, and the source-module and test-file references.
+- `test/conformance-fixtures.test.mjs` proves cross-batch composition on disposable fresh and brownfield projects.
+- `scripts/generate-conformance-doc.mjs` is the single generator; it derives every count and row from `lib/conformance-matrix.mjs`. Regenerate after any matrix change, in the same commit.
 - The matrix module rejects any status outside COVERED / PARTIAL / UNRESOLVED at validation time.
