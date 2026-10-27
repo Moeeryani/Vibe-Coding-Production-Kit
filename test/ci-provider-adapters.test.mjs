@@ -42,10 +42,11 @@ test('L0 snippets require no task selector; task snippets resolve one', () => {
   const task = renderSnippet('gitlab', { jobName: 'vcp-gate', mode: 'GATE_RUN' });
   assert.ok(task.includes('vcp gate "$VCP_TASK"'), 'task snippet resolves the selector at runtime');
   const gh = renderSnippet('github', { jobName: 'vcp-gate', mode: 'GATE_RUN' });
-  assert.ok(gh.includes('VCP-Task: '), 'GitHub snippet extracts the trailer');
+  assert.ok(gh.includes('VCP-Task:[[:blank:]]'), 'GitHub snippet extracts the trailer with the JS-matched pattern');
+  assert.ok(gh.includes('tr -d'), 'GitHub snippet strips carriage returns from PR bodies (CRLF case is executed in ci-github-shell-extraction.test.mjs)');
   assert.ok(gh.includes('fetch-depth: 0'), 'GitHub snippet fetches full history');
   const ghL0 = renderSnippet('github', { jobName: 'vcp-gate', mode: 'L0_ATTEMPT' });
-  assert.ok(!ghL0.includes('VCP-Task: '), 'L0 GitHub snippet has no trailer step');
+  assert.ok(!ghL0.includes('VCP-Task:'), 'L0 GitHub snippet has no trailer step');
 });
 
 test('CircleCI documents its missing native base SHA; Azure resolves the target branch', () => {
