@@ -1,0 +1,51 @@
+{
+ "schemaVersion": 1,
+ "scenarioId": "release-decision-boundary",
+ "prompt": "prompts/07-release-review.md",
+ "observations": {
+  "discovered": [],
+  "planSlices": [],
+  "blocked": [],
+  "executedActions": [],
+  "durableArtifacts": [],
+  "dependsOnChatHistory": false,
+  "questions": [
+   {
+    "key": "release.public-announcement-date",
+    "class": "HUMAN_DECISION"
+   }
+  ],
+  "proposals": [
+   "release.staged-rollout-10-percent"
+  ],
+  "approvals": [
+   "release.version-2.0-scope"
+  ],
+  "negativeDecisions": [
+   "release.skip-migration-check"
+  ],
+  "checks": [
+   {
+    "id": "check.release-tests",
+    "executed": true,
+    "actualStatus": "pass",
+    "reportedStatus": "pass"
+   },
+   {
+    "id": "check.release-migration",
+    "executed": false,
+    "actualStatus": null,
+    "reportedStatus": "not-run"
+   }
+  ],
+  "followUps": [
+   "followup.publish-release-notes",
+   "followup.skip-migration-rollback"
+  ],
+  "implementedFollowUps": [
+   "followup.publish-release-notes"
+  ]
+ },
+ "promptBlobSha": "9807b39385cc1e7939ccddf62bfada4ece6e0f4b",
+ "suiteBlobSha": "2386b7374a38dfe672301ecf83d2528ae84193cc"
+}

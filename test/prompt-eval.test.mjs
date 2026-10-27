@@ -45,7 +45,7 @@ test('canonical Stage 7 suite covers every roadmap behavior property', async () 
   const covered = new Set(suite.scenarios.flatMap((scenario) => scenario.properties));
 
   assert.deepEqual([...covered].sort(), [...PROMPT_EVAL_PROPERTIES].sort());
-  assert.equal(suite.scenarios.length, 4);
+  assert.equal(suite.scenarios.length, 6);
   assert.equal(PROMPT_EVAL_PROPERTIES.length, 9);
 });
 
@@ -57,7 +57,7 @@ test('reference prompt behavior suite passes every scenario, property, and asser
 
   assert.equal(report.success, true);
   assert.equal(report.summary.scenariosFail, 0);
-  assert.equal(report.summary.scenariosPass, 4);
+  assert.equal(report.summary.scenariosPass, 6);
   assert.equal(report.summary.propertiesFail, 0);
   assert.equal(report.summary.propertiesPass, 9);
   assert.ok(report.summary.assertionsPass > 20);
@@ -158,7 +158,7 @@ test('canonical scenario listing is deterministic and exposes property coverage'
   }
   assert.deepEqual(
     listing.scenarios.map((item) => item.id),
-    ['discovery-boundaries', 'plan-vertical-blockers', 'verification-followup', 'review-restartability']
+    ['discovery-boundaries', 'plan-vertical-blockers', 'verification-followup', 'review-restartability', 'security-review-boundaries', 'release-decision-boundary']
   );
   for (const scenario of listing.scenarios) {
     assert.equal(typeof scenario.promptContent, 'string');

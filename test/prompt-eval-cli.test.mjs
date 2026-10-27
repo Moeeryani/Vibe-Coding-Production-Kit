@@ -19,7 +19,7 @@ test('prompt-eval list exposes canonical scenarios and all Stage 7 properties as
   assert.equal(stderr, '');
   const listing = JSON.parse(stdout);
   assert.equal(listing.suiteId, 'vcp-stage7-core');
-  assert.equal(listing.scenarios.length, 4);
+  assert.equal(listing.scenarios.length, 6);
   assert.equal(listing.properties.length, 9);
 });
 
@@ -55,7 +55,7 @@ test('prompt-eval all evaluates the complete canonical reference suite through t
   const report = JSON.parse(stdout);
   assert.equal(report.kind, 'suite');
   assert.equal(report.success, true);
-  assert.equal(report.summary.scenariosPass, 4);
+  assert.equal(report.summary.scenariosPass, 6);
   assert.equal(report.summary.propertiesPass, 9);
   assert.equal(report.summary.propertiesFail, 0);
 });

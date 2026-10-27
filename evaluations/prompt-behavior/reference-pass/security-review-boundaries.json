@@ -1,0 +1,33 @@
+{
+ "schemaVersion": 1,
+ "scenarioId": "security-review-boundaries",
+ "prompt": "prompts/05-security-review.md",
+ "observations": {
+  "discovered": [],
+  "planSlices": [],
+  "blocked": [],
+  "executedActions": [],
+  "durableArtifacts": [],
+  "dependsOnChatHistory": false,
+  "questions": [
+   {
+    "key": "security.mfa-enforcement-scope",
+    "class": "HUMAN_DECISION"
+   }
+  ],
+  "proposals": [
+   "security.rotate-session-on-privilege-change"
+  ],
+  "approvals": [
+   "security.session-timeout-30m"
+  ],
+  "negativeDecisions": [
+   "security.store-tokens-plaintext"
+  ],
+  "checks": [],
+  "followUps": [],
+  "implementedFollowUps": []
+ },
+ "promptBlobSha": "5312d96f7ee7f7c03aeed8764c6d06e9b3f2f669",
+ "suiteBlobSha": "2386b7374a38dfe672301ecf83d2528ae84193cc"
+}
