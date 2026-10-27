@@ -1,0 +1,29 @@
+# Batch E: when .npmignore exists, npm does NOT consult .gitignore, so this
+# file must carry every exclusion that matters for the published tarball.
+#
+# The built Linux native helper binary + trust manifest are gitignored build
+# artifacts, but they MUST ship in the tarball: without them an installed
+# consumer cannot use anchored filesystem operations and fails closed.
+# They ship because package.json "files" lists scripts/, and entries in
+# "files" cannot be excluded by .gitignore. The negations below state that
+# inclusion explicitly, so a future change to the "files" list cannot
+# silently drop them.
+!scripts/native/vcp-linux-fsops
+!scripts/native/vcp-linux-fsops.manifest.json
+
+# NEVER ship Windows candidate artifacts. The Windows native helper is a
+# separate, D-01-gated, unshipped candidate; a Linux tarball must not carry
+# a Windows executable, and a Linux binary must never satisfy Windows.
+scripts/native/vcp-windows-fsops.exe
+scripts/native/vcp-windows-fsops.obj
+build/
+
+# Local/editor artefacts (mirrors .gitignore for packed directories).
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.tmp
+.env
+.env.*
+!.env.example
