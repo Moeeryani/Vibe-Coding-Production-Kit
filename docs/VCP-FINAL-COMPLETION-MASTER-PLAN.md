@@ -26,6 +26,13 @@ VCP is a repository-native, deterministic engineering control plane for AI codin
 7. Exact candidate HEAD/tree, source-to-package identity, native Linux/Windows (as supported) evidence, changelog/docs, conformance matrix, install/update/rollback smoke, release check, and human GO/NO-GO are preserved.
 8. Only AFTER explicit owner release authorization: immutable tag, npm publication, GitHub Release, registry install smoke. Never publish as a side effect of a passed test.
 
+### 2026-10-28 P0 publication receipt (branch refs only; archive pending)
+
+- Seven frozen refs published with SHA-pinned pushes, dry-run and independent disposable-clone SHA/tree/fsck verification: `feat/vcp-release-readiness-baseline` (`d4fb3ce`); `design/od1-scoped-task-pack-creation` (`68a5da5`); intermediate tips `084e7d7`, `b839942`, `d16dcff`, `0a374d5`, `738a022`.
+- No `main`/tag/planning branch movement during those pushes, no merge/PR/publish/release, and no remote `sc01` branch. SC-01 `57e4df4` remains local and unvalidated by G3.
+- P0 prepublication audit: known-pattern secret scan of 2,172 reachable baseline blobs and four design blobs clean (pattern limitations apply); Phase N–N+2 reports located; snapshot `779a5abf` superseded with zero tree-content loss. Evidence manifest is prepared for 309 files (7,361,948 bytes, 15 sections) but NOT archived/reverified at upload time.
+- **P0 remaining:** decide whether to archive the six Phase N report-only commits as reports on an evidence branch (recommended) or publish separate refs; obtain explicit owner approval for evidence-branch base and public log archive; rehash and inspect logs before upload; record archive receipts, then mark P0 ACCEPTED. The approved seven-branch push does not authorize any further GitHub publishing.
+
 ### 2026-10-28 P1 build freeze (reported, independent verdict pending)
 
 - **SC-01 implementation:** local branch `feat/sc01-scoped-task-pack-creation`, HEAD `57e4df465f6a56da91717b1ffb0474dae8b91e65`, tree `bd066b01ada5855bfd19e3f11fbae302f9d55a12`, five local commits on `d4fb3ce`, 9-file diff; no push or merge.
@@ -60,7 +67,7 @@ Statuses are one of `NOT_STARTED`, `BUILDING`, `BUILT_UNVALIDATED`, `VALIDATING`
 
 | Phase | Title | Initial status | Dependency | Owner-facing result |
 |---|---|---|---|---|
-| **P0** | Source and evidence reconciliation | **BLOCKED: local code not on remote** | None | Exact SHA chain and evidence archived on approved candidate refs; no main merge |
+| **P0** | Source and evidence reconciliation | **PARTIAL: 7 verified refs published; archive pending** | No merge; owner archive decision pending | Exact SHA chain published on new refs; archive and final P0 tracker closure pending |
 | **P1** | SC-01 Linux scoped Task Pack creation | **BUILT_UNVALIDATED (local `57e4df4`)** | Local `d4fb3ce`, conditional build authorization; P0 needed before GitHub PR | Builder 44/44 scoped, 1416: 1352/48/16; independent G3/G1–G6 and owner risk/activation pending |
 | **P2** | Read-only product measurement B/E + C fixture | **READY IN PARALLEL** | Fixed candidate/corpus; no D-01 write GO | Measured adaptation accuracy, ablation decisions, C fixture re-measurement |
 | **P3** | Owner decision and contract resolution | **NOT_STARTED** | Root-cause reports; P0; independent reviews | Decisions OD-2,3,4,6 and scoped activation vs full D-01/Windows/CI |
@@ -186,7 +193,7 @@ Next dependency / NO-GO conditions:
 
 ## 6. Initial next action (do not get distracted)
 
-**NOW: P0 source-chain reconciliation and independent P1/G3 validation may proceed in parallel**, using separate disposable worktrees. P1's local builder is frozen at `57e4df465f6a56da91717b1ffb0474dae8b91e65`; the next required P1 action is independent G3 adversarial verification on that exact commit, not another implementation batch. No new code work on the frozen P1 branch. P2 read-only corpus preparation may proceed independently. Code push/merge remains separately owner-controlled.
+**NOW: finalize the P0 evidence-archive decision (seven source refs already verified on GitHub) and independent P1/G3 validation may proceed in parallel**, using separate disposable worktrees. P1's local builder is frozen at `57e4df465f6a56da91717b1ffb0474dae8b91e65`; the next required P1 action is independent G3 adversarial verification on that exact commit, not another implementation batch. No new code work on the frozen P1 branch. P2 read-only corpus preparation may proceed independently. Code push/merge remains separately owner-controlled.
 
 **Update cadence:** each independently validated completion, discovered blocker, or owner decision immediately updates Issue #109. A no-change week does not justify falsely checking boxes.
 
