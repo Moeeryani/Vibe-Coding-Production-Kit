@@ -87,7 +87,7 @@ Statuses are one of `NOT_STARTED`, `BUILDING`, `BUILT_UNVALIDATED`, `VALIDATING`
 |---|---|---|---|---|
 | **P0** | Source and evidence reconciliation | **PARTIAL: 7 verified refs published; archive pending** | No merge; owner archive decision pending | Exact SHA chain published on new refs; archive and final P0 tracker closure pending |
 | **P1** | SC-01 Linux scoped Task Pack creation | **G3 PASS FOR `57e4df4`; LOCAL R-3 CORRECTIVE BUILD AUTHORIZED** | Owner OD-R1 local acceptance, OD-R3 final check required, OD-H F-H2 deferred, OD-ACT pending | Build on new local branch + independent delta G3; no activation or push |
-| **P2** | Read-only product measurement B/E + C fixture | **READY IN PARALLEL** | Fixed candidate/corpus; no D-01 write GO | Measured adaptation accuracy, ablation decisions, C fixture re-measurement |
+| **P2** | Read-only product measurement B/E + C fixture | **PREPARED: #110, NOT EXECUTED** | Verified `d4fb3ce` source, real corpus, independent blind labels; no managed writes | [Execution contract](VCP-P2-READONLY-ACCEPTANCE-EXECUTION.md); B real-repo precision/recall, E ablation/deletion register, C fixture-only |
 | **P3** | Owner decision and contract resolution | **NOT_STARTED** | Root-cause reports; P0; independent reviews | Decisions OD-2,3,4,6 and scoped activation vs full D-01/Windows/CI |
 | **P4** | Old-CLI containment + managed lifecycle D-01 safety | **BLOCKED ON OWNER-APPROVED DESIGN** | P3, 0.9.3 hazard threat model, Linux/Windows proof plan | Safe init/update/migrate/recovery design and independently verified behavior; D-01 remains closed until separate GO |
 | **P5** | Journal/recovery/transaction/durability | **BLOCKED ON DESIGN AND TEST RIG** | P3 PH-06/legacy decisions, P4 safety boundaries | PH-06 resolved by approved contract, legacy recovery defined, B-2 + full containment evaluated |
@@ -113,6 +113,9 @@ Statuses are one of `NOT_STARTED`, `BUILDING`, `BUILT_UNVALIDATED`, `VALIDATING`
 **Acceptance:** SC-T01–SC-T46 Linux cases; Windows SC-T47–T49 UNPROVEN; 42 MANAGED F1 tests KEEP REFUSING; no new stable failure names; builder report + fresh independent G3 adversarial evidence + G1–G6 + exact residual parent-swap disposition and a **separate owner activation decision**. A failed predicate or parent-swap containment assertion is a STOP, not a prompt to change D-01. SC-01 alone does NOT resolve the 42 F1 failures and DOES NOT make 0.9.4 releasable.
 
 ### P2 — Real measurements that require no managed writes (PARALLEL WITH P1)
+
+**Execution assignment prepared:** [P2 read-only acceptance protocol](VCP-P2-READONLY-ACCEPTANCE-EXECUTION.md) and [subtask #110](https://github.com/Moeeryani/Vibe-Coding-Production-Kit/issues/110). This is a prompt/measurement contract, **not** evidence that B/E/C results have been run. Real B corpus requires independently blinded labels (2–3 reviewers), and E requires measured disposable-clone ablations and an explicit deletion/deprecation register. 
+
 
 - **Checkpoint B:** 8–12 genuine disposable-copy projects across JS/TS, Python, Go, React Native, generic; blind ground-truth reviewer, precision/recall target >=90%; detection, command proposals, unknowns, context budgets; denominators + hashes; no copy mutation. User/owner approval of corpus and acceptance still required.
 - **Checkpoint E:** independently perform recorded ablation/injected-failure experiments, compare failed-test catch rate with/without each removable surface. Do not disable a safety control in shared/production code. All keep/remove decisions evidence-backed; implementation of removal requires separate approval.
