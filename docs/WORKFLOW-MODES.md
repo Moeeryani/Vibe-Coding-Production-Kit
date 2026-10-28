@@ -81,6 +81,26 @@ it. Switching modes mid-session is explicit and recorded
 a confirmation, or stop the run — completed steps and blockers are preserved
 in the session.
 
+**Session files are local, user-controlled state — not authorization
+receipts.** A session file can be hand-edited, so completion claims are
+never trusted at face value. On resume, any completed step whose claim
+depends on gate or verification evidence (`gate-evidence`,
+`gate-preview`) is revalidated: its recorded evidence must bind the
+current task and the Git HEAD it was collected at, and the current HEAD
+must still match. A stale, mismatched, or unbound claim is dropped —
+together with later steps that depended on it — and re-executes against
+current state; sessions written before gate-evidence binding existed
+are re-run rather than trusted. A session file can never create an
+approval, bypass the gate, or authorize anything: gate outcomes are
+evidence only, and the gate itself always re-checks current state.
+
+**Blocked steps explain themselves.** When Auto (or any mode) stops on a
+blocked step, the session records the blocked step with its underlying
+evidence — the gate's blocking reasons, the failed readiness checks, or
+the review-validation reasons — in `blockedSteps` and in the transcript,
+and the CLI prints the reason line. Re-running the gate separately to
+learn why a run stopped is no longer necessary.
+
 **Durable mode persistence is not implemented.** The lifecycle manifest
 schema does not record `workflowMode`, and extending it would be a lifecycle
 contract change requiring an owner decision (adjacent to the D-01/G-FENCE

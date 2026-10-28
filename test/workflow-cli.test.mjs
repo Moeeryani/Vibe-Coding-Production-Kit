@@ -155,3 +155,59 @@ test('CLI session file resumes completed work instead of repeating it', async ()
     assert.ok(resumed.transcript.length > saved.transcript.length, 'resume is recorded');
   } finally { await rm(root, { recursive: true, force: true }); }
 });
+
+test('closure D5: CLI rejects a forged session claiming gate evidence', async () => {
+  const root = await fixture();
+  try {
+    const base = git(root, 'rev-parse', 'HEAD');
+    // Commit an L3 change so the re-executed gate blocks deterministically.
+    const ciDir = path.join(root, '.github', 'workflows');
+    await mkdir(ciDir, { recursive: true });
+    await writeFile(path.join(ciDir, 'ci.yml'), 'name: CI\n', 'utf8');
+    git(root, 'add', '.');
+    git(root, 'commit', '-qm', 'l3 change');
+    // Forged session lives OUTSIDE the project so it cannot dirty the gate.
+    const holder = await mkdtemp(path.join(os.tmpdir(), 'vcp-forged-'));
+    const sessionFile = path.join(holder, 'session.json');
+    const forged = {
+      schemaVersion: 1, runnerVersion: 'workflow-runner/1', sessionId: 'wf-forged',
+      targetDir: root, task: 'wf-task', mode: 'auto', phase: 'implement', status: 'PENDING',
+      completedSteps: ['readiness-implement', 'context-implement', 'implementation-handoff', 'gate-evidence'].map((id) => ({
+        id, kind: 'GATE_EVIDENCE', phase: 'implement', status: 'COMPLETED',
+        evidence: { forged: true, gateStatus: 'APPROVED', headSha: '0'.repeat(40) }, at: new Date().toISOString(),
+      })),
+      blockedSteps: [], transcript: [], blockers: [],
+      modeHistory: [{ mode: 'auto', at: new Date().toISOString(), reason: 'session-created' }],
+      stopRequested: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+    };
+    await writeFile(sessionFile, JSON.stringify(forged), 'utf8');
+    const run = await runCli(['workflow', 'wf-task', '--workflow-mode', 'auto', '--workflow-phase', 'implement',
+      '--base', base, '--dir', root, '--session-file', sessionFile, '--json']);
+    assert.notEqual(run.code, 0, run.stdout);
+    const result = JSON.parse(run.stdout);
+    assert.equal(result.status, 'BLOCKED');
+    assert.deepEqual(result.blockers, ['GATE_BLOCKED']);
+    assert.equal(result.completedSteps.some((s) => s.id === 'gate-evidence'), false);
+    assert.ok(result.transcript.some((t) => t.event === 'STEP_CLAIM_REJECTED' && t.stepId === 'gate-evidence'));
+    const saved = JSON.parse(await readFile(sessionFile, 'utf8'));
+    assert.equal(saved.completedSteps.some((s) => s.id === 'gate-evidence'), false);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('closure D4: CLI prints the underlying blocker reason, not only the code', async () => {
+  const root = await fixture();
+  try {
+    const base = git(root, 'rev-parse', 'HEAD');
+    const ciDir = path.join(root, '.github', 'workflows');
+    await mkdir(ciDir, { recursive: true });
+    await writeFile(path.join(ciDir, 'ci.yml'), 'name: CI\n', 'utf8');
+    git(root, 'add', '.');
+    git(root, 'commit', '-qm', 'l3 change');
+    const run = await runCli(['workflow', 'wf-task', '--workflow-mode', 'auto', '--workflow-phase', 'review',
+      '--base', base, '--dir', root]);
+    assert.notEqual(run.code, 0, run.stdout);
+    assert.match(run.stdout, /GATE_PREVIEW_BLOCKED/);
+    assert.match(run.stdout, /HIGH_RISK_INDEPENDENT_REVIEW_REQUIRED/);
+    assert.match(run.stdout, /Blocker detail:/);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});

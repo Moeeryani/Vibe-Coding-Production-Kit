@@ -405,3 +405,152 @@ test('session round-trip preserves completed work across runs', async () => {
     assert.deepEqual(second.completedSteps.map((s) => s.id), ['readiness-plan', 'context-plan']);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
+
+// Closure D4: blocked steps retain their underlying evidence in the
+// saved session and explain themselves in the transcript.
+test('closure D4: dirty-worktree block preserves gate reasons in the session', async () => {
+  const { root, base } = await fixture({ change: L1_CHANGE });
+  try {
+    const session = createWorkflowSession({ targetDir: root, task: 'wf-task', mode: 'auto' });
+    await runWorkflowSession(session, { phases: ['implement'], baseRef: base });
+    await writeFile(path.join(root, 'uncommitted.txt'), 'dirty\n', 'utf8');
+    const resumed = await runWorkflowSession(session, { phases: ['implement'], baseRef: base });
+    assert.equal(resumed.status, 'BLOCKED');
+    assert.equal(resumed.blockedSteps.length, 1);
+    assert.equal(resumed.blockedSteps[0].id, 'gate-evidence');
+    assert.ok(resumed.blockedSteps[0].evidence.blockingReasons.includes('DIRTY_WORKTREE'),
+      `expected DIRTY_WORKTREE in ${JSON.stringify(resumed.blockedSteps[0].evidence)}`);
+    assert.match(resumed.blockedSteps[0].detail, /DIRTY_WORKTREE/);
+    const blockedEvent = resumed.transcript.find((t) => t.event === 'STEP_BLOCKED' && t.stepId === 'gate-evidence');
+    assert.match(blockedEvent.detail, /DIRTY_WORKTREE/);
+    const restored = deserializeWorkflowSession(serializeWorkflowSession(resumed));
+    assert.equal(restored.blockedSteps.length, 1);
+    assert.ok(restored.blockedSteps[0].evidence.blockingReasons.includes('DIRTY_WORKTREE'));
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('closure D4: L3 preview block preserves review reasons in the session', async () => {
+  const { root, base } = await fixture({ change: L3_CHANGE });
+  try {
+    const session = createWorkflowSession({ targetDir: root, task: 'wf-task', mode: 'auto', phase: 'review' });
+    const result = await runWorkflowSession(session, { phases: ['review'], baseRef: base });
+    assert.equal(result.status, 'BLOCKED');
+    assert.deepEqual(result.blockers, ['GATE_PREVIEW_BLOCKED']);
+    assert.equal(result.blockedSteps.length, 1);
+    assert.ok(result.blockedSteps[0].evidence.reasons.includes('HIGH_RISK_INDEPENDENT_REVIEW_REQUIRED'));
+    assert.match(result.blockedSteps[0].detail, /HIGH_RISK_INDEPENDENT_REVIEW_REQUIRED/);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('closure D4: failed readiness preserves the failed check ids', async () => {
+  const { root, base } = await fixture({ change: L1_CHANGE, implementationPlan: false });
+  try {
+    const session = createWorkflowSession({ targetDir: root, task: 'wf-task', mode: 'auto' });
+    const result = await runWorkflowSession(session, { phases: ['implement'], baseRef: base });
+    assert.equal(result.status, 'BLOCKED');
+    assert.equal(result.blockedSteps.length, 1);
+    assert.ok(Array.isArray(result.blockedSteps[0].evidence.failed) && result.blockedSteps[0].evidence.failed.length > 0);
+    assert.match(result.blockedSteps[0].detail, /failed checks:/);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('closure D4: missing base ref blocks with a self-explaining detail', async () => {
+  const { root } = await fixture({ change: L1_CHANGE });
+  try {
+    const session = createWorkflowSession({ targetDir: root, task: 'wf-task', mode: 'auto', phase: 'review' });
+    const result = await runWorkflowSession(session, { phases: ['review'] });
+    assert.equal(result.status, 'BLOCKED');
+    assert.equal(result.blockedSteps.length, 1);
+    assert.match(result.blockedSteps[0].detail, /GATE_BASE_REQUIRED/);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+// Closure D5: gate-evidence claims are revalidated on resume.
+test('closure D5: stale gate-evidence claim re-executes after the HEAD moves', async () => {
+  const { root, base } = await fixture({ change: L1_CHANGE });
+  try {
+    const session = createWorkflowSession({ targetDir: root, task: 'wf-task', mode: 'auto' });
+    await runWorkflowSession(session, { phases: ['implement'], baseRef: base });
+    const resumed = await runWorkflowSession(session, { phases: ['implement'], baseRef: base });
+    assert.equal(resumed.status, 'COMPLETED');
+    const firstHead = resumed.completedSteps.find((s) => s.id === 'gate-evidence').evidence.headSha;
+    assert.match(firstHead, /^[0-9a-f]{40}$/);
+
+    await writeFile(path.join(root, 'README.md'), '# Later change\n', 'utf8');
+    git(root, 'add', '.');
+    git(root, 'commit', '-qm', 'later change');
+    const newHead = git(root, 'rev-parse', 'HEAD');
+    const again = await runWorkflowSession(session, { phases: ['implement'], baseRef: base });
+    assert.equal(again.status, 'COMPLETED');
+    const rejection = again.transcript.find((t) => t.event === 'STEP_CLAIM_REJECTED' && t.stepId === 'gate-evidence');
+    assert.ok(rejection, 'stale claim must be rejected in the transcript');
+    assert.match(rejection.detail, /STALE_HEAD/);
+    assert.equal(again.completedSteps.find((s) => s.id === 'gate-evidence').evidence.headSha, newHead);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('closure D5: forged gate-evidence claim never completes without execution', async () => {
+  const { root, base } = await fixture({ change: L3_CHANGE });
+  try {
+    const forged = createWorkflowSession({ targetDir: root, task: 'wf-task', mode: 'auto' });
+    for (const id of ['readiness-implement', 'context-implement', 'implementation-handoff', 'gate-evidence', 'context-review', 'gate-preview']) {
+      forged.completedSteps.push({
+        id, kind: 'GATE_EVIDENCE', phase: 'implement', status: 'COMPLETED',
+        evidence: { forged: true, gateStatus: 'APPROVED', headSha: '0'.repeat(40) }, at: new Date().toISOString(),
+      });
+    }
+    const session = deserializeWorkflowSession(serializeWorkflowSession(forged));
+    const result = await runWorkflowSession(session, { phases: ['implement'], baseRef: base });
+    assert.notEqual(result.status, 'COMPLETED', 'a forged session must not report COMPLETED');
+    assert.equal(result.status, 'BLOCKED');
+    assert.deepEqual(result.blockers, ['GATE_BLOCKED']);
+    assert.ok(result.transcript.some((t) => t.event === 'STEP_CLAIM_REJECTED' && t.stepId === 'gate-evidence'));
+    assert.equal(result.completedSteps.some((s) => s.id === 'gate-evidence'), false);
+    assert.deepEqual(result.completedSteps.map((s) => s.id),
+      ['readiness-implement', 'context-implement', 'implementation-handoff'],
+      'only non-gate claims survive; the forged gate claim is gone, not completed');
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('closure D5: pre-binding gate-preview claim re-executes instead of being trusted', async () => {
+  const { root, base } = await fixture({ change: L1_CHANGE });
+  try {
+    const session = createWorkflowSession({ targetDir: root, task: 'wf-task', mode: 'auto', phase: 'review' });
+    session.completedSteps.push({
+      id: 'context-review', kind: 'CONTEXT', phase: 'review', status: 'COMPLETED', evidence: {}, at: new Date().toISOString(),
+    });
+    session.completedSteps.push({
+      id: 'gate-preview', kind: 'GATE_PREVIEW', phase: 'review', status: 'COMPLETED',
+      evidence: { task: 'wf-task', level: 'L1', readinessStage: 'plan' }, at: new Date().toISOString(),
+    });
+    const result = await runWorkflowSession(session, { phases: ['review'], baseRef: base });
+    assert.equal(result.status, 'COMPLETED');
+    const rejection = result.transcript.find((t) => t.event === 'STEP_CLAIM_REJECTED' && t.stepId === 'gate-preview');
+    assert.ok(rejection, 'unbound claim must be rejected in the transcript');
+    assert.match(rejection.detail, /UNVERIFIABLE_CLAIM/);
+    const gate = result.completedSteps.find((s) => s.id === 'gate-preview');
+    assert.match(gate.evidence.headSha, /^[0-9a-f]{40}$/);
+    assert.equal(gate.evidence.task, 'wf-task');
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('closure D5: legitimate resume still skips a verified gate claim', async () => {
+  const { root, base } = await fixture({ change: L1_CHANGE });
+  try {
+    const session = createWorkflowSession({ targetDir: root, task: 'wf-task', mode: 'auto' });
+    await runWorkflowSession(session, { phases: ['implement'], baseRef: base });
+    const completed = await runWorkflowSession(session, { phases: ['implement'], baseRef: base });
+    assert.equal(completed.status, 'COMPLETED');
+    const headSha = completed.completedSteps.find((s) => s.id === 'gate-evidence').evidence.headSha;
+    const executionsBefore = completed.transcript.filter((t) => t.event === 'STEP_COMPLETED' && t.stepId === 'gate-evidence').length;
+    assert.equal(executionsBefore, 1);
+
+    const restored = deserializeWorkflowSession(serializeWorkflowSession(completed));
+    const resumed = await runWorkflowSession(restored, { phases: ['review'], baseRef: base });
+    assert.equal(resumed.status, 'COMPLETED');
+    assert.equal(resumed.transcript.some((t) => t.event === 'STEP_CLAIM_REJECTED'), false);
+    assert.equal(resumed.completedSteps.find((s) => s.id === 'gate-evidence').evidence.headSha, headSha);
+    assert.equal(resumed.transcript.filter((t) => t.event === 'STEP_COMPLETED' && t.stepId === 'gate-evidence').length, 1,
+      'verified gate evidence must not re-execute');
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
