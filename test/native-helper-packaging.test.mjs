@@ -102,9 +102,20 @@ test('setup script --check --json reports the measured identity', () => {
   assert.equal(out.identity.sourceSha256, manifest.sourceSha256);
 });
 
-test('setup script fails closed with a compiler hint when no compiler is on PATH', () => {
+test('setup script fails closed with a compiler hint when a build is needed but no compiler is on PATH', () => {
+  // Closure D2: setup verifies first, so the no-compiler case only
+  // applies when no trusted helper exists. Build a minimal helper-less
+  // tree (setup + build scripts + trust module + source) and run it
+  // with an empty PATH; the repo checkout's own trusted helper must
+  // not mask the case.
+  const tree = fs.mkdtempSync(path.join(os.tmpdir(), 'vcp-nobin-tree-'));
+  const copy = (src, dest) => { fs.mkdirSync(path.dirname(dest), { recursive: true }); fs.copyFileSync(src, dest); };
+  copy(path.join(ROOT, 'scripts', 'setup-native-helper.mjs'), path.join(tree, 'scripts', 'setup-native-helper.mjs'));
+  copy(path.join(ROOT, 'scripts', 'native', 'build-linux-fsops.mjs'), path.join(tree, 'scripts', 'native', 'build-linux-fsops.mjs'));
+  copy(path.join(ROOT, 'scripts', 'native', 'vcp-linux-fsops.cpp'), path.join(tree, 'scripts', 'native', 'vcp-linux-fsops.cpp'));
+  copy(path.join(ROOT, 'lib', 'native-helper-trust.mjs'), path.join(tree, 'lib', 'native-helper-trust.mjs'));
   const emptyBin = fs.mkdtempSync(path.join(os.tmpdir(), 'vcp-nobin-'));
-  const run = spawnSync(process.execPath, [SETUP], {
+  const run = spawnSync(process.execPath, [path.join(tree, 'scripts', 'setup-native-helper.mjs')], {
     encoding: 'utf8',
     env: { ...process.env, PATH: emptyBin },
   });
@@ -177,8 +188,11 @@ function assertPackagingContract({ entries, out }, { builtHelperSha }) {
   }
   const helper = path.join(out, 'package', 'scripts', 'native', 'vcp-linux-fsops');
   const identity = verifyNativeHelper(helper);
-  assert.equal(identity.platform, 'linux');
-  assert.equal(identity.arch, process.arch);
+  const manifest = JSON.parse(fs.readFileSync(helper + '.manifest.json', 'utf8'));
+  assert.equal(manifest.platform, 'linux');
+  assert.equal(manifest.arch, process.arch);
+  assert.equal(identity.sha256, manifest.binarySha256);
+  assert.equal(identity.sourceSha256, manifest.sourceSha256);
   if (builtHelperSha) assert.equal(identity.sha256, builtHelperSha);
   return identity;
 }
