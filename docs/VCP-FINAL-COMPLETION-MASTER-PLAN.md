@@ -26,6 +26,14 @@ VCP is a repository-native, deterministic engineering control plane for AI codin
 7. Exact candidate HEAD/tree, source-to-package identity, native Linux/Windows (as supported) evidence, changelog/docs, conformance matrix, install/update/rollback smoke, release check, and human GO/NO-GO are preserved.
 8. Only AFTER explicit owner release authorization: immutable tag, npm publication, GitHub Release, registry install smoke. Never publish as a side effect of a passed test.
 
+### 2026-10-28 P1 independent G3 result — VERIFIED BY REPORT, not owner activation
+
+- Independent Linux validator, exact local frozen HEAD `57e4df465f6a56da91717b1ffb0474dae8b91e65`, tree `bd066b01ada5855bfd19e3f11fbae302f9d55a12`: **ACCEPT SC-01 ENGINEERING; G3 PASS; READY FOR OWNER ACTIVATION REVIEW**. G1/G2/G3/G4/G6 pass, G5 pass **only as an authorization-boundary check** (canonical activation NOT approved).
+- 39/39 independent classification checks; 600/600 pre-return swap-decider detections; separate-process concurrency clean; raw fsync #1–6, mkdir failure and partial-write injections fail closed; real npm registry 0.9.3 tarball provenance byte-identical. No new SC-01 defect reported.
+- **R-1 real:** parent path swap between check/open can land one Markdown file in a swapped-in tree *before detecting the error* (detection is not prevention). **R-3 demonstrated deterministic:** 150/150 late `.vcp` plantings allow one inert Markdown file despite newly-managed classification. Both await explicit owner risk disposition; G3 does NOT accept them on owner's behalf. F-H2 not required by validator for current narrow scope, but recommended before widening; a final pre-open `.vcp` check narrows R-3 only, cannot make it atomic.
+- G3 full-suite run: **1,416 total, 1,351 pass / 49 fail / 16 skip**, failing-name set = builder's **48 inherited** plus observed pre-existing **PH-06** race (both journal writers returned success). This is NOT a new SC-01 defect, and PH-06 remains unresolved. `B-2`, close()-failure injection, strict mid-inspection manifest deletion, and Windows SC-T47–49 remain unproven.
+- **P1 next gate:** owner decision OD-R1, OD-R3, OD-H, OD-SCOPE and a separate explicit OD-ACT. Do not create `SC-01.json` or modify D-01 register blindly: existing canonical register enforces exactly D-01–D-12; design any compatible scoped activation artifact/contract change only with owner approval. No push/merge/release or managed fence change is granted by G3.
+
 ### 2026-10-28 P0 publication receipt (branch refs only; archive pending)
 
 - Seven frozen refs published with SHA-pinned pushes, dry-run and independent disposable-clone SHA/tree/fsck verification: `feat/vcp-release-readiness-baseline` (`d4fb3ce`); `design/od1-scoped-task-pack-creation` (`68a5da5`); intermediate tips `084e7d7`, `b839942`, `d16dcff`, `0a374d5`, `738a022`.
@@ -49,7 +57,7 @@ VCP is a repository-native, deterministic engineering control plane for AI codin
 | Skills/CLI/context/readiness/gate | Core implementation exists, bounded validation passed | End-to-end first-run via ordinary CLI not yet accepted |
 | Linux helper npm packaging/consumer | D1/D2 independently validated | No Windows helper/product parity implied |
 | Release Readiness Phase 1 | Corrective acceptance at local `d4fb3ce` | Test-only fixes; NO production-code fix or release acceptance |
-| SC-01 — scoped Task Pack create | Design `68a5da5`; local build `57e4df4`/tree `bd066b01`, 5 local commits, reports delivered | 44 builder tests pass; G3 independent verification/G1–G6 and R-1/R-3 risk acceptance NOT yet granted; no activation |
+| SC-01 — scoped Task Pack create | Local built `57e4df4` / tree `bd066b01`; **independent G3 PASS**, all 6 G1–G6 checks PASS as validation/boundary only | R-1 detection-after-write and deterministic late `.vcp` R-3 await owner disposition; canonical activation pending, Windows unproven; no push |
 | Full suite at `d4fb3ce` | 1,371: 1,306 PASS / 49 FAIL / 16 SKIP; 15 resolved, 0 new | 42 intentional MANAGED G-FENCE refusals, 1 F6 env, 6 other decision-bound; PH-06 intermittent outside the 49 |
 | Product adoption checkpoints | A/B/D/E NOT PERFORMED; C PARTIAL (SIMPLIFY) | Protocols prepared, not results |
 | Release readiness | FAIL / NO-GO | `vcp init` and managed lifecycle paths fenced; Windows and durability unproven |
@@ -68,7 +76,7 @@ Statuses are one of `NOT_STARTED`, `BUILDING`, `BUILT_UNVALIDATED`, `VALIDATING`
 | Phase | Title | Initial status | Dependency | Owner-facing result |
 |---|---|---|---|---|
 | **P0** | Source and evidence reconciliation | **PARTIAL: 7 verified refs published; archive pending** | No merge; owner archive decision pending | Exact SHA chain published on new refs; archive and final P0 tracker closure pending |
-| **P1** | SC-01 Linux scoped Task Pack creation | **BUILT_UNVALIDATED (local `57e4df4`)** | Local `d4fb3ce`, conditional build authorization; P0 needed before GitHub PR | Builder 44/44 scoped, 1416: 1352/48/16; independent G3/G1–G6 and owner risk/activation pending |
+| **P1** | SC-01 Linux scoped Task Pack creation | **G3 INDEPENDENT PASS; OWNER ACTIVATION PENDING** | Local `57e4df4`, G1–G6 verified as boundary checks; owner OD-R1/R3/ACT/SCOPE unresolved | G3 1416: 1351 PASS / 49 FAIL / 16 SKIP (48 inherited + PH-06); no new SC-01 defects, no activation |
 | **P2** | Read-only product measurement B/E + C fixture | **READY IN PARALLEL** | Fixed candidate/corpus; no D-01 write GO | Measured adaptation accuracy, ablation decisions, C fixture re-measurement |
 | **P3** | Owner decision and contract resolution | **NOT_STARTED** | Root-cause reports; P0; independent reviews | Decisions OD-2,3,4,6 and scoped activation vs full D-01/Windows/CI |
 | **P4** | Old-CLI containment + managed lifecycle D-01 safety | **BLOCKED ON OWNER-APPROVED DESIGN** | P3, 0.9.3 hazard threat model, Linux/Windows proof plan | Safe init/update/migrate/recovery design and independently verified behavior; D-01 remains closed until separate GO |
