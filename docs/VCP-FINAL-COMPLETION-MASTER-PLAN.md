@@ -26,6 +26,13 @@ VCP is a repository-native, deterministic engineering control plane for AI codin
 7. Exact candidate HEAD/tree, source-to-package identity, native Linux/Windows (as supported) evidence, changelog/docs, conformance matrix, install/update/rollback smoke, release check, and human GO/NO-GO are preserved.
 8. Only AFTER explicit owner release authorization: immutable tag, npm publication, GitHub Release, registry install smoke. Never publish as a side effect of a passed test.
 
+### 2026-10-28 P1 build freeze (reported, independent verdict pending)
+
+- **SC-01 implementation:** local branch `feat/sc01-scoped-task-pack-creation`, HEAD `57e4df465f6a56da91717b1ffb0474dae8b91e65`, tree `bd066b01ada5855bfd19e3f11fbae302f9d55a12`, five local commits on `d4fb3ce`, 9-file diff; no push or merge.
+- New `lib/scoped-task-create.mjs` plus one Task Pack create-path wiring hunk; `docs/SC-01-ENGINEERING-AUTHORIZATION.md` is an engineering-only record, not activation; 42 previously categorized F1 cases included an UNMANAGED example that now passes, hence **41 fence refusal failures remain**; no gate opened.
+- **Builder-owned, not independently accepted:** 44/44 scoped tests (cover SC-T01–46 group IDs), full 1,416 = 1,352 pass / 48 fail / 16 skip. Failing names = old 49 minus exactly the formerly fenced unmanaged Task Pack integration test; PH-06 remains unresolved. Windows SC-T47–49 unproven. Builder's fault-injection coverage for raw fsync failure and strict mid-inspection races is incomplete: independent G3 must challenge this.
+- **Next:** separate independent G3 validator with fresh Git/filesystem fixtures and exact-head checks; review root/parent swap residual R-1 and late `.vcp` R-3, full G1–G6, then **separate owner activation decision**. Current state stays `BUILT_UNVALIDATED`; release NO-GO.
+
 ## 2. Verified engineering baseline — evidence, not percentages
 
 | Surface | Last independently accepted status | Important boundary |
@@ -35,7 +42,7 @@ VCP is a repository-native, deterministic engineering control plane for AI codin
 | Skills/CLI/context/readiness/gate | Core implementation exists, bounded validation passed | End-to-end first-run via ordinary CLI not yet accepted |
 | Linux helper npm packaging/consumer | D1/D2 independently validated | No Windows helper/product parity implied |
 | Release Readiness Phase 1 | Corrective acceptance at local `d4fb3ce` | Test-only fixes; NO production-code fix or release acceptance |
-| SC-01 — scoped Task Pack create | Design committed locally `68a5da5`; owner conditionally approved LOCAL BUILD | Implementation/G1–G6/G3/parent-swap acceptance NOT yet reported; no activation |
+| SC-01 — scoped Task Pack create | Design `68a5da5`; local build `57e4df4`/tree `bd066b01`, 5 local commits, reports delivered | 44 builder tests pass; G3 independent verification/G1–G6 and R-1/R-3 risk acceptance NOT yet granted; no activation |
 | Full suite at `d4fb3ce` | 1,371: 1,306 PASS / 49 FAIL / 16 SKIP; 15 resolved, 0 new | 42 intentional MANAGED G-FENCE refusals, 1 F6 env, 6 other decision-bound; PH-06 intermittent outside the 49 |
 | Product adoption checkpoints | A/B/D/E NOT PERFORMED; C PARTIAL (SIMPLIFY) | Protocols prepared, not results |
 | Release readiness | FAIL / NO-GO | `vcp init` and managed lifecycle paths fenced; Windows and durability unproven |
@@ -43,7 +50,7 @@ VCP is a repository-native, deterministic engineering control plane for AI codin
 **Identity chain (local reports, must be reconciled before remote development):**
 
 `d16dcff` product completion → `0a374d5` D1–D5 closure → `738a022` F-D5/F-D4a closure → `14b36ef` → `d4fb3ce` Release Readiness Phase 1.  
-SC-01 design: `68a5da5` on local `design/od1-scoped-task-pack-creation`, based on `d4fb3ce`. SC-01 implementation is a NEXT action, not proven complete.
+SC-01 design: `68a5da5` on local `design/od1-scoped-task-pack-creation`, based on `d4fb3ce`. SC-01 implementation is now **BUILT LOCALLY BUT NOT INDEPENDENTLY ACCEPTED** at `57e4df465f6a56da91717b1ffb0474dae8b91e65`; NOT present on the GitHub remote, and not activated.
 
 **Inherited 49 failure families:** F1 managed fence 42; F3 ROOT_LINK 1; F4 D-06 anchor coverage 1; F5/F5b legacy doctor/rollback 3; F6 non-traversable TMPDIR 1; F7 B9-01b inconclusive 1. PH-06: separate intermittent lock-free journal create race, code-established; never count a passing run as a fix.
 
@@ -54,7 +61,7 @@ Statuses are one of `NOT_STARTED`, `BUILDING`, `BUILT_UNVALIDATED`, `VALIDATING`
 | Phase | Title | Initial status | Dependency | Owner-facing result |
 |---|---|---|---|---|
 | **P0** | Source and evidence reconciliation | **BLOCKED: local code not on remote** | None | Exact SHA chain and evidence archived on approved candidate refs; no main merge |
-| **P1** | SC-01 Linux scoped Task Pack creation | **BUILD AUTHORIZED / RESULT PENDING** | Local `d4fb3ce`, SC-01 conditional approval; P0 needed before GitHub PR | Real non-managed `vcp task` + independent G1–G6, with D-01 still closed |
+| **P1** | SC-01 Linux scoped Task Pack creation | **BUILT_UNVALIDATED (local `57e4df4`)** | Local `d4fb3ce`, conditional build authorization; P0 needed before GitHub PR | Builder 44/44 scoped, 1416: 1352/48/16; independent G3/G1–G6 and owner risk/activation pending |
 | **P2** | Read-only product measurement B/E + C fixture | **READY IN PARALLEL** | Fixed candidate/corpus; no D-01 write GO | Measured adaptation accuracy, ablation decisions, C fixture re-measurement |
 | **P3** | Owner decision and contract resolution | **NOT_STARTED** | Root-cause reports; P0; independent reviews | Decisions OD-2,3,4,6 and scoped activation vs full D-01/Windows/CI |
 | **P4** | Old-CLI containment + managed lifecycle D-01 safety | **BLOCKED ON OWNER-APPROVED DESIGN** | P3, 0.9.3 hazard threat model, Linux/Windows proof plan | Safe init/update/migrate/recovery design and independently verified behavior; D-01 remains closed until separate GO |
@@ -179,7 +186,7 @@ Next dependency / NO-GO conditions:
 
 ## 6. Initial next action (do not get distracted)
 
-**NOW: P0 branch reconciliation**, while the already authorized Linux builder completes **P1 SC-01 locally**. Do not wait for checkpoint/user-recruitment work before the source chain is preserved. The next decision-bearing handoff is the SC-01 builder's HEAD/tree/test report; only then commission independent G3. P2 read-only corpus preparation may occur in parallel without any new production code changes.
+**NOW: P0 source-chain reconciliation and independent P1/G3 validation may proceed in parallel**, using separate disposable worktrees. P1's local builder is frozen at `57e4df465f6a56da91717b1ffb0474dae8b91e65`; the next required P1 action is independent G3 adversarial verification on that exact commit, not another implementation batch. No new code work on the frozen P1 branch. P2 read-only corpus preparation may proceed independently. Code push/merge remains separately owner-controlled.
 
 **Update cadence:** each independently validated completion, discovered blocker, or owner decision immediately updates Issue #109. A no-change week does not justify falsely checking boxes.
 
