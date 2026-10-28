@@ -76,30 +76,47 @@ vcp workflow my-task --workflow-mode auto --base <base-ref> --session-file /tmp/
 ```
 
 Re-running with the same file resumes completed work instead of repeating
-it. Switching modes mid-session is explicit and recorded
+it — except gate steps, which always re-execute on resume (see below). Switching modes mid-session is explicit and recorded
 (`--workflow-mode` on a resumed session). Stopping is explicit too: decline
 a confirmation, or stop the run — completed steps and blockers are preserved
 in the session.
 
 **Session files are local, user-controlled state — not authorization
-receipts.** A session file can be hand-edited, so completion claims are
-never trusted at face value. On resume, any completed step whose claim
-depends on gate or verification evidence (`gate-evidence`,
-`gate-preview`) is revalidated: its recorded evidence must bind the
-current task and the Git HEAD it was collected at, and the current HEAD
-must still match. A stale, mismatched, or unbound claim is dropped —
-together with later steps that depended on it — and re-executes against
-current state; sessions written before gate-evidence binding existed
-are re-run rather than trusted. A session file can never create an
-approval, bypass the gate, or authorize anything: gate outcomes are
-evidence only, and the gate itself always re-checks current state.
+receipts, and not verification evidence.** A session file can be
+hand-edited, so a stored completion claim never proves a gate ran or
+passed — not even when its recorded task and Git HEAD match the
+current ones, because the file itself supplies every compared value.
+On every resumed run, completed gate claims (`gate-evidence`,
+`gate-preview`) are dropped — together with later steps that depended
+on them — and the gate re-executes against independently read current
+state: working-tree cleanliness, current HEAD, changed-file
+classification, the current Task Pack and readiness requirements, and
+L3 restrictions, through the canonical gate readers under the
+established command-authority protections. The recorded task/HEAD
+binding is kept only to classify the dropped claim in the audit
+transcript (a stale, mismatched, or unbound claim is recorded as
+rejected; a well-formed claim is recorded as revalidated by
+re-execution). Stored gate status, level, timestamps, approvals, and
+blocking reasons are never consulted as proof of a live verification,
+and current gate evidence is replaced only by a genuinely observed
+result from the new run. Non-gate completed work (readiness, context,
+handoff) carries no verification claim and is still resumed without
+repetition. A session file can never create an approval, bypass the
+gate, or authorize anything: gate outcomes are evidence only, L3
+remains blocked, and a saved session's COMPLETED status is historical
+record, not current proof.
 
-**Blocked steps explain themselves.** When Auto (or any mode) stops on a
-blocked step, the session records the blocked step with its underlying
-evidence — the gate's blocking reasons, the failed readiness checks, or
-the review-validation reasons — in `blockedSteps` and in the transcript,
-and the CLI prints the reason line. Re-running the gate separately to
-learn why a run stopped is no longer necessary.
+**Blocked steps explain themselves — current blockers only.**
+When a run stops on a blocked step, the session records the blocked
+step with its underlying evidence — the gate's blocking reasons, the
+failed readiness checks, or the review-validation reasons — in
+`blockedSteps` and in the transcript, and the CLI prints the reason
+line. `blockedSteps` and `blockers` describe the most recent run
+only: each new run clears them and repopulates them if it blocks, so
+a later COMPLETED run carries no active blockers and the CLI shows
+no obsolete blocking reasons. The transcript is never cleared and
+remains the audit history of every blocking event, including ones
+superseded by a later completion.
 
 **Durable mode persistence is not implemented.** The lifecycle manifest
 schema does not record `workflowMode`, and extending it would be a lifecycle

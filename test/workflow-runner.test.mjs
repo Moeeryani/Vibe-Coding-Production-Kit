@@ -534,7 +534,12 @@ test('closure D5: pre-binding gate-preview claim re-executes instead of being tr
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
-test('closure D5: legitimate resume still skips a verified gate claim', async () => {
+// Final session integrity (F-D5): a verified gate claim is NEVER
+// trusted across runs. A legitimate resume re-executes the gate
+// (recorded as STEP_GATE_REVALIDATED, not a rejection) and keeps only
+// non-gate completed work without repetition. Gate evidence for a
+// phase that does not run in this invocation is no longer claimed.
+test('session integrity: legitimate resume re-executes a verified gate claim', async () => {
   const { root, base } = await fixture({ change: L1_CHANGE });
   try {
     const session = createWorkflowSession({ targetDir: root, task: 'wf-task', mode: 'auto' });
@@ -542,15 +547,306 @@ test('closure D5: legitimate resume still skips a verified gate claim', async ()
     const completed = await runWorkflowSession(session, { phases: ['implement'], baseRef: base });
     assert.equal(completed.status, 'COMPLETED');
     const headSha = completed.completedSteps.find((s) => s.id === 'gate-evidence').evidence.headSha;
-    const executionsBefore = completed.transcript.filter((t) => t.event === 'STEP_COMPLETED' && t.stepId === 'gate-evidence').length;
-    assert.equal(executionsBefore, 1);
+    assert.equal(completed.transcript.filter((t) => t.event === 'STEP_COMPLETED' && t.stepId === 'gate-evidence').length, 1);
 
     const restored = deserializeWorkflowSession(serializeWorkflowSession(completed));
     const resumed = await runWorkflowSession(restored, { phases: ['review'], baseRef: base });
     assert.equal(resumed.status, 'COMPLETED');
-    assert.equal(resumed.transcript.some((t) => t.event === 'STEP_CLAIM_REJECTED'), false);
+    // The implement gate claim was revalidated (dropped, not trusted)
+    // and is no longer claimed, because this run did not re-execute it.
+    const revalidated = resumed.transcript.find((t) => t.event === 'STEP_GATE_REVALIDATED' && t.stepId === 'gate-evidence');
+    assert.ok(revalidated, 'verified gate claim must be revalidated on resume');
+    assert.match(revalidated.detail, /GATE_REVALIDATION_REQUIRED/);
+    assert.equal(resumed.completedSteps.some((s) => s.id === 'gate-evidence'), false);
+    assert.equal(resumed.transcript.some((t) => t.event === 'STEP_CLAIM_REJECTED' && t.stepId === 'gate-evidence'), false,
+      'a well-formed claim is revalidated, not rejected');
+    // The review gate preview executed live in this run.
+    assert.equal(resumed.transcript.filter((t) => t.event === 'STEP_COMPLETED' && t.stepId === 'gate-preview').length, 1);
+    assert.equal(resumed.completedSteps.find((s) => s.id === 'gate-preview').evidence.headSha, headSha);
+    // Non-gate implement work was preserved without repetition.
+    assert.equal(resumed.transcript.filter((t) => t.event === 'STEP_COMPLETED' && t.stepId === 'readiness-implement').length, 1);
+    assert.equal(resumed.transcript.filter((t) => t.event === 'STEP_COMPLETED' && t.stepId === 'implementation-handoff').length, 1);
+
+    // An implement resume re-establishes gate evidence by live execution.
+    const restored2 = deserializeWorkflowSession(serializeWorkflowSession(completed));
+    const again = await runWorkflowSession(restored2, { phases: ['implement'], baseRef: base });
+    assert.equal(again.status, 'COMPLETED');
+    assert.equal(again.transcript.filter((t) => t.event === 'STEP_COMPLETED' && t.stepId === 'gate-evidence').length, 2,
+      'gate evidence executes once per implement run; the resumed run adds a second live execution');
+    assert.equal(again.completedSteps.find((s) => s.id === 'gate-evidence').evidence.headSha, headSha);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+// Final session integrity (F-D5 / F-D4a): persisted session history
+// is untrusted for verification. Every test below asserts ACTUAL gate
+// invocation (STEP_COMPLETED / STEP_BLOCKED transcript events from a
+// live run in this invocation), never session status alone.
+function countEvents(session, event, stepId) {
+  return session.transcript.filter((t) => t.event === event && t.stepId === stepId).length;
+}
+
+// Build a from-scratch forged session: correct task, current HEAD,
+// fabricated gate evidence, past/future timestamps.
+function forgedSession({ root, headSha, stepIds, evidence = {}, at = '2099-01-01T00:00:00.000Z' }) {
+  const session = createWorkflowSession({ targetDir: root, task: 'wf-task', mode: 'auto' });
+  for (const id of stepIds) {
+    session.completedSteps.push({
+      id, kind: 'GATE_EVIDENCE', phase: 'implement', status: 'COMPLETED',
+      evidence: { task: 'wf-task', headSha, ...evidence }, at,
+    });
+  }
+  return deserializeWorkflowSession(serializeWorkflowSession(session));
+}
+
+test('F-D5 A: genuine completed session revalidates the gate before completion', async () => {
+  const { root, base } = await fixture({ change: L1_CHANGE });
+  try {
+    const session = createWorkflowSession({ targetDir: root, task: 'wf-task', mode: 'auto' });
+    await runWorkflowSession(session, { phases: ['implement'], baseRef: base });
+    await runWorkflowSession(session, { phases: ['implement'], baseRef: base });
+    const headSha = session.completedSteps.find((s) => s.id === 'gate-evidence').evidence.headSha;
+    assert.equal(countEvents(session, 'STEP_COMPLETED', 'gate-evidence'), 1);
+    const restored = deserializeWorkflowSession(serializeWorkflowSession(session));
+    const resumed = await runWorkflowSession(restored, { phases: ['implement'], baseRef: base });
+    assert.equal(resumed.status, 'COMPLETED');
+    assert.ok(restored.transcript.some((t) => t.event === 'STEP_GATE_REVALIDATED' && t.stepId === 'gate-evidence'));
+    assert.equal(countEvents(resumed, 'STEP_COMPLETED', 'gate-evidence'), 2,
+      'the gate must execute again on resume; status alone proves nothing');
     assert.equal(resumed.completedSteps.find((s) => s.id === 'gate-evidence').evidence.headSha, headSha);
-    assert.equal(resumed.transcript.filter((t) => t.event === 'STEP_COMPLETED' && t.stepId === 'gate-evidence').length, 1,
-      'verified gate evidence must not re-execute');
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('F-D5 B+F: from-scratch same-HEAD forgery with altered status/level/timestamps is replaced by live evidence', async () => {
+  const { root, base } = await fixture({ change: L1_CHANGE });
+  try {
+    const headSha = git(root, 'rev-parse', 'HEAD');
+    const session = forgedSession({
+      root, headSha,
+      stepIds: ['readiness-implement', 'context-implement', 'implementation-handoff', 'gate-evidence', 'context-review', 'gate-preview'],
+      evidence: { gateStatus: 'APPROVED', verificationExecuted: true, level: 'L3', reasons: ['FORGED_REASON'] },
+      at: '1999-01-01T00:00:00.000Z',
+    });
+    const result = await runWorkflowSession(session, { phases: ['implement', 'review'], baseRef: base });
+    assert.equal(result.status, 'COMPLETED', 'an L1 change may complete, but only by live execution');
+    assert.equal(countEvents(result, 'STEP_COMPLETED', 'gate-evidence'), 1, 'gate must execute; forged status must not stand');
+    assert.equal(countEvents(result, 'STEP_COMPLETED', 'gate-preview'), 1, 'preview must execute; forged level must not stand');
+    const gate = result.completedSteps.find((s) => s.id === 'gate-evidence');
+    assert.equal(gate.evidence.gateStatus, 'EVIDENCE_ONLY_NOT_APPROVED', 'forged APPROVED status is discarded');
+    assert.equal(gate.evidence.verificationExecuted, false);
+    assert.ok(Date.parse(gate.at) > Date.parse('2026-01-01T00:00:00.000Z'), 'evidence timestamp is fresh, not the forged 1999 date');
+    const preview = result.completedSteps.find((s) => s.id === 'gate-preview');
+    assert.equal(preview.evidence.level, 'L1', 'forged L3 level is discarded');
+    assert.deepEqual(preview.evidence.reasons ?? [], []);
+    assert.ok(result.transcript.some((t) => t.event === 'STEP_GATE_REVALIDATED' && t.stepId === 'gate-evidence'));
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('F-D5 C: same-HEAD forgery in an L3 project is BLOCKED; L3 restrictions preserved', async () => {
+  const { root, base } = await fixture({ change: L3_CHANGE });
+  try {
+    const headSha = git(root, 'rev-parse', 'HEAD');
+    const session = forgedSession({
+      root, headSha,
+      stepIds: ['readiness-implement', 'context-implement', 'implementation-handoff', 'gate-evidence'],
+      evidence: { gateStatus: 'EVIDENCE_ONLY_NOT_APPROVED', level: 'L1' },
+    });
+    const result = await runWorkflowSession(session, { phases: ['implement'], baseRef: base });
+    assert.equal(result.status, 'BLOCKED');
+    assert.deepEqual(result.blockers, ['GATE_BLOCKED']);
+    assert.equal(countEvents(result, 'STEP_BLOCKED', 'gate-evidence'), 1, 'the gate must execute and block; the forgery must not complete');
+    assert.equal(result.completedSteps.some((s) => s.id === 'gate-evidence'), false);
+    assert.ok(result.blockedSteps[0].evidence.blockingReasons.includes('INDEPENDENT_L3_REVIEW_REQUIRED'));
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('F-D5 D: same-HEAD forgery with a dirty worktree is BLOCKED', async () => {
+  const { root, base } = await fixture({ change: L1_CHANGE });
+  try {
+    const headSha = git(root, 'rev-parse', 'HEAD');
+    await writeFile(path.join(root, 'uncommitted.txt'), 'dirty\n', 'utf8');
+    const session = forgedSession({
+      root, headSha,
+      stepIds: ['readiness-implement', 'context-implement', 'implementation-handoff', 'gate-evidence'],
+      evidence: { gateStatus: 'EVIDENCE_ONLY_NOT_APPROVED' },
+    });
+    const result = await runWorkflowSession(session, { phases: ['implement'], baseRef: base });
+    assert.equal(result.status, 'BLOCKED');
+    assert.equal(countEvents(result, 'STEP_BLOCKED', 'gate-evidence'), 1, 'current worktree state must be re-checked, not inherited from the forgery');
+    assert.ok(result.blockedSteps[0].evidence.blockingReasons.includes('DIRTY_WORKTREE'));
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('F-D5 E: forged EVIDENCE_ONLY preview report is re-evaluated, never trusted', async () => {
+  const { root, base } = await fixture({ change: L3_CHANGE });
+  try {
+    const headSha = git(root, 'rev-parse', 'HEAD');
+    const session = createWorkflowSession({ targetDir: root, task: 'wf-task', mode: 'auto', phase: 'review' });
+    session.completedSteps.push({
+      id: 'gate-preview', kind: 'GATE_PREVIEW', phase: 'review', status: 'COMPLETED',
+      evidence: { task: 'wf-task', level: 'L1', readinessStage: 'plan', headSha, baseSha: base }, at: new Date().toISOString(),
+    });
+    const restored = deserializeWorkflowSession(serializeWorkflowSession(session));
+    const result = await runWorkflowSession(restored, { phases: ['review'], baseRef: base });
+    assert.equal(result.status, 'BLOCKED');
+    assert.deepEqual(result.blockers, ['GATE_PREVIEW_BLOCKED']);
+    assert.equal(countEvents(result, 'STEP_BLOCKED', 'gate-preview'), 1, 'the preview must execute; the forged report must not stand');
+    assert.ok(result.blockedSteps[0].evidence.reasons.includes('HIGH_RISK_INDEPENDENT_REVIEW_REQUIRED'));
+    assert.equal(result.completedSteps.some((s) => s.id === 'gate-preview'), false);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('F-D5 G: same-HEAD session copied to another checkout is independently evaluated', async () => {
+  const { root, base } = await fixture({ change: L1_CHANGE });
+  try {
+    const session = createWorkflowSession({ targetDir: root, task: 'wf-task', mode: 'auto' });
+    await runWorkflowSession(session, { phases: ['implement'], baseRef: base });
+    await runWorkflowSession(session, { phases: ['implement'], baseRef: base });
+    assert.equal(session.status, 'COMPLETED');
+    // Identical-history clone in a different directory: same HEAD.
+    const parent = await mkdtemp(path.join(os.tmpdir(), 'vcp-wfclone-'));
+    const cloneRoot = path.join(parent, 'clone');
+    execFileSync('git', ['clone', '-q', root, cloneRoot], { encoding: 'utf8', env: GIT_ENV });
+    assert.equal(git(cloneRoot, 'rev-parse', 'HEAD'), git(root, 'rev-parse', 'HEAD'));
+    const copied = deserializeWorkflowSession(serializeWorkflowSession(session));
+    copied.targetDir = cloneRoot;
+    const result = await runWorkflowSession(copied, { phases: ['implement'], baseRef: base });
+    assert.equal(result.status, 'COMPLETED');
+    assert.equal(countEvents(result, 'STEP_COMPLETED', 'gate-evidence'), 2,
+      'the gate must execute in the new checkout; the copied claim proves nothing there');
+    // The same copy against an L3 change in the clone must block.
+    await mkdir(path.join(cloneRoot, '.github', 'workflows'), { recursive: true });
+    await writeFile(path.join(cloneRoot, '.github', 'workflows', 'ci2.yml'), 'name: CI2\n', 'utf8');
+    git(cloneRoot, 'add', '.');
+    git(cloneRoot, 'commit', '-qm', 'l3 change in clone');
+    const copied2 = deserializeWorkflowSession(serializeWorkflowSession(session));
+    copied2.targetDir = cloneRoot;
+    const blocked = await runWorkflowSession(copied2, { phases: ['implement'], baseRef: base });
+    assert.equal(blocked.status, 'BLOCKED');
+    assert.equal(countEvents(blocked, 'STEP_BLOCKED', 'gate-evidence'), 1);
+    assert.ok(blocked.blockedSteps[0].evidence.blockingReasons.includes('INDEPENDENT_L3_REVIEW_REQUIRED'));
+    await rm(parent, { recursive: true, force: true });
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('F-D5 I: changed Task Pack is re-evaluated by the live gate', async () => {
+  const { root, base } = await fixture({ change: L1_CHANGE });
+  try {
+    // Committed removal of the implementation plan: readiness must fail on the CURRENT pack.
+    const taskPath = path.join(root, 'docs', 'tasks', 'wf-task.md');
+    const taskText = await readFile(taskPath, 'utf8');
+    await writeFile(taskPath, taskText
+      .replace('1. Build a preview from task-defined verification commands.\n', '')
+      .replace('2. Require explicit --run and implementation readiness.\n', ''), 'utf8');
+    git(root, 'add', '.');
+    git(root, 'commit', '-qm', 'drop implementation plan');
+    const session = createWorkflowSession({ targetDir: root, task: 'wf-task', mode: 'auto' });
+    const result = await runWorkflowSession(session, { phases: ['implement'], baseRef: base });
+    assert.equal(result.status, 'BLOCKED');
+    assert.equal(countEvents(result, 'STEP_BLOCKED', 'readiness-implement'), 1,
+      'readiness re-evaluates the current Task Pack');
+    assert.ok(result.blockedSteps[0].evidence.failed.includes('implementation-plan'));
+
+    // Uncommitted Task Pack edit: the live gate must see the dirty worktree.
+    const { root: root2, base: base2 } = await fixture({ change: L1_CHANGE });
+    try {
+      const session2 = createWorkflowSession({ targetDir: root2, task: 'wf-task', mode: 'auto' });
+      await runWorkflowSession(session2, { phases: ['implement'], baseRef: base2 });
+      await runWorkflowSession(session2, { phases: ['implement'], baseRef: base2 });
+      const taskPath2 = path.join(root2, 'docs', 'tasks', 'wf-task.md');
+      await writeFile(taskPath2, (await readFile(taskPath2, 'utf8')) + '\n<!-- uncommitted edit -->\n', 'utf8');
+      const resumed = await runWorkflowSession(session2, { phases: ['implement'], baseRef: base2 });
+      assert.equal(resumed.status, 'BLOCKED');
+      assert.equal(countEvents(resumed, 'STEP_BLOCKED', 'gate-evidence'), 1, 'gate re-executes against current state');
+      assert.ok(resumed.blockedSteps[0].evidence.blockingReasons.includes('DIRTY_WORKTREE'));
+    } finally { await rm(root2, { recursive: true, force: true }); }
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('F-D5 J: forged gate-preview claim without a base ref fails closed', async () => {
+  const { root } = await fixture({ change: L1_CHANGE });
+  try {
+    const headSha = git(root, 'rev-parse', 'HEAD');
+    const session = createWorkflowSession({ targetDir: root, task: 'wf-task', mode: 'auto', phase: 'review' });
+    session.completedSteps.push({
+      id: 'gate-preview', kind: 'GATE_PREVIEW', phase: 'review', status: 'COMPLETED',
+      evidence: { task: 'wf-task', level: 'L1', readinessStage: 'plan', headSha }, at: new Date().toISOString(),
+    });
+    const restored = deserializeWorkflowSession(serializeWorkflowSession(session));
+    const result = await runWorkflowSession(restored, { phases: ['review'] });
+    assert.equal(result.status, 'BLOCKED');
+    assert.deepEqual(result.blockers, ['GATE_BASE_REQUIRED']);
+    assert.equal(countEvents(result, 'STEP_BLOCKED', 'gate-preview'), 1, 'the claim is re-executed, not trusted');
+    assert.equal(result.completedSteps.some((s) => s.id === 'gate-preview'), false);
+    assert.ok(result.transcript.some((t) => t.event === 'STEP_GATE_REVALIDATED' && t.stepId === 'gate-preview'));
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('F-D5 K: ordinary resume preserves non-gate work without unnecessary repetition', async () => {
+  const { root, base } = await fixture({ change: L1_CHANGE });
+  try {
+    const session = createWorkflowSession({ targetDir: root, task: 'wf-task', mode: 'auto' });
+    await runWorkflowSession(session, { phases: ['implement'], baseRef: base });
+    await runWorkflowSession(session, { phases: ['implement'], baseRef: base });
+    const resumed = await runWorkflowSession(session, { phases: ['implement'], baseRef: base });
+    assert.equal(resumed.status, 'COMPLETED');
+    assert.equal(countEvents(resumed, 'STEP_COMPLETED', 'readiness-implement'), 1);
+    assert.equal(countEvents(resumed, 'STEP_COMPLETED', 'context-implement'), 1);
+    assert.equal(countEvents(resumed, 'STEP_COMPLETED', 'implementation-handoff'), 1);
+    assert.equal(countEvents(resumed, 'STEP_COMPLETED', 'gate-evidence'), 2,
+      'only the gate re-executes on each resume; ordinary steps run once (first run stops at the handoff)');
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('F-D4a L: a previously blocked session completes with empty active blockers and preserved history', async () => {
+  const { root, base } = await fixture({ change: L1_CHANGE });
+  try {
+    const session = createWorkflowSession({ targetDir: root, task: 'wf-task', mode: 'auto' });
+    await runWorkflowSession(session, { phases: ['implement'], baseRef: base });
+    await writeFile(path.join(root, 'uncommitted.txt'), 'dirty\n', 'utf8');
+    const blocked = await runWorkflowSession(session, { phases: ['implement'], baseRef: base });
+    assert.equal(blocked.status, 'BLOCKED');
+    assert.equal(blocked.blockedSteps.length, 1);
+    await rm(path.join(root, 'uncommitted.txt'), { force: true });
+    const completed = await runWorkflowSession(session, { phases: ['implement'], baseRef: base });
+    assert.equal(completed.status, 'COMPLETED');
+    assert.deepEqual(completed.blockers, []);
+    assert.deepEqual(completed.blockedSteps, [], 'active blockers must be empty after completion');
+    assert.ok(completed.transcript.some((t) => t.event === 'STEP_BLOCKED' && t.stepId === 'gate-evidence'),
+      'historical blocking events remain in the transcript for audit');
+    const restored = deserializeWorkflowSession(serializeWorkflowSession(completed));
+    assert.deepEqual(restored.blockers, []);
+    assert.deepEqual(restored.blockedSteps, []);
+    assert.ok(restored.transcript.some((t) => t.event === 'STEP_BLOCKED' && t.stepId === 'gate-evidence'));
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('F-D4a M: re-blocked for a different reason shows only current active blockers', async () => {
+  const { root, base } = await fixture({ change: L1_CHANGE, implementationPlan: false });
+  try {
+    const session = createWorkflowSession({ targetDir: root, task: 'wf-task', mode: 'auto' });
+    const first = await runWorkflowSession(session, { phases: ['implement'], baseRef: base });
+    assert.equal(first.status, 'BLOCKED');
+    assert.equal(first.blockedSteps.length, 1);
+    assert.equal(first.blockedSteps[0].id, 'readiness-implement');
+    assert.match(first.blockedSteps[0].detail, /implementation-plan/);
+    // Restore the implementation plan and commit, then dirty the worktree.
+    const taskPath = path.join(root, 'docs', 'tasks', 'wf-task.md');
+    const taskText = await readFile(taskPath, 'utf8');
+    await writeFile(taskPath, taskText.replace('## Implementation plan\n\n', '## Implementation plan\n\n1. Build a preview.\n'), 'utf8');
+    git(root, 'add', '.');
+    git(root, 'commit', '-qm', 'restore implementation plan');
+    await writeFile(path.join(root, 'uncommitted.txt'), 'dirty\n', 'utf8');
+    // The first resume stops at the implementation handoff; the second
+    // reaches the gate, which re-executes against the dirty worktree.
+    const handoff = await runWorkflowSession(session, { phases: ['implement'], baseRef: base });
+    assert.equal(handoff.status, 'AWAITING_IMPLEMENTATION');
+    const second = await runWorkflowSession(session, { phases: ['implement'], baseRef: base });
+    assert.equal(second.status, 'BLOCKED');
+    assert.deepEqual(second.blockers, ['GATE_BLOCKED']);
+    assert.equal(second.blockedSteps.length, 1, 'only the current run’s blockers are active');
+    assert.equal(second.blockedSteps[0].id, 'gate-evidence');
+    assert.match(second.blockedSteps[0].detail, /DIRTY_WORKTREE/);
+    assert.equal(second.transcript.filter((t) => t.event === 'STEP_BLOCKED').length, 2,
+      'both blocking events remain in the audit transcript');
   } finally { await rm(root, { recursive: true, force: true }); }
 });
