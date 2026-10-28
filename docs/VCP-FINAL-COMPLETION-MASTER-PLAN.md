@@ -26,6 +26,16 @@ VCP is a repository-native, deterministic engineering control plane for AI codin
 7. Exact candidate HEAD/tree, source-to-package identity, native Linux/Windows (as supported) evidence, changelog/docs, conformance matrix, install/update/rollback smoke, release check, and human GO/NO-GO are preserved.
 8. Only AFTER explicit owner release authorization: immutable tag, npm publication, GitHub Release, registry install smoke. Never publish as a side effect of a passed test.
 
+### 2026-10-28 Owner SC-01 residual ruling — LOCAL CORRECTION APPROVED
+
+[Owner SC-01 ruling](VCP-SC01-OWNER-RULING-20261028.md) recorded from owner's explicit 2026-10-28 "اعتمد" response to the specific residual proposal:
+
+- **OD-R1**: bounded parent-swap risk accepted **for local limited evaluation only**; not blanket production acceptance. Detection after write is NOT prevention; document and preserve evidence.
+- **OD-R3**: build a final `.vcp`-absence check as late as practicable before the exclusive `open`; prove it blocks the demonstrated after-parent-creation race. This narrows but does not atomically eliminate check/open interleavings.
+- **OD-H**: defer F-H2 descriptor-relative hardening for the current Linux-only evaluation; revisit before any wider scope.
+- **OD-ACT**: remains **PENDING**, with G5 activation decision and final owner review required. No canonical SC-01 decision record or D-01 register mutation.
+- **Next code ticket**: bounded local `fix/sc01-final-vcp-check` from frozen `57e4df4`, then builder tests and fresh independent *delta G3* on new SHA/tree. Prior G3 PASS pertains ONLY to `57e4df4`. No remote code push/merge/release is authorized.
+
 ### 2026-10-28 P1 independent G3 result — VERIFIED BY REPORT, not owner activation
 
 - Independent Linux validator, exact local frozen HEAD `57e4df465f6a56da91717b1ffb0474dae8b91e65`, tree `bd066b01ada5855bfd19e3f11fbae302f9d55a12`: **ACCEPT SC-01 ENGINEERING; G3 PASS; READY FOR OWNER ACTIVATION REVIEW**. G1/G2/G3/G4/G6 pass, G5 pass **only as an authorization-boundary check** (canonical activation NOT approved).
@@ -76,7 +86,7 @@ Statuses are one of `NOT_STARTED`, `BUILDING`, `BUILT_UNVALIDATED`, `VALIDATING`
 | Phase | Title | Initial status | Dependency | Owner-facing result |
 |---|---|---|---|---|
 | **P0** | Source and evidence reconciliation | **PARTIAL: 7 verified refs published; archive pending** | No merge; owner archive decision pending | Exact SHA chain published on new refs; archive and final P0 tracker closure pending |
-| **P1** | SC-01 Linux scoped Task Pack creation | **G3 INDEPENDENT PASS; OWNER ACTIVATION PENDING** | Local `57e4df4`, G1–G6 verified as boundary checks; owner OD-R1/R3/ACT/SCOPE unresolved | G3 1416: 1351 PASS / 49 FAIL / 16 SKIP (48 inherited + PH-06); no new SC-01 defects, no activation |
+| **P1** | SC-01 Linux scoped Task Pack creation | **G3 PASS FOR `57e4df4`; LOCAL R-3 CORRECTIVE BUILD AUTHORIZED** | Owner OD-R1 local acceptance, OD-R3 final check required, OD-H F-H2 deferred, OD-ACT pending | Build on new local branch + independent delta G3; no activation or push |
 | **P2** | Read-only product measurement B/E + C fixture | **READY IN PARALLEL** | Fixed candidate/corpus; no D-01 write GO | Measured adaptation accuracy, ablation decisions, C fixture re-measurement |
 | **P3** | Owner decision and contract resolution | **NOT_STARTED** | Root-cause reports; P0; independent reviews | Decisions OD-2,3,4,6 and scoped activation vs full D-01/Windows/CI |
 | **P4** | Old-CLI containment + managed lifecycle D-01 safety | **BLOCKED ON OWNER-APPROVED DESIGN** | P3, 0.9.3 hazard threat model, Linux/Windows proof plan | Safe init/update/migrate/recovery design and independently verified behavior; D-01 remains closed until separate GO |
