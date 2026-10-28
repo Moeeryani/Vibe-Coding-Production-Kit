@@ -1,10 +1,11 @@
 # VCP Roadmap — System Completion Plan
 
-**Status:** Living execution roadmap and system-completion contract
+**Status:** Historical stage-by-stage roadmap for the older released/main branch; preserved as project history.
 **Released baseline:** VCP `v0.9.3`
-**Current candidate:** none — next bounded product work is Stage 12 Safe Adoption Planning after Stage 11 closeout reconciliation; no release candidate is prepared
+**Current completion execution plan:** [VCP Final Completion Master Plan](VCP-FINAL-COMPLETION-MASTER-PLAN.md) · [GitHub tracking issue #109](https://github.com/Moeeryani/Vibe-Coding-Production-Kit/issues/109).
+**Source warning (2026-10-28):** GitHub `main` is still at `8ccb276`, while the independently validated recent Linux candidate `d4fb3ce` exists only in local reports/checkout until P0 source reconciliation. The plan branch contains tracking docs, not those unpushed code changes.
 
-This is the current execution roadmap. Historical handoffs and design documents remain evidence, but this file owns current status, sequencing, dependencies, and completion criteria.
+The historical stage sections below are retained for context, not as the active next-step queue. For all new work, statuses, sequencing, dependencies, decisions and completion criteria, follow the linked **VCP Final Completion Master Plan** and issue #109. No change in this roadmap authorizes code merging, security gate activation, or release.
 
 ---
 
