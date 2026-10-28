@@ -74,9 +74,11 @@ test('header counts are derived from the module and match the known construction
   // must be a deliberate, disclosed change — not silent drift.
   // Deliberate change (Batch F): U-08 COVERED, U-07 PARTIAL, plus new
   // SKL-04 and PKG-02 rows. Counts are derived from the module, not hardcoded.
-  assert.equal(summary.total, 44);
+  // Deliberate change (SC-01, local implementation only, activation
+  // pending): new SC-01 PARTIAL row for scoped Task Pack creation.
+  assert.equal(summary.total, 45);
   assert.equal(summary.COVERED, 31);
-  assert.equal(summary.PARTIAL, 3);
+  assert.equal(summary.PARTIAL, 4);
   assert.equal(summary.UNRESOLVED, 10);
   assert.equal(summary.acceptanceClaimed, false);
 });
