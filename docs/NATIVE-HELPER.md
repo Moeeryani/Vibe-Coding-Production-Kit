@@ -83,14 +83,37 @@ and none is pretended.
 
 The helper binary and its manifest are gitignored build artifacts ("never
 committed"), but they ship in the published tarball: package.json `files`
-lists `scripts/`, and `files` entries cannot be excluded by `.gitignore`.
-`.npmignore` states the inclusion explicitly with negations and, more
-importantly, explicitly excludes the Windows candidate artifacts, so a
-locally built Windows executable can never leak into a tarball. `prepublishOnly` builds the helper before validation,
-so a published tarball cannot silently omit it; if no compiler is present,
-publishing fails instead of shipping a helper-less package. An installed
-consumer runs the same verification as a development checkout and fails
-closed if the helper is missing or tampered with.
+is a narrow, explicit allowlist that names the Linux build script, the
+Linux source, the built helper, and its trust manifest individually
+under `scripts/native/`. Nothing else under `scripts/native/` ships —
+in particular no Windows candidate artifact (`vcp-windows-fsops.exe`,
+`.obj`, or any other Windows build output) can enter the tarball, even
+if it exists in the developer's working tree. The allowlist is the
+exclusion mechanism; `.npmignore` carries the same exclusions only as
+defense in depth, because npm cannot use `.npmignore` to exclude entries
+inside a broadly `files`-listed directory. Developer-owned Windows
+artifacts are never deleted or overwritten to produce a package; the
+allowlist simply does not select them.
+
+The helper is built and trust-verified by the `prepack` lifecycle hook
+(`node scripts/setup-native-helper.mjs`), which runs on both `npm pack`
+and `npm publish`, so a distributable is never produced without a
+verified helper; if no compiler is present, or verification refuses the
+helper, packaging fails closed. The setup script rebuilds only when the
+present helper does not verify, so the `prepublishOnly` build (which
+must run before `validate`) is not redundantly repeated. `npm pack
+--ignore-scripts` bypasses ALL lifecycle scripts, including `prepack`,
+and must not be used to create a production distributable unless an
+equivalent verified build step has already run in that tree. An
+installed consumer runs the same verification as a development
+checkout and fails closed if the helper is missing or tampered with.
+
+Publish limitation, recorded not bypassed: `npm publish` runs
+`prepublishOnly`, whose `validate` step runs the full test suite, which
+currently exits non-zero on 64 pre-existing baseline failures. Publishing
+therefore cannot complete on this tree, and the suite failures must not
+be suppressed or the `validate` gate removed to make it succeed. That is
+a release blocker, not a packaging defect to work around.
 
 ## Failure modes
 

@@ -6,7 +6,7 @@
 // supported path: no Docker, no container images, no network downloads, no
 // prebuilt binaries. It checks prerequisites, builds, and verifies.
 //
-//   npm run setup:native-helper            build + verify (default)
+//   npm run setup:native-helper            verify, building only if untrusted (default)
 //   npm run setup:native-helper -- --check verify only, no build
 //   npm run setup:native-helper -- --json  machine-readable output
 //
@@ -75,6 +75,20 @@ async function main() {
     return report({
       ok: true, mode: 'check', message: `Native helper trusted: ${checked.identity.sha256} (platform linux/${process.arch}, source ${checked.identity.sourceSha256}).`,
       identity: checked.identity,
+    });
+  }
+
+  // Idempotent rebuild: trust verification is the authority. If the helper
+  // already present verifies — including the manifest's source hash
+  // against the current in-tree source — there is nothing to rebuild.
+  // A stale binary, a changed source, or a tampered manifest fails
+  // verification and falls through to a fresh build below. This keeps
+  // the prepack hook cheap when prepublishOnly already built the helper.
+  const already = verify();
+  if (already.trusted) {
+    return report({
+      ok: true, mode: 'verify', message: `Native helper already trusted: ${already.identity.sha256} (platform linux/${process.arch}, source ${already.identity.sourceSha256}). No rebuild needed.`,
+      identity: already.identity,
     });
   }
 

@@ -1,13 +1,19 @@
-# Batch E: when .npmignore exists, npm does NOT consult .gitignore, so this
-# file must carry every exclusion that matters for the published tarball.
+# Packaging exclusions are DEFENSE IN DEPTH ONLY. The authoritative
+# mechanism is the explicit allowlist in package.json "files": only the
+# Linux build script, Linux source, built Linux helper, and its trust
+# manifest are listed under scripts/native/, so no Windows candidate
+# artifact can enter the tarball even if present in the working tree.
+# .npmignore must never be relied on to exclude entries inside a broadly
+# "files"-listed directory (npm cannot exclude such entries). When
+# .npmignore exists, npm does NOT consult .gitignore, so this file must
+# still carry every exclusion that matters for the published tarball.
 #
 # The built Linux native helper binary + trust manifest are gitignored build
 # artifacts, but they MUST ship in the tarball: without them an installed
 # consumer cannot use anchored filesystem operations and fails closed.
-# They ship because package.json "files" lists scripts/, and entries in
-# "files" cannot be excluded by .gitignore. The negations below state that
-# inclusion explicitly, so a future change to the "files" list cannot
-# silently drop them.
+# They ship because package.json "files" lists them explicitly. The
+# negations below state that inclusion explicitly, so a future change to
+# the "files" list cannot silently drop them.
 !scripts/native/vcp-linux-fsops
 !scripts/native/vcp-linux-fsops.manifest.json
 

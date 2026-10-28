@@ -121,6 +121,115 @@ test('.npmignore states the helper inclusion and excludes Windows artifacts', ()
   assert.match(npmignore, /^scripts\/native\/vcp-windows-fsops\.obj$/m);
 });
 
+// Closure D1/D2: the packaging contract is proven against REAL tarballs,
+// not --dry-run listings. Forbidden Windows artifacts are PLANTED in the
+// fresh tree before packing; the tarball must exclude them while leaving
+// the developer-owned files untouched on disk.
+const FORBIDDEN_PLANTS = [
+  ['vcp-windows-fsops.exe', Buffer.from('MZ-fake-windows-executable')],
+  ['vcp-windows-fsops.obj', Buffer.from('fake-object-file')],
+];
+const ALLOWED_NATIVE_ENTRIES = new Set([
+  'build-linux-fsops.mjs', 'vcp-linux-fsops.cpp', 'vcp-linux-fsops', 'vcp-linux-fsops.manifest.json',
+]);
+
+function freshArchiveTree() {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vcp-fresh-'));
+  const archive = spawnSync('git', ['archive', 'HEAD'], { cwd: ROOT, encoding: 'buffer', maxBuffer: 64 * 1024 * 1024 });
+  assert.equal(archive.status, 0, archive.stderr?.toString());
+  const extract = spawnSync('tar', ['-x', '-C', dir], { input: archive.stdout });
+  assert.equal(extract.status, 0, extract.stderr?.toString());
+  return dir;
+}
+
+function packRealTarball(dir, args) {
+  const pack = spawnSync('npm', ['pack', ...args], { cwd: dir, encoding: 'utf8', timeout: 120_000 });
+  assert.equal(pack.status, 0, pack.stdout + pack.stderr);
+  const name = (pack.stdout.trim().split('\n').pop() ?? '').trim();
+  assert.match(name, /\.tgz$/);
+  const tarball = path.join(dir, name);
+  assert.equal(fs.existsSync(tarball), true, 'npm pack must produce a real .tgz');
+  const out = path.join(dir, 'extracted');
+  fs.mkdirSync(out);
+  const extract = spawnSync('tar', ['-xzf', tarball, '-C', out], { encoding: 'utf8' });
+  assert.equal(extract.status, 0, extract.stderr);
+  const entries = [];
+  const walk = (d) => {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) walk(p); else entries.push(path.relative(out, p).split(path.sep).join('/'));
+    }
+  };
+  walk(out);
+  return { entries, out };
+}
+
+function assertPackagingContract({ entries, out }, { builtHelperSha }) {
+  const nativeEntries = entries
+    .filter((e) => e.startsWith('package/scripts/native/'))
+    .map((e) => e.slice('package/scripts/native/'.length));
+  assert.deepEqual(new Set(nativeEntries), ALLOWED_NATIVE_ENTRIES,
+    `only the Linux helper assets may ship under scripts/native/: ${nativeEntries.join(', ')}`);
+  for (const e of entries) {
+    assert.doesNotMatch(e, /vcp-windows/i, `tarball must not contain Windows artifacts: ${e}`);
+    assert.doesNotMatch(e, /\.exe$/i, `tarball must not contain executables: ${e}`);
+    assert.doesNotMatch(e, /\.obj$/i, `tarball must not contain object files: ${e}`);
+  }
+  const helper = path.join(out, 'package', 'scripts', 'native', 'vcp-linux-fsops');
+  const identity = verifyNativeHelper(helper);
+  assert.equal(identity.platform, 'linux');
+  assert.equal(identity.arch, process.arch);
+  if (builtHelperSha) assert.equal(identity.sha256, builtHelperSha);
+  return identity;
+}
+
+function plantForbidden(dir) {
+  const native = path.join(dir, 'scripts', 'native');
+  for (const [name, bytes] of FORBIDDEN_PLANTS) fs.writeFileSync(path.join(native, name), bytes);
+}
+
+function assertPlantsUntouched(dir) {
+  const native = path.join(dir, 'scripts', 'native');
+  for (const [name, bytes] of FORBIDDEN_PLANTS) {
+    const p = path.join(native, name);
+    assert.equal(fs.existsSync(p), true, `planted ${name} must not be deleted to produce the package`);
+    assert.deepEqual(fs.readFileSync(p), bytes, `planted ${name} must not be overwritten`);
+  }
+}
+
+test('closure D1/D2: normal npm pack builds the helper via prepack and excludes planted Windows artifacts', { timeout: 180_000 }, () => {
+  const dir = freshArchiveTree();
+  const freshHelper = path.join(dir, 'scripts', 'native', 'vcp-linux-fsops');
+  assert.equal(fs.existsSync(freshHelper), false, 'fresh tree must not contain a helper binary');
+  plantForbidden(dir);
+  const packed = packRealTarball(dir, []);
+  assertPlantsUntouched(dir);
+  assertPackagingContract(packed, { builtHelperSha: sha256File(freshHelper) });
+});
+
+test('closure D1/D2: npm pack --ignore-scripts ships a pre-built helper and still excludes planted Windows artifacts', { timeout: 180_000 }, () => {
+  const dir = freshArchiveTree();
+  const setup = spawnSync(process.execPath, [path.join(dir, 'scripts', 'setup-native-helper.mjs')], {
+    cwd: dir, encoding: 'utf8', timeout: 60_000,
+  });
+  assert.equal(setup.status, 0, setup.stdout + setup.stderr);
+  const freshHelper = path.join(dir, 'scripts', 'native', 'vcp-linux-fsops');
+  plantForbidden(dir);
+  const packed = packRealTarball(dir, ['--ignore-scripts']);
+  assertPlantsUntouched(dir);
+  assertPackagingContract(packed, { builtHelperSha: sha256File(freshHelper) });
+});
+
+test('closure D2: setup is idempotent — a trusted helper is verified, not rebuilt', () => {
+  const first = spawnSync(process.execPath, [SETUP], { encoding: 'utf8' });
+  assert.equal(first.status, 0, first.stderr);
+  const before = sha256File(REAL_HELPER);
+  const second = spawnSync(process.execPath, [SETUP], { encoding: 'utf8' });
+  assert.equal(second.status, 0, second.stderr);
+  assert.match(second.stdout, /already trusted/);
+  assert.equal(sha256File(REAL_HELPER), before, 'idempotent setup must not rewrite a trusted helper');
+});
+
 // NOTE: this test archives HEAD, so the Batch E files must be committed
 // before it runs. It simulates a fresh clone: no helper, no manifest.
 test('fresh checkout: setup builds and verifies the helper; pack ships it, never a Windows exe', { timeout: 120_000 }, () => {
