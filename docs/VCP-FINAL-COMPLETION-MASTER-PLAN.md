@@ -26,6 +26,13 @@ VCP is a repository-native, deterministic engineering control plane for AI codin
 7. Exact candidate HEAD/tree, source-to-package identity, native Linux/Windows (as supported) evidence, changelog/docs, conformance matrix, install/update/rollback smoke, release check, and human GO/NO-GO are preserved.
 8. Only AFTER explicit owner release authorization: immutable tag, npm publication, GitHub Release, registry install smoke. Never publish as a side effect of a passed test.
 
+### 2026-10-28 R-3 corrective build completed (builder report; delta acceptance PENDING)
+
+- Local new `fix/sc01-final-vcp-check` (one commit atop frozen `57e4df4`): **HEAD** `98c63ad827290f3da0862b6e291535cee0869849`, **tree** `c704aedc4bfb442d5776f170ae5806463f586cb8`. Changed only `lib/scoped-task-create.mjs`, new `test/scoped-task-create-r3.test.mjs`, `docs/CLI.md`. No remote branch/code push.
+- Added last `lstat`-based `.vcp` absence check after parent prep, before exclusive open, with post-mutation error/ledger cleanup if parents were created and pre-mutation refusal otherwise. Does NOT atomically close final check-to-open race. Original 13 protected files reported identical.
+- Builder claims 8/8 new R3 tests, 52/52 SC-01+R3, full suite **1424 = 1360 PASS / 48 FAIL / 16 SKIP**, same 48 inherited failing-name hash `e4344bf531508fcd4ce8f44897c3556b93777b1eb47994e6ea4a6e73496a4f61`; PH-06 can recur independently. All claims still need independent confirmation.
+- **Delta G3 test gaps**: (1) R3-04's existing-parent planter landed *before classification in all 20 trials*, not at final recheck; (2) root recovery/lock/adoption markers arriving after early checks remain outside final `.vcp`-only check; (3) full suite was run *before* import-only tidy, so independent validator must rerun on frozen exact HEAD; (4) generated SC-01 conformance text is stale (claims pending original G3 and R-1 disposition).
+- **NEXT**: [Independent delta G3 assignment](VCP-SC01-R3-DELTA-INDEPENDENT-VALIDATION.md), covering all gaps and full exact-head regression. Do not inherit prior PASS by analogy. Owner acceptance/activation review after independent result; release stays NO-GO, `D-01` DEFERRED and `G-FENCE` NO-GO.
 ### 2026-10-28 Owner SC-01 residual ruling — LOCAL CORRECTION APPROVED
 
 [Owner SC-01 ruling](VCP-SC01-OWNER-RULING-20261028.md) recorded from owner's explicit 2026-10-28 "اعتمد" response to the specific residual proposal:
@@ -86,7 +93,7 @@ Statuses are one of `NOT_STARTED`, `BUILDING`, `BUILT_UNVALIDATED`, `VALIDATING`
 | Phase | Title | Initial status | Dependency | Owner-facing result |
 |---|---|---|---|---|
 | **P0** | Source and evidence reconciliation | **PARTIAL: 7 verified refs published; archive pending** | No merge; owner archive decision pending | Exact SHA chain published on new refs; archive and final P0 tracker closure pending |
-| **P1** | SC-01 Linux scoped Task Pack creation | **G3 PASS FOR `57e4df4`; LOCAL R-3 CORRECTIVE BUILD AUTHORIZED** | Owner OD-R1 local acceptance, OD-R3 final check required, OD-H F-H2 deferred, OD-ACT pending | Build on new local branch + independent delta G3; no activation or push |
+| **P1** | SC-01 Linux scoped Task Pack creation | **R-3 CORRECTIVE BUILT; INDEPENDENT DELTA G3 PENDING** | Local corrective `98c63ad`/tree `c704aedc`; original G3 PASS only `57e4df4` | Builder 1424: 1360 PASS / 48 FAIL / 16 SKIP; new 8/8; independent validation and OD-ACT still pending |
 | **P2** | Read-only product measurement B/E + C fixture | **PREPARED: #110, NOT EXECUTED** | Verified `d4fb3ce` source, real corpus, independent blind labels; no managed writes | [Execution contract](VCP-P2-READONLY-ACCEPTANCE-EXECUTION.md); B real-repo precision/recall, E ablation/deletion register, C fixture-only |
 | **P3** | Owner decision and contract resolution | **NOT_STARTED** | Root-cause reports; P0; independent reviews | Decisions OD-2,3,4,6 and scoped activation vs full D-01/Windows/CI |
 | **P4** | Old-CLI containment + managed lifecycle D-01 safety | **BLOCKED ON OWNER-APPROVED DESIGN** | P3, 0.9.3 hazard threat model, Linux/Windows proof plan | Safe init/update/migrate/recovery design and independently verified behavior; D-01 remains closed until separate GO |
