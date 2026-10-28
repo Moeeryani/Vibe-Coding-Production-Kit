@@ -185,7 +185,11 @@ test('Go and Python precedence remains above React Native', async () => {
   assert.equal(await detectStack(python), 'python');
 });
 
-test('symlinked package.json cannot grant React Native authority but preserves historical Node fallback', async (t) => {
+// D-03 selected no-follow policy: stack detection refuses linked markers
+// rather than treating them as absent (the Stage 11 fallback semantics this
+// test previously asserted). A linked package.json grants no authority and
+// detection refuses instead of silently falling back to another stack.
+test('symlinked package.json is refused rather than trusted for stack authority', async (t) => {
   const target = await tempDir();
   const external = await tempDir();
   await writePackage(external, {
@@ -205,14 +209,11 @@ test('symlinked package.json cannot grant React Native authority but preserves h
     throw error;
   }
 
-  assert.equal(await detectStack(target), 'javascript');
-
-  const result = await applyStackProfileToContent(target, 'javascript', baseAgents);
-  assert.match(result.content, /UNIT_TEST_COMMAND=npm run test/);
-  assert.match(result.content, /## 16\. JavaScript \/ Node\.js stack profile/);
-  assert.doesNotMatch(result.content, /## 16\. React Native stack profile/);
+  await assert.rejects(() => detectStack(target), { code: 'E_VCP_PATH' });
 });
 
+// D-03 selected no-follow policy, as above: a linked app marker refuses
+// detection instead of being ignored with a fallback stack.
 test('React Native app markers must be real selected-root files/directories, not symlinks', async (t) => {
   const target = await tempDir();
   const external = await tempDir();
@@ -233,7 +234,7 @@ test('React Native app markers must be real selected-root files/directories, not
     throw error;
   }
 
-  assert.equal(await detectStack(target), 'javascript');
+  await assert.rejects(() => detectStack(target), { code: 'E_VCP_PATH' });
 });
 
 test('selected-root detection never recursively inherits parent or sibling mobile evidence', async () => {

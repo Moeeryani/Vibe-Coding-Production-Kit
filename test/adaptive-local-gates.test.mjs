@@ -110,7 +110,7 @@ test('D-03: selected no-follow contract also rejects in-root links and linked pa
   const task = await readFile(path.join(root, 'docs/tasks/stage12-safe-adoption-planning.md'), 'utf8');
   assert.match(T, /D-03 no-follow policy rejects in-root symlinks/);
   assert.match(T, /reject untrusted symlink\/junction\/reparse traversal by default even when its target stays inside/);
-  assert.match(task, /AC-010 \(D-03 PROPOSED\):[^\n]*even for in-root targets/);
+  assert.match(task, /AC-010 \(D-03 ACCEPTED POLICY\):[^\n]*even for in-root targets/);
   assert.match(task, /native Windows fixtures required/);
 });
 

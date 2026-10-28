@@ -84,7 +84,11 @@ test('enforce refuses without privilege', async t => {
   const stage = await mkdtemp(path.join(os.tmpdir(), 'vcp-fence-stage-'));
   t.after(() => rm(stage, { recursive: true, force: true }));
   const libDir = path.join(path.dirname(new URL(import.meta.url).pathname), '..', 'lib');
-  for (const f of ['linux-legacy-fence.mjs', 'linux-fs-provider.mjs']) {
+  // Stage every module the fence imports: linux-fs-provider.mjs imports
+  // native-helper-trust.mjs (Phase N+1 trust seam), so staging only the
+  // first two leaves the child unable to import and the test asserting on
+  // an empty stdout.
+  for (const f of ['linux-legacy-fence.mjs', 'linux-fs-provider.mjs', 'native-helper-trust.mjs']) {
     await writeFile(path.join(stage, f), await readFile(path.join(libDir, f)));
     await chmod(path.join(stage, f), 0o644);
   }
