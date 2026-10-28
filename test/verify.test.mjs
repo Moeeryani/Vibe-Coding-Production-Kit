@@ -19,6 +19,20 @@ async function exists(file) {
   try { await access(file); return true; } catch { return false; }
 }
 
+// Command authority requires each task command to match AGENTS.md exactly.
+// The seeded fixture leaves every slot as <define>; a test that executes
+// task commands must declare them, the way the passing gate and workflow
+// tests already do. This provisions the fixture project; it does not
+// change the authority contract or any assertion below.
+async function declareCommands(target, commands) {
+  const agentsPath = path.join(target, 'AGENTS.md');
+  let agents = await readFile(agentsPath, 'utf8');
+  for (const { key, command } of commands) {
+    agents = agents.replace(`${key}=<define>`, `${key}=${command}`);
+  }
+  await writeFile(agentsPath, agents, 'utf8');
+}
+
 async function writeReadyTask(target, slug, commands) {
   const dir = path.join(target, 'docs', 'tasks');
   await mkdir(dir, { recursive: true });
@@ -43,10 +57,12 @@ test('verify preview does not execute repository commands', async () => {
 test('verify run records passing evidence and can write JSON inside the repo', async () => {
   const target = await tempDir();
   await initProject({ targetDir: target, agent: 'generic', stack: 'generic', includeGitHub: false });
-  await writeReadyTask(target, 'passing', [
+  const passingCommands = [
     { key: 'UNIT_TEST_COMMAND', command: 'node -e "process.exit(0)"' },
     { key: 'BUILD_COMMAND', command: 'node -e "process.exit(0)"' }
-  ]);
+  ];
+  await declareCommands(target, passingCommands);
+  await writeReadyTask(target, 'passing', passingCommands);
 
   const report = await runVerification({
     targetDir: target,
@@ -66,10 +82,12 @@ test('verify run records passing evidence and can write JSON inside the repo', a
 test('verify stops after the first failed command', async () => {
   const target = await tempDir();
   await initProject({ targetDir: target, agent: 'generic', stack: 'generic', includeGitHub: false });
-  await writeReadyTask(target, 'failure', [
+  const failureCommands = [
     { key: 'UNIT_TEST_COMMAND', command: 'node -e "process.exit(2)"' },
     { key: 'BUILD_COMMAND', command: `node -e "require('node:fs').writeFileSync('should-not-run','x')"` }
-  ]);
+  ];
+  await declareCommands(target, failureCommands);
+  await writeReadyTask(target, 'failure', failureCommands);
 
   const report = await runVerification({ targetDir: target, task: 'failure', run: true, quiet: true });
   assert.equal(report.success, false);
@@ -81,6 +99,7 @@ test('verify stops after the first failed command', async () => {
 test('verify CLI supports explicit execution and JSON output', async () => {
   const target = await tempDir();
   await initProject({ targetDir: target, agent: 'generic', stack: 'generic', includeGitHub: false });
+  await declareCommands(target, [{ key: 'UNIT_TEST_COMMAND', command: 'node -e "process.exit(0)"' }]);
   await writeReadyTask(target, 'cli-verify', [
     { key: 'UNIT_TEST_COMMAND', command: 'node -e "process.exit(0)"' }
   ]);

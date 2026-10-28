@@ -123,10 +123,18 @@ Record project/workspace scope, Git revision when available, command result, dur
   await writeFile(path.join(dir, `${slug}.md`), content, 'utf8');
 }
 
-async function initializedProject(target, slug, command) {
+async function initializedProject(target, slug, command = 'node -e "process.exit(0)"') {
   await mkdir(target, { recursive: true });
   await initProject({ targetDir: target, agent: 'generic', stack: 'generic', includeGitHub: false });
   await writeReadyTask(target, slug, command);
+  // Command authority requires the task's UNIT_TEST_COMMAND to match
+  // AGENTS.md exactly. The seeded fixture leaves the slot as <define>;
+  // declare the exact command the task executes, the way the passing gate
+  // and workflow tests already do. This provisions the fixture project;
+  // it does not change the authority contract or any assertion below.
+  const agentsPath = path.join(target, 'AGENTS.md');
+  await writeFile(agentsPath,
+    (await readFile(agentsPath, 'utf8')).replace('UNIT_TEST_COMMAND=<define>', `UNIT_TEST_COMMAND=${command}`), 'utf8');
 }
 
 test('non-Git verification preserves execution and reports project-only scope', async () => {

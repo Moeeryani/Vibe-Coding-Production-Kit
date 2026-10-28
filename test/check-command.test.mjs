@@ -12,6 +12,24 @@ async function tempDir() {
   return mkdtemp(path.join(os.tmpdir(), 'vcp-check-command-'));
 }
 
+// Command authority requires the task's commands to match AGENTS.md exactly.
+// The seeded fixture leaves every slot as <define>/<define or n/a>; a test
+// that executes task commands must declare them, the way the passing gate
+// and workflow tests already do. This provisions the fixture project, it
+// does not change the authority contract or any assertion below.
+// Line-anchored: CHECK_COMMAND is a suffix of TYPECHECK_COMMAND, so a
+// plain substring replace would rewrite the wrong slot.
+async function declareCommands(target) {
+  const agentsPath = path.join(target, 'AGENTS.md');
+  const agents = await readFile(agentsPath, 'utf8');
+  const replaced = agents.split('\n').map((line) => {
+    if (line.startsWith('CHECK_COMMAND=')) return 'CHECK_COMMAND=node -e "process.exit(0)"';
+    if (line.startsWith('UNIT_TEST_COMMAND=')) return 'UNIT_TEST_COMMAND=node -e "process.exit(0)"';
+    return line;
+  }).join('\n');
+  await writeFile(agentsPath, replaced, 'utf8');
+}
+
 async function writeReadyTask(target, slug) {
   const dir = path.join(target, 'docs', 'tasks');
   await mkdir(dir, { recursive: true });
@@ -61,6 +79,7 @@ test('JavaScript profile keeps lint unresolved when neither lint nor general che
 test('verify executes and persists CHECK_COMMAND alongside unit tests', async () => {
   const target = await tempDir();
   await initProject({ targetDir: target, agent: 'generic', stack: 'generic', includeGitHub: false });
+  await declareCommands(target);
   await writeReadyTask(target, 'check-evidence');
 
   const report = await runVerification({
