@@ -34,7 +34,7 @@ VCP is a repository-native, deterministic engineering control plane for AI codin
 - **OD-R3**: build a final `.vcp`-absence check as late as practicable before the exclusive `open`; prove it blocks the demonstrated after-parent-creation race. This narrows but does not atomically eliminate check/open interleavings.
 - **OD-H**: defer F-H2 descriptor-relative hardening for the current Linux-only evaluation; revisit before any wider scope.
 - **OD-ACT**: remains **PENDING**, with G5 activation decision and final owner review required. No canonical SC-01 decision record or D-01 register mutation.
-- **Next code ticket**: bounded local `fix/sc01-final-vcp-check` from frozen `57e4df4`, then builder tests and fresh independent *delta G3* on new SHA/tree. Prior G3 PASS pertains ONLY to `57e4df4`. No remote code push/merge/release is authorized.
+- **Next code ticket**: [R-3 corrective agent instructions](VCP-SC01-R3-CORRECTIVE-EXECUTION.md) — bounded local `fix/sc01-final-vcp-check` from frozen `57e4df4`, then builder tests and fresh independent *delta G3* on new SHA/tree. Prior G3 PASS pertains ONLY to `57e4df4`. No remote code push/merge/release is authorized.
 
 ### 2026-10-28 P1 independent G3 result — VERIFIED BY REPORT, not owner activation
 
