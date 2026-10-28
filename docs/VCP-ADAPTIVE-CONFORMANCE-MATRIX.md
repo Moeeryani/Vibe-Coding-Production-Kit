@@ -2,7 +2,7 @@
 
 **Status: SOURCE COMPLETE, NOT ACCEPTED.** This matrix is generated from `lib/conformance-matrix.mjs` (the single source of truth) so the doc cannot drift from the validated data. It records what has in-tree test evidence, what is partial, and what is explicitly unresolved. It cannot express overall acceptance: the status vocabulary has no ACCEPTED value, and overall conformance acceptance and production readiness remain separate owner decisions backed by independent evidence that does not exist yet.
 
-Rows: 44 — COVERED 31, PARTIAL 3, UNRESOLVED 10. Acceptance claimed: false.
+Rows: 45 — COVERED 31, PARTIAL 4, UNRESOLVED 10. Acceptance claimed: false.
 
 | ID | Area | Requirement | Evidence | Status | Notes |
 |---|---|---|---|---|---|
@@ -35,7 +35,8 @@ Rows: 44 — COVERED 31, PARTIAL 3, UNRESOLVED 10. Acceptance claimed: false.
 | ADP-01 | Fresh project and brownfield adoption | Fresh seeded project composes: capability-plan, gate-preview, ci-gate-plan, and skill inventory agree on one fixture. | test/conformance-fixtures.test.mjs | COVERED |  |
 | ADP-02 | Fresh project and brownfield adoption | Brownfield (unadopted) project: read-only tools work without writing state, and report no detected CI honestly. | test/conformance-fixtures.test.mjs | COVERED |  |
 | NEG-01 | Negative/security cases | Refusal paths are tested, not just success paths: draft, downgrade, unauthorized, dirty, stale, failed, L3, multiple/invalid selectors. | test/gate-run-execution.test.mjs; test/ci-gate-invocation.test.mjs | COVERED |  |
-| NEG-02 | Negative/security cases | Command authority is enforced at the execution boundary (exact AGENTS.md match + snapshot/digest checks); stale snapshots refuse. | test/verify.test.mjs; test/gate-run-execution.test.mjs | COVERED | verify.test.mjs run-tests are pre-existing baseline failures (seed placeholder vs authority); see final report. |
+| NEG-02 | Negative/security cases | Command authority is enforced at the execution boundary (exact AGENTS.md match + snapshot/digest checks); stale snapshots refuse. | test/verify.test.mjs; test/gate-run-execution.test.mjs | COVERED | verify.test.mjs run-tests pass since the Phase 1 fixture-authority corrections (d4fb3ce); the stale baseline-failure note is retired. |
+| SC-01 | Scoped Task Pack creation (SC-01) | Exclusive creation of docs/tasks/<slug>.md only in eligible non-managed projects (NEW/EXISTING, no .vcp/manifest/lock/recovery state), eligibility re-validated inside the write operation, Linux only, managed-project refusals unchanged. | test/scoped-task-create.test.mjs; lib/scoped-task-create.mjs; docs/SC-01-ENGINEERING-AUTHORIZATION.md | PARTIAL | Builder tests pass; G3 independent validation pending; activation NOT approved; D-01 DEFERRED and G-FENCE NO-GO unchanged; parent-swap residual pending owner disposition. |
 | DOC-01 | Release/documentation claim consistency | No overall conformance acceptance or production readiness is claimed anywhere in this matrix or its doc; statuses cannot express acceptance. | test/conformance-matrix.test.mjs | COVERED | Enforced structurally: ACCEPTED is not a valid status. |
 | DOC-02 | Release/documentation claim consistency | Checkpoint C SIMPLIFY (L1 readiness bar, L3 review format, no real dogfood) is recorded with enforcement disabled. | VCP-ADAPTIVE-CHECKPOINT-C-REPORT.md (workspace root, outside repo) | COVERED |  |
 | U-01 | Unresolved | Windows principal provider is null; no Windows-native durability evidence exists. | — | UNRESOLVED | Owner decision + native Windows/NTFS campaign required. |
