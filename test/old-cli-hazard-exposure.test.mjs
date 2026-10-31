@@ -25,7 +25,7 @@ import { createHash } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import {
-  lstat, mkdir, mkdtemp, readFile, readdir, symlink, writeFile
+  chmod, lstat, mkdir, mkdtemp, readFile, readdir, symlink, writeFile
 } from 'node:fs/promises';
 import { lstatSync } from 'node:fs';
 import os from 'node:os';
@@ -425,6 +425,68 @@ test('pure: directory-shaped update.lock alone is UNKNOWN H2 on init, H3 elsewhe
     assert.equal(report.entrypoints[name].verdict, 'UNKNOWN', name);
     assert.deepEqual(report.entrypoints[name].hazards, ['H3'], name);
   }
+  assertUnknownNotSafe(report);
+});
+
+// P4 fix F-VAL-1 (2026-10-31, independent P4-01 acceptance finding):
+// in combined states the init UNKNOWN reason must name the H3
+// condition, not the less specific docs/package or manifest
+// limitation. Verdicts and report-level hazards are unchanged.
+test('pure: F-VAL-1 — H3 + docs-only names the H3 condition on init (not the docs limitation)', () => {
+  const report = assessHazardExposure(baseDescriptor({
+    userOwnedContentPresent: true, userOwnedSignals: ['docs/'],
+    interruptedState: true
+  }));
+  assert.equal(report.entrypoints.init.verdict, 'UNKNOWN');
+  assert.deepEqual(report.entrypoints.init.hazards, []);
+  assert.match(report.entrypoints.init.reason, /\(H3\)/, 'init names H3');
+  assert.match(report.entrypoints.init.reason, /interrupted state is present/, 'init names the condition');
+  assert.doesNotMatch(report.entrypoints.init.reason, /demonstrated loss mechanism covers post-backup AGENTS\.md/,
+    'init does not fall back to the docs-limitation reason');
+  for (const name of ['update', 'manage', 'rollback']) {
+    assert.equal(report.entrypoints[name].verdict, 'UNKNOWN', name);
+    assert.deepEqual(report.entrypoints[name].hazards, ['H3'], name);
+  }
+  assertUnknownNotSafe(report);
+});
+
+test('pure: F-VAL-1 — H3 + package.json-only names the H3 condition on init', () => {
+  const report = assessHazardExposure(baseDescriptor({
+    userOwnedContentPresent: true, userOwnedSignals: ['package.json'],
+    adoptionMarkersPresent: true
+  }));
+  assert.equal(report.entrypoints.init.verdict, 'UNKNOWN');
+  assert.deepEqual(report.entrypoints.init.hazards, []);
+  assert.match(report.entrypoints.init.reason, /\(H3\)/, 'init names H3');
+  assert.match(report.entrypoints.init.reason, /adoption markers/, 'init names the condition');
+  assertUnknownNotSafe(report);
+});
+
+test('pure: F-VAL-1 — H3 + manifest present names the H3 condition on init', () => {
+  const report = assessHazardExposure(baseDescriptor({
+    manifest: 'present', rootManifestStray: true
+  }));
+  assert.equal(report.entrypoints.init.verdict, 'UNKNOWN');
+  assert.deepEqual(report.entrypoints.init.hazards, []);
+  assert.match(report.entrypoints.init.reason, /\(H3\)/, 'init names H3');
+  assert.match(report.entrypoints.init.reason, /root manifest\.json stray/, 'init names the condition');
+  assert.doesNotMatch(report.entrypoints.init.reason, /aggregate only/,
+    'init does not fall back to the manifest-limitation reason');
+  for (const name of ['update', 'manage', 'rollback']) {
+    assert.deepEqual(report.entrypoints[name].hazards, ['H3'], name);
+  }
+  assertUnknownNotSafe(report);
+});
+
+test('pure: F-VAL-1 — H3 + docs/package combined with manifest present names H3', () => {
+  const report = assessHazardExposure(baseDescriptor({
+    manifest: 'present', interruptedState: true,
+    userOwnedContentPresent: true, userOwnedSignals: ['docs/', 'package.json']
+  }));
+  assert.equal(report.entrypoints.init.verdict, 'UNKNOWN');
+  assert.match(report.entrypoints.init.reason, /\(H3\)/, 'init names H3');
+  assert.match(report.entrypoints.init.reason, /interrupted state is present/, 'init names the condition');
+  assert.doesNotMatch(report.entrypoints.init.reason, /aggregate only/);
   assertUnknownNotSafe(report);
 });
 
@@ -951,4 +1013,62 @@ test('cli: nested empty subdirectory (F14) is UNKNOWN everywhere; parent not ass
     assert.equal(report.entrypoints[name].verdict, 'UNKNOWN', name);
   }
   assertUnknownNotSafe(report);
+});
+
+// P4 fix F-VAL-2 (2026-10-31, independent P4-01 acceptance finding):
+// an unreadable manifest (EACCES on lstat) is partially-known and
+// must be reported as manifest 'unknown', not 'not-regular'. The
+// pure module treats both identically in every verdict, so this is a
+// descriptor-fidelity check, not a verdict change. Runs the CLI as
+// the unprivileged nobody user via setpriv; skipped honestly when
+// the sandbox cannot drop privileges. The CLI is staged as a
+// byte-identical copy under the real /tmp (not os.tmpdir(), which
+// the suite points at a workspace TMPDIR the nobody user cannot
+// traverse) because the user's home directory is not traversable by
+// an unprivileged user — the copy is made fresh by this test from
+// the repository files, so a reader defect would still fail it.
+test('cli: F-VAL-2 — unreadable manifest (EACCES) is reported unknown, not not-regular', async (t) => {
+  if (process.geteuid?.() !== 0) t.skip('requires root to run the CLI as an unprivileged user');
+  const { spawnSync } = await import('node:child_process');
+  const { existsSync } = await import('node:fs');
+  const setpriv = ['/usr/bin/setpriv', '/bin/setpriv'].find((p) => existsSync(p));
+  if (!setpriv) t.skip('setpriv not available');
+  const repoRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
+  const { rm } = await import('node:fs/promises');
+  // Fixture and CLI stage both live under the real /tmp so the
+  // nobody user can traverse to them (os.tmpdir() may be a workspace
+  // TMPDIR that is not traversable). Both are tiny and disposable.
+  const dir = await mkdtemp('/tmp/vcp-p401-fval2-');
+  t.after(async () => { await rm(dir, { recursive: true, force: true }).catch(() => {}); });
+  await mkdir(path.join(dir, '.vcp'));
+  await writeFile(path.join(dir, '.vcp', 'manifest.json'),
+    JSON.stringify({ schemaVersion: 1, files: [] }) + '\n');
+  await chmod(dir, 0o711);
+  await chmod(path.join(dir, '.vcp'), 0o000);
+  const stage = await mkdtemp('/tmp/vcp-p401-cli-');
+  t.after(async () => { await rm(stage, { recursive: true, force: true }).catch(() => {}); });
+  const { cp } = await import('node:fs/promises');
+  await cp(path.join(repoRoot, 'bin'), path.join(stage, 'bin'), { recursive: true });
+  await cp(path.join(repoRoot, 'lib'), path.join(stage, 'lib'), { recursive: true });
+  spawnSync('chmod', ['-R', 'a+rX', stage], { encoding: 'utf8' });
+  await chmod(stage, 0o711);
+  const stagedCli = path.join(stage, 'bin', 'vibe-coding-production.mjs');
+  const before = await treeHash(dir);
+  const run = spawnSync(setpriv,
+    ['--reuid=65534', '--regid=65534', '--clear-groups',
+      process.execPath, stagedCli, 'hazard-exposure', dir, '--json'],
+    {
+      encoding: 'utf8',
+      env: { PATH: '/usr/bin:/bin', HOME: '/tmp', NODE_OPTIONS: '' }
+    });
+  assert.equal(await treeHash(dir), before, 'tree must be unchanged');
+  assert.equal(run.status, 1,
+    `expected exit 1 (BLOCKED); stdout=${run.stdout} stderr=${run.stderr}`);
+  const report = JSON.parse(run.stdout);
+  assert.equal(report.classification, 'BLOCKED');
+  assert.equal(report.state.manifest, 'unknown',
+    'EACCES lstat maps to unknown, not not-regular');
+  assert.equal(report.entrypoints.init.verdict, 'UNKNOWN');
+  assertUnknownNotSafe(report);
+  await chmod(path.join(dir, '.vcp'), 0o755);
 });

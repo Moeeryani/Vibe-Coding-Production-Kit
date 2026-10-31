@@ -83,10 +83,15 @@ in order:
    makes update/manage/rollback UNKNOWN with hazard H3.
    For init the same states are UNKNOWN with a reason naming
    the H3 condition (H3 stays scoped to update/manage/rollback
-   in the table above); the directory-shaped-lock case carries
-   H2 on init instead (rule 4). H3 is checked before any
-   manifest reasoning, so an H3 state is never reported as
-   safe on the strength of having no user content.
+   in the table above). Evaluation order on init (P4 fix
+   F-VAL-1, 2026-10-31): the H3-naming branch runs after the
+   more specific directory-shaped-lock branch (rule 4), which
+   preserves the proven-non-fence H2 hazard on init, and before
+   any docs/package (rule 5) or manifest (rule 6) reasoning, so
+   an H3 state is never described by a less specific reason and
+   never reported as safe on the strength of having no user
+   content. H3 is always visible in report-level hazards from
+   update/manage/rollback.
 4. **Directory-shaped `update.lock`, no AGENTS.md content →
    UNKNOWN with H2 on init.** The sentinel is a proven
    non-fence (EVID-D01-WINDOWS-POC), but the H1 loss class
