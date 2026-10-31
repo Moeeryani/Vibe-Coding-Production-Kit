@@ -1,22 +1,25 @@
-// P4-02c — rollbackV2 post-apply fail-closed check.
+// P4-02c — rollbackV2 post-apply fail-closed check, as strengthened by P5-02.
 //
 // A rollback restores the backup bytes over the current bytes of
 // every backup entry, so a user edit made AFTER the backup is
 // destroyed by a successful restore (proven by the gap probe:
-// ~/workspace/vcp-p4-full/evidence/probe-rollback-gap.mjs —
-// without a post-apply record the edit is still lost; that
-// residual is recorded, not hidden).
+// ~/workspace/vcp-p4-full/evidence/probe-rollback-gap.mjs).
 //
-// The fix: when a Stage13 adoption transaction (the post-apply
-// record) exists in .vcp/transaction.json, is committed, and
-// matches this root, each restored entry it covers is compared
-// against its recorded post-apply hash (tx item newSha256). A
-// difference — edited or deleted after the apply — refuses with
-// E_ROLLBACK_POST_APPLY_EDITS before any mutation. Without such
-// a record the check is inapplicable and the restore proceeds
-// under the existing backup-integrity checks (receipt
-// postApplyCheck: 'not-applicable'); the normal rollback flow,
-// where the update itself changed the files, is NOT blocked.
+// P4-02c fixed the case where a committed Stage 13 adoption
+// transaction exists: each restored entry it covers is compared
+// against its recorded post-apply hash (tx item newSha256), and a
+// difference refuses with E_ROLLBACK_POST_APPLY_EDITS before any
+// mutation. P5-02 closes the remaining gap: WITHOUT such a record
+// the P4 check was inapplicable and the restore proceeded, destroying
+// post-backup edits. The P5 rule judges EVERY restored file against
+// the best available evidence (Stage 13 tx, committed versioned
+// journal with postApplyFiles, or the backup record itself) and
+// refuses with E_ROLLBACK_EVIDENCE_MISSING or
+// E_ROLLBACK_STALE_TRANSACTION when a change has no accounting
+// record. Tests P4-02c-03/-05/-06/-07/-08 were UPDATED for this
+// deliberate, directive-authorized behavior change to the dormant
+// rollbackV2 path (it has no CLI caller; live `vcp rollback` still
+// uses frozen v1 rollbackProject). See design.md §6.2.
 //
 // Controlled lane only: disposable fixtures, gate-bypassed
 // mutations through the controlled lane. See
@@ -155,24 +158,21 @@ gateNestedMut('P4-02c-02 — post-apply deletion refuses rollback', async () => 
   } finally { await teardownControlledFixture(f); }
 });
 
-gateNestedMut('P4-02c-03 — no post-apply record: restore proceeds, receipt says not-applicable', async () => {
+gateNestedMut('P5-02-R1 — no post-apply record: unaccounted edit refuses, edit survives', async () => {
   const f = await createControlledFixture({ allowedOperations: OPS });
   try {
     const backupId = 'p4-02c-03';
     await setupBackupFixture(f, backupId);
-    // No .vcp/transaction.json at all: the check cannot judge the
-    // edit, so the restore proceeds under backup-integrity checks.
-    // The user edit is still lost here — that is the recorded
-    // residual gap for the no-record case (see the gap probe), not
-    // a passing safety claim.
+    // No .vcp/transaction.json at all. P4-02c let the restore proceed
+    // here (not-applicable) and the user edit was lost — the recorded
+    // residual gap. P5-02 closes it: a change with no accounting
+    // record refuses E_ROLLBACK_EVIDENCE_MISSING before any mutation.
+    // (P4-02c-03, updated for the P5-02 behavior change.)
     await atomicWriteFile(f.root, 'AGENTS.md', USER_EDIT, { mode: 0o644 });
-    const receipt = await rollbackV2({
-      root: f.root, backupId, confirmed: true, testCapability: f.capability,
-    });
-    assert.equal(receipt.rolledBack, true);
-    assert.equal(receipt.postApplyCheck, 'not-applicable');
-    assert.deepEqual(receipt.postApplyCovered, []);
-    assert.deepEqual(await readFile(path.join(f.root, 'AGENTS.md')), ORIGINAL);
+    await assert.rejects(
+      () => rollbackV2({ root: f.root, backupId, confirmed: true, testCapability: f.capability }),
+      (e) => e.code === 'E_ROLLBACK_EVIDENCE_MISSING' && /no-post-apply-record/.test(e.message));
+    assert.deepEqual(await readFile(path.join(f.root, 'AGENTS.md')), USER_EDIT);
   } finally { await teardownControlledFixture(f); }
 });
 
@@ -196,68 +196,72 @@ gateNestedMut('P4-02c-04 — post-apply record present, no edits: restore procee
   } finally { await teardownControlledFixture(f); }
 });
 
-gateNestedMut('P4-02c-05 — versioned update journal is not a post-apply record: not-applicable', async () => {
+gateNestedMut('P5-02-R6a — malformed versioned journal: unaccounted edit refuses', async () => {
   const f = await createControlledFixture({ allowedOperations: OPS });
   try {
     const backupId = 'p4-02c-05';
     await setupBackupFixture(f, backupId);
     // A versioned update journal shares the .vcp/transaction.json
     // path but is a different schema; it must not be mistaken for
-    // a Stage13 post-apply record.
+    // a Stage13 post-apply record. This fixture journal is also
+    // malformed as a v2 journal (no backupId/startedAt), so no
+    // post-apply evidence exists at all. P4-02c let the restore
+    // proceed (not-applicable); P5-02 refuses E_ROLLBACK_EVIDENCE_MISSING.
+    // (P4-02c-05, updated for the P5-02 behavior change.)
     await writeFile(path.join(f.root, '.vcp', 'transaction.json'),
       JSON.stringify({ formatVersion: 2, transactionSchemaVersion: 2, operation: 'update',
         phase: 'cleanup', id: backupId }) + '\n');
     await atomicWriteFile(f.root, 'AGENTS.md', USER_EDIT, { mode: 0o644 });
-    const receipt = await rollbackV2({
-      root: f.root, backupId, confirmed: true, testCapability: f.capability,
-    });
-    assert.equal(receipt.rolledBack, true);
-    assert.equal(receipt.postApplyCheck, 'not-applicable');
+    await assert.rejects(
+      () => rollbackV2({ root: f.root, backupId, confirmed: true, testCapability: f.capability }),
+      (e) => e.code === 'E_ROLLBACK_EVIDENCE_MISSING' && /post-apply-record-malformed/.test(e.message));
+    assert.deepEqual(await readFile(path.join(f.root, 'AGENTS.md')), USER_EDIT);
   } finally { await teardownControlledFixture(f); }
 });
 
-gateNestedMut('P4-02c-06 — uncommitted transaction: not-applicable', async () => {
+gateNestedMut('P5-02-R2 — uncommitted transaction: stale record refuses, edit survives', async () => {
   const f = await createControlledFixture({ allowedOperations: OPS });
   try {
     const backupId = 'p4-02c-06';
     const { manifestSha256 } = await setupBackupFixture(f, backupId);
     // An 'applying' transaction has no completed post-apply state
-    // to compare against, so the check cannot judge the edit.
+    // to compare against. P4-02c let the restore proceed
+    // (not-applicable); P5-02 refuses E_ROLLBACK_STALE_TRANSACTION:
+    // the record exists but cannot vouch for the current state.
+    // (P4-02c-06, updated for the P5-02 behavior change.)
     await writeCommittedStage13Tx(f.root, {
       phase: 'applying', manifestSha256,
       items: [agentsSectionItem()]
     });
     await atomicWriteFile(f.root, 'AGENTS.md', USER_EDIT, { mode: 0o644 });
-    const receipt = await rollbackV2({
-      root: f.root, backupId, confirmed: true, testCapability: f.capability,
-    });
-    assert.equal(receipt.rolledBack, true);
-    assert.equal(receipt.postApplyCheck, 'not-applicable');
+    await assert.rejects(
+      () => rollbackV2({ root: f.root, backupId, confirmed: true, testCapability: f.capability }),
+      (e) => e.code === 'E_ROLLBACK_STALE_TRANSACTION' && /transaction-not-committed/.test(e.message));
+    assert.deepEqual(await readFile(path.join(f.root, 'AGENTS.md')), USER_EDIT);
   } finally { await teardownControlledFixture(f); }
 });
 
-gateNestedMut('P4-02c-07 — transaction covers no restored file: not-applicable', async () => {
+gateNestedMut('P5-02-R5 — transaction covers no restored file: unaccounted change refuses', async () => {
   const f = await createControlledFixture({ allowedOperations: OPS });
   try {
     const backupId = 'p4-02c-07';
     const { manifestSha256 } = await setupBackupFixture(f, backupId);
     // The record speaks about OTHER.md, not about AGENTS.md, so it
-    // cannot judge the AGENTS.md restore. (The manifest is still
-    // covered — it matches — but no restored FILE is covered, so
-    // the check reports not-applicable rather than passed.)
-    // Note: the manifest comparison alone does not make the check
-    // applicable; applicability requires a covered restored file.
+    // cannot judge the AGENTS.md restore. AGENTS.md currently holds
+    // the APPLIED bytes while the backup holds ORIGINAL — a change
+    // with no accounting record. P4-02c let the restore proceed
+    // (not-applicable); P5-02 refuses E_ROLLBACK_EVIDENCE_MISSING.
+    // (P4-02c-07, updated for the P5-02 behavior change.)
     await writeCommittedStage13Tx(f.root, {
       manifestSha256,
       items: [{ path: 'OTHER.md', kind: 'whole-file', oldSha256: null,
         stagedDev: '7', stagedIno: '9', newSha256: sha256(APPLIED),
         baselineSha256: sha256(APPLIED) }]
     });
-    const receipt = await rollbackV2({
-      root: f.root, backupId, confirmed: true, testCapability: f.capability,
-    });
-    assert.equal(receipt.rolledBack, true);
-    assert.equal(receipt.postApplyCheck, 'not-applicable');
+    await assert.rejects(
+      () => rollbackV2({ root: f.root, backupId, confirmed: true, testCapability: f.capability }),
+      (e) => e.code === 'E_ROLLBACK_EVIDENCE_MISSING' && /record-covers-other-files/.test(e.message));
+    assert.deepEqual(await readFile(path.join(f.root, 'AGENTS.md')), APPLIED);
   } finally { await teardownControlledFixture(f); }
 });
 
@@ -284,11 +288,17 @@ gateNestedMut('P4-02c-08 — rollback refuses while the lifecycle lock is held (
     } finally {
       await holder.release();
     }
-    // After the holder releases, the same rollback succeeds.
-    const receipt = await rollbackV2({
-      root: f.root, backupId, confirmed: true, testCapability: f.capability,
-    });
-    assert.equal(receipt.rolledBack, true);
-    assert.deepEqual(await readFile(path.join(f.root, 'AGENTS.md')), ORIGINAL);
+    // After the holder releases, the same rollback is attempted
+    // again. P4-02c expected it to succeed (no post-apply record
+    // meant not-applicable); P5-02 refuses E_ROLLBACK_EVIDENCE_MISSING
+    // instead — this fixture has no post-apply record and AGENTS.md
+    // holds the APPLIED bytes while the backup holds ORIGINAL, an
+    // unaccounted change. The lock-serialization property is what
+    // this test pins; the refusal is the P5-02 behavior change.
+    // (P4-02c-08 tail, updated for the P5-02 behavior change.)
+    await assert.rejects(
+      () => rollbackV2({ root: f.root, backupId, confirmed: true, testCapability: f.capability }),
+      (e) => e.code === 'E_ROLLBACK_EVIDENCE_MISSING');
+    assert.deepEqual(await readFile(path.join(f.root, 'AGENTS.md')), APPLIED);
   } finally { await teardownControlledFixture(f); }
 });
