@@ -3,6 +3,12 @@
 // Coverage:
 //   - Pure assessment verdict matrix (H1-H5), evidence references, and
 //     the UNKNOWN-is-never-safe invariant.
+//   - 2026-10-31 verdict hardening: NOT_EXPOSED is retired. Every
+//     corrected verdict (empty/nested-empty dirs, zero-byte AGENTS.md,
+//     transaction.json-only, directory-shaped lock alone, interrupted
+//     and adoption states with no user content, .vcp without manifest,
+//     docs/-only, package.json-only, malformed fields) is UNKNOWN, and
+//     a property test asserts no entrypoint ever returns NOT_EXPOSED.
 //   - Malformed/adversarial descriptors (no throw, all UNKNOWN).
 //   - Pure-core purity: the module performs zero I/O (no fs imports).
 //   - Real CLI smoke tests on disposable fixtures, with a full tree
@@ -112,10 +118,10 @@ function assertUnknownNotSafe(report) {
     if (e.verdict === 'UNKNOWN') {
       assert.match(e.reason, /UNKNOWN is not safe/, `${name} says UNKNOWN is not safe`);
     }
-    if (e.verdict === 'NOT_EXPOSED') {
-      assert.notEqual(e.basis, 'no-evidence',
-        `${name}: NOT_EXPOSED must never rest on "no evidence"`);
-    }
+    // Hardening (2026-10-31): NOT_EXPOSED is retired. No entrypoint
+    // may ever return it, on any descriptor.
+    assert.notEqual(e.verdict, 'NOT_EXPOSED',
+      `${name}: NOT_EXPOSED is retired; no state returns it`);
   }
   assert.ok(report.limitations.some((l) => /UNKNOWN is not safe/.test(l)),
     'limitations state UNKNOWN is not safe');
@@ -150,7 +156,10 @@ test('pure: dangerous fixture state (Issue #111) is EXPOSED H1/H2 on init', () =
     ['EVID-D01-LINUX-POC', 'EVID-D01-WINDOWS-POC']);
   assert.equal(report.entrypoints.init.basis, 'poc-evidence');
   assert.match(report.entrypoints.init.reason, /not that this exact project is guaranteed/);
-  assert.deepEqual(report.hazards, ['H1', 'H2']);
+  // Report-level hazards are the union across entrypoints: init
+  // contributes H1/H2, and update/manage/rollback contribute H3 for
+  // the directory-shaped lock (a root lock stray, rule 3).
+  assert.deepEqual(report.hazards, ['H1', 'H2', 'H3']);
   assert.ok(report.warnings.some((w) => /H1\/H2/.test(w) && /EVID-D01/.test(w)));
   assertUnknownNotSafe(report);
 });
@@ -168,11 +177,15 @@ test('pure: H1 without the directory lock is EXPOSED H1 only', () => {
   assertUnknownNotSafe(report);
 });
 
-test('pure: empty directory is NOT_EXPOSED on every entrypoint (precondition-absent)', () => {
+test('pure: empty directory is UNKNOWN on every entrypoint (no direct safety evidence)', () => {
   const report = assessHazardExposure(baseDescriptor({ classification: 'NEW' }));
   for (const name of HAZARD_ENTRYPOINTS) {
-    assert.equal(report.entrypoints[name].verdict, 'NOT_EXPOSED', name);
-    assert.equal(report.entrypoints[name].basis, 'precondition-absent', name);
+    assert.equal(report.entrypoints[name].verdict, 'UNKNOWN', name);
+    assert.equal(report.entrypoints[name].basis, 'no-evidence', name);
+  }
+  assert.match(report.entrypoints.init.reason, /no direct evidence supports safety/, 'init');
+  for (const name of ['update', 'manage', 'rollback']) {
+    assert.match(report.entrypoints[name].reason, /without a manifest is uncharacterized/, name);
   }
   assertUnknownNotSafe(report);
 });
@@ -216,7 +229,8 @@ test('pure: interrupted state makes update/manage/rollback UNKNOWN with H3', () 
 
 test('pure: root manifest stray makes update/manage/rollback UNKNOWN with H3', () => {
   const report = assessHazardExposure(baseDescriptor({
-    manifest: 'absent', rootManifestStray: true, userOwnedContentPresent: true
+    manifest: 'absent', rootManifestStray: true, userOwnedContentPresent: true,
+    userOwnedSignals: ['AGENTS.md']
   }));
   assert.equal(report.entrypoints.init.verdict, 'EXPOSED');
   for (const name of ['update', 'manage', 'rollback']) {
@@ -260,10 +274,15 @@ test('pure: H4 concurrency is UNKNOWN on every entrypoint in every state', () =>
 test('pure: adoption markers and linked markers warn without changing the verdict rule', () => {
   const report = assessHazardExposure(baseDescriptor({
     adoptionMarkersPresent: true, updateLock: 'symlink',
-    transactionJson: 'symlink', userOwnedContentPresent: true
+    transactionJson: 'symlink', userOwnedContentPresent: true,
+    userOwnedSignals: ['AGENTS.md']
   }));
   assert.equal(report.entrypoints.init.verdict, 'EXPOSED');
   assert.deepEqual(report.entrypoints.init.hazards, ['H1']);
+  for (const name of ['update', 'manage', 'rollback']) {
+    assert.equal(report.entrypoints[name].verdict, 'UNKNOWN', name);
+    assert.deepEqual(report.entrypoints[name].hazards, ['H3'], name);
+  }
   assert.ok(report.warnings.some((w) => /Adoption markers/.test(w)));
   assert.ok(report.warnings.some((w) => /Linked marker present \(update\.lock/.test(w)));
   assert.ok(report.warnings.some((w) => /Linked marker present \(transaction\.json/.test(w)));
@@ -299,7 +318,14 @@ test('pure: malformed descriptors never throw and never report safety', () => {
   const inputs = [null, undefined, 42, 'x', [], {},
     { manifest: 7, updateLock: [], userOwnedContentPresent: 'yes' },
     { manifest: 'ABSENT', rootLinked: 'true', classification: 'MANAGED!' },
-    { entrypoints: { init: { verdict: 'NOT_EXPOSED' } } }];
+    { entrypoints: { init: { verdict: 'NOT_EXPOSED' } } },
+    // Hardening: a mistyped or missing user-content flag must never
+    // produce a safe verdict. Before the hardening these normalized
+    // to userOwnedContentPresent=false and returned NOT_EXPOSED.
+    { manifest: 'absent', userOwnedContentPresent: 'yes' },
+    { manifest: 'absent', userOwnedContentPresent: 1 },
+    { manifest: 'absent', userOwnedContentPresent: true, userOwnedSignals: 'AGENTS.md' },
+    { manifest: 'absent', userOwnedContentPresent: true, userOwnedSignals: [7, null] }];
   for (const input of inputs) {
     const report = assessHazardExposure(input);
     for (const name of HAZARD_ENTRYPOINTS) {
@@ -315,7 +341,8 @@ test('pure: malformed descriptors never throw and never report safety', () => {
 
 test('pure: text formatter names verdicts, evidence, and the not-safe rule', () => {
   const report = assessHazardExposure(baseDescriptor({
-    updateLock: 'directory', userOwnedContentPresent: true
+    updateLock: 'directory', userOwnedContentPresent: true,
+    userOwnedSignals: ['AGENTS.md']
   }));
   const text = formatHazardReportText(report);
   assert.match(text, /init: EXPOSED \(H1, H2\)/);
@@ -324,6 +351,222 @@ test('pure: text formatter names verdicts, evidence, and the not-safe rule', () 
   assert.match(text, /UNKNOWN is not safe/);
   assert.match(text, /No files written\./);
   assert.match(text, /concurrency \(H4\): UNKNOWN/);
+});
+
+// ---------- Verdict hardening (2026-10-31): every corrected verdict ----------
+
+test('pure: docs-only is UNKNOWN on init (loss mechanism is AGENTS.md-only)', () => {
+  const report = assessHazardExposure(baseDescriptor({
+    userOwnedContentPresent: true, userOwnedSignals: ['docs/']
+  }));
+  assert.equal(report.entrypoints.init.verdict, 'UNKNOWN');
+  assert.deepEqual(report.entrypoints.init.hazards, []);
+  assert.ok(report.entrypoints.init.evidence.includes('EVID-D01-FIXTURE-SHAPE'));
+  assert.match(report.entrypoints.init.reason, /AGENTS\.md user edits only/);
+  for (const name of ['update', 'manage', 'rollback']) {
+    assert.equal(report.entrypoints[name].verdict, 'UNKNOWN', name);
+  }
+  assertUnknownNotSafe(report);
+});
+
+test('pure: package.json-only is UNKNOWN on init', () => {
+  const report = assessHazardExposure(baseDescriptor({
+    userOwnedContentPresent: true, userOwnedSignals: ['package.json']
+  }));
+  assert.equal(report.entrypoints.init.verdict, 'UNKNOWN');
+  assert.ok(report.entrypoints.init.evidence.includes('EVID-D01-FIXTURE-SHAPE'));
+  assert.match(report.entrypoints.init.reason, /package\.json/);
+  for (const name of ['update', 'manage', 'rollback']) {
+    assert.equal(report.entrypoints[name].verdict, 'UNKNOWN', name);
+  }
+  assertUnknownNotSafe(report);
+});
+
+test('pure: docs plus package.json without AGENTS.md is UNKNOWN on init', () => {
+  const report = assessHazardExposure(baseDescriptor({
+    userOwnedContentPresent: true, userOwnedSignals: ['docs/', 'package.json']
+  }));
+  assert.equal(report.entrypoints.init.verdict, 'UNKNOWN');
+  assert.ok(report.entrypoints.init.evidence.includes('EVID-D01-FIXTURE-SHAPE'));
+  assertUnknownNotSafe(report);
+});
+
+test('pure: AGENTS.md content with docs and package.json stays EXPOSED H1 (control)', () => {
+  const report = assessHazardExposure(baseDescriptor({
+    userOwnedContentPresent: true,
+    userOwnedSignals: ['AGENTS.md', 'docs/', 'package.json']
+  }));
+  assert.equal(report.entrypoints.init.verdict, 'EXPOSED');
+  assert.deepEqual(report.entrypoints.init.hazards, ['H1']);
+  assert.equal(report.entrypoints.init.basis, 'poc-evidence');
+  assertUnknownNotSafe(report);
+});
+
+test('pure: transaction.json-only is UNKNOWN, H3 on update/manage/rollback', () => {
+  for (const shape of ['file', 'directory', 'symlink', 'other']) {
+    const report = assessHazardExposure(baseDescriptor({ transactionJson: shape }));
+    assert.equal(report.entrypoints.init.verdict, 'UNKNOWN', `${shape}/init`);
+    assert.match(report.entrypoints.init.reason, /transaction\.json/, `${shape}/init reason`);
+    for (const name of ['update', 'manage', 'rollback']) {
+      assert.equal(report.entrypoints[name].verdict, 'UNKNOWN', `${shape}/${name}`);
+      assert.deepEqual(report.entrypoints[name].hazards, ['H3'], `${shape}/${name}`);
+    }
+    assertUnknownNotSafe(report);
+  }
+});
+
+test('pure: directory-shaped update.lock alone is UNKNOWN H2 on init, H3 elsewhere', () => {
+  const report = assessHazardExposure(baseDescriptor({ updateLock: 'directory' }));
+  assert.equal(report.entrypoints.init.verdict, 'UNKNOWN');
+  assert.deepEqual(report.entrypoints.init.hazards, ['H2']);
+  assert.deepEqual(report.entrypoints.init.evidence, ['EVID-D01-WINDOWS-POC']);
+  assert.match(report.entrypoints.init.reason, /proven non-fence/);
+  for (const name of ['update', 'manage', 'rollback']) {
+    assert.equal(report.entrypoints[name].verdict, 'UNKNOWN', name);
+    assert.deepEqual(report.entrypoints[name].hazards, ['H3'], name);
+  }
+  assertUnknownNotSafe(report);
+});
+
+test('pure: file-shaped update.lock alone is UNKNOWN everywhere, no hazard', () => {
+  const report = assessHazardExposure(baseDescriptor({ updateLock: 'file' }));
+  for (const name of HAZARD_ENTRYPOINTS) {
+    assert.equal(report.entrypoints[name].verdict, 'UNKNOWN', name);
+    assert.deepEqual(report.entrypoints[name].hazards, [], name);
+  }
+  assertUnknownNotSafe(report);
+});
+
+test('pure: interrupted state with no user content is UNKNOWN, H3 elsewhere', () => {
+  const report = assessHazardExposure(baseDescriptor({ interruptedState: true }));
+  assert.equal(report.entrypoints.init.verdict, 'UNKNOWN');
+  assert.match(report.entrypoints.init.reason, /interrupted state is present/, 'init names the interruption');
+  for (const name of ['update', 'manage', 'rollback']) {
+    assert.equal(report.entrypoints[name].verdict, 'UNKNOWN', name);
+    assert.deepEqual(report.entrypoints[name].hazards, ['H3'], name);
+  }
+  assert.ok(report.warnings.some((w) => /H3/.test(w)));
+  assertUnknownNotSafe(report);
+});
+
+test('pure: adoption markers with no user content are UNKNOWN, H3 elsewhere', () => {
+  const report = assessHazardExposure(baseDescriptor({ adoptionMarkersPresent: true }));
+  assert.equal(report.entrypoints.init.verdict, 'UNKNOWN');
+  assert.match(report.entrypoints.init.reason, /adoption markers/, 'init names the markers');
+  for (const name of ['update', 'manage', 'rollback']) {
+    assert.equal(report.entrypoints[name].verdict, 'UNKNOWN', name);
+    assert.deepEqual(report.entrypoints[name].hazards, ['H3'], name);
+  }
+  assert.ok(report.warnings.some((w) => /Adoption markers/.test(w)));
+  assertUnknownNotSafe(report);
+});
+
+test('pure: root manifest stray with no user content is UNKNOWN, H3 elsewhere', () => {
+  const report = assessHazardExposure(baseDescriptor({ rootManifestStray: true }));
+  assert.equal(report.entrypoints.init.verdict, 'UNKNOWN');
+  assert.match(report.entrypoints.init.reason, /root manifest\.json stray/, 'init names the stray');
+  for (const name of ['update', 'manage', 'rollback']) {
+    assert.equal(report.entrypoints[name].verdict, 'UNKNOWN', name);
+    assert.deepEqual(report.entrypoints[name].hazards, ['H3'], name);
+  }
+  assertUnknownNotSafe(report);
+});
+
+test('pure: .vcp directory without manifest or user content is UNKNOWN everywhere', () => {
+  const report = assessHazardExposure(baseDescriptor({
+    vcpDir: 'directory', manifest: 'absent'
+  }));
+  for (const name of HAZARD_ENTRYPOINTS) {
+    assert.equal(report.entrypoints[name].verdict, 'UNKNOWN', name);
+  }
+  assert.match(report.entrypoints.init.reason, /\.vcp directory exists without a manifest/);
+  assertUnknownNotSafe(report);
+});
+
+test('pure: zero-byte AGENTS.md state is UNKNOWN (reader emits no AGENTS.md signal)', () => {
+  // The reader signals AGENTS.md only for a regular file with size > 0,
+  // so a zero-byte AGENTS.md reaches the pure core as no signal. The
+  // verdict must be UNKNOWN, never a safe verdict on "no bytes to lose".
+  const report = assessHazardExposure(baseDescriptor({}));
+  for (const name of HAZARD_ENTRYPOINTS) {
+    assert.equal(report.entrypoints[name].verdict, 'UNKNOWN', name);
+  }
+  assertUnknownNotSafe(report);
+});
+
+test('pure: inconsistent caller claim (content present, no signals) is UNKNOWN', () => {
+  const report = assessHazardExposure(baseDescriptor({
+    userOwnedContentPresent: true, userOwnedSignals: []
+  }));
+  for (const name of HAZARD_ENTRYPOINTS) {
+    assert.equal(report.entrypoints[name].verdict, 'UNKNOWN', name);
+  }
+  assertUnknownNotSafe(report);
+});
+
+test('pure: report version is 2 (verdict hardening)', () => {
+  const report = assessHazardExposure(baseDescriptor({}));
+  assert.equal(report.version, 2);
+  assert.ok(report.limitations.some((l) => /NOT_EXPOSED was retired/.test(l)));
+});
+
+test('pure: no entrypoint ever returns NOT_EXPOSED (property over the verdict matrix)', () => {
+  const states = [
+    baseDescriptor({}),
+    baseDescriptor({ classification: 'NEW' }),
+    baseDescriptor({ userOwnedContentPresent: true, userOwnedSignals: ['docs/'] }),
+    baseDescriptor({ userOwnedContentPresent: true, userOwnedSignals: ['package.json'] }),
+    baseDescriptor({ userOwnedContentPresent: true, userOwnedSignals: ['AGENTS.md'] }),
+    baseDescriptor({ updateLock: 'directory', userOwnedContentPresent: true, userOwnedSignals: ['AGENTS.md', 'package.json'] }),
+    baseDescriptor({ updateLock: 'directory' }),
+    baseDescriptor({ updateLock: 'file' }),
+    baseDescriptor({ updateLock: 'symlink' }),
+    baseDescriptor({ updateLock: 'other' }),
+    baseDescriptor({ updateLock: 'unknown' }),
+    baseDescriptor({ transactionJson: 'file' }),
+    baseDescriptor({ transactionJson: 'directory' }),
+    baseDescriptor({ transactionJson: 'symlink' }),
+    baseDescriptor({ transactionJson: 'other' }),
+    baseDescriptor({ transactionJson: 'unknown' }),
+    baseDescriptor({ interruptedState: true }),
+    baseDescriptor({ interruptedState: true, userOwnedContentPresent: true, userOwnedSignals: ['AGENTS.md'] }),
+    baseDescriptor({ adoptionMarkersPresent: true }),
+    baseDescriptor({ rootManifestStray: true }),
+    baseDescriptor({ rootManifestStray: true, userOwnedContentPresent: true, userOwnedSignals: ['AGENTS.md'] }),
+    baseDescriptor({ vcpDir: 'directory', manifest: 'absent' }),
+    baseDescriptor({ vcpDir: 'directory', manifest: 'absent', userOwnedContentPresent: true, userOwnedSignals: ['AGENTS.md'] }),
+    baseDescriptor({ vcpDir: 'symlink', manifest: 'unknown' }),
+    baseDescriptor({ manifest: 'present', classification: 'MANAGED', vcpDir: 'directory', userOwnedContentPresent: true, userOwnedSignals: ['AGENTS.md'] }),
+    baseDescriptor({ manifest: 'not-regular', vcpDir: 'directory' }),
+    baseDescriptor({ manifest: 'unknown' }),
+    baseDescriptor({ rootLinked: true }),
+    baseDescriptor({ classification: 'BLOCKED', adoptionMarkersPresent: true }),
+    baseDescriptor({ classification: 'BLOCKED', manifest: 'present', vcpDir: 'directory', userOwnedContentPresent: true, userOwnedSignals: ['AGENTS.md'] }),
+    { manifest: 'absent', userOwnedContentPresent: 'yes' },
+    { manifest: 'absent', userOwnedContentPresent: 1 },
+    { manifest: 'absent', userOwnedSignals: 'AGENTS.md' },
+    null, undefined, {}, []
+  ];
+  for (const state of states) {
+    const report = assessHazardExposure(state);
+    assert.equal(report.version, 2);
+    for (const name of HAZARD_ENTRYPOINTS) {
+      const e = report.entrypoints[name];
+      assert.notEqual(e.verdict, 'NOT_EXPOSED',
+        `NOT_EXPOSED must never be returned (${name}, ${JSON.stringify(state)})`);
+      assert.ok(e.verdict === 'EXPOSED' || e.verdict === 'UNKNOWN',
+        `${name} verdict is EXPOSED or UNKNOWN`);
+      if (e.verdict === 'UNKNOWN') {
+        assert.match(e.reason, /UNKNOWN is not safe/, `${name} says UNKNOWN is not safe`);
+        assert.equal(e.basis, 'no-evidence', `${name} UNKNOWN basis`);
+      }
+      if (e.verdict === 'EXPOSED') {
+        assert.equal(e.basis, 'poc-evidence', `${name} EXPOSED basis`);
+        assert.equal(name, 'init', 'only init can be EXPOSED');
+      }
+    }
+    assertUnknownNotSafe(report);
+  }
 });
 
 // ---------- Real CLI ----------
@@ -370,7 +613,7 @@ test('cli: H1-only fixture (no lock) is EXPOSED H1 only; tree unchanged', async 
   assert.deepEqual(report.entrypoints.init.hazards, ['H1']);
 });
 
-test('cli: empty directory is NOT_EXPOSED everywhere; tree unchanged', async (t) => {
+test('cli: empty directory is UNKNOWN everywhere; tree unchanged', async (t) => {
   const dir = await sandbox(t);
   const before = await treeHash(dir);
   const run = await runCli(dir, ['--json']);
@@ -378,8 +621,10 @@ test('cli: empty directory is NOT_EXPOSED everywhere; tree unchanged', async (t)
   assert.equal(await treeHash(dir), before);
   const report = JSON.parse(run.stdout);
   assert.equal(report.classification, 'NEW');
+  assert.equal(report.version, 2);
   for (const name of HAZARD_ENTRYPOINTS) {
-    assert.equal(report.entrypoints[name].verdict, 'NOT_EXPOSED', name);
+    assert.equal(report.entrypoints[name].verdict, 'UNKNOWN', name);
+    assert.equal(report.entrypoints[name].basis, 'no-evidence', name);
   }
 });
 
@@ -459,6 +704,13 @@ test('cli: adoption marker is reported; classification BLOCKED, exit 1, tree unc
   const report = JSON.parse(run.stdout);
   assert.equal(report.state.adoptionMarkersPresent, true);
   assert.ok(report.warnings.some((w) => /Adoption markers/.test(w)));
+  // Hardening: an adoption-marker state with no user content is UNKNOWN,
+  // H3 on update/manage/rollback — never a safe verdict.
+  assert.equal(report.entrypoints.init.verdict, 'UNKNOWN');
+  for (const name of ['update', 'manage', 'rollback']) {
+    assert.equal(report.entrypoints[name].verdict, 'UNKNOWN', name);
+    assert.deepEqual(report.entrypoints[name].hazards, ['H3'], name);
+  }
 });
 
 test('cli: symlinked root is refused, never followed; external target untouched', async (t) => {
@@ -543,4 +795,160 @@ test('cli: missing root is refused with exit 1 and changes nothing', async (t) =
   for (const name of HAZARD_ENTRYPOINTS) {
     assert.equal(report.entrypoints[name].verdict, 'UNKNOWN', name);
   }
+});
+
+// ---------- Real CLI: verdict hardening (2026-10-31) ----------
+
+test('cli: zero-byte AGENTS.md (F10) is UNKNOWN everywhere; tree unchanged', async (t) => {
+  const dir = await sandbox(t);
+  await writeFile(path.join(dir, 'AGENTS.md'), '');
+  const before = await treeHash(dir);
+  const run = await runCli(dir, ['--json']);
+  assert.equal(run.code, 0, run.stderr);
+  assert.equal(await treeHash(dir), before);
+  const report = JSON.parse(run.stdout);
+  assert.deepEqual(report.state.userOwnedSignals, []);
+  assert.equal(report.state.userOwnedContentPresent, false);
+  for (const name of HAZARD_ENTRYPOINTS) {
+    assert.equal(report.entrypoints[name].verdict, 'UNKNOWN', name);
+  }
+  assertUnknownNotSafe(report);
+});
+
+test('cli: docs-only (F11) is UNKNOWN everywhere; tree unchanged', async (t) => {
+  const dir = await sandbox(t);
+  await mkdir(path.join(dir, 'docs'));
+  await writeFile(path.join(dir, 'docs', 'notes.md'), 'notes\n');
+  const before = await treeHash(dir);
+  const run = await runCli(dir, ['--json']);
+  assert.equal(run.code, 0, run.stderr);
+  assert.equal(await treeHash(dir), before);
+  const report = JSON.parse(run.stdout);
+  assert.deepEqual(report.state.userOwnedSignals, ['docs/']);
+  assert.equal(report.entrypoints.init.verdict, 'UNKNOWN');
+  assert.ok(report.entrypoints.init.evidence.includes('EVID-D01-FIXTURE-SHAPE'));
+  for (const name of HAZARD_ENTRYPOINTS) {
+    assert.equal(report.entrypoints[name].verdict, 'UNKNOWN', name);
+  }
+  assertUnknownNotSafe(report);
+});
+
+test('cli: package.json-only is UNKNOWN everywhere; tree unchanged', async (t) => {
+  const dir = await sandbox(t);
+  await writeFile(path.join(dir, 'package.json'), '{"name":"pkg-only","private":true}\n');
+  const before = await treeHash(dir);
+  const run = await runCli(dir, ['--json']);
+  assert.equal(run.code, 0, run.stderr);
+  assert.equal(await treeHash(dir), before);
+  const report = JSON.parse(run.stdout);
+  assert.deepEqual(report.state.userOwnedSignals, ['package.json']);
+  assert.equal(report.entrypoints.init.verdict, 'UNKNOWN');
+  assert.ok(report.entrypoints.init.evidence.includes('EVID-D01-FIXTURE-SHAPE'));
+  for (const name of HAZARD_ENTRYPOINTS) {
+    assert.equal(report.entrypoints[name].verdict, 'UNKNOWN', name);
+  }
+  assertUnknownNotSafe(report);
+});
+
+test('cli: transaction.json-only is UNKNOWN, H3 on update/manage/rollback; tree unchanged', async (t) => {
+  const dir = await sandbox(t);
+  await writeFile(path.join(dir, 'transaction.json'), '{"interrupted":true}\n');
+  const before = await treeHash(dir);
+  const run = await runCli(dir, ['--json']);
+  assert.equal(run.code, 0, run.stderr);
+  assert.equal(await treeHash(dir), before);
+  const report = JSON.parse(run.stdout);
+  assert.equal(report.state.transactionJson, 'file');
+  assert.deepEqual(report.state.userOwnedSignals, []);
+  assert.equal(report.entrypoints.init.verdict, 'UNKNOWN');
+  assert.match(report.entrypoints.init.reason, /transaction\.json/);
+  for (const name of ['update', 'manage', 'rollback']) {
+    assert.equal(report.entrypoints[name].verdict, 'UNKNOWN', name);
+    assert.deepEqual(report.entrypoints[name].hazards, ['H3'], name);
+  }
+  assertUnknownNotSafe(report);
+});
+
+test('cli: directory-shaped update.lock alone is UNKNOWN H2 on init, H3 elsewhere; tree unchanged', async (t) => {
+  const dir = await sandbox(t);
+  await mkdir(path.join(dir, 'update.lock'));
+  const before = await treeHash(dir);
+  const run = await runCli(dir, ['--json']);
+  assert.equal(run.code, 0, run.stderr);
+  assert.equal(await treeHash(dir), before);
+  const report = JSON.parse(run.stdout);
+  assert.equal(report.state.updateLock, 'directory');
+  assert.deepEqual(report.state.userOwnedSignals, []);
+  assert.equal(report.entrypoints.init.verdict, 'UNKNOWN');
+  assert.deepEqual(report.entrypoints.init.hazards, ['H2']);
+  assert.deepEqual(report.entrypoints.init.evidence, ['EVID-D01-WINDOWS-POC']);
+  for (const name of ['update', 'manage', 'rollback']) {
+    assert.equal(report.entrypoints[name].verdict, 'UNKNOWN', name);
+    assert.deepEqual(report.entrypoints[name].hazards, ['H3'], name);
+  }
+  assertUnknownNotSafe(report);
+});
+
+test('cli: interrupted .vcp tmp with no user content is UNKNOWN, H3 elsewhere; tree unchanged', async (t) => {
+  const dir = await sandbox(t);
+  await mkdir(path.join(dir, '.vcp'));
+  await writeFile(path.join(dir, '.vcp', 'transaction-abc.tmp'), 'partial\n');
+  const before = await treeHash(dir);
+  const run = await runCli(dir, ['--json']);
+  assert.equal(await treeHash(dir), before);
+  const report = JSON.parse(run.stdout);
+  assert.equal(report.classification, 'BLOCKED');
+  assert.equal(report.classificationReason, 'MANIFEST_MISSING');
+  assert.equal(report.state.interruptedState, true);
+  assert.equal(report.state.manifest, 'absent');
+  assert.deepEqual(report.state.userOwnedSignals, []);
+  assert.equal(report.entrypoints.init.verdict, 'UNKNOWN');
+  assert.match(report.entrypoints.init.reason, /interrupted state is present/);
+  for (const name of ['update', 'manage', 'rollback']) {
+    assert.equal(report.entrypoints[name].verdict, 'UNKNOWN', name);
+    assert.deepEqual(report.entrypoints[name].hazards, ['H3'], name);
+  }
+  assertUnknownNotSafe(report);
+});
+
+test('cli: .vcp directory without manifest or user content is UNKNOWN everywhere; tree unchanged', async (t) => {
+  const dir = await sandbox(t);
+  await mkdir(path.join(dir, '.vcp'));
+  const before = await treeHash(dir);
+  const run = await runCli(dir, ['--json']);
+  // A .vcp directory without a manifest classifies BLOCKED
+  // (MANIFEST_MISSING), so the CLI exits 1 — the report is still
+  // printed, and every verdict is UNKNOWN.
+  assert.equal(run.code, 1, run.stderr);
+  assert.equal(await treeHash(dir), before);
+  const report = JSON.parse(run.stdout);
+  assert.equal(report.classification, 'BLOCKED');
+  assert.equal(report.classificationReason, 'MANIFEST_MISSING');
+  assert.equal(report.state.vcpDir, 'directory');
+  assert.equal(report.state.manifest, 'absent');
+  assert.deepEqual(report.state.userOwnedSignals, []);
+  for (const name of HAZARD_ENTRYPOINTS) {
+    assert.equal(report.entrypoints[name].verdict, 'UNKNOWN', name);
+  }
+  assert.match(report.entrypoints.init.reason, /\.vcp directory exists without a manifest/);
+  assertUnknownNotSafe(report);
+});
+
+test('cli: nested empty subdirectory (F14) is UNKNOWN everywhere; parent not assessed; tree unchanged', async (t) => {
+  const dir = await sandbox(t);
+  await writeFile(path.join(dir, 'AGENTS.md'), 'user bytes\n');
+  await mkdir(path.join(dir, 'docs'));
+  const target = path.join(dir, 'docs', 'empty-sub');
+  await mkdir(target);
+  const before = await treeHash(dir);
+  const run = await runCli(target, ['--json']);
+  assert.equal(run.code, 0, run.stderr);
+  assert.equal(await treeHash(dir), before, 'parent tree must be untouched');
+  const report = JSON.parse(run.stdout);
+  assert.equal(report.classification, 'NEW');
+  assert.deepEqual(report.state.userOwnedSignals, []);
+  for (const name of HAZARD_ENTRYPOINTS) {
+    assert.equal(report.entrypoints[name].verdict, 'UNKNOWN', name);
+  }
+  assertUnknownNotSafe(report);
 });
