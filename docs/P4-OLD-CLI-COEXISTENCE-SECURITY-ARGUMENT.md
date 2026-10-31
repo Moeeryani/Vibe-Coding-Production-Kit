@@ -15,8 +15,12 @@ the code and this argument, not the raw receipts.
 
 The published VCP 0.9.3 CLI (`init --force`, `update`, `manage`,
 `rollback`) is immutable and uncooperative: no lock file, sentinel,
-manifest flag, or `minimumReaderVersion` constrains it, because it
-never reads them. The P4 question is whether a *compatibility
+manifest flag, or `minimumReaderVersion` constrains it in the
+manifest-absent case. The historical CLI does read manifest existence
+— its already-initialized guard deflects `init --force` on
+manifest-present projects — but it does not consult any lock,
+sentinel, flag, or reader-version marker, and every such marker is
+removable by the same UID. The P4 question is whether a *compatibility
 containment strategy* exists that lets the new managed lifecycle
 coexist with the old CLI without data loss — and if not, what the
 blocker is and what partial fence does hold.
@@ -54,8 +58,12 @@ Why no fence can fix this under the required assumptions:
   owner can write, the old CLI can write.
 - A lock file, sentinel, manifest flag, or
   `minimumReaderVersion` is not proof, because the historical
-  CLI never reads them. (The D-01 reopen conditions record a
-  proven counterexample for the directory sentinel alone.)
+  CLI does not consult them: it reads manifest existence (and its
+  already-initialized guard deflects `init --force` on
+  manifest-present projects), which does not cover the
+  manifest-absent case, and every marker is removable by the same
+  UID. (The D-01 reopen conditions record a proven counterexample
+  for the directory sentinel alone.)
 - The only complete fences for this principal are: never run
   the old CLI against the project; mandatory access control
   confinement of the legacy binary (unproven in this sandbox —
