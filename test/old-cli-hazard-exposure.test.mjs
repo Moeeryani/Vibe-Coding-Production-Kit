@@ -74,7 +74,7 @@ test('empty state remains UNKNOWN, and linked entries are not dereferenced', asy
 }));
 
 test('pure assessment and formatter, no safety claim', () => {
-  const state={pathTrust:'DIRECTORY',entries:{'AGENTS.md':'file','manifest.json':'missing','update.lock':'directory'}};
+  const state={pathTrust:'DIRECTORY',entries:{'AGENTS.md':'file','manifest.json':'missing','update.lock':'directory','.vcp':'missing'}};
   const frozen=JSON.stringify(state);
   const r=assessOldCliHazardExposure(state);
   assert.equal(JSON.stringify(state),frozen);
@@ -87,4 +87,13 @@ test('non-directory target refuses instead of inspecting file contents', async()
   const f=path.join(root,'file');await writeFile(f,'KEEP');
   await assert.rejects(inspectOldCliHazardExposure(f),{code:'E_HAZARD_READ_FAILED'});
   assert.equal(await readFile(f,'utf8'),'KEEP');
+}));
+
+
+test('managed marker is never misreported as old init exposure solely from an AGENTS.md file', async () => fixture(async root => {
+  await mkdir(path.join(root,'.vcp'));
+  await writeFile(path.join(root,'AGENTS.md'),'managed');
+  const before=await snapshot(root), r=await inspectOldCliHazardExposure(root);
+  assert.equal(r.verdicts.init.status,'UNKNOWN');
+  assert.equal(await snapshot(root),before);
 }));
