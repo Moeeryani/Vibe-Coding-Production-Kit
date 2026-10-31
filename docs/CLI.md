@@ -217,6 +217,14 @@ vcp context accept-invite --dir packages/app --mode implement
 vcp verify accept-invite --dir packages/app --run
 ```
 
+## Old-CLI hazard exposure (read-only)
+
+```bash
+vcp hazard-exposure [directory] [--json]
+```
+
+`vcp hazard-exposure` is a read-only diagnostic (P4-01, Linux only) that reports whether the published VCP 0.9.3 CLI (`init --force`, `update`, `manage`, `rollback`) could damage user files in the assessed project, with per-entrypoint verdicts `EXPOSED`, `NOT_EXPOSED`, or `UNKNOWN` and the evidence IDs behind each verdict. It never writes, never executes the old CLI, and never follows a symbolic link. A linked root is refused without being followed. `EXPOSED` means a matching evidence-established hazard class applies to that state, not that the project is guaranteed to lose bytes; `UNKNOWN` is explicitly not safe. Exit 0 when a report is produced (even when an entrypoint is EXPOSED); exit 1 when access is refused or the classification is BLOCKED. See [`P4-OLD-CLI-HAZARD-THREAT-MODEL.md`](P4-OLD-CLI-HAZARD-THREAT-MODEL.md) for the hazard classes (H1–H5), the evidence table, and the exact verdict rules.
+
 Task slugs, Source-of-Truth references, context include/planned/output paths, verification evidence paths, and verification command working directories are all interpreted from that selected root. `--dir` does not rebase a Task Pack authored for another project, and VCP does not fall back to parent-repository files when a reference is missing in the selected root.
 
 ## Gate task readiness
