@@ -211,3 +211,68 @@ is not an atomic snapshot.
   limitations. Any other flag is rejected: the command is
   always read-only and accepts no mutating or planning
   flags.
+
+## 8. Containment gate (P4-02b, `vcp containment`)
+
+The gate is the decision layer over this detector. It takes a
+hazard report (version 2) plus a managed-state descriptor
+(manifest / journal / lock / isEmptyDir) and returns `REFUSE`
+or `ALLOW_UNDER_TEST_ONLY`. There is no `ALLOW_PRODUCTION`
+outcome in the code.
+
+Rules, in order (first match wins):
+
+- **G0 — scope.** Any scope other than `disposable-test`
+  refuses (`E_CONTAINMENT_PRODUCTION_REFUSED`). D-01 is
+  DEFERRED, G-FENCE is NO_GO, production writers are DISABLED.
+- **G1 — proven hazard.** An `EXPOSED` verdict for the
+  operation refuses (`E_CONTAINMENT_HAZARD_EXPOSED`), citing
+  the POC evidence. Test scope does not override a proven
+  hazard.
+- **G2 — linked root.** A linked root refuses
+  (`E_CONTAINMENT_LINKED_ROOT`, OD-3).
+- **G3 — interrupted / stray / adoption states.** Any H3
+  trigger (interrupted state, root manifest stray, adoption
+  markers, root `transaction.json`, non-file root
+  `update.lock`) refuses
+  (`E_CONTAINMENT_INTERRUPTED_STATE`, OD-4).
+- **G4 — managed-state failures.** Missing, unreadable, or
+  v1 manifest; non-clean journal; abnormal `.vcp/update.lock`
+  refuse (`E_CONTAINMENT_MANIFEST_ABSENT` /
+  `E_CONTAINMENT_MANIFEST_UNREADABLE` /
+  `E_CONTAINMENT_LEGACY_MANIFEST` /
+  `E_CONTAINMENT_JOURNAL_NOT_CLEAN` /
+  `E_CONTAINMENT_LOCK_ABNORMAL`). A stale hazard report
+  (version ≠ 2) refuses
+  (`E_CONTAINMENT_STALE_HAZARD_REPORT`).
+- **G6 — allow under test only.** Otherwise the operation
+  may proceed ONLY inside an explicitly authorized
+  disposable-test fixture, under the controlled writer lane.
+
+**H4 is a residual risk on every allow, never a refusal in
+test scope.** The test scope runs a single writer by
+construction and the old CLI is not running concurrently in
+the fixture, so the concurrency hazard is bounded by the
+test setup, not by a gate refusal. In production scope
+everything refuses via G0 regardless. (This corrects the
+earlier draft, which had H4 refusing init on non-empty
+directories under test.)
+
+The test scope requires BOTH `--test-scope` and the
+disposable-fixture opt-in
+`VCP_P4_TEST_SCOPE=I_UNDERSTAND_DISPOSABLE_ONLY`. The flag
+without the opt-in is an explicit error, not a silent
+downgrade. An allow is never a production authorization:
+every `ALLOW_UNDER_TEST_ONLY` carries residual risks
+(H4/PH-06 single-writer scope, crash/power-loss unproven,
+same-UID old CLI blocked, no Windows proof, no MAC proof).
+
+Init on an already-managed (v2) project is allowed by
+containment in test scope: the old init refuses an intact v2
+project (POC scenario `intact-v2-old-init`), so containment
+has nothing to block. The new CLI's own init still refuses
+an already-managed project as already-managed — a separate,
+safe lifecycle refusal, not a containment decision.
+
+Exit 0 only on `ALLOW_UNDER_TEST_ONLY`; exit 1 on `REFUSE`.
+The decision itself never writes.
