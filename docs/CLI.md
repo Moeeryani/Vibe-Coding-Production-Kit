@@ -478,3 +478,8 @@ rollback; these are not silently copied into new safe projects.
 See [Consumer Asset Separation](CONSUMER-ASSET-SEPARATION.md). Historical
 released v0.9.3 syntax above continues to describe the published CLI; this
 new entrypoint only exists on the unmerged development branch.
+
+
+### Historical 0.9.3 hazard exposure (P4-01, read-only)
+
+`vcp hazard-exposure [directory] [--json]` inspects only project-entry metadata and reports EXPOSED, NOT_EXPOSED, or UNKNOWN independently for the old 0.9.3 init, update, manage, and rollback entrypoints. EXPOSED identifies a POC-backed hazard class, **not** certain data loss. UNKNOWN is never evidence of safety; the detector deliberately avoids NOT_EXPOSED without exact-state proof. It does **not** execute 0.9.3, apply a fence, write to the project, or authorize D-01/G-FENCE operations. Linked roots are not traversed, and path identity checking is not atomic against concurrent renames. See docs/P4-OLD-CLI-HAZARD-THREAT-MODEL.md for evidence and limitations.
