@@ -332,6 +332,32 @@ gateNestedMut('P5-02-R11 — recovery transition carries postApplyFiles forward 
   } finally { await teardownControlledFixture(f); }
 });
 
+gateNestedMut('P5-02-R12 — backup entry file deleted: restore proceeds and the receipt flags the skipped entry (R-INT-10)', async () => {
+  const f = await createControlledFixture({ allowedOperations: OPS });
+  try {
+    const backupId = 'p5-02-r12';
+    const { manifestSha256 } = await setupBackupFixture(f, backupId);
+    await writeCommittedStage13Tx(f.root, {
+      manifestSha256, items: [agentsSectionItem()],
+    });
+    // The backup entry file is gone (the record still names it). The
+    // evidence check judges the live bytes, which match the recorded
+    // apply, so the restore proceeds — but the receipt must flag the
+    // skip instead of reporting restoredFiles:[] with no flag.
+    await rm(path.join(f.root, '.vcp', 'backups', backupId, 'files', 'AGENTS.md'));
+    const backupManifestBytes = await readFile(
+      path.join(f.root, '.vcp', 'backups', backupId, 'manifest.json'));
+    const receipt = await rollback(f, backupId);
+    assert.equal(receipt.rolledBack, true);
+    assert.deepEqual(receipt.restoredFiles, []);
+    assert.deepEqual(receipt.skippedEntries,
+      [{ relative: 'AGENTS.md', reason: 'backup-file-missing' }]);
+    // The manifest is restored from the tamper-checked backup (the
+    // backup's own manifest bytes, not the current manifest's).
+    assert.deepEqual(await readFile(path.join(f.root, '.vcp', 'manifest.json')), backupManifestBytes);
+  } finally { await teardownControlledFixture(f); }
+});
+
 // --- v1/v2 CLI boundary (R-INT-1) ---
 
 test('P5-02-B1 — live v1 rollback on a v1 backup still succeeds (CLI behavior unchanged)', async () => {
