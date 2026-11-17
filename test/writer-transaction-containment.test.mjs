@@ -152,7 +152,8 @@ gateNestedMut('P5-04-B — TOCTOU ladder: swaps during journal writes never prod
       swaps += 1;
       const r = await pending;
       if (!r.ok && ['E_JOURNAL_CHANGED', 'E_FS_IDENTITY_CHANGED',
-        'E_JOURNAL_NAMESPACE_CHANGED'].includes(r.code)) stagedRefusals += 1;
+        'E_JOURNAL_NAMESPACE_CHANGED', 'E_JOURNAL_COMMIT_NAMESPACE_CHANGED',
+        'E_JOURNAL_COMMIT_NOT_DURABLE'].includes(r.code)) stagedRefusals += 1;
       if (r.ok) {
         const state = await classifyJournalCrashState(f.root);
         assert.equal(state.state, 'complete',
@@ -162,6 +163,7 @@ gateNestedMut('P5-04-B — TOCTOU ladder: swaps during journal writes never prod
           { expectedHash: h }, f.capability).catch(() => {});
       } else {
         assert.ok(['E_JOURNAL_CHANGED', 'E_JOURNAL_NAMESPACE_CHANGED',
+          'E_JOURNAL_COMMIT_NAMESPACE_CHANGED', 'E_JOURNAL_COMMIT_NOT_DURABLE',
           'E_JOURNAL_ALREADY_EXISTS', 'E_FS_IDENTITY_CHANGED',
           'E_FS_OS_ERROR', 'E_JOURNAL_UNBOUND'].includes(r.code),
           `round ${i}: refusal code must be a known fail-closed code (got ${r.code})`);

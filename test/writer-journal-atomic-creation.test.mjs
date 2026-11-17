@@ -13,7 +13,7 @@
 // through the controlled lane. See B4-B5-CONTROLLED-LANE-SECURITY-REVIEW.md.
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { lstat, link, mkdir, readFile, readdir, symlink, writeFile } from 'node:fs/promises';
+import { lstat, link, mkdir, readFile, readdir, rename, rm, symlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import test from 'node:test';
 import { mutationTest } from './helpers/layer-assertion.mjs';
@@ -26,6 +26,7 @@ import {
 } from '../lib/versioned-journal.mjs';
 import { describeStage13Transaction } from '../lib/stage13-transaction.mjs';
 import { describeVersionedTransaction } from '../lib/managed-recovery-v2.mjs';
+import { secureWriterProviderStatus } from '../lib/secure-fs-provider.mjs';
 
 const OPS = ['journal-write', 'journal-clear'];
 const sha256 = (b) => createHash('sha256').update(b).digest('hex');
@@ -58,10 +59,17 @@ mutationTest('P5-01-A — 8 parallel creators, 10 rounds: exactly one wins per r
         assert.ok(REFUSAL_CODES.has(r.reason?.code),
           `round ${round}: loser refusal must be deterministic (got ${r.reason?.code})`);
       }
-      // The winning journal is intact and its provenance matches.
+      // The winning journal is intact and its provenance matches the
+      // mode: anchored (helper present) records provenance; legacy
+      // mode reports 'unrecorded' by design. R-INT-14: this test
+      // over-asserted 'recorded-matching' in legacy mode (the
+      // validator's unbuilt-tree run failed 14/15 on this assertion
+      // alone; product behavior held).
       const inspected = await inspectVersionedJournal(f.root);
-      assert.equal(inspected.provenance, 'recorded-matching',
-        `round ${round}: winner provenance must be recorded-matching`);
+      const st = secureWriterProviderStatus();
+      const anchored = st.provider === 'linux-native' && st.helper.present;
+      assert.equal(inspected.provenance, anchored ? 'recorded-matching' : 'unrecorded',
+        `round ${round}: winner provenance must be ${anchored ? 'recorded-matching' : 'unrecorded'}`);
       assert.equal(inspected.sha256, ok[0].value.sha256,
         `round ${round}: inspected digest must match the winner return`);
       // No staging temp survives any writer (winner renamed, losers deleted).
@@ -189,6 +197,61 @@ mutationTest('P5-01-F — concurrent transitions: final journal always a valid v
       assert.equal(state.formatVersion, 2);
     } finally { await teardownControlledFixture(f); }
   }
+});
+
+mutationTest('P5-01-H — root replacement mid-transition: a false failure is reported accurately (R-INT-8)', async () => {
+  // Adapted from the independent validator's T3 probe. The honest
+  // property: the journal is always a valid version (never torn), and
+  // when the rename lands in the detached tree while the caller is
+  // told the write failed, the refusal MUST name the namespace
+  // change (E_JOURNAL_COMMIT_NAMESPACE_CHANGED) — never a generic
+  // helper failure. The refusal code is asserted only when the
+  // refused-but-mutated case actually occurs in a run (timing
+  // decides whether the swap lands in the window); the never-torn
+  // property is asserted unconditionally.
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const outcomes = { refusedMutated: 0, refusedNamespaceChanged: 0, succeeded: 0, torn: 0 };
+  for (const delay of [5, 10, 20, 35, 50]) {
+    for (let rep = 0; rep < 4; rep++) {
+      const f = await createControlledFixture({ allowedOperations: OPS });
+      try {
+        await withVcp(f);
+        await writeVersionedJournal(f.root, desc('p5-01-h'),
+          { previousHash: null, readerVersion: '0.9.4' }, f.capability);
+        const h = await readVersionedJournalDigest(f.root);
+        const before = await readFile(path.join(f.root, '.vcp', 'transaction.json'), 'utf8');
+        const prepared = JSON.parse(before);
+        const moved = f.root + '-moved';
+        const pending = writeVersionedJournal(f.root, { ...prepared, phase: 'applying' },
+          { previousHash: h, readerVersion: '0.9.4' }, f.capability)
+          .then(() => ({ ok: true })).catch((e) => ({ ok: false, code: e.code }));
+        await sleep(delay);
+        await rename(f.root, moved);
+        await mkdir(f.root, { mode: 0o700 });
+        await mkdir(path.join(f.root, '.vcp'), { mode: 0o700 });
+        await writeFile(path.join(f.root, '.vcp', 'transaction.json'),
+          JSON.stringify(desc('p5-01-h-copy')) + '\n');
+        const r = await pending;
+        const movedBytes = await readFile(path.join(moved, '.vcp', 'transaction.json'), 'utf8');
+        const movedPhase = JSON.parse(movedBytes).phase;
+        const mutated = movedBytes !== before;
+        const state = await classifyJournalCrashState(moved);
+        if (!['complete', 'absent', 'staged-interrupted'].includes(state.state)) outcomes.torn++;
+        if (r.ok) {
+          outcomes.succeeded++;
+          if (movedPhase !== 'applying') outcomes.torn++;
+        } else if (mutated) {
+          outcomes.refusedMutated++;
+          assert.equal(r.code, 'E_JOURNAL_COMMIT_NAMESPACE_CHANGED',
+            `delay ${delay} rep ${rep}: refused-but-mutated must report E_JOURNAL_COMMIT_NAMESPACE_CHANGED (got ${r.code})`);
+          outcomes.refusedNamespaceChanged++;
+        }
+        await rm(f.root, { recursive: true, force: true });
+        await rename(moved, f.root);
+      } finally { await teardownControlledFixture(f); }
+    }
+  }
+  assert.equal(outcomes.torn, 0, `journal must never tear under root replacement (torn=${outcomes.torn})`);
 });
 
 test('P5-01-G — crash-state classifier matrix', async () => {
