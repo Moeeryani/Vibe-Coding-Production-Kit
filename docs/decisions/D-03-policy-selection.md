@@ -2,7 +2,7 @@
 
 **Decision owner:** Moeeryani (authenticated connected GitHub profile)  
 **Maintainer instruction time:** 2026-10-09T01:25:54Z (project conversation)  
-**Canonical register:** D-03 remains **PROPOSED**, specifically because its independent required-location inventory is still `coverageReview: PENDING` and there has been no native Windows junction proof. This records a **selected design direction**, not a claim that all acceptance machinery is complete.
+**Canonical register:** D-03 is **ACCEPTED** as a design decision (maintainer selected D-02/D-03/D-04/D-05/D-06/D-12 = ACCEPTED, 2026-10-10T19:02:43Z; see `docs/decisions/D-03.json` and `docs/ADAPTIVE-VCP-DECISIONS.md`). Its independent required-location inventory is still `coverageReview: PENDING` and there has been no native Windows junction proof, so acceptance of the design choice is **not** a claim that coverage, implementation, or acceptance machinery is complete.
 
 ## Selected policy
 
