@@ -198,7 +198,14 @@ test('D-06: independent required-anchor inventory catches missing S/T/Task/Local
 test('D-06: acceptance cannot bypass independent coverage review or amend its own expected clause', async () => {
   const inventory = JSON.parse(await readFile(path.join(root, 'docs/decisions/required-anchors.json'), 'utf8'));
   const anchors = inventory.decisions['D-06'].anchors;
-  const notReviewed = checkRequiredCoverage('D-06', anchors, inventory);
+  // The "not reviewed" case must use a fixture, not the live inventory:
+  // OD-2 approved D-06's coverage review, so the live inventory is
+  // APPROVED and checkRequiredCoverage correctly reports no defect.
+  const notReviewedFixture = {
+    schemaVersion: 1,
+    decisions: { 'D-06': { coverageReview: 'PENDING', anchors } }
+  };
+  const notReviewed = checkRequiredCoverage('D-06', anchors, notReviewedFixture);
   assert.match(notReviewed.join('\n'), /NOT maintainer-reviewed/);
   const fakeApproved = {
     schemaVersion: 1,
