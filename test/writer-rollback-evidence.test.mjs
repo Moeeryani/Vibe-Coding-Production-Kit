@@ -9,10 +9,11 @@
 // there is no destructive fallback from "record missing" to
 // "restore anyway".
 //
-// The v1/v2 boundary (R-INT-1): live `vcp rollback` calls frozen v1
-// rollbackProject; rollbackV2 has no CLI caller. These tests pin
-// that boundary: v1 succeeds on v1 backups, refuses schema-v2 and
-// versioned-journal state, and the CLI never calls rollbackV2.
+// The v1/v2 boundary (R-INT-1, closed by P6-01): live `vcp rollback`
+// routes through the dispatch — frozen v1 rollbackProject for v1 state,
+// rollbackV2 for v2 state. These tests pin that boundary: v1 succeeds
+// on v1 backups, refuses schema-v2 and versioned-journal state, and
+// the CLI handler calls the dispatch (never either handler directly).
 //
 // Controlled lane only for the rollbackV2 tests: disposable fixtures,
 // gate-bypassed mutations through the controlled lane. See
@@ -410,14 +411,18 @@ test('P5-02-B3 — live v1 rollback refuses versioned-journal state', async () =
     /Versioned recovery state requires the dedicated schema-v2 handler/);
 });
 
-test('P5-02-B4 — the CLI never calls rollbackV2 (live rollback is v1 only)', async () => {
+test('P6-01-B4 — the CLI routes rollback through the dispatch (v1 state still goes to v1)', async () => {
   const cli = await readFile(
     path.join(import.meta.dirname, '..', 'lib', 'cli.mjs'), 'utf8');
-  assert.ok(!cli.includes('rollbackV2'),
-    'lib/cli.mjs must not reference rollbackV2');
-  assert.ok(cli.includes('rollbackProject'),
-    'lib/cli.mjs must still call the frozen v1 rollbackProject');
   const handler = cli.slice(cli.indexOf("parsed.command === 'rollback'"));
-  assert.ok(handler.includes('rollbackProject'),
-    'the rollback command handler must call rollbackProject');
+  assert.ok(handler.includes('rollbackDispatch'),
+    'the rollback command handler must call rollbackDispatch');
+  assert.ok(!handler.includes('rollbackProject'),
+    'the rollback command handler must not call rollbackProject directly');
+  const dispatch = await readFile(
+    path.join(import.meta.dirname, '..', 'lib', 'rollback-dispatch.mjs'), 'utf8');
+  assert.ok(dispatch.includes('rollbackProject'),
+    'the dispatch must still route v1 state to the frozen v1 rollbackProject');
+  assert.ok(dispatch.includes('rollbackV2'),
+    'the dispatch must route v2 state to rollbackV2');
 });
