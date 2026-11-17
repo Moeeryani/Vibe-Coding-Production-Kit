@@ -214,6 +214,8 @@ mutationTest('P5-01-H — root replacement mid-transition: a false failure is re
   for (const delay of [5, 10, 20, 35, 50]) {
     for (let rep = 0; rep < 4; rep++) {
       const f = await createControlledFixture({ allowedOperations: OPS });
+      const moved = f.root + '-moved';
+      let swapped = false;
       try {
         await withVcp(f);
         await writeVersionedJournal(f.root, desc('p5-01-h'),
@@ -221,12 +223,12 @@ mutationTest('P5-01-H — root replacement mid-transition: a false failure is re
         const h = await readVersionedJournalDigest(f.root);
         const before = await readFile(path.join(f.root, '.vcp', 'transaction.json'), 'utf8');
         const prepared = JSON.parse(before);
-        const moved = f.root + '-moved';
         const pending = writeVersionedJournal(f.root, { ...prepared, phase: 'applying' },
           { previousHash: h, readerVersion: '0.9.4' }, f.capability)
           .then(() => ({ ok: true })).catch((e) => ({ ok: false, code: e.code }));
         await sleep(delay);
         await rename(f.root, moved);
+        swapped = true;
         await mkdir(f.root, { mode: 0o700 });
         await mkdir(path.join(f.root, '.vcp'), { mode: 0o700 });
         await writeFile(path.join(f.root, '.vcp', 'transaction.json'),
@@ -246,9 +248,15 @@ mutationTest('P5-01-H — root replacement mid-transition: a false failure is re
             `delay ${delay} rep ${rep}: refused-but-mutated must report E_JOURNAL_COMMIT_NAMESPACE_CHANGED (got ${r.code})`);
           outcomes.refusedNamespaceChanged++;
         }
-        await rm(f.root, { recursive: true, force: true });
-        await rename(moved, f.root);
-      } finally { await teardownControlledFixture(f); }
+      } finally {
+        // Restore the original root even if an assertion failed, so a
+        // teardown identity error never masks the real failure.
+        if (swapped) {
+          await rm(f.root, { recursive: true, force: true }).catch(() => {});
+          await rename(moved, f.root).catch(() => {});
+        }
+        await teardownControlledFixture(f);
+      }
     }
   }
   assert.equal(outcomes.torn, 0, `journal must never tear under root replacement (torn=${outcomes.torn})`);
